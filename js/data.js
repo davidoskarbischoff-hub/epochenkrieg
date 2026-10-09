@@ -1,6 +1,6 @@
 // Spieldaten: Einheiten, Gebäude, Ressourcen, Epochen, Schwierigkeit, Farben.
 // Hier lässt sich das Balancing ändern, ohne die Spiellogik anzufassen.
-const W=2400,H=1600,CARRY=15;
+const W=3600,H=2400,CARRY=15;
 // Sammeln je Ressource: Tempo-Faktor und Tragekapazität (Beeren bringen mehr, weil Nahrung sonst knapp ist)
 const GATHER={food:{rate:1.5,carry:15},wood:{rate:1,carry:10},stone:{rate:.9,carry:10},iron:{rate:.8,carry:8}};
 const UNITS={
@@ -18,7 +18,7 @@ const BLDS={
   barracks:{name:'Kaserne',sight:190,claim:130,hp:700,r:27,cost:{wood:150},time:24,ep:0,sub:'Bildet Krieger aus'},
   tower:{name:'Wachturm',sight:300,claim:320,hp:550,r:14,cost:{wood:60,stone:100},time:28,ep:1,shoot:{rng:170,atk:9,cd:1.5},sub:'Schiesst auf Gegner'}
 };
-const NODES={tree:{rt:'wood',amt:120,r:11,name:'Baum'},bush:{rt:'food',amt:220,r:10,name:'Beerenstrauch'},stone:{rt:'stone',amt:300,r:13,name:'Steinvorkommen'},iron:{rt:'iron',amt:260,r:12,name:'Eisenvorkommen'}};
+const NODES={tree:{cap:3,rt:'wood',amt:120,r:11,name:'Baum'},bush:{cap:4,rt:'food',amt:220,r:10,name:'Beerenstrauch'},stone:{cap:3,rt:'stone',amt:300,r:13,name:'Steinvorkommen'},iron:{cap:3,rt:'iron',amt:260,r:12,name:'Eisenvorkommen'}};
 const EPOCHS=[{name:'Steinzeit',cost:{food:350,wood:200},time:30},{name:'Bronzezeit',cost:{food:500,wood:250,stone:200},time:40},{name:'Eisenzeit'}];
 const RES=['food','wood','stone','iron'],RN={food:'Nahrung',wood:'Holz',stone:'Stein',iron:'Eisen'};
 const DIFF={leicht:{gather:.7,first:420,wave:5},normal:{gather:1,first:300,wave:6},schwer:{gather:1.35,first:220,wave:7}};
