@@ -8,9 +8,9 @@ const advisor={cur:null,ignore:{},next:0,last:-9,shown:'',strat:'balanced',intel
 const STRATS={
   balanced:{name:'Ausgewogen',desc:'Von allem etwas',wk:[10,20,30,40,40],mil:ep=>6+ep*3,atk:ep=>7+ep*2,tow:()=>1,barW:6,bar2:99,hs:1,w:{}},
   turtle:{name:'Verteidigung',desc:'Türme, solide Armee, spät angreifen',wk:[10,20,30,40,40],mil:ep=>8+ep*3,atk:ep=>16+ep*4,tow:ep=>2+ep,barW:6,bar2:99,hs:1,w:{tower:1,upg:2,army:2,barracks:2,tech:3,attack:9}},
-  boom:{name:'Aufstieg',desc:'So schnell wie möglich in die höchste Epoche',wk:[12,22,32,42,42],mil:ep=>3+ep*2,atk:ep=>14+ep*3,tow:()=>1,barW:9,bar2:99,hs:2,w:{adv:1,upg:1,tech:2,worker:2,house:2,barracks:8,army:8,attack:9}},
+  boom:{name:'Aufstieg',desc:'So schnell wie möglich in die höchste Epoche',wk:[12,22,32,42,42],mil:ep=>3+ep*2,atk:ep=>14+ep*3,tow:()=>1,barW:9,bar2:99,hs:2,w:{adv:1,upg:1,tech:2,worker:2,house:2,balance:2,barracks:8,army:8,attack:9}},
   rush:{name:'Angriff',desc:'Früh viele Truppen, schnell zuschlagen',wk:[8,10,12,14,14],mil:ep=>12+ep*5,atk:ep=>5+ep,tow:()=>1,barW:4,bar2:8,hs:1,w:{barracks:1,army:1,attack:2,worker:4,adv:7,tech:7,upg:6}},
-  eco:{name:'Wirtschaft',desc:'Viele Arbeiter, große Vorräte',wk:[14,26,36,46,46],mil:ep=>4+ep*2,atk:ep=>12+ep*3,tow:()=>1,barW:10,bar2:99,hs:3,w:{worker:1,house:1,harbor:2,tech:2,shift:2,adv:3,upg:3,barracks:7,army:7,attack:9}}
+  eco:{name:'Wirtschaft',desc:'Viele Arbeiter, große Vorräte',wk:[14,26,36,46,46],mil:ep=>4+ep*2,atk:ep=>12+ep*3,tow:()=>1,barW:10,bar2:99,hs:3,w:{worker:1,house:1,balance:1,harbor:2,tech:2,shift:2,adv:3,upg:3,barracks:7,army:7,attack:9}}
 };
 /* Lagebild: was der Spieler vom Gegner weiß (gemerkte Gebäude, sichtbare Truppen) */
 function advIntel(){
@@ -40,9 +40,9 @@ function advBuild(type){
   sfx('click');return true}
 function advIdle(){
   const R=G.res[0],ep=G.epoch[0];let i=0;
-  const need=(ep>=2&&R.iron<100)?'iron':(ep>=1&&R.stone<150)?'stone':R.food<R.wood?'food':'wood';
+  const goal={food:300,wood:300,stone:ep>=1?160:0,iron:ep>=2?100:0},need=RES.filter(rt=>goal[rt]).sort((a,b)=>R[a]/goal[a]-R[b]/goal[b])[0];
   for(const u of G.ents){if(u.dead||u.team!==0||u.kind!=='unit'||!UNITS[u.type].gather||u.state!=='idle'||u.upj)continue;
-    const order=UNITS[u.type].naval?['food']:[need,R.food<250?'food':'wood','wood','food'];
+    const order=UNITS[u.type].naval?['food']:[need,'food','wood','food'];
     const rt0=order[i++%order.length];
     for(const rt of [rt0,'wood','food']){if(!UNITS[u.type].naval&&!canGather(u,rt))continue;const n=nearestNode(rt,u.x,u.y,900,u,true)||nearestNode(rt,u.x,u.y,900,u);if(n){u.state='gather';u.tid=n.id;u.rtype=rt;u.pf=null;break}}}
   sfx('order')}
@@ -84,6 +84,20 @@ function advRules(){
   if(ep<EPOCHS.length-1&&workers.length>=8){const goal=EPOCHS[ep].cost;
     for(const rt of RES){const need=goal[rt]||0;if(!need||R[rt]>=need)continue;const on=workers.filter(w=>w.rtype===rt&&(w.state==='gather'||w.state==='return')).length;if(on>=2||!workers.some(w=>canGather(w,rt)))continue;
       const donor=RES.filter(x=>x!==rt&&R[x]>(goal[x]||0)+150).sort((a,b)=>R[b]-R[a])[0];if(donor){push({id:'shift:'+rt,txt:'Arbeiter auf {0} umstellen (wird für den Aufstieg gebraucht)',args:[rn(rt)],go:()=>shiftWorkers(donor,rt,3)});break}}}
+  // Fischerboote: Nahrung vom Meer
+  {const hb=has('harbor').find(b=>b.built&&b.queue.length<1),nb=has('boat').length;
+    if(hb&&nb<2+Math.min(3,ep)&&G.pop[0]<G.cap[0]&&afford(0,UNITS.boat.cost))push({id:'boat',txt:'ein Fischerboot ausbilden (Nahrung vom Meer)',cost:UNITS.boat.cost,go:()=>enqueue(hb,'boat',0)&&(panelSig='')})}
+  // Arbeiter umverteilen: ein Rohstoff fehlt, ein anderer liegt ungenutzt herum
+  if(workers.length>=8){const can=RES.filter(rt=>workers.some(w=>canGather(w,rt))),on=rt=>workers.filter(w=>w.rtype===rt&&w.state==='gather').length;
+    const lo=can.filter(rt=>R[rt]<100).sort((x,y)=>R[x]-R[y])[0],hi=can.filter(rt=>R[rt]>420&&on(rt)>=4).sort((x,y)=>R[y]-R[x])[0];
+    if(lo&&hi&&lo!==hi)push({id:'balance:'+lo,txt:'3 Arbeiter von {0} auf {1} umstellen (hier fehlt es, dort liegt genug)',args:[rn(hi),rn(lo)],go:()=>shiftWorkers(hi,lo,3)})}
+  // Lager am Wald: wenn viele Holzfäller weit vom nächsten Abgabegebäude arbeiten
+  {const drops=mine.filter(e=>e.kind==='bld'&&e.built&&BLDS[e.type].drop),cutters=workers.filter(w=>w.rtype==='wood'&&(w.state==='gather'||w.state==='return')&&w.tid&&G.byId.get(w.tid));
+    if(cutters.length>=3&&drops.length&&workers.length>=6&&afford(0,BLDS.store.cost)&&!mine.some(e=>e.type==='store'&&!e.built)){
+      const far=cutters.filter(w=>{const n=G.byId.get(w.tid);return Math.min(...drops.map(d=>Math.hypot(d.x-n.x,d.y-n.y)))>170});
+      if(far.length>=3){const cx=far.reduce((s,w)=>s+G.byId.get(w.tid).x,0)/far.length,cy=far.reduce((s,w)=>s+G.byId.get(w.tid).y,0)/far.length;
+        let spot=null;for(let d=30;d<=110&&!spot;d+=14)for(let k=0;k<24&&!spot;k++){const a=k*.2618,x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d;if(!placeBlock('store',x,y))spot={x,y}}
+        if(spot)push({id:'store',txt:'ein Lager nahe dem Wald bauen, damit die Holzfäller kürzere Wege haben',cost:BLDS.store.cost,go:()=>{if(!pay(0,BLDS.store.cost)){toast(missing(0,BLDS.store.cost)+'.');return false}const b=addBld('store',0,spot.x,spot.y,false);const ws=far.slice(0,2);ws.forEach(w=>{w.state='build';w.tid=b.id;w.pf=null});sfx('click');return true}})}}}
   if(G.t>40&&!has('scout').length&&hq.queue.length<2&&afford(0,UNITS.scout.cost))push({id:'scout',txt:'einen Späher ausbilden, um die Karte zu erkunden',cost:UNITS.scout.cost,go:()=>enqueue(hq,'scout',0)&&(panelSig='')});
   // zweite Kaserne bei Angriffstaktik
   if(bars.length===1&&bars[0].built&&workers.length>=S.bar2&&afford(0,BLDS.barracks.cost)&&advFindSpot('barracks'))push({id:'barracks2',txt:'eine zweite Kaserne bauen, um mehr Truppen gleichzeitig auszubilden',cost:BLDS.barracks.cost,go:()=>advBuild('barracks')});
@@ -99,7 +113,7 @@ function advRules(){
     if(I.known&&I.ep>ep&&ep<EPOCHS.length-1)push({id:'in:behind',txt:'Der Gegner ist schon in der {0} – du liegst zurück, steige bald auf',args:[tr(EPOCHS[I.ep].name)],go:()=>{sfx('click')}});
     if((I.harbor||I.naval)&&!has('harbor').length&&workers.length>=8&&afford(0,BLDS.harbor.cost)&&advFindSpot('harbor'))push({id:'in:harbor',txt:'Der Gegner hat Schiffe oder einen Hafen – baue selbst einen Hafen und Kriegsschiffe',cost:BLDS.harbor.cost,go:()=>advBuild('harbor')});
   }
-  const bw=(S.w||{}),base={defend:0,idle:1,explore:3,in:4},key=r=>{const k=r.id.split(':')[0];return bw[k]!==undefined?bw[k]:base[k]!==undefined?base[k]:5};
+  const bw=(S.w||{}),base={defend:0,idle:1,balance:2,explore:3,in:4},key=r=>{const k=r.id.split(':')[0];return bw[k]!==undefined?bw[k]:base[k]!==undefined?base[k]:5};
   rules.sort((a,b)=>key(a)-key(b));
   return rules}
 function advisorUI(){

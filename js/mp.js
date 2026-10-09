@@ -18,7 +18,7 @@ function encodeSnap(){
     if(e.kind==='unit')U.push({i:e.id,ty:e.type,m:e.team,x:r1(e.x),y:r1(e.y),a:Math.round(e.fa*100)/100,h:Math.round(e.hp),H:e.maxHp,l:e.lvl,s:e.state,c:r1(e.carry||0),ct:e.ctype||0,rt:e.rtype||0,td:e.tid||0,sw:rel(e.swing),ga:rel(e.gat),mv:rel(e.mvT),u:e.upj?1:0,cd:r1(e.cd||0),q:e.team===0&&e.q&&e.q.length?e.q:0,lp:e.loop?1:0});
     else if(e.kind==='bld')B.push({i:e.id,ty:e.type,m:e.team,x:r1(e.x),y:r1(e.y),h:Math.round(e.hp),H:e.maxHp,l:e.lvl,b:e.built?1:0,p:Math.round(e.prog*1000)/1000,an:e.ang||0,u:e.upj?1:0,qu:e.team===0?e.queue.map(q=>({type:q.type,t:r1(q.t),blocked:q.blocked?1:0})):0,r:e.team===0&&e.rally?e.rally:0});
     else if(e.kind==='animal')A.push({i:e.id,ty:e.type,x:r1(e.x),y:r1(e.y),a:Math.round(e.fa*100)/100,h:Math.round(e.hp),s:e.state,sw:rel(e.swing),mv:rel(e.mvT)});
-    else if(e.kind==='node'&&e.amount<e.maxAmt-.5)N.push([e.id,Math.round(e.amount)])}
+    else if(e.kind==='node'&&(e.amount<e.maxAmt-.5||e.snapLow)){N.push([e.id,Math.round(e.amount)]);e.snapLow=e.amount<e.maxAmt-.5}}
   return{t:r1(G.t),over:G.over,res:G.res.map(r=>({food:Math.floor(r.food),wood:Math.floor(r.wood),stone:Math.floor(r.stone),iron:Math.floor(r.iron)})),epoch:G.epoch.slice(),
     adv:G.adv.map(a=>a?{t:r1(a.t),time:a.time}:null),tech:G.tech.map(t=>[...t]),rs:G.rs.map(a=>a.map(r=>({id:r.id,t:r1(r.t),time:r.time}))),
     jobs:G.jobs.map(a=>a.map(j=>({label:j.label,t:r1(j.t),time:j.time,to:j.to,n:j.n,team:j.team}))),stats:{lost:G.stats.lost.slice(),trained:G.stats.trained.slice()},
@@ -38,7 +38,7 @@ function applySnap(s){
     e.team=r.m;e.x=r.x;e.y=r.y;e.hp=r.h;e.maxHp=r.H;e.lvl=r.l;e.built=!!r.b;e.prog=r.p;e.ang=r.an;e.upj=r.u?{}:null;e.queue=r.qu||[];e.rally=r.r||null}
   for(const r of s.A||[]){seen.add(r.i);let e=G.byId.get(r.i);if(!e||e.dead)e=addAnimal(r.ty,r.x,r.y,r.i);e.tx=r.x;e.ty=r.y;e.fa=r.a;e.hp=r.h;e.state=r.s;e.swing=r.sw>=0?G.t-r.sw:undefined;e.mvT=r.mv>=0?G.t-r.mv:undefined}
   for(const e of G.ents)if(!e.dead&&(e.kind==='unit'||e.kind==='bld'||e.kind==='animal')&&!seen.has(e.id))removeEnt(e);
-  for(const [id,amt] of s.N){const n=G.byId.get(id);if(n&&!n.dead){n.amount=amt;if(amt<=.5)removeEnt(n)}}
+  for(const [id,amt] of s.N){const n=G.byId.get(id);if(n&&!n.dead){n.amount=amt;if(amt<=.5&&!n.regen)removeEnt(n)}}
   G.proj=s.P.map(([x,y,a,big,gun])=>({x,y,a,big:!!big,gun:!!gun,dead:false}));
   for(const ev of s.ev||[]){
     if(ev.t==='s')sfx(ev.n,{x:ev.x,y:ev.y,team:0,kind:'x'});

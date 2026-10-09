@@ -59,7 +59,7 @@ function partsDraw(){
 let lastDraw=0;
 function draw(){
   ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
-  if(!G||!bg||!window.THREE)return;
+  if(!G||!bg||!window.THREE||window.__norender)return; /* __norender: Testhilfe ohne Zeichnen */
   if(R3.fail)return;
   if(!R3.ok){try{r3Init();camUpdate()}catch(err){R3.fail=true;console.error(err);const m=document.getElementById('hint');if(m){m.hidden=false;m.textContent=tr('Die 3D-Grafik (WebGL) wird von diesem Browser oder Gerät nicht unterstützt.')}return}}
   const now=performance.now(),dt=Math.min(.05,Math.max(.001,(now-lastDraw)/1000));lastDraw=now;
