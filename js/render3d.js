@@ -16,7 +16,7 @@ function r3Init(){
   const camera=new THREE.PerspectiveCamera(R3.FOV,1,2,1400);
   const sun=new THREE.DirectionalLight(0xfff0d4,2.7);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-.0004;sun.shadow.normalBias=.35;scene.add(sun,sun.target);
   const hemi=new THREE.HemisphereLight(0xcfe3f5,0x56623a,1.5);scene.add(hemi);
-  const sea=new THREE.Mesh(new THREE.PlaneGeometry(2400,2400).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0x1a4466,fog:false}));sea.position.set(W/R3.S/2,-.8,H/R3.S/2);scene.add(sea);
+  const sea=new THREE.Mesh(new THREE.PlaneGeometry(2400,2400).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0x17405c,fog:false}));sea.position.set(W/R3.S/2,-.8,H/R3.S/2);scene.add(sea);
   const gEnt=new THREE.Group();scene.add(gEnt);
   r3={rd,scene,camera,sun,hemi,sea,gEnt,vec:_v(),ray:new THREE.Raycaster(),maxTex:rd.capabilities.maxTextureSize};
   R3.ok=true;R3.t0=performance.now();r3Resize();
@@ -39,7 +39,7 @@ function r3Map(){
   const SX=W/S,SZ=H/S,NX=SX+1,NZ=SZ+1;hgrid.w=NX;hgrid.h=NZ;hgrid.a=new Float32Array(NX*NZ);
   const g=new THREE.PlaneGeometry(SX,SZ,SX,SZ);g.rotateX(-Math.PI/2);g.translate(SX/2,0,SZ/2);const pos=g.attributes.position;
   for(let j=0;j<NZ;j++)for(let i=0;i<NX;i++){const l=bil(lg,i,j),sh=bil(sg,i,j),rk=bil(rgd,i,j),m=smooth3(.44,.56,l);
-    const sea=-.5+.16*smooth3(.3,.8,sh),land=.12+nz(i,j)*.32+smooth3(.35,.7,rk)*(2.4+nz(i*1.7,j*1.7)*.8);hgrid.a[j*NX+i]=sea*(1-m)+land*m;pos.setY(j*NX+i,hgrid.a[j*NX+i])}
+    const sea=-.5+.16*smooth3(.3,.8,sh),land=.12+nz(i,j)*.32+smooth3(.35,.7,rk)*(2.4+nz(i*1.7,j*1.7)*.8);hgrid.a[j*NX+i]=sea*(1-m)+land*m-(1-smooth3(0,7,Math.min(i,j,NX-1-i,NZ-1-j)))*2.4;pos.setY(j*NX+i,hgrid.a[j*NX+i])}
   g.computeVertexNormals();
   // Boden-Textur: das fertig gemalte Bild der Karte (renderBg), bei Bedarf verkleinert
   let src=bg;if(Math.max(bg.width,bg.height)>r3.maxTex){const k=r3.maxTex/Math.max(bg.width,bg.height);src=document.createElement('canvas');src.width=Math.floor(bg.width*k);src.height=Math.floor(bg.height*k);src.getContext('2d').drawImage(bg,0,0,src.width,src.height)}
