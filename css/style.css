@@ -167,3 +167,21 @@ button:focus-visible{outline:2px solid var(--bronze);outline-offset:2px}
 .ur .tn{color:var(--bone);font-weight:600}
 #upgbar .uj.tech{border-color:#7fb2e8;color:#a9d0f5}
 #upgbar .uj.tech i{background:#7fb2e8}
+
+/* Kartenwahl und Lobby */
+.maps{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 14px}
+.maps button{background:var(--bark-2);border:1px solid var(--edge);border-radius:4px;padding:8px 10px;text-align:left;cursor:pointer;color:var(--bone);font-family:inherit;display:flex;flex-direction:column;gap:2px}
+.maps button b{font-size:14px}.maps button small{font-size:11px;color:var(--bone-dim);line-height:1.25}
+.maps button[aria-pressed="true"]{border-color:var(--bronze);background:#4a3822}
+.maps button:disabled{opacity:.75;cursor:default}
+.lobby h1{font-size:34px}
+.llabel{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--bone-dim);margin:10px 0 4px}
+.linput{width:100%;background:#1d1812;border:1px solid var(--edge);border-radius:3px;color:var(--bone);padding:8px 10px;font-size:13px;font-family:inherit}
+.linkrow{display:flex;gap:8px}.linkrow .btn2{padding:6px 14px;white-space:nowrap}
+.lstat{margin:10px 0;font-size:14px;color:var(--bone-dim)}.lstat.ok{color:#a9e283}
+.lerr{color:#f2806a;font-size:13px}
+.lnote{font-size:12px;color:var(--bone-dim);margin-top:14px}
+.go:disabled{opacity:.45;cursor:not-allowed}
+.lobby .diff button:disabled{opacity:.8;cursor:default}
+
+.btnrow.row{flex-direction:row}.btnrow.row .go{flex:2}.btnrow.row .btn2{flex:1}

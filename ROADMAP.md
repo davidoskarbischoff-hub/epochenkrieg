@@ -75,7 +75,12 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Gebäude im neuen Grafikstil mit Material je Epoche; Einheiten zeigen ihre Stufe (Umhang, Schulterschmuck, Kamm, Schimmer)
 - [ ] Balancing nach Testspielen: Technologie-Kosten, Belagerer, Marine, KI-Tempo
 - [ ] Brücken über tiefes Wasser
-- [ ] Spielstand speichern, Kartengröße wählbar, mehrere KI-Gegner/Teams, Online-Multiplayer (große Brocken, bewusst noch offen)
+- [x] Mehrspieler für zwei Spieler: Lobby mit Einladungslink, Kartenwahl, Seitenwahl; Gastgeber rechnet, Gast schickt Befehle (WebRTC über PeerJS, oder zwei Tabs lokal)
+- [x] Vier Karten: Küste und Landzunge, Festland, Bergland (Berge, Klippen, Hafen nur an Lücken), Große Bucht; Auswahl auch im Einzelspiel
+- [ ] Mehrspieler weiter ausbauen: Reconnect, Chat, Bereit-Knopf, Zuschauer, Spiel pausieren, 3–4 Spieler, Team-Farben wählbar, Sound-Events beim Gast
+- [ ] Mehrspieler: Berater und Pause im Mehrspieler; verzögerungsfreie Vorhersage für den Gast
+- [ ] Karten: Höhenstufen (Plateaus mit Rampen), Brücken, Karte-Zufallsauswahl, mehr Kartenarten
+- [ ] Spielstand speichern, Kartengröße wählbar, mehrere KI-Gegner/Teams
 
 ### Einfach
 - [ ] Sounds nach dem Testspielen feinjustieren
