@@ -86,7 +86,7 @@ function genMap(seed){
   if(!A)A={x:.17*W,y:.83*H};
   const bases=[{x:A.x,y:A.y,s:1},{x:W-A.x,y:H-A.y,s:-1}];
   if(MAPS[curMap]&&MAPS[curMap].cliff){carveCoast(A.x,A.y,380);carveCoast(W-A.x,H-A.y,380);navInit()}
-  const GAP={tree:20,bush:14,stone:14,iron:14,fish:10,dolphin:14,whale:20};
+  const GAP={tree:15,bush:12,stone:12,iron:12,fish:10,dolphin:14,whale:20};
   const free=(x,y,r,type)=>!G.ents.some(e=>Math.hypot(e.x-x,e.y-y)<e.r+r+GAP[type]);
   const cluster=(type,cx,cy,n,spread,okFn)=>{for(let i=0;i<n;i++){for(let k=0;k<20;k++){const a=R()*6.283,d=Math.sqrt(R())*spread;const x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d,r=NODES[type].r;if(!okFn(x,y,r))continue;if(!free(x,y,r,type))continue;addNode(type,x,y);break}}};
   const landOk=(x,y,r)=>okSpot(x,y,r+4);
@@ -99,16 +99,16 @@ function genMap(seed){
   bases.forEach((b,i)=>{for(let k=0;k<4;k++)addUnit('worker',i,b.x+b.s*(k*18-27),b.y-b.s*58)});
   // Startvorkommen rund um Basis A (zufällige Richtung, gültiges Land), danach gespiegelt auf Basis B
   const near=(type,n,spread,dmin,dmax,okFn)=>{for(let k=0;k<60;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!okFn(x,y,spread*.5))continue;const n0=G.ents.length;cluster(type,x,y,n,spread,okFn);if(G.ents.length-n0>=Math.min(n,3)){mirror(n0);return}}};
-  near('tree',16,95,230,340,landOk);near('tree',14,92,300,430,landOk);near('bush',7,48,120,200,landOk);near('stone',4,38,170,260,landOk);near('iron',4,34,200,320,landOk);
+  near('tree',28,92,240,340,landOk);near('tree',24,88,310,440,landOk);near('bush',6,44,120,200,landOk);near('stone',2,52,170,270,landOk);near('iron',2,50,210,330,landOk);
   // Fische in Küstennähe von Basis A
   const nearWater=(type,n,spread,dmin,dmax)=>{for(let k=0;k<200;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!waterOk[type](x,y,spread*.4))continue;const n0=G.ents.length;cluster(type,x,y,n,spread,waterOk[type]);if(G.ents.length>n0){mirror(n0);return}}};
   nearWater('fish',5,55,180,520);nearWater('fish',4,50,250,650);nearWater('dolphin',3,50,350,900);
   // gespiegelte Mitte
   const feats=[];
-  for(let i=0;i<10;i++)feats.push(['tree',12+Math.floor(R()*8),100,landOk]);
-  for(let i=0;i<3;i++)feats.push(['stone',4,38,landOk]);
-  for(let i=0;i<3;i++)feats.push(['bush',5,46,landOk]);
-  for(let i=0;i<3;i++)feats.push(['iron',4,36,landOk]);
+  for(let i=0;i<8;i++)feats.push(['tree',22+Math.floor(R()*12),98,landOk]);
+  for(let i=0;i<3;i++)feats.push(['stone',2,52,landOk]);
+  for(let i=0;i<3;i++)feats.push(['bush',5,44,landOk]);
+  for(let i=0;i<3;i++)feats.push(['iron',2,50,landOk]);
   for(let i=0;i<10;i++)feats.push(['fish',4+Math.floor(R()*2),55,waterOk.fish]);
   for(let i=0;i<6;i++)feats.push(['dolphin',2+Math.floor(R()*2),50,waterOk.dolphin]);
   for(let i=0;i<4;i++)feats.push(['whale',1+Math.floor(R()*2),70,waterOk.whale]);
