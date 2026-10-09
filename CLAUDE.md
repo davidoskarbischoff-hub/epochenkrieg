@@ -23,6 +23,8 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
 - `js/i18n.js` – Sprachen Deutsch/Englisch: im Code deutsch schreiben, mit `tr('Text {0}',wert)` umschliessen, englische Übersetzung im Wörterbuch `EN` ergänzen.
 - `js/audio.js` – Klang (Web Audio, keine Audiodateien): Geräusche `SND.play(name)`, Lautstärke per Regler im Menü und klassische Hintergrundmusik pro Epoche (Satie, Pachelbel, Grieg).
 - `js/net.js` – Mehrspieler-Verbindung und Lobby (`Lobby`): WebRTC über PeerJS (Einladungslink `?join=ID`) oder lokal per BroadcastChannel (`?join=local:CODE`, zwei Tabs).
+- `js/sprites.js` – 2,5D-Grafik (`SPR.unit/bld/tree/bush/rock/height`): aufrechte Seitenansichten mit Volumen, Zeichenursprung = Bodenpunkt. Die Karte wird mit `TILT`=0.7 gestaucht (`game.js`: `draw`, `toWorld`, `clampCam`, `entityAt`); aufrechte Dinge zeichnet man mit `upright(x,y,fn)`. Alles wird nach y sortiert gezeichnet.
+- `js/art.js` – (alte Draufsicht; nur noch `ART.icon` für die Oberfläche wird genutzt)
 - `js/art.js` – Grafik für Einheiten, Gebäude, Bäume, Büsche und Felsen (`ART.unit/bld/tree/bush/rock`): gleicher Stil mit dunklem Umriss und hellem Lichtpunkt. Jede Einheit hat eine eigene Funktion in `ART_UNIT`.
 - `js/game.js` – Spiellogik in einem IIFE: Kartengenerierung, Einheiten-Zustandsmaschine
   (idle, move, amove, attack, gather, return, build), Kampf und Projektile, Gegner-KI (`aiTick`),
@@ -53,3 +55,5 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
 - Nach jeder Änderung das Spiel im Browser testen (laden, Partie starten, Feature ausprobieren, Konsole auf Fehler prüfen).
 - Bestehende Steuerung und Spielbarkeit nicht kaputt machen. Wenn `game.js` zu gross wird, sinnvoll in weitere Dateien aufteilen.
 - Am Ende jeder Session: `ROADMAP.md` aktualisieren (Erledigtes abhaken, neue Ideen ergänzen).
+
+- Ressourcen (`NODES`): wenige, grosse Vorkommen (Wälder als Gruppen, Steinhaufen mit 1600, Eisen 1200). Oberfläche: dunkler Stein mit Bronze-Rahmen (Block "Neues Oberflächen-Design" am Ende von `style.css`).

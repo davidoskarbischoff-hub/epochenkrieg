@@ -978,7 +978,7 @@ function updateUI(){
   advisorTick();advisorUI();$('pauseBtn').hidden=!!G.mp;$('speedBtn').hidden=!!G.mp;
   const s=selection();
   const sig=s.map(e=>e.id+(e.built?'b':'')).join(',')+'|'+G.epoch[0]+'|'+(G.adv[0]?1:0)+G.jobs[0].length+'|'+pending(0).n+'|'+G.tech[0].size+'|'+G.rs[0].length;
-  if(sig!==panelSig){panelSig=sig;curActs=actionsFor(s);$('acts').innerHTML=curActs.map((a,i)=>`<button class="act" data-i="${i}"><span class="nm">${a.nm}</span>${a.cost?`<span class="cost">${costHTML(a.cost)}</span>`:''}${a.lock?`<span class="sub">${tr('ab {0}',a.lock)}</span>`:a.sub?`<span class="sub">${a.sub}</span>`:''}</button>`).join('')}
+  if(sig!==panelSig){panelSig=sig;curActs=actionsFor(s);$('acts').innerHTML=curActs.map((a,i)=>`<button class="act" data-i="${i}">${({am:'Q',exp:'E'})[a.key]?`<kbd>${({am:'Q',exp:'E'})[a.key]}</kbd>`:''}<span class="nm">${a.nm}</span>${a.cost?`<span class="cost">${costHTML(a.cost)}</span>`:''}${a.lock?`<span class="sub">${tr('ab {0}',a.lock)}</span>`:a.sub?`<span class="sub">${a.sub}</span>`:''}</button>`).join('')}
   $('acts').querySelectorAll('.act').forEach(b=>{const a=curActs[+b.dataset.i];if(!a)return;b.classList.toggle('locked',!!a.lock||!!a.need||!!(a.adv&&G.adv[0])||!!(a.key==='adv'&&G.jobs[0].length));b.classList.toggle('poor',!!a.cost&&!afford(0,a.cost));b.querySelectorAll('.c').forEach(ch=>{const ok=(G.res[0][ch.dataset.r]||0)>=+ch.dataset.n;ch.classList.toggle('ok',ok);ch.classList.toggle('bad',!ok)})});
   const ih=infoHTML(s);if(ih!==infoCache){infoCache=ih;$('info').innerHTML=ih}
   const hint=$('hint');
