@@ -67,7 +67,9 @@ function infoHTML(s){
   const clr='<button class="x" data-clear aria-label="'+tr('Auswahl aufheben')+'">×</button>';
   if(!s.length)return '<p class="muted">'+tr('Linksklick oder Rahmen ziehen wählt aus. Rechtsklick gibt Befehle: bewegen, sammeln, bauen, angreifen. Doppelklick wählt alle gleichen Einheiten im Bild.')+'</p>';
   if(s.length>1){const c={};s.forEach(e=>{const n=nameOf(e);c[n]=(c[n]||0)+1});return `<div class="ih"><h2>${s.length} ${tr('ausgewählt')}</h2>${clr}</div><div class="chips">${Object.entries(c).map(([n,k])=>`<span class="chip">${k}× ${n}</span>`).join('')}</div>`}
-  const e=s[0];const tag=e.team===1?'<span class="tag enemy">'+tr('Gegner')+'</span>':e.team===0?'<span class="tag">'+tr(EPOCHS[G.epoch[0]].name)+'</span>':'';
+  const e=s[0];
+  if(e.kind==='animal'){const d=ANIMALS[e.type];return `<div class="ih"><h2>${nameOf(e)}</h2><span class="tag">${tr('Wildtier')}</span>${clr}</div><div class="hpw"><div class="hp"><span style="width:${Math.max(0,e.hp/e.maxHp*100).toFixed(0)}%"></span></div>${Math.ceil(e.hp)} / ${e.maxHp}</div><div class="line"><em>${tr(d.info)}</em></div>${d.food?`<div class="line">${tr('Jagdbeute')}: <b>${d.food}</b> ${rn('food')}</div>`:''}<div class="line"><em>${d.agg?tr('Angriff {0}',d.atk):tr('Rechtsklick mit Einheiten zum Jagen')}</em></div>`}
+  const tag=e.team===1?'<span class="tag enemy">'+tr('Gegner')+'</span>':e.team===0?'<span class="tag">'+tr(EPOCHS[G.epoch[0]].name)+'</span>':'';
   const lv=e.kind==='node'?'':`<span class="tag" style="color:${LVLC[e.lvl]};border-color:${LVLC[e.lvl]}">${tr('Stufe {0}',LVLN[e.lvl])}</span>`;
   let h=`<div class="ih"><h2>${nameOf(e)}</h2>${tag}${lv}${clr}</div>`;
   if(e.kind==='node')return h+`<div class="line">${tr('Vorrat')}: <b>${Math.ceil(e.amount)}</b> ${rn(e.rt)}</div>`;

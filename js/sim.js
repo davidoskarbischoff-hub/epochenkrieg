@@ -22,9 +22,9 @@ function missing(t,c){const m=RES.filter(r=>(G.res[t][r]||0)<(c[r]||0)).map(r=>r
 function step(dt){
   G.t+=dt;G.pfBudget=12;G.load={};
   for(const e of G.ents)if(e.kind==='unit'&&!e.dead&&e.state==='gather'&&e.tid)G.load[e.tid]=(G.load[e.tid]||0)+1;
-  G.solids=G.ents.filter(e=>e.kind!=='unit'&&!e.dead);
+  G.solids=G.ents.filter(e=>e.kind!=='unit'&&e.kind!=='animal'&&!e.dead);
   recount();
-  for(const e of G.ents){if(e.dead||e.upj)continue;if(e.kind==='unit')updUnit(e,dt);else if(e.kind==='bld')updBld(e,dt)}
+  for(const e of G.ents){if(e.dead||e.upj)continue;if(e.kind==='unit')updUnit(e,dt);else if(e.kind==='bld')updBld(e,dt);else if(e.kind==='animal')updAnimal(e,dt)}
   for(let t=0;t<2;t++){const js=G.jobs[t];if(!js.length)continue;for(const j of js){j.t+=dt;if(j.t>=j.time){j.done=true;for(const id of j.ids){const e=G.byId.get(id);if(e&&!e.dead){e.upj=null;levelUp(e,j.to)}}if(t===0){panelSig='';infoCache='';sfx('epoch');toast(tr('Upgrade fertig: {0}',j.label),'good')}}}G.jobs[t]=js.filter(j=>!j.done)}
   for(let t=0;t<2;t++){const rs=G.rs[t];if(!rs.length)continue;for(const r of rs){r.t+=dt;if(r.t>=r.time){r.done=true;G.tech[t].add(r.id);techRefresh(t);if(t===0){panelSig='';infoCache='';sfx('epoch');toast(tr('Erforscht: {0}',tr(TECH[r.id].name)),'good')}}}G.rs[t]=rs.filter(r=>!r.done)}
   for(let t=0;t<2;t++){const a=G.adv[t];if(!a)continue;a.t+=dt;if(a.t>=a.time){G.epoch[t]++;G.adv[t]=null;panelSig='';if(t===1){applyLevels(1);grantAiTechs(1)}if(t===0){sfx('epoch');if(typeof SND!=='undefined')SND.setEpoch(G.epoch[0])}if(t===0)toast(tr('{0} erreicht! Neue Einheiten und Gebäude verfügbar.',tr(EPOCHS[G.epoch[0]].name)),'good');else toast(tr('Der Gegner hat die {0} erreicht.',tr(EPOCHS[G.epoch[1]].name)),'warn')}}
@@ -67,7 +67,7 @@ function moveToward(u,tx,ty,dt,ignore){
 }
 function nearestNode(rt,x,y,max,u,free){const naval=!!(u&&UNITS[u.type].naval);let best=null,bd=max;for(const e of G.solids){if(e.kind!=='node'||e.dead||(rt&&e.rt!==rt)||!!e.sea!==naval)continue;if(u&&u.bad&&u.bad[e.id]&&G.t-u.bad[e.id]<40)continue;if(free&&(G.load[e.id]||0)>=NODES[e.type].cap)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
 function nearestDrop(t,x,y,naval){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='bld'||e.team!==t||!e.built||!BLDS[e.type].drop||(naval&&e.type!=='harbor')||e.dead)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
-function findEnemy(s,rad,unitsOnly){let best=null,bd=1e9;for(const e of G.ents){if(e.dead||e.team<0||e.team===s.team)continue;if(unitsOnly&&e.kind!=='unit')continue;const d=Math.hypot(e.x-s.x,e.y-s.y)-e.r-s.r;if(d>rad)continue;const sc=d+(e.kind==='bld'?80:0);if(sc<bd){bd=sc;best=e}}return best}
+function findEnemy(s,rad,unitsOnly){let best=null,bd=1e9;for(const e of G.ents){if(e.dead||e.team===s.team)continue;if(e.team<0&&!(e.kind==='animal'&&e.state==='chase'))continue;if(unitsOnly&&e.kind!=='unit'&&e.kind!=='animal')continue;const d=Math.hypot(e.x-s.x,e.y-s.y)-e.r-s.r;if(d>rad)continue;const sc=d+(e.kind==='bld'?80:0);if(sc<bd){bd=sc;best=e}}return best}
 const reach=(u,t)=>dist(u,t)<=u.r+t.r+5;
 
 /* Erkunden: ein freies, unerkundetes Gebiet in der Nähe aussuchen und hinlaufen (Späher; auch für die KI) */
@@ -89,7 +89,7 @@ function updUnit(u,dt){
     const done=moveToward(u,u.ex.x,u.ex.y,dt);if(u.pf&&u.pf.fail){(u.badEx||(u.badEx={}))[u.ex.i]=G.t;u.ex=null;u.pf=null}else if(done)u.ex=null;break}
   case 'move':if(moveToward(u,u.dest.x,u.dest.y,dt))u.state='idle';break;
   case 'amove':{const t=findEnemy(u,140);if(t){u.tid=t.id;u.state='attack';break}if(moveToward(u,u.amove.x,u.amove.y,dt)){u.state='idle';u.amove=null}break}
-  case 'attack':{const t=get(u.tid);if(!t||t.team===u.team||t.team<0){u.state=u.amove?'amove':'idle';break}
+  case 'attack':{const t=get(u.tid);if(!t||t.team===u.team||(t.team<0&&t.kind!=='animal')){u.state=u.amove?'amove':'idle';break}
     const gap=dist(u,t)-u.r-t.r;
     if(gap<=d.rng){u.fa=Math.atan2(t.y-u.y,t.x-u.x);if(u.cd<=0){u.cd=d.cd;u.swing=G.t;hit(u,t)}}
     else moveToward(u,t.x,t.y,dt,t.id);break}
@@ -120,12 +120,17 @@ function hit(u,t){const d=UNITS[u.type];sfx(d.siege?'boom':d.gun?'shot':d.ranged
   if(d.ranged)G.proj.push({x:u.x,y:u.y,tid:t.id,dmg:d.atk*mult*LVL.atk[u.lvl],src:u.id,a:0,big:!!d.siege,gun:!!d.gun});else damage(t,d.atk*mult*LVL.atk[u.lvl],u)}
 function damage(t,amt,src){
   t.hp-=amt;
+  if(t.kind==='animal'&&src&&src.team>=0&&t.hp>0){const d=ANIMALS[t.type];if(d.agg){if(t.state!=='chase'){t.tid=src.id;t.state='chase'}}else{t.state='flee';t.thr={x:src.x,y:src.y};t.until=G.t+4}}
   if(src&&t.kind==='unit'&&!UNITS[t.type].passive&&t.state==='idle'){t.tid=src.id;t.state='attack'}
+  if(src&&src.kind==='animal'&&t.kind==='unit'&&UNITS[t.type].passive&&t.hp>0&&!UNITS[t.type].naval){ // Arbeiter fliehen zum nächsten Lager
+    let b=null,bd=1e9;for(const o of G.ents)if(!o.dead&&o.kind==='bld'&&o.team===t.team&&o.built&&BLDS[o.type].drop){const dd=Math.hypot(o.x-t.x,o.y-t.y);if(dd<bd){bd=dd;b=o}}
+    if(b&&t.state!=='move'){t.q=[];t.state='move';t.dest={x:b.x,y:b.y+b.r+14};t.pf=null}}
+  if(t.team===0&&src&&src.kind==='animal'&&G.t-(G.wildWarn||-99)>15){G.wildWarn=G.t;toast(tr('Ein Wildtier greift an!'),'warn');sfx('alert')}
   if(t.team===0&&G.t-G.alertT>12){G.alertT=G.t;G.ping={x:t.x,y:t.y,t:G.t};toast(tr('Deine Siedlung wird angegriffen!'),'warn');sfx('alert')}
   if(t.team===1&&G.mp&&G.t-G.alertT1>12){G.alertT1=G.t;G.ev.push({t:'alert',x:Math.round(t.x),y:Math.round(t.y)})}
-  if(t.hp<=0)kill(t);
+  if(t.hp<=0){kill(t);if(t.kind==='animal'&&src&&src.team>=0){const f=ANIMALS[t.type].food;if(f){G.res[src.team][ 'food']+=f;if(src.team===0&&!NET.cap)toast(tr('Beute erlegt: +{0} Nahrung',f),'good')}}}
 }
-function kill(e){if(e.dead)return;e.dead=true;if(e.kind==='bld'||(e.kind==='node'&&!e.sea))navStamp(e,-1);if(e.kind==='unit')sfx('die',e);else if(e.kind==='bld')sfx('crumble',e);sel.delete(e.id);if(e.kind==='unit')G.stats.lost[e.team]++;
+function kill(e){if(e.dead)return;e.dead=true;if(e.kind==='bld'||(e.kind==='node'&&!e.sea))navStamp(e,-1);if(e.kind==='unit'||e.kind==='animal')sfx('die',e);else if(e.kind==='bld')sfx('crumble',e);sel.delete(e.id);if(e.kind==='unit')G.stats.lost[e.team]++;
   if(e.type==='hq'&&!G.over)G.over=e.team===0?'lose':'win';}
 function updBld(b,dt){
   if(!b.built)return;const d=BLDS[b.type];
@@ -209,3 +214,34 @@ function separate(){
     if(u.px!==undefined&&!terrOk(u.x,u.y,!!UNITS[u.type].naval)){u.x=u.px;u.y=u.py}}
 }
 
+
+/* ---------- Wilde Tiere ---------- */
+/* Einfache Bewegung ohne Wegfindung: geradeaus, bei Hindernis seitlich gleiten oder ausweichen. Nur Land, keine Gebäude/Bäume. */
+function animalMove(a,tx,ty,dt,spd){
+  const dx=tx-a.x,dy=ty-a.y,d=Math.hypot(dx,dy);if(d<2)return true;
+  const st=Math.min(d,spd*dt),ux=dx/d,uy=dy/d;let moved=false;
+  for(const[mx,my]of[[ux,uy],[ux,0],[0,uy],[ux*.5+uy*.7,uy*.5-ux*.7],[ux*.5-uy*.7,uy*.5+ux*.7]]){
+    const nx=a.x+mx*st,ny=a.y+my*st;if(terrAt(nx,ny)===2&&navDyn[navCell(nx,ny)]===0){a.x=nx;a.y=ny;a.fa=Math.atan2(my||uy,mx||ux);a.mvT=G.t;moved=true;break}}
+  a.stk=moved?Math.max(0,(a.stk||0)-dt):(a.stk||0)+dt;return false}
+function updAnimal(a,dt){
+  const d=ANIMALS[a.type];a.cd=Math.max(0,a.cd-dt);
+  if(a.hp<a.maxHp&&a.state==='idle')a.hp=Math.min(a.maxHp,a.hp+dt*2);
+  // Umgebung beobachten (nicht in jedem Schritt)
+  a.th=(a.th||0)-dt;
+  if(a.th<=0){a.th=.3+Math.random()*.1;let best=null,bd=1e9;
+    for(const e of G.ents){if(e.dead||e.team<0||(e.kind!=='unit'&&e.kind!=='bld')||(e.kind==='unit'&&UNITS[e.type].naval))continue;const dd=Math.hypot(e.x-a.x,e.y-a.y)-e.r;if(dd<bd){bd=dd;best=e}}
+    if(best){
+      if(d.agg){if(a.state!=='chase'&&a.state!=='return'&&best.kind==='unit'&&bd<d.agg&&Math.hypot(a.home.x-best.x,a.home.y-best.y)<d.leash){a.tid=best.id;a.state='chase';sfx('growl',a);
+        if(d.pack)for(const o of G.ents)if(o.kind==='animal'&&o.type===a.type&&!o.dead&&o!==a&&o.state!=='chase'&&Math.hypot(o.x-a.x,o.y-a.y)<240){o.tid=best.id;o.state='chase'}}}
+      else if(bd<d.flee){if(a.state!=='flee')sfx('deer',a);a.state='flee';a.thr={x:best.x,y:best.y};a.until=G.t+2.5}}}
+  switch(a.state){
+  case'idle':a.wt-=dt;if(a.wt<=0){const ang=Math.random()*6.283,r=Math.random()*d.roam;a.wp={x:a.home.x+Math.cos(ang)*r,y:a.home.y+Math.sin(ang)*r};a.state='wander';a.stk=0}break;
+  case'wander':if(animalMove(a,a.wp.x,a.wp.y,dt,d.spd*.35)||a.stk>1){a.state='idle';a.wt=3+Math.random()*6;a.stk=0}break;
+  case'flee':{const t=a.thr||{x:a.x,y:a.y};if(G.t>a.until){a.state='idle';a.wt=1;a.home={x:a.x,y:a.y};break}const dx=a.x-t.x,dy=a.y-t.y,l=Math.hypot(dx,dy)||1;animalMove(a,a.x+dx/l*80,a.y+dy/l*80,dt,d.spd);if(a.stk>.5){a.stk=0;a.thr={x:a.x+(Math.random()-.5)*120,y:a.y+(Math.random()-.5)*120}}break}
+  case'chase':{const t=get(a.tid);if(!t||Math.hypot(a.home.x-a.x,a.home.y-a.y)>d.leash||Math.hypot(t.x-a.x,t.y-a.y)>d.agg*2.4){a.state='return';a.tid=null;a.stk=0;break}
+    const gap=Math.hypot(t.x-a.x,t.y-a.y)-a.r-t.r;
+    if(gap<=d.rng){a.fa=Math.atan2(t.y-a.y,t.x-a.x);if(a.cd<=0){a.cd=d.cd;a.swing=G.t;sfx('hit',a);damage(t,d.atk,a)}}
+    else{animalMove(a,t.x,t.y,dt,d.spd);if(a.stk>1.2){a.state='return';a.stk=0}}break}
+  case'return':if(animalMove(a,a.home.x,a.home.y,dt,d.spd*.7)||Math.hypot(a.home.x-a.x,a.home.y-a.y)<24||a.stk>1.5){a.state='idle';a.wt=2;a.stk=0}break;
+  }
+}

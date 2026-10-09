@@ -211,7 +211,32 @@ function ship(u,tm,war,big){const g=new THREE.Group(),rig={g,legs:[],arms:[],shi
   return rig}
 UNIT3.boat=(u,tm)=>ship(u,tm,false,false);UNIT3.warship=(u,tm)=>ship(u,tm,true,false);UNIT3.galleon=(u,tm)=>ship(u,tm,true,true);
 
-function buildAnimal(e){const rig=human({body:m3Plain(0x7a5a3a)});return rig}
+/* Vierbeiner: o = {col,belly,dark,br (Rumpfradius),bl (Rumpflänge),legH,lw (Beinbreite),hr (Kopfradius),neck:[x,y],snout,ears,tail}. Blickt in +x. */
+function quad(o){
+  const g=new THREE.Group(),rig={g,legs:[]},m=m3Plain(o.col,.9),mb=m3Plain(o.belly||o.col,.9),dk=m3Plain(o.dark||0x2a2119,.9),by=o.legH+o.br*.85;
+  put(g,new THREE.CapsuleGeometry(o.br,o.bl,4,10),m,0,by,0).rotation.z=Math.PI/2;
+  put(g,new THREE.CapsuleGeometry(o.br*.78,o.bl*.9,4,8),mb,0,by-o.br*.3,0).rotation.z=Math.PI/2;
+  if(o.hump)put(g,new THREE.SphereGeometry(o.br*.95,10,8),m,o.bl*.28,by+o.br*.45,0);
+  const hipY=o.legH+o.br*.35;
+  for(const[x,z]of[[-o.bl*.5,-o.br*.6],[-o.bl*.5,o.br*.6],[o.bl*.5,-o.br*.6],[o.bl*.5,o.br*.6]]){const p=limbPivot(g,x,hipY,z);put(p,cyl(o.lw,o.lw*.75,hipY,6),m,0,-hipY/2,0);put(p,new THREE.SphereGeometry(o.lw*1.05,6,5),dk,.02,-hipY+o.lw*.4,0);rig.legs.push(p)}
+  const nx=o.bl/2+o.br*.5,hx=nx+o.neck[0],hy=by+o.neck[1];
+  const neck=put(g,cyl(o.br*.5,o.br*.62,Math.hypot(o.neck[0],o.neck[1])+o.br*.4,8),m,nx+o.neck[0]/2,by+o.neck[1]/2,0);neck.rotation.z=-Math.atan2(o.neck[0],o.neck[1]);
+  const head=new THREE.Group();head.position.set(hx,hy,0);g.add(head);rig.head=head;
+  put(head,new THREE.SphereGeometry(o.hr,12,10),m,0,0,0);
+  const sn=put(head,new THREE.BoxGeometry(o.hr*1.5*(o.snout||1),o.hr*.7,o.hr*.8),o.snoutCol?m3Plain(o.snoutCol):m,o.hr*1.0*(o.snout||1),-o.hr*.2,0);put(head,new THREE.SphereGeometry(o.hr*.2,6,6),dk,o.hr*1.7*(o.snout||1),-o.hr*.15,0);
+  for(const z of[-1,1]){put(head,new THREE.SphereGeometry(o.hr*.11,6,6),m3Plain(0x15110c),o.hr*.7,o.hr*.25,z*o.hr*.45,false);put(head,cone(o.hr*.35,o.hr*(o.earLen||.9),5),o.earCol?m3Plain(o.earCol):m,-o.hr*.2,o.hr*.95,z*o.hr*.55).rotation.x=z*.2}
+  if(o.antlers)for(const z of[-1,1]){const base=put(head,cyl(.03,.04,o.hr*1.8,5),m3Plain(0xc9b690),-o.hr*.1,o.hr*1.9,z*o.hr*.5);base.rotation.x=z*.35;for(const k of[.4,.8]){const br=put(head,cyl(.025,.03,o.hr*1.1,5),m3Plain(0xc9b690),o.hr*(k*.2),o.hr*(1.3+k),z*o.hr*(.6+k*.5));br.rotation.z=-.7;br.rotation.x=z*.5}}
+  const tl=put(g,cone(o.br*.35,o.bl*(o.tail||.5),6),o.tailCol?m3Plain(o.tailCol):m,-o.bl/2-o.br*.7,by+o.br*.15,0);tl.rotation.z=Math.PI/2+.5;
+  if(o.stripes)for(let i=0;i<7;i++){const x=-o.bl*.45+i*(o.bl*.9/6);put(g,new THREE.BoxGeometry(o.br*.28,o.br*1.5,o.br*2.1),dk,x,by+o.br*.05,0,false).rotation.z=(i%2?.12:-.12)}
+  if(o.spots)for(let i=0;i<8;i++){put(g,new THREE.SphereGeometry(o.br*.16,6,5),m3Plain(0xe8dcc0),-o.bl*.4+(i%4)*o.bl*.27,by+o.br*.7,(i<4?-1:1)*o.br*.3,false)}
+  return rig}
+const ANI3={
+  deer:{col:0xa87a4b,belly:0xd8c19a,dark:0x3a2a1a,br:.34,bl:.85,legH:.85,lw:.075,hr:.2,neck:[.45,.85],snout:1.2,earLen:.8,antlers:true,spots:true,tail:.18,tailCol:0xf3ead6,earCol:0xc39b6a},
+  wolf:{col:0x7d7f84,belly:0xc9c9c6,dark:0x222428,br:.29,bl:.75,legH:.52,lw:.07,hr:.2,neck:[.35,.3],snout:1.3,earLen:.7,tail:.8,tailCol:0x6a6c70},
+  bear:{col:0x5b3f2a,belly:0x4a3322,dark:0x1c130c,br:.55,bl:1.0,legH:.5,lw:.14,hr:.31,neck:[.5,.3],snout:.8,earLen:.4,hump:true,tail:.15,snoutCol:0x8a6a4a},
+  tiger:{col:0xd9822b,belly:0xf1dcb5,dark:0x1d1510,br:.34,bl:1.1,legH:.58,lw:.1,hr:.25,neck:[.45,.28],snout:.9,earLen:.5,stripes:true,tail:.9,tailCol:0xd9822b}
+};
+function buildAnimal(e){const rig=quad(ANI3[e.type]||ANI3.deer);setShadows(rig.g);rig.g.scale.setScalar(e.type==='bear'?1.15:1.1);return rig}
 function buildUnit(u){const f=UNIT3[u.type]||UNIT3.worker,tm=m3Team(u.team),rig=f(u,tm);setShadows(rig.g);return rig}
 
 /* ---------- Ressourcen ---------- */

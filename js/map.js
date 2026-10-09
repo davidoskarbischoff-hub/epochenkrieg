@@ -5,10 +5,11 @@
 function reg(e){G.ents.push(e);G.byId.set(e.id,e);if(e.kind==='bld'||(e.kind==='node'&&!e.sea))navStamp(e,1);return e}
 function addUnit(type,team,x,y,fid){const d=UNITS[type],lvl=G.epoch[team],hp=unitHp(team,type,lvl);return reg({id:fid!==undefined?fid:G.nid++,kind:'unit',type,team,x,y,r:d.r,lvl,hp,maxHp:hp,state:'idle',cd:0,carry:0,ctype:null,rtype:null,tid:null,dest:null,amove:null,fa:team===0?-1.57:1.57})}
 function addBld(type,team,x,y,built,fid){const d=BLDS[type],lvl=G.epoch[team],mh=Math.round(d.hp*LVL.bhp[lvl]);return reg({id:fid!==undefined?fid:G.nid++,kind:'bld',type,team,x,y,r:d.r,lvl,maxHp:mh,hp:built?mh:1,built,prog:built?1:0,queue:[],rally:null,cd:0})}
+function addAnimal(type,x,y,fid){const d=ANIMALS[type];return reg({id:fid!==undefined?fid:G.nid++,kind:'animal',type,team:-1,x,y,r:d.r,hp:d.hp,maxHp:d.hp,lvl:0,state:'idle',cd:0,home:{x,y},fa:Math.random()*6.283,wt:Math.random()*4})}
 function addNode(type,x,y){const d=NODES[type];return reg({id:G.nid++,kind:'node',type,team:-1,x,y,r:d.r,rt:d.rt,sea:!!d.sea,amount:d.amt,maxAmt:d.amt,seed:Math.random()})}
 const rn=r=>tr(RN[r]);
 function get(id){const e=G.byId.get(id);return e&&!e.dead?e:null}
-function nameOf(e){return e.kind==='unit'?tr(UNITS[e.type].name):e.kind==='bld'?tr(BLDS[e.type].name):tr(NODES[e.type].name)}
+function nameOf(e){return e.kind==='animal'?tr(ANIMALS[e.type].name):e.kind==='unit'?tr(UNITS[e.type].name):e.kind==='bld'?tr(BLDS[e.type].name):tr(NODES[e.type].name)}
 
 /* ---------- map ---------- */
 function genMap(seed){
@@ -53,6 +54,24 @@ function genMap(seed){
     if(!ok)continue;
     const n0=G.ents.length;cluster(t,x,y,n,sp,okFn);mirror(n0);
   }
+  spawnAnimals(R,bases,A);
+}
+/* Wilde Tiere: Rehe in der Nähe der Startgebiete, Wölfe in Wäldern, Bären weit draußen, Tiger in der Mitte. Immer punktsymmetrisch, damit beide Seiten gleich viele haben. */
+function spawnAnimals(R,bases,A){
+  const treesNear=(x,y,r)=>{let n=0;for(const e of G.ents)if(e.kind==='node'&&e.type==='tree'&&Math.hypot(e.x-x,e.y-y)<r)n++;return n};
+  const good=(x,y)=>{if(x<90||y<90||x>W-90||y>H-90)return false;for(let k=0;k<8;k++){const a=k*.785;if(terrAt(x+Math.cos(a)*22,y+Math.sin(a)*22)!==2)return false}return navDyn[navCell(x,y)]===0&&MAINLAND[Math.max(0,Math.min(TH-1,(y/TG)|0))*TW+Math.max(0,Math.min(TW-1,(x/TG)|0))]===1};
+  const farBase=(x,y,d)=>bases.every(b=>Math.hypot(b.x-x,b.y-y)>d);
+  const place=(type,n,org,dmin,dmax,need)=>{
+    for(let k=0;k<160;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=org.x+Math.cos(a)*d,y=org.y+Math.sin(a)*d;
+      if(!good(x,y)||!need(x,y))continue;const pts=[];
+      for(let i=0;i<n;i++){const px=x+(i?(R()-.5)*70:0),py=y+(i?(R()-.5)*70:0);if(good(px,py)&&!pts.some(q=>Math.hypot(q.x-px,q.y-py)<16)&&!G.ents.some(e=>e.kind==='animal'&&Math.hypot(e.x-px,e.y-py)<50))pts.push({x:px,y:py})}
+      if(pts.length<Math.min(n,2))continue;
+      for(const q of pts){addAnimal(type,q.x,q.y);if(good(W-q.x,H-q.y))addAnimal(type,W-q.x,H-q.y)}return true}
+    return false};
+  for(let i=0;i<4;i++)place('deer',2+Math.floor(R()*3),A,380,850,(x,y)=>farBase(x,y,360));
+  for(let i=0;i<3;i++)place('wolf',3,A,800,1800,(x,y)=>farBase(x,y,700)&&treesNear(x,y,170)>=4);
+  for(let i=0;i<2;i++)place('bear',1,A,1000,2300,(x,y)=>farBase(x,y,900)&&treesNear(x,y,170)>=2);
+  place('tiger',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
 }
 function drawMountains(b,t,tmp,R){
   const rock=document.createElement('canvas');rock.width=TW;rock.height=TH;const rc=rock.getContext('2d'),im=rc.createImageData(TW,TH);for(let i=0;i<TERR.length;i++){const o=i*4;im.data[o]=im.data[o+1]=im.data[o+2]=255;im.data[o+3]=TERR[i]===3?255:0}rc.putImageData(im,0,0);

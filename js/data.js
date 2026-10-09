@@ -36,7 +36,14 @@ const NODES={tree:{cap:3,rt:'wood',amt:260,r:11,name:'Baum'},bush:{cap:3,rt:'foo
   dolphin:{cap:3,sea:true,rt:'food',amt:420,r:11,name:'Delfine',gm:1.3,lvl:1},
   whale:{cap:4,sea:true,rt:'food',amt:1100,r:16,name:'Wal',gm:1.7,lvl:2}};
 const EPOCHS=[{name:'Steinzeit',cost:{food:350,wood:200},time:30},{name:'Bronzezeit',cost:{food:500,wood:250,stone:200},time:40},{name:'Eisenzeit',cost:{food:700,wood:350,stone:300,iron:150},time:50},{name:'Mittelalter',cost:{food:900,wood:450,stone:450,iron:350},time:60},{name:'Neuzeit'}];
-const ANIMALS={}; /* wilde Tiere (wird unten gefüllt) */
+/* Wilde Tiere: agg = Aggro-Reichweite (greift an, wenn jemand näher kommt), leash = so weit folgt es seinem Revier-Mittelpunkt, roam = Streifgebiet,
+   flee = friedliche Tiere fliehen ab dieser Nähe, food = Nahrung für den, der es erlegt, h = Höhe fürs Anzeigen */
+const ANIMALS={
+  deer:{name:'Reh',hp:45,spd:82,r:7,sight:170,flee:140,roam:120,food:120,h:24,info:'Friedlich und scheu – jagbar, gibt Nahrung'},
+  wolf:{name:'Wolf',hp:75,spd:86,atk:9,rng:5,cd:1,r:7,sight:170,agg:140,leash:380,roam:90,food:70,h:20,pack:true,info:'Rudeltier – greift an, wenn man zu nah kommt'},
+  bear:{name:'Bär',hp:280,spd:60,atk:24,rng:7,cd:1.3,r:11,sight:150,agg:120,leash:300,roam:80,food:220,h:34,info:'Sehr stark – verteidigt sein Revier'},
+  tiger:{name:'Tiger',hp:180,spd:98,atk:18,rng:6,cd:.9,r:9,sight:190,agg:170,leash:420,roam:140,food:160,h:26,info:'Schnell und gefährlich'}
+};
 const POPMAX=100;
 const RES=['food','wood','stone','iron'],RN={food:'Nahrung',wood:'Holz',stone:'Stein',iron:'Eisen'};
 const DIFF={leicht:{gather:.7,first:420,wave:5},normal:{gather:1,first:300,wave:6},schwer:{gather:1.35,first:220,wave:7}};
