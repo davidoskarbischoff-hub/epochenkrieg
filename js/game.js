@@ -139,7 +139,7 @@ function renderBg(seed){
 let mapSeed=0,mapFresh=false;
 function newGame(d,reuse){
   diff=d;
-  G={t:0,ents:[],byId:new Map(),nid:1,res:[{food:200,wood:200,stone:100,iron:0},{food:200,wood:200,stone:100,iron:0}],epoch:[0,0],adv:[null,null],upg:[null,null],pop:[0,0],cap:[0,0],speed:1,paused:false,running:false,over:null,overShown:false,proj:[],fx:[],aiT:1,alertT:-99,ping:null,ai:{next:DIFF[d].first,wave:DIFF[d].wave},stats:{lost:[0,0],trained:[0,0]}};
+  G={t:0,ents:[],byId:new Map(),nid:1,res:[{food:200,wood:200,stone:100,iron:0},{food:200,wood:200,stone:100,iron:0}],epoch:[0,0],adv:[null,null],jobs:[[],[]],pop:[0,0],cap:[0,0],speed:1,paused:false,running:false,over:null,overShown:false,proj:[],fx:[],aiT:1,alertT:-99,ping:null,ai:{next:DIFF[d].first,wave:DIFF[d].wave},stats:{lost:[0,0],trained:[0,0]}};
   sel.clear();placing=null;armed=false;panelSig='';if(typeof SND!=='undefined')SND.setEpoch(0);
   const keep=reuse&&mapFresh&&bg,seed=keep?mapSeed:(typeof window.__seed==='number'?window.__seed:(Math.random()*1e9)|0);mapSeed=seed;mapFresh=true;genTerrain(seed);navInit();genMap(seed);if(!keep)renderBg(seed);
   G.solids=G.ents.filter(e=>e.kind!=='unit');recount();fogReset();
@@ -157,8 +157,8 @@ function step(dt){
   for(const e of G.ents)if(e.kind==='unit'&&!e.dead&&e.state==='gather'&&e.tid)G.load[e.tid]=(G.load[e.tid]||0)+1;
   G.solids=G.ents.filter(e=>e.kind!=='unit'&&!e.dead);
   recount();
-  for(const e of G.ents){if(e.dead||(e.team>=0&&G.upg[e.team]))continue;if(e.kind==='unit')updUnit(e,dt);else if(e.kind==='bld')updBld(e,dt)}
-  for(let t=0;t<2;t++){const u=G.upg[t];if(!u)continue;u.t+=dt;if(u.t>=u.time){G.upg[t]=null;applyLevels(t);if(t===0){panelSig='';infoCache='';sfx('epoch');toast(tr('Alle Gebäude und Truppen sind jetzt auf Stufe {0}.',LVLN[G.epoch[0]]),'good')}}}
+  for(const e of G.ents){if(e.dead||e.upj)continue;if(e.kind==='unit')updUnit(e,dt);else if(e.kind==='bld')updBld(e,dt)}
+  for(let t=0;t<2;t++){const js=G.jobs[t];if(!js.length)continue;for(const j of js){j.t+=dt;if(j.t>=j.time){j.done=true;for(const id of j.ids){const e=G.byId.get(id);if(e&&!e.dead){e.upj=null;levelUp(e,j.to)}}if(t===0){panelSig='';infoCache='';sfx('epoch');toast(tr('Upgrade fertig: {0}',j.label),'good')}}}G.jobs[t]=js.filter(j=>!j.done)}
   for(let t=0;t<2;t++){const a=G.adv[t];if(!a)continue;a.t+=dt;if(a.t>=a.time){G.epoch[t]++;G.adv[t]=null;panelSig='';if(t===1)applyLevels(1);if(t===0){sfx('epoch');if(typeof SND!=='undefined')SND.setEpoch(G.epoch[0])}if(t===0)toast(tr('{0} erreicht! Neue Einheiten und Gebäude verfügbar.',tr(EPOCHS[G.epoch[0]].name)),'good');else toast(tr('Der Gegner hat die {0} erreicht.',tr(EPOCHS[G.epoch[1]].name)),'warn')}}
   for(const p of G.proj){const t=get(p.tid);if(!t){p.dead=true;continue}const dx=t.x-p.x,dy=t.y-p.y,d=Math.hypot(dx,dy),s=380*dt;p.a=Math.atan2(dy,dx);if(d<=s+t.r*.5){damage(t,p.dmg,get(p.src));p.dead=true}else{p.x+=dx/d*s;p.y+=dy/d*s}}
   G.proj=G.proj.filter(p=>!p.dead);
@@ -270,21 +270,33 @@ function enqueue(b,type,team){
   b.queue.push({type,t:0});if(team===0)panelSig='';return true;
 }
 /* ---------- Stufen und Upgrades ---------- */
-function applyLevels(team){const to=G.epoch[team];
-  for(const e of G.ents){if(e.dead||e.team!==team||e.kind==='node'||e.lvl>=to)continue;
-    const nm=e.kind==='unit'?Math.round(UNITS[e.type].hp*LVL.hp[to]):Math.round(BLDS[e.type].hp*LVL.bhp[to]);e.hp=e.hp/e.maxHp*nm;e.maxHp=nm;e.lvl=to}}
-function pending(team){const to=G.epoch[team];let nb=0,nu=0;const cost={};
-  for(const e of G.ents){if(e.dead||e.team!==team||e.kind==='node'||e.lvl>=to)continue;
+function levelUp(e,to){if(e.dead||e.kind==='node'||e.lvl>=to)return;
+  const nm=e.kind==='unit'?Math.round(UNITS[e.type].hp*LVL.hp[to]):Math.round(BLDS[e.type].hp*LVL.bhp[to]);e.hp=e.hp/e.maxHp*nm;e.maxHp=nm;e.lvl=to}
+function applyLevels(team){const to=G.epoch[team];for(const e of G.ents)if(e.team===team)levelUp(e,to)}
+const upgCost=(e,to)=>{const c={};for(let l=e.lvl+1;l<=to;l++){const k=UPG[e.kind==='unit'?'unit':'bld'][l];for(const r in k)c[r]=(c[r]||0)+k[r]}return c};
+const upgTime=n=>Math.min(UPG_TIME.max,UPG_TIME.base+n*UPG_TIME.each);
+/* Was muss noch aufgewertet werden? Gruppen je Einheiten-/Gebäudetyp, mit Anzahl, Kosten und Dauer */
+function pending(team){const to=G.epoch[team],groups=new Map();let nb=0,nu=0;const cost={};
+  for(const e of G.ents){if(e.dead||e.team!==team||e.kind==='node'||e.lvl>=to||e.upj)continue;
     if(e.kind==='unit')nu++;else nb++;
-    for(let l=e.lvl+1;l<=to;l++){const c=UPG[e.kind==='unit'?'unit':'bld'][l];for(const r in c)cost[r]=(cost[r]||0)+c[r]}}
-  return{nb,nu,cost,n:nb+nu}}
-function startUpgrade(team){const p=pending(team);if(!p.n||G.upg[team]||G.adv[team])return false;
-  if(!pay(team,p.cost)){if(team===0){toast(missing(team,p.cost)+'.');sfx('error')}return false}
-  G.upg[team]={t:0,time:Math.min(UPG_TIME.max,UPG_TIME.base+p.n*UPG_TIME.each)};
-  if(team===0){panelSig='';sfx('click');toast(tr('Upgrade gestartet: Truppen und Gebäude ruhen, bis es fertig ist.'))}return true}
+    const key=e.kind+':'+e.type;let g=groups.get(key);if(!g){g={key,kind:e.kind,type:e.type,nm:e.kind==='unit'?UNITS[e.type].name:BLDS[e.type].name,n:0,cost:{}};groups.set(key,g)}
+    g.n++;const c=upgCost(e,to);for(const r in c){g.cost[r]=(g.cost[r]||0)+c[r];cost[r]=(cost[r]||0)+c[r]}}
+  const list=[...groups.values()].sort((a,b)=>(a.kind===b.kind?0:a.kind==='unit'?-1:1)||(a.type==='worker'?-1:b.type==='worker'?1:0));
+  list.forEach(g=>g.time=upgTime(g.n));
+  return{nb,nu,cost,n:nb+nu,groups:list,time:upgTime(nb+nu)}}
+/* Upgrade starten: key = 'all' oder eine Gruppe wie 'unit:worker'. Die betroffenen Einheiten/Gebäude ruhen, bis es fertig ist. */
+function startUpgrade(team,key){key=key||'all';const p=pending(team);if(!p.n||G.adv[team])return false;
+  const gs=key==='all'?p.groups:p.groups.filter(g=>g.key===key);if(!gs.length)return false;
+  const cost={};let n=0;gs.forEach(g=>{n+=g.n;for(const r in g.cost)cost[r]=(cost[r]||0)+g.cost[r]});
+  if(!pay(team,cost)){if(team===0){toast(missing(team,cost)+'.');sfx('error')}return false}
+  const to=G.epoch[team],keys=new Set(gs.map(g=>g.key)),job={team,to,t:0,time:upgTime(n),ids:[],done:false,label:key==='all'?tr('Alle'):tr(gs[0].nm),n};
+  for(const e of G.ents){if(e.dead||e.team!==team||e.kind==='node'||e.lvl>=to||e.upj)continue;if(keys.has(e.kind+':'+e.type)){e.upj=job;job.ids.push(e.id)}}
+  G.jobs[team].push(job);
+  if(team===0){panelSig='';infoCache='';sfx('click');toast(tr('Upgrade gestartet: {0} ruhen, bis es fertig ist.',job.label))}return true}
 function canGather(u,x){const need=typeof x==='string'?(NEED_LVL[x]||0):(NODES[x.type].lvl!==undefined?NODES[x.type].lvl:(NEED_LVL[x.rt]||0));return u.lvl>=need}
 function advance(team){
-  const ep=G.epoch[team];if(ep>=2||G.adv[team]||G.upg[team])return false;
+  const ep=G.epoch[team];if(ep>=2||G.adv[team])return false;
+  if(team===0&&G.jobs[0].length){toast(tr('Erst die laufenden Upgrades abwarten.'));sfx('error');return false}
   if(team===0&&pending(0).n){toast(tr('Erst alle Gebäude und Truppen auf Stufe {0} bringen.',LVLN[ep]));sfx('error');return false}
   const c=EPOCHS[ep].cost;
   if(!pay(team,c)){if(team===0)toast(missing(team,c)+'.');return false}
@@ -632,14 +644,14 @@ function actionsFor(s){
   if(f.kind==='bld'&&f.built){
     for(const [k,d] of Object.entries(UNITS))if(d.from===f.type)acts.push({key:'t'+k,nm:tr(d.name),cost:d.cost,lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>enqueue(f,k,0),unit:k});
     if(f.type==='hq'&&f.team===0){const pd=pending(0);
-      if(pd.n)acts.push({key:'upg',nm:tr('Alle upgraden'),cost:pd.cost,adv:true,sub:tr('{0} Gebäude · {1} Truppen',pd.nb,pd.nu),run:()=>startUpgrade(0)});
+      if(pd.n)acts.push({key:'upg',nm:tr('Alle upgraden'),cost:pd.cost,adv:true,sub:tr('{0} Gebäude · {1} Truppen',pd.nb,pd.nu),run:()=>startUpgrade(0,'all')});
       if(ep<2)acts.push({key:'adv',nm:tr('Aufstieg: {0}',tr(EPOCHS[ep+1].name)),cost:EPOCHS[ep].cost,adv:true,need:pd.n?tr('Erst alle Gebäude und Truppen auf Stufe {0} bringen.',LVLN[ep]):null,sub:pd.n?tr('Erst upgraden'):null,run:()=>advance(0)})}
   }
   return acts;
 }
 let curActs=[],infoCache='';
 $('acts').addEventListener('click',e=>{const b=e.target.closest('.act');if(!b||!G||!G.running)return;const a=curActs[+b.dataset.i];if(!a)return;if(a.lock){toast(tr('Erst ab der {0} verfügbar.',a.lock));sfx('error');return}if(a.need){toast(a.need);sfx('error');return}sfx('click');a.run()});
-$('info').addEventListener('pointerdown',e=>{if(!G||!G.running)return;const q=e.target.closest('[data-q]');if(q){const b=selection()[0];if(b&&b.team===0)cancelQueue(b,+q.dataset.q);return}if(e.target.closest('[data-clear]')){sel.clear();panelSig=''}});
+$('info').addEventListener('pointerdown',e=>{if(!G||!G.running)return;const q=e.target.closest('[data-q]');if(q){const b=selection()[0];if(b&&b.team===0)cancelQueue(b,+q.dataset.q);return}if(e.target.closest('[data-clear]')){sel.clear();panelSig='';return}const ub=e.target.closest('[data-upg]');if(ub){startUpgrade(0,ub.dataset.upg);infoCache='';panelSig=''}});
 function infoHTML(s){
   const clr='<button class="x" data-clear aria-label="'+tr('Auswahl aufheben')+'">×</button>';
   if(!s.length)return '<p class="muted">'+tr('Linksklick oder Rahmen ziehen wählt aus. Rechtsklick gibt Befehle: bewegen, sammeln, bauen, angreifen. Doppelklick wählt alle gleichen Einheiten im Bild.')+'</p>';
@@ -654,8 +666,13 @@ function infoHTML(s){
   else{
     if(!e.built)h+=`<div class="line">${tr('Im Bau: {0} %',Math.floor(e.prog*100))}${e.team===0?' <em>· '+tr('Arbeiter per Rechtsklick zum Bauen schicken')+'</em>':''}</div>`;
     if(e.team===0&&e.type==='hq'&&G.adv[0])h+=`<div class="line">${tr('Aufstieg in die {0}',tr(EPOCHS[G.epoch[0]+1].name))}: <b>${Math.floor(G.adv[0].t/G.adv[0].time*100)} %</b></div>`;
-    if(e.team===0&&e.type==='hq'&&G.epoch[0]>=1){const m=new Map();for(const o of G.ents){if(o.dead||o.team!==0||o.kind==='node')continue;const k=o.kind+o.type,r=m.get(k)||{nm:o.kind==='unit'?tr(UNITS[o.type].name):tr(BLDS[o.type].name),tot:0,ok:0};r.tot++;if(o.lvl>=G.epoch[0])r.ok++;m.set(k,r)}
-      h+=`<div class="line"><b>${tr('Stufe {0}',LVLN[G.epoch[0]])}</b> <em>· ${tr('Vor dem nächsten Aufstieg müssen alle darauf sein')}</em></div><div class="chips">`+[...m.values()].map(r=>`<span class="chip ${r.ok===r.tot?'done':'todo'}">${r.nm} ${r.ok}/${r.tot}</span>`).join('')+'</div>'}
+    if(e.team===0&&e.type==='hq'&&G.epoch[0]>=1){const pd=pending(0),R=G.res[0];
+      h+=`<div class="upg"><div class="uh"><b>${tr('Upgrades auf Stufe {0}',LVLN[G.epoch[0]])}</b><em>${tr('Vor dem nächsten Aufstieg müssen alle darauf sein')}</em></div>`;
+      for(const g of pd.groups){const ok=afford(0,g.cost);h+=`<div class="ur"><span class="un">${tr(g.nm)} <b>×${g.n}</b></span><span class="uc">${costHTML(g.cost)}<small>${Math.ceil(g.time)} s</small></span><button class="ub ${ok?'ok':'bad'}" data-upg="${g.key}">${tr('Upgrade')}</button></div>`}
+      for(const j of G.jobs[0]){h+=`<div class="ur run"><span class="un">${j.label}</span><span class="uc"><small>${Math.floor(j.t/j.time*100)} %</small></span><span class="ub busy">${tr('läuft')}</span></div>`}
+      if(pd.groups.length>1){const ok=afford(0,pd.cost);h+=`<div class="ur all"><span class="un"><b>${tr('Alles')}</b> <b>×${pd.n}</b></span><span class="uc">${costHTML(pd.cost)}<small>${Math.ceil(pd.time)} s</small></span><button class="ub ${ok?'ok':'bad'}" data-upg="all">${tr('Alles upgraden')}</button></div>`}
+      else if(!pd.groups.length&&!G.jobs[0].length)h+=`<div class="line upd">✔ ${tr('Alles auf Stufe {0}',LVLN[G.epoch[0]])}</div>`;
+      h+='</div>'}
     if(e.team===0&&e.queue.length){h+='<div class="chips">'+e.queue.map((q,i)=>`<button class="q${q.blocked?' blocked':''}" data-q="${i}" title="${tr('Klicken zum Abbrechen')}">${tr(UNITS[q.type].name)}${q.blocked?' – '+tr('Platz fehlt'):''}<span class="qb"><span style="width:${i===0?(q.t/UNITS[q.type].time*100).toFixed(0):0}%"></span></span></button>`).join('')+'</div>'}
     if(e.team===0&&e.built&&(e.type==='hq'||e.type==='barracks')&&!e.queue.length)h+='<div class="line"><em>'+tr('Rechtsklick auf die Karte setzt den Sammelpunkt.')+'</em></div>';
     if(e.team===0&&BLDS[e.type].pop)h+=`<div class="line"><em>${tr('Bietet Platz für {0} Bewohner',BLDS[e.type].pop)}</em></div>`;
@@ -666,17 +683,17 @@ function updateUI(){
   const r=G.res[0];$('v-food').textContent=Math.floor(r.food);$('v-wood').textContent=Math.floor(r.wood);$('v-stone').textContent=Math.floor(r.stone);$('v-iron').textContent=Math.floor(r.iron);$('res-iron').hidden=G.epoch[0]<2&&r.iron<=0;
   const pe=$('v-pop');pe.textContent=G.pop[0]+'/'+G.cap[0];pe.style.color=G.pop[0]>=G.cap[0]?'var(--warn)':'';
   $('epoch').innerHTML=tr(EPOCHS[G.epoch[0]].name)+(G.adv[0]?`<span class="prog">→ ${tr(EPOCHS[G.epoch[0]+1].name)} ${Math.floor(G.adv[0].t/G.adv[0].time*100)} %</span>`:'');
-  const ub=$('upgbar');ub.hidden=!G.upg[0];if(G.upg[0]){const pc=Math.floor(G.upg[0].t/G.upg[0].time*100);ub.querySelector('span').textContent=tr('Upgrade')+' → '+tr('Stufe {0}',LVLN[G.epoch[0]])+' · '+pc+' %';ub.querySelector('i').style.width=pc+'%'}
+  const ub=$('upgbar'),js=G.jobs[0];ub.hidden=!js.length;if(js.length){const h=js.map(j=>{const pc=Math.floor(j.t/j.time*100);return `<div class="uj"><span>${tr('Upgrade')}: ${j.label} → ${tr('Stufe {0}',LVLN[j.to])} · ${pc} %</span><div><i style="width:${pc}%"></i></div></div>`}).join('');if(h!==ub._h){ub._h=h;ub.innerHTML=h}}
   const idle=G.ents.filter(e=>!e.dead&&e.team===0&&e.kind==='unit'&&UNITS[e.type].gather&&e.state==='idle').length;const ib=$('idleBtn');ib.textContent=idle===0?tr('Alle Arbeiter beschäftigt'):idle===1?tr('1 untätiger Arbeiter'):tr('{0} untätige Arbeiter',idle);ib.classList.toggle('alert',idle>0);ib.classList.toggle('ok',idle===0);
   const s=selection();
-  const sig=s.map(e=>e.id+(e.built?'b':'')).join(',')+'|'+G.epoch[0]+'|'+(G.adv[0]?1:0)+(G.upg[0]?1:0)+'|'+pending(0).n;
+  const sig=s.map(e=>e.id+(e.built?'b':'')).join(',')+'|'+G.epoch[0]+'|'+(G.adv[0]?1:0)+G.jobs[0].length+'|'+pending(0).n;
   if(sig!==panelSig){panelSig=sig;curActs=actionsFor(s);$('acts').innerHTML=curActs.map((a,i)=>`<button class="act" data-i="${i}"><span class="nm">${a.nm}</span>${a.cost?`<span class="cost">${costHTML(a.cost)}</span>`:''}${a.lock?`<span class="sub">${tr('ab {0}',a.lock)}</span>`:a.sub?`<span class="sub">${a.sub}</span>`:''}</button>`).join('')}
-  $('acts').querySelectorAll('.act').forEach(b=>{const a=curActs[+b.dataset.i];if(!a)return;b.classList.toggle('locked',!!a.lock||!!a.need||!!(a.adv&&(G.adv[0]||G.upg[0])));b.classList.toggle('poor',!!a.cost&&!afford(0,a.cost));b.querySelectorAll('.c').forEach(ch=>{const ok=(G.res[0][ch.dataset.r]||0)>=+ch.dataset.n;ch.classList.toggle('ok',ok);ch.classList.toggle('bad',!ok)})});
+  $('acts').querySelectorAll('.act').forEach(b=>{const a=curActs[+b.dataset.i];if(!a)return;b.classList.toggle('locked',!!a.lock||!!a.need||!!(a.adv&&G.adv[0])||!!(a.key==='adv'&&G.jobs[0].length));b.classList.toggle('poor',!!a.cost&&!afford(0,a.cost));b.querySelectorAll('.c').forEach(ch=>{const ok=(G.res[0][ch.dataset.r]||0)>=+ch.dataset.n;ch.classList.toggle('ok',ok);ch.classList.toggle('bad',!ok)})});
   const ih=infoHTML(s);if(ih!==infoCache){infoCache=ih;$('info').innerHTML=ih}
   const hint=$('hint');
   if(placing){hint.hidden=false;hint.textContent=tr('{0} platzieren: Klick auf freie Fläche · Umschalt hält den Modus · Rechtsklick oder Esc bricht ab',tr(BLDS[placing].name))}
   else if(armed){hint.hidden=false;hint.textContent=tr('Angriffsmarsch: Ziel anklicken · Truppen greifen unterwegs alles an · Esc bricht ab')}
-  else if(G.upg[0]){hint.hidden=false;hint.textContent=tr('Upgrade läuft: Truppen und Gebäude ruhen, bis es fertig ist.')}
+  else if(G.jobs[0].length){hint.hidden=false;hint.textContent=tr('Upgrade läuft: die betroffenen Einheiten und Gebäude ruhen, bis es fertig ist.')}
   else if(G.paused){hint.hidden=false;hint.textContent=tr('Pausiert · Leertaste setzt fort')}
   else hint.hidden=true;
 }

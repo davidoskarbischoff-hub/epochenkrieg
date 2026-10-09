@@ -113,9 +113,6 @@ button:focus-visible{outline:2px solid var(--bronze);outline-offset:2px}
 /* Stufen */
 .chip.todo{border-color:#e0a24a;color:#f3d48a}
 .chip.done{border-color:#8fbf63;color:#cfe8b8}
-#upgbar{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:min(420px,80%);background:rgba(33,26,19,.94);border:1px solid var(--warn);border-radius:4px;padding:6px 12px 8px;text-align:center;font-size:14px;color:var(--warn);z-index:3;pointer-events:none}
-#upgbar div{height:8px;margin-top:5px;background:#1d1812;border-radius:2px;overflow:hidden}
-#upgbar i{display:block;height:100%;width:0;background:var(--warn)}
 #top{gap:12px;flex-wrap:nowrap;row-gap:0}
 .res b{min-width:2.2em}
 @media (max-width:1100px){#top{flex-wrap:wrap;row-gap:6px}}
@@ -134,3 +131,23 @@ button:focus-visible{outline:2px solid var(--bronze);outline-offset:2px}
 .act:not(.poor):not(.locked):hover{border-color:#9fdc78}
 .res small{display:none}
 .tbtn{white-space:nowrap}
+
+#upgbar{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:min(440px,84%);display:flex;flex-direction:column;gap:6px;z-index:3;pointer-events:none}
+#upgbar .uj{background:rgba(33,26,19,.94);border:1px solid var(--warn);border-radius:4px;padding:5px 12px 7px;text-align:center;font-size:13px;color:var(--warn)}
+#upgbar .uj div{height:7px;margin-top:4px;background:#1d1812;border-radius:2px;overflow:hidden}
+#upgbar .uj i{display:block;height:100%;background:var(--warn)}
+/* Upgrade-Liste im Hauptlager */
+.upg{display:flex;flex-direction:column;gap:3px;margin-top:4px}
+.upg .uh{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;font-size:12px}
+.upg .uh em{font-style:normal;color:var(--bone-dim);font-size:11px}
+.ur{display:grid;grid-template-columns:minmax(70px,1fr) auto auto;gap:8px;align-items:center;font-size:12px;padding:2px 6px;border-radius:3px;background:rgba(0,0,0,.2)}
+.ur.all{background:rgba(143,191,99,.08);border:1px solid rgba(143,191,99,.25)}
+.ur.run{opacity:.8}
+.ur .un b{color:var(--bone-dim);font-weight:600}
+.ur .uc{display:flex;gap:8px;align-items:center}
+.ur .uc small{color:var(--bone-dim)}
+.ub{border:1px solid;border-radius:3px;padding:2px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.ub.ok{background:#2f5a26;border-color:#8fd35f;color:#e2f7d2}.ub.ok:hover{background:#3b7030}
+.ub.bad{background:#5a2418;border-color:#e0533c;color:#ffd5cb}.ub.bad:hover{background:#6e2d1e}
+.ub.busy{border-color:var(--warn);color:var(--warn);cursor:default}
+.line.upd{color:#a9e283}

@@ -65,6 +65,10 @@ const EN={
   // Wasser
   'Hafen':'Harbor','Boote und Fischfang':'Boats and fishing','Fischerboot':'Fishing Boat','Kriegsschiff':'Warship','Fischschwarm':'School of Fish','Delfine':'Dolphins','Wal':'Whale',
   'Der Hafen muss zwischen Land und flachem Wasser stehen.':'The harbor must stand between land and shallow water.',
+  'Upgrade fertig: {0}':'Upgrade done: {0}','Upgrade gestartet: {0} ruhen, bis es fertig ist.':'Upgrade started: {0} rest until it is done.',
+  'Erst die laufenden Upgrades abwarten.':'Wait for the running upgrades first.',
+  'Upgrade läuft: die betroffenen Einheiten und Gebäude ruhen, bis es fertig ist.':'Upgrade in progress: the affected units and buildings rest until it is done.',
+  'Upgrades auf Stufe {0}':'Upgrades to level {0}','läuft':'running','Alles':'All','Alle':'All','Alles upgraden':'Upgrade all','Alles auf Stufe {0}':'Everything is level {0}',
   // Gebiet
   'Neues Gebiet erobert!':'New territory claimed!',
   'Nur im eigenen Gebiet. Ein Wachturm erobert neues Land.':'Only inside your territory. A watchtower claims new land.'
