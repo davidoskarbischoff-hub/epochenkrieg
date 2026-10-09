@@ -25,7 +25,6 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
 - `js/net.js` – Mehrspieler-Verbindung und Lobby (`Lobby`): WebRTC über PeerJS (Einladungslink `?join=ID`) oder lokal per BroadcastChannel (`?join=local:CODE`, zwei Tabs).
 - `js/models3d.js` – 3D-Modelle aus einfachen Formen und Mustertexturen: Gebäude je Epoche (`BLD3`, `buildBld`), Figuren (`UNIT3`, `buildUnit`, Rig mit Beinen/Armen zum Animieren), Tiere (`ANI3`, `quad`), Bäume/Büsche/Felsen als Geometrien für Instanzen. Später durch glTF-Modelle ersetzbar.
 - `js/render3d.js` – 3D-Szene: Gelände aus dem gemalten Kartenbild (`bg`) mit Höhen (`hAt`), Wasserwellen, Gras-Instanzen, Entitäten-Abgleich je Bild (`r3Sync`), Kamera (`camUpdate`; `cam.x/y` = Bildmitte in Spielpixeln, `cam.z` = Zoom), Umrechnung Bildschirm↔Spiel (`toWorld`, `scr`), Auswahlringe. Spielkoordinaten (x,y in Pixeln) → 3D: x/10, Höhe, y/10.
-- `js/test3d.js` + `3dtest.html` – kleiner eigenständiger 3D-Test (kann gelöscht werden).
 - `js/art.js` – nur noch `ART.icon` (SVG-Symbole für die Oberfläche) wird genutzt.
 - Spiellogik (früher eine Datei `game.js`, jetzt aufgeteilt; alle Dateien teilen sich globale Namen, Ladereihenfolge siehe `index.html`):
   `state.js` (Seite, Kamera, Nebel, Gebiet, Bauregeln, `NET`), `map.js` (Entitäten, Kartengenerierung), `sim.js` (Spielschritt, Einheiten-Zustandsmaschine, Kampf, Ausbildung, Stufen, Technologien),
