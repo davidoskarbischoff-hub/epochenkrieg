@@ -12,22 +12,27 @@
 ## Aufgeräumt
 - [x] Dateien in `css/` und `js/` einsortiert (style.css, game.js, data.js)
 - [x] Testlauf im Browser: Partie startet, keine Skriptfehler
-- [ ] Favicon ergänzen (Browser meldet 404 für /favicon.ico, harmlos)
+- [x] Flackernde Aktionsleiste behoben (hell/dunkel-Wechsel); bezahlbar = hell, Rest ausgegraut
+- [x] Favicon ergänzt
+- [x] Sounds: Musik (je Epoche andere Stimmung) und Geräusche (Sammeln, Bauen, Kampf, Alarm, Epochen-Fanfare), Knöpfe Musik/Ton, Tasten M und N
 
 ## Ideen für die nächsten Schritte
 Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortieren.
 
+### Als Nächstes (Davids Wunsch, früh wichtig)
+- [ ] Nebel des Krieges: Karte muss erkundet werden
+- [ ] Späher als Einheit (schnell, große Sichtweite) zum Erkunden
+
 ### Einfach
+- [ ] Lautstärke-Regler statt nur An/Aus; Sounds nach dem Testspielen feinjustieren
 - [ ] Balancing nach dem Testspielen anpassen
 - [ ] Weitere Epochen (z. B. Mittelalter, Neuzeit) mit eigenen Einheiten
 - [ ] Grössere Karte, Wahl der Kartengrösse
 
 ### Mittel
-- [ ] Nebel des Krieges
 - [ ] Bessere Wegfindung um Gebäude und Wälder
 - [ ] Klügere KI (gezielte Angriffe auf Arbeiter, Rückzug)
 - [ ] Technologien und Upgrades pro Epoche
-- [ ] Soundeffekte
 - [ ] Spielstand speichern
 - [ ] Mehrere KI-Gegner (bis 4 Spieler, Teams)
 
