@@ -3,7 +3,6 @@
    Später lassen sich diese Funktionen durch geladene glTF-Modelle ersetzen, ohne das Spiel anzufassen. */
 'use strict';
 const M3={tex:{},mat:{}};
-const OUTC=0x2a2119;
 
 /* ---------- Mustertexturen (hell, grau – die Farbe kommt vom Material) ---------- */
 function m3Canvas(w,h,fn){const c=document.createElement('canvas');c.width=w;c.height=h;fn(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;return t}
@@ -114,7 +113,6 @@ const BLD3={
 function buildBld(type,R,ep,team){const st=bStyle(ep),g=(BLD3[type]||BLD3.house)(R,st,team);setShadows(g);g.userData.flags=[];g.traverse(o=>{if(o.userData.flag)g.userData.flags.push(o)});return g}
 
 /* ---------- Figuren ---------- */
-const TOOLC={wood:0x8a6a42};
 function limbPivot(parent,x,y,z){const p=new THREE.Group();p.position.set(x,y,z);parent.add(p);return p}
 /* Grundfigur mit Beinen, Rumpf, Kopf, Armen. Rückgabe: Rig mit Teilen zum Animieren. */
 function human(o){

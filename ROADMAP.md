@@ -116,3 +116,15 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 3. [ ] Wilde Tiere (`kind:'animal'`): Reh (friedlich, jagbar = Nahrung), Wolf, Bär, Tiger (Aggro-Reichweite, Revier/Leine), Anzahl je nach Zone/Biom; Mehrspieler-Spielstand und Nebel beachten.
 4. [ ] Ton und Musik: bessere Geräusche, dynamische Musik (ruhig im Frieden, Kampfmusik bei Krieg/Angriff, Übergänge).
 5. [ ] Danach: Spielserver, GitHub Pages, Steam-Vorbereitung.
+
+## Stand nach der grossen Überarbeitung (3D, Tiere, Ton, Balancing)
+- [x] 3D-Darstellung (Three.js): Gelände mit Höhen, Modelle je Epoche, Bäume/Büsche/Felsen als Instanzen, Gras und Blumen, Wellen
+- [x] Wilde Tiere: Reh (jagbar), Wolf, Bär, Tiger mit Revier und Aggro-Reichweite
+- [x] Dynamische Musik (Kampfebene), Wind, Vogelgezwitscher, Raubtier-Geräusche
+- [x] Balancing: KI-Tempo (`AI_MINT`), Heeresgrösse (`DIFF.army`), Nahrung wächst nach, mehr Beeren, KI baut Lager
+- [x] Berater: Lager am Wald, Fischerboote, Arbeiter umverteilen; Aufstieg braucht 10/20/30/40 Arbeiter
+- [x] Anleitung GitHub Pages: `VEROEFFENTLICHEN.md`
+- [ ] Idee: Felder/Farmen als wiederholbare Nahrungsquelle, Heilung/Priester, Luftheinheiten (F3)
+- [ ] Idee: Modelle durch echte glTF-Modelle ersetzen (`models3d.js` ist die einzige Stelle)
+- [ ] Idee: Spielserver für zuverlässigen Mehrspieler, Steam-Vorbereitung (Electron/Tauri)
+- [ ] Idee: Tag/Nacht, Wetter, Schnee/Wüste-Gebiete

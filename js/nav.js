@@ -97,8 +97,6 @@ function carveCoast(x,y,r){
   computeMainland()}
 function terrAt(x,y){const cx=Math.max(0,Math.min(TW-1,(x/TG)|0)),cy=Math.max(0,Math.min(TH-1,(y/TG)|0));return TERR[cy*TW+cx]}
 const onLand=(x,y)=>terrAt(x,y)===2;
-const inWater=(x,y)=>terrAt(x,y)<2;
-const isRock=(x,y)=>terrAt(x,y)===3;
 
 /* ---------- Wegfindung ---------- */
 const NS=10,NW=W/NS,NH=H/NS;
