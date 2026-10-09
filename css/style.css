@@ -235,3 +235,16 @@ body{background:#101114}
 @media (max-width:900px){#panel{flex-wrap:wrap}#mini{width:170px;height:114px}#acts{flex:1 1 100%}#epoch{position:static;transform:none;order:0;padding:2px 12px;font-size:15px}}
 #top{gap:6px}.res{padding:2px 7px 2px 5px;gap:4px}.res b{font-size:15px;min-width:1.6em}#epoch{padding:5px 20px 7px;font-size:17px}.brand{font-size:17px}
 @media (max-width:1300px){.brand{display:none}}
+
+/* Startbildschirm / Lobby / Ende: keine Spiel-Oberfläche, Fenster oben nicht abgeschnitten */
+#app:has(#overlay:not([hidden]) .card) #panel,
+#app:has(#overlay:not([hidden]) .card) #top :is(.res,#epoch,.tbtn,.spacer){display:none!important}
+#overlay{align-items:flex-start}
+#overlay .card,#menu .card{margin:auto}
+#menu{align-items:flex-start;overflow:auto}
+#top{min-height:52px}
+#epoch{top:-2px;padding-top:9px}
+#app:has(#overlay:not([hidden]) .card) #top{display:none}
+#panel{padding:8px 12px 10px}
+#mini{width:200px;height:134px}
+@media (max-height:760px){#panel{max-height:32vh}}
