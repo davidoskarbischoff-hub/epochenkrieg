@@ -96,3 +96,9 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 
 ### Später / schwer
 - [ ] Online-Multiplayer
+
+## Zuletzt erledigt
+- [x] Ressourcen: grosse Vorkommen, Wälder, Steinhaufen
+- [x] Schräge 2,5D-Ansicht mit aufrechten Figuren (`sprites.js`)
+- [x] Oberfläche im dunklen Stein/Bronze-Stil, Minikarte unten links
+- [ ] Idee: Befehlsknöpfe mit eigenen Symbolen und Tastenkürzeln für alle Aktionen

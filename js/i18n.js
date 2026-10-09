@@ -24,6 +24,7 @@ const EN={
   'Aufstieg in die {0} begonnen.':'Advancing to the {0}.',
   '{0} fertiggestellt.':'{0} completed.',
   'Hier ist kein Platz.':'No room here.','Dieses Gebiet ist noch unerkundet.':'This area is still unexplored.',
+  'Für den Aufstieg brauchst du {0} Arbeiter.':'You need {0} workers to advance.','Lufttruppen gibt es noch nicht.':'There are no air units yet.','Keine passenden Einheiten.':'No matching units.',
   'Alle Arbeiter haben zu tun.':'All workers are busy.',
   'Tipp: Wähle deine Arbeiter aus und schick sie per Rechtsklick zu Beeren oder Bäumen.':'Tip: Select your workers and right-click berries or trees to send them gathering.',
   // Aktionen und Info

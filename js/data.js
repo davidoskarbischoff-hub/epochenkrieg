@@ -30,7 +30,7 @@ const BLDS={
   wall:{name:'Mauer',sight:60,hp:520,r:9,cost:{stone:12},time:5,ep:3,sub:'Hält Feinde auf'},
   tower:{name:'Wachturm',sight:300,claim:320,hp:550,r:14,cost:{wood:70,stone:60},time:26,ep:0,shoot:{rng:170,atk:9,cd:1.5},sub:'Schiesst auf Gegner'}
 };
-const NODES={tree:{cap:3,rt:'wood',amt:120,r:11,name:'Baum'},bush:{cap:4,rt:'food',amt:220,r:10,name:'Beerenstrauch'},stone:{cap:3,rt:'stone',amt:300,r:13,name:'Steinvorkommen'},iron:{cap:3,rt:'iron',amt:260,r:12,name:'Eisenvorkommen'},
+const NODES={tree:{cap:3,rt:'wood',amt:260,r:11,name:'Baum'},bush:{cap:3,rt:'food',amt:340,r:8,name:'Beerenstrauch'},stone:{cap:6,rt:'stone',amt:1600,r:22,name:'Steinvorkommen'},iron:{cap:5,rt:'iron',amt:1200,r:20,name:'Eisenvorkommen'},
   // Wasser: nur Boote können hier sammeln (Delfine ab Stufe II, Wale ab Stufe III)
   fish:{cap:2,sea:true,rt:'food',amt:160,r:8,name:'Fischschwarm',gm:1},
   dolphin:{cap:3,sea:true,rt:'food',amt:420,r:11,name:'Delfine',gm:1.3,lvl:1},
