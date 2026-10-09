@@ -151,3 +151,13 @@ button:focus-visible{outline:2px solid var(--bronze);outline-offset:2px}
 .ub.bad{background:#5a2418;border-color:#e0533c;color:#ffd5cb}.ub.bad:hover{background:#6e2d1e}
 .ub.busy{border-color:var(--warn);color:var(--warn);cursor:default}
 .line.upd{color:#a9e283}
+
+/* Berater */
+#advisor{position:absolute;top:12px;left:12px;width:min(290px,70%);background:rgba(36,28,20,.96);border:1px solid var(--bronze);border-left:4px solid var(--bronze);border-radius:4px;padding:8px 12px 10px;z-index:4;box-shadow:0 6px 20px rgba(0,0,0,.45)}
+#advisor .ah{display:flex;align-items:center;gap:6px;font-family:var(--f-display);font-size:15px;color:var(--bronze);margin-bottom:3px}
+#advisor .ai{color:var(--bronze)}
+#advisor p{margin:0 0 6px;font-size:13px;line-height:1.35}
+#advisor .ac{display:flex;gap:10px;margin:0 0 7px;font-size:13px}
+#advisor .ab{display:flex;gap:8px}
+#advisor .ab .ub{flex:1;padding:5px 6px}
+.chk{width:18px;height:18px;accent-color:var(--bronze);justify-self:start}

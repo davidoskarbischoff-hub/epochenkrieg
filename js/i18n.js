@@ -69,6 +69,13 @@ const EN={
   'Erst die laufenden Upgrades abwarten.':'Wait for the running upgrades first.',
   'Upgrade läuft: die betroffenen Einheiten und Gebäude ruhen, bis es fertig ist.':'Upgrade in progress: the affected units and buildings rest until it is done.',
   'Upgrades auf Stufe {0}':'Upgrades to level {0}','läuft':'running','Alles':'All','Alle':'All','Alles upgraden':'Upgrade all','Alles auf Stufe {0}':'Everything is level {0}',
+  // Berater
+  'Berater':'Advisor','Dein Berater schlägt vor:':'Your advisor suggests:','Annehmen':'Accept','Ablehnen':'Decline','Kein passender Platz gefunden.':'No suitable spot found.',
+  'eine Hütte bauen (die Bevölkerungsgrenze ist fast erreicht)':'build a hut (the population limit is almost reached)',
+  '{0} untätige Einheiten an die Arbeit schicken':'put {0} idle units to work','einen Arbeiter ausbilden':'train a worker','eine untätige Einheit an die Arbeit schicken':'put an idle unit to work',
+  'alles auf Stufe {0} upgraden':'upgrade everything to level {0}','{0} auf Stufe {1} upgraden':'upgrade {0} to level {1}','in die {0} aufsteigen':'advance to the {0}',
+  'eine Kaserne bauen, um Truppen auszubilden':'build barracks to train troops','einen Wachturm bauen, um Land zu erobern und zu überblicken':'build a watchtower to claim and overlook land',
+  'einen Hafen bauen, um Fische zu fangen':'build a harbor to catch fish','{0} ausbilden':'train {0}','einen Späher ausbilden, um die Karte zu erkunden':'train a scout to explore the map',
   // Gebiet
   'Neues Gebiet erobert!':'New territory claimed!',
   'Nur im eigenen Gebiet. Ein Wachturm erobert neues Land.':'Only inside your territory. A watchtower claims new land.'
