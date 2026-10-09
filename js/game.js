@@ -452,7 +452,7 @@ function actionsFor(s){
   }
   return acts;
 }
-let curActs=[];
+let curActs=[],infoCache='';
 $('acts').addEventListener('click',e=>{const b=e.target.closest('.act');if(!b||!G||!G.running)return;const a=curActs[+b.dataset.i];if(!a)return;if(a.lock){toast('Erst ab der '+a.lock+' verfügbar.');return}a.run()});
 $('info').addEventListener('pointerdown',e=>{if(!G||!G.running)return;const q=e.target.closest('[data-q]');if(q){const b=selection()[0];if(b&&b.team===0)cancelQueue(b,+q.dataset.q);return}if(e.target.closest('[data-clear]')){sel.clear();panelSig=''}});
 function infoHTML(s){
@@ -482,8 +482,8 @@ function updateUI(){
   const s=selection();
   const sig=s.map(e=>e.id+(e.built?'b':'')).join(',')+'|'+G.epoch[0]+'|'+(G.adv[0]?1:0);
   if(sig!==panelSig){panelSig=sig;curActs=actionsFor(s);$('acts').innerHTML=curActs.map((a,i)=>`<button class="act" data-i="${i}"><span class="nm">${a.nm}</span>${a.cost?`<span class="cost">${costHTML(a.cost)}</span>`:''}${a.lock?`<span class="sub">ab ${a.lock}</span>`:a.sub?`<span class="sub">${a.sub}</span>`:''}</button>`).join('')}
-  $('acts').querySelectorAll('.act').forEach(b=>{const a=curActs[+b.dataset.i];if(!a)return;b.classList.toggle('locked',!!a.lock||(a.adv&&!!G.adv[0]));b.classList.toggle('poor',!!a.cost&&!afford(0,a.cost))});
-  $('info').innerHTML=infoHTML(s);
+  $('acts').querySelectorAll('.act').forEach(b=>{const a=curActs[+b.dataset.i];if(!a)return;b.classList.toggle('locked',!!a.lock||!!(a.adv&&G.adv[0]));b.classList.toggle('poor',!!a.cost&&!afford(0,a.cost))});
+  const ih=infoHTML(s);if(ih!==infoCache){infoCache=ih;$('info').innerHTML=ih}
   const hint=$('hint');
   if(placing){hint.hidden=false;hint.textContent=BLDS[placing].name+' platzieren: Klick auf freie Fläche · Umschalt hält den Modus · Rechtsklick oder Esc bricht ab'}
   else if(armed){hint.hidden=false;hint.textContent='Angriffsmarsch: Ziel anklicken · Truppen greifen unterwegs alles an · Esc bricht ab'}

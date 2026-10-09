@@ -12,10 +12,16 @@
 ## Aufgeräumt
 - [x] Dateien in `css/` und `js/` einsortiert (style.css, game.js, data.js)
 - [x] Testlauf im Browser: Partie startet, keine Skriptfehler
+- [x] Flackernde Aktionsleiste behoben (hell/dunkel-Wechsel); bezahlbar = hell, Rest ausgegraut
 - [ ] Favicon ergänzen (Browser meldet 404 für /favicon.ico, harmlos)
 
 ## Ideen für die nächsten Schritte
 Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortieren.
+
+### Als Nächstes (Davids Wunsch, früh wichtig)
+- [ ] Sounds: Musik und Geräusche (Sammeln, Bauen, Kampf, Klicks), per Web Audio, mit Stummschalten
+- [ ] Nebel des Krieges: Karte muss erkundet werden
+- [ ] Späher als Einheit (schnell, große Sichtweite) zum Erkunden
 
 ### Einfach
 - [ ] Balancing nach dem Testspielen anpassen
@@ -23,11 +29,9 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Grössere Karte, Wahl der Kartengrösse
 
 ### Mittel
-- [ ] Nebel des Krieges
 - [ ] Bessere Wegfindung um Gebäude und Wälder
 - [ ] Klügere KI (gezielte Angriffe auf Arbeiter, Rückzug)
 - [ ] Technologien und Upgrades pro Epoche
-- [ ] Soundeffekte
 - [ ] Spielstand speichern
 - [ ] Mehrere KI-Gegner (bis 4 Spieler, Teams)
 
