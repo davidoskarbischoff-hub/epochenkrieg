@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const cv=$('c'),ctx=cv.getContext('2d'),mm=$('mini'),mctx=mm.getContext('2d'),view=$('view');
 let dpr=1,VW=0,VH=0,MW=0,MH=0;
 const cam={x:0,y:0,z:1};
-const TILT=.7; /* Kartenneigung: Boden wird in der Höhe auf 70 % gestaucht, Figuren stehen aufrecht darauf */
+const TILT=.86; /* Kartenneigung: Boden wird in der Höhe auf 70 % gestaucht, Figuren stehen aufrecht darauf */
 /* Ton: Eigene Geräusche immer, fremde nur wenn sie im Bild sind */
 /* ---------- Nebel des Krieges ---------- */
 const FC=20,FW=W/FC,FH=H/FC;
@@ -693,7 +693,27 @@ function endMP(){NET.mp=false;NET.host=false;NET.client=false;NET.send=null}
 function peerLeft(){if(!G||!NET.mp||G.over)return;if(G.running){G.over='win';G.leftMsg=true}}
 /* ---------- Berater: macht Vorschläge, die man annehmen oder ablehnen kann ---------- */
 let advOn=true;try{advOn=localStorage.getItem('ek-advisor')!=='0'}catch(_){}
-const advisor={cur:null,ignore:{},next:0,last:-9,shown:''};
+const advisor={cur:null,ignore:{},next:0,last:-9,shown:'',strat:'balanced',intel:null,open:true,auto:false,autoAt:0};
+/* Taktiken des Beraters: wk = Arbeiterziel je Epoche, mil = Truppenziel, atk = ab so vielen Truppen Angriff, tow = Türme, barW = ab so vielen Arbeitern Kaserne, w = Reihenfolge der Vorschläge (kleiner = früher) */
+const STRATS={
+  balanced:{name:'Ausgewogen',desc:'Von allem etwas',wk:[10,20,30,40,40],mil:ep=>6+ep*3,atk:ep=>7+ep*2,tow:()=>1,barW:6,bar2:99,hs:1,w:{}},
+  turtle:{name:'Verteidigung',desc:'Türme, solide Armee, spät angreifen',wk:[10,20,30,40,40],mil:ep=>8+ep*3,atk:ep=>16+ep*4,tow:ep=>2+ep,barW:6,bar2:99,hs:1,w:{tower:1,upg:2,army:2,barracks:2,tech:3,attack:9}},
+  boom:{name:'Aufstieg',desc:'So schnell wie möglich in die höchste Epoche',wk:[12,22,32,42,42],mil:ep=>3+ep*2,atk:ep=>14+ep*3,tow:()=>1,barW:9,bar2:99,hs:2,w:{adv:1,upg:1,tech:2,worker:2,house:2,barracks:8,army:8,attack:9}},
+  rush:{name:'Angriff',desc:'Früh viele Truppen, schnell zuschlagen',wk:[8,10,12,14,14],mil:ep=>12+ep*5,atk:ep=>5+ep,tow:()=>1,barW:4,bar2:8,hs:1,w:{barracks:1,army:1,attack:2,worker:4,adv:7,tech:7,upg:6}},
+  eco:{name:'Wirtschaft',desc:'Viele Arbeiter, große Vorräte',wk:[14,26,36,46,46],mil:ep=>4+ep*2,atk:ep=>12+ep*3,tow:()=>1,barW:10,bar2:99,hs:3,w:{worker:1,house:1,harbor:2,tech:2,shift:2,adv:3,upg:3,barracks:7,army:7,attack:9}}
+};
+/* Lagebild: was der Spieler vom Gegner weiß (gemerkte Gebäude, sichtbare Truppen) */
+function advIntel(){
+  const mem=[...G.mem.values()],vis=G.ents.filter(e=>!e.dead&&e.team===1&&e.kind==='unit'&&shown(e)&&!UNITS[e.type].passive);
+  const cnt=(a,f)=>a.filter(f).length,navalVis=cnt(vis,u=>UNITS[u.type].naval);
+  const I={known:mem.length>0,ep:G.epoch[1],bars:cnt(mem,m=>m.type==='barracks'),towers:cnt(mem,m=>m.type==='tower'||m.type==='castle'),harbor:cnt(mem,m=>m.type==='harbor')>0,
+    vis:vis.length,ranged:cnt(vis,u=>UNITS[u.type].ranged&&!UNITS[u.type].naval),horse:cnt(vis,u=>u.type==='knight'),siege:cnt(vis,u=>UNITS[u.type].siege),naval:navalVis,mel:cnt(vis,u=>!UNITS[u.type].ranged&&!UNITS[u.type].naval&&u.type!=='knight')};
+  return I}
+function advIntelText(I){
+  if(!I.known&&!I.vis)return tr('Noch nichts vom Gegner gesehen – Späher losschicken.');
+  const p=[];if(I.known)p.push(tr('Gegner: {0}',tr(EPOCHS[I.ep].name)));
+  if(I.bars)p.push(tr('{0} Kaserne(n)',I.bars));if(I.towers)p.push(tr('{0} Türme/Burgen',I.towers));if(I.harbor)p.push(tr('Hafen'));
+  if(I.vis)p.push(tr('{0} Truppen in Sicht',I.vis));return p.join(' · ')}
 function advFindSpot(type){
   const hq=G.ents.find(e=>e.type==='hq'&&e.team===0&&!e.dead);if(!hq)return null;const d0=BLDS[type];
   const base=Math.atan2(H/2-hq.y,W/2-hq.x),far=type==='tower';
@@ -723,53 +743,72 @@ function advRules(){
   const mine=G.ents.filter(e=>!e.dead&&e.team===0),has=t=>mine.filter(e=>e.type===t);
   const workers=has('worker'),idle=mine.filter(e=>e.kind==='unit'&&UNITS[e.type].gather&&e.state==='idle'&&!e.upj);
   const queuedW=hq.queue.filter(q=>q.type==='worker').length,rules=[],push=r=>rules.push(r);
-  const bars=has('barracks'),mil=mine.filter(e=>e.kind==='unit'&&!UNITS[e.type].passive).length;
+  const bars=has('barracks'),mil=mine.filter(e=>e.kind==='unit'&&!UNITS[e.type].passive&&!UNITS[e.type].naval).length,S=STRATS[advisor.strat]||STRATS.balanced,I=advIntel();advisor.intel=I;
   // Gefahr: Feinde in der Nähe der Siedlung
   const blds0=mine.filter(e=>e.kind==='bld');
   const foes=G.ents.filter(e=>!e.dead&&e.team===1&&e.kind==='unit'&&shown(e)&&blds0.some(b=>dist(b,e)<320));
   if(foes.length){const c=foes.reduce((a,e)=>({x:a.x+e.x/foes.length,y:a.y+e.y/foes.length}),{x:0,y:0});if(mil>0)push({id:'defend',txt:'Feinde nähern sich! Alle Truppen zur Verteidigung schicken',go:()=>sendArmy(c.x,c.y)})}
-  if(G.pop[0]>=G.cap[0]-1&&G.cap[0]<POPMAX&&!mine.some(e=>e.type==='house'&&!e.built)&&afford(0,BLDS.house.cost)&&advFindSpot('house'))
+  if(G.pop[0]>=G.cap[0]-S.hs&&G.cap[0]<POPMAX&&!mine.some(e=>e.type==='house'&&!e.built)&&afford(0,BLDS.house.cost)&&advFindSpot('house'))
     push({id:'house',txt:'eine Hütte bauen (die Bevölkerungsgrenze ist fast erreicht)',cost:BLDS.house.cost,go:()=>advBuild('house')});
   if(has('scout').some(u=>u.state==='idle'&&!u.upj))push({id:'explore',txt:'die Späher automatisch erkunden lassen',go:()=>{has('scout').forEach(u=>{if(u.state==='idle'){u.state='explore';u.ex=null}});sfx('order')}});
   if(idle.length)push(idle.length===1?{id:'idle',txt:'eine untätige Einheit an die Arbeit schicken',go:advIdle}:{id:'idle',txt:'{0} untätige Einheiten an die Arbeit schicken',args:[idle.length],go:advIdle});
-  if(workers.length+queuedW<[10,14,18,20,22][ep]&&hq.queue.length<2&&G.pop[0]<G.cap[0]&&afford(0,UNITS.worker.cost))
+  if(workers.length+queuedW<S.wk[ep]&&hq.queue.length<2&&G.pop[0]<G.cap[0]&&afford(0,UNITS.worker.cost))
     push({id:'worker',txt:'einen Arbeiter ausbilden',cost:UNITS.worker.cost,go:()=>enqueue(hq,'worker',0)&&(panelSig='')});
   const pd=pending(0);
   if(pd.n&&!G.adv[0]){const gs=pd.groups.filter(g=>afford(0,g.cost)).sort((a,b)=>a.n-b.n);
     if(afford(0,pd.cost)&&pd.groups.length>1)push({id:'upg:all',txt:'alles auf Stufe {0} upgraden',args:[LVLN[ep]],cost:pd.cost,go:()=>startUpgrade(0,'all')});
     else if(gs[0])push({id:'upg:'+gs[0].key,txt:'{0} auf Stufe {1} upgraden',args:[tr(gs[0].nm),LVLN[ep]],cost:gs[0].cost,go:()=>startUpgrade(0,gs[0].key)})}
   if(ep<EPOCHS.length-1&&!G.adv[0]&&!pd.n&&!G.jobs[0].length&&afford(0,EPOCHS[ep].cost))push({id:'adv',txt:'in die {0} aufsteigen',args:[tr(EPOCHS[ep+1].name)],cost:EPOCHS[ep].cost,go:()=>advance(0)});
-  if(!bars.length&&workers.length>=6&&afford(0,BLDS.barracks.cost)&&advFindSpot('barracks'))push({id:'barracks',txt:'eine Kaserne bauen, um Truppen auszubilden',cost:BLDS.barracks.cost,go:()=>advBuild('barracks')});
-  if(ep>=1&&!has('tower').length&&workers.length>=8&&afford(0,BLDS.tower.cost)&&advFindSpot('tower'))push({id:'tower',txt:'einen Wachturm bauen, um Land zu erobern und zu überblicken',cost:BLDS.tower.cost,go:()=>advBuild('tower')});
+  if(!bars.length&&workers.length>=S.barW&&afford(0,BLDS.barracks.cost)&&advFindSpot('barracks'))push({id:'barracks',txt:'eine Kaserne bauen, um Truppen auszubilden',cost:BLDS.barracks.cost,go:()=>advBuild('barracks')});
+  if(ep>=(advisor.strat==='turtle'?0:1)&&has('tower').length<S.tow(ep)&&workers.length>=8&&afford(0,BLDS.tower.cost)&&advFindSpot('tower'))push({id:'tower',txt:'einen Wachturm bauen, um Land zu erobern und zu überblicken',cost:BLDS.tower.cost,go:()=>advBuild('tower')});
   if(!has('harbor').length&&workers.length>=9&&afford(0,BLDS.harbor.cost)&&advFindSpot('harbor'))push({id:'harbor',txt:'einen Hafen bauen, um Fische zu fangen',cost:BLDS.harbor.cost,go:()=>advBuild('harbor')});
   const ub=bars.find(b=>b.built&&b.queue.length<1);
-  if(ub&&mil<6+ep*3){const t=Object.keys(UNITS).filter(k=>UNITS[k].from==='barracks'&&UNITS[k].ep<=ep&&!UNITS[k].siege&&(!UNITS[k].tech||G.tech[0].has(UNITS[k].tech))).sort((a,b)=>UNITS[b].ep-UNITS[a].ep).find(k=>afford(0,UNITS[k].cost));if(t)push({id:'army',txt:'{0} ausbilden',args:[tr(UNITS[t].name)],cost:UNITS[t].cost,go:()=>enqueue(ub,t,0)&&(panelSig='')})}
+  if(ub&&mil<S.mil(ep)){const t=Object.keys(UNITS).filter(k=>UNITS[k].from==='barracks'&&UNITS[k].ep<=ep&&!UNITS[k].siege&&(!UNITS[k].tech||G.tech[0].has(UNITS[k].tech))).sort((a,b)=>UNITS[b].ep-UNITS[a].ep).find(k=>afford(0,UNITS[k].cost));if(t)push({id:'army',txt:'{0} ausbilden',args:[tr(UNITS[t].name)],cost:UNITS[t].cost,go:()=>enqueue(ub,t,0)&&(panelSig='')})}
   {const have=new Set([...G.tech[0],...G.rs[0].map(r=>r.id)]);const cand=TECHS.filter(t=>t.ep<=ep&&!have.has(t.id)&&afford(0,t.cost)&&mine.some(e=>e.kind==='bld'&&e.built&&(e.type===t.bld||(t.blds&&t.blds.includes(e.type)))));
     const prefer=cand.find(t=>t.bld==='barracks'&&bars.length&&!t.fx.ratk&&!t.fx.matk&&!t.fx.hp)||cand.find(t=>t.bld==='hq')||cand[0];
     if(prefer&&!G.rs[0].length&&workers.length>=6)push({id:'tech:'+prefer.id,txt:'die Technologie {0} erforschen',args:[tr(prefer.name)],cost:prefer.cost,go:()=>startResearch(0,prefer.id)})}
   // Angriff, wenn die Armee groß genug ist und ein Ziel bekannt ist
   {const known=[...G.mem.values()];const tgt=known.find(m=>m.type==='hq')||known.sort((a,b)=>dist(a,hq)-dist(b,hq))[0];
-    if(tgt&&mil>=7+ep*2&&!foes.length)push({id:'attack',txt:'mit {0} Truppen das gegnerische {1} angreifen',args:[mil,tr(BLDS[tgt.type].name)],go:()=>sendArmy(tgt.x,tgt.y)})}
+    if(tgt&&mil>=S.atk(ep)&&!foes.length)push({id:'attack',txt:'mit {0} Truppen das gegnerische {1} angreifen',args:[mil,tr(BLDS[tgt.type].name)],go:()=>sendArmy(tgt.x,tgt.y)})}
   // Rohstoffmangel: für den nächsten Aufstieg fehlt eine Ressource, aber kaum jemand sammelt sie
   if(ep<EPOCHS.length-1&&workers.length>=8){const goal=EPOCHS[ep].cost;
     for(const rt of RES){const need=goal[rt]||0;if(!need||R[rt]>=need)continue;const on=workers.filter(w=>w.rtype===rt&&(w.state==='gather'||w.state==='return')).length;if(on>=2||!workers.some(w=>canGather(w,rt)))continue;
       const donor=RES.filter(x=>x!==rt&&R[x]>(goal[x]||0)+150).sort((a,b)=>R[b]-R[a])[0];if(donor){push({id:'shift:'+rt,txt:'Arbeiter auf {0} umstellen (wird für den Aufstieg gebraucht)',args:[rn(rt)],go:()=>shiftWorkers(donor,rt,3)});break}}}
   if(G.t>40&&!has('scout').length&&hq.queue.length<2&&afford(0,UNITS.scout.cost))push({id:'scout',txt:'einen Späher ausbilden, um die Karte zu erkunden',cost:UNITS.scout.cost,go:()=>enqueue(hq,'scout',0)&&(panelSig='')});
+  // zweite Kaserne bei Angriffstaktik
+  if(bars.length===1&&bars[0].built&&workers.length>=S.bar2&&afford(0,BLDS.barracks.cost)&&advFindSpot('barracks'))push({id:'barracks2',txt:'eine zweite Kaserne bauen, um mehr Truppen gleichzeitig auszubilden',cost:BLDS.barracks.cost,go:()=>advBuild('barracks')});
+  // Erkenntnisse über den Gegner
+  if(I.known||I.vis){
+    const trainable=ks=>{const b=bars.find(b=>b.built&&b.queue.length<2);if(!b)return null;const t=ks.find(k=>UNITS[k]&&UNITS[k].ep<=ep&&(!UNITS[k].tech||G.tech[0].has(UNITS[k].tech))&&afford(0,UNITS[k].cost));return t?{b,t}:null};
+    const counter=(id,txt,ks)=>{const c=trainable(ks);if(c)push({id,txt,args:[tr(UNITS[c.t].name)],cost:UNITS[c.t].cost,go:()=>enqueue(c.b,c.t,0)&&(panelSig='')})};
+    if(I.horse>=2)counter('cn:horse','Der Gegner hat Reiter – {0} ausbilden (stark gegen Reiter)',['spear']);
+    if(I.ranged>=4)counter('cn:ranged','Der Gegner setzt auf Fernkämpfer – {0} ausbilden, um sie schnell zu erreichen',['knight','sword','club']);
+    if(I.mel>=5&&I.mel>mil)counter('cn:mel','Viele gegnerische Nahkämpfer – {0} ausbilden (schießen aus der Distanz)',['musket','crossbow','archer']);
+    if(I.towers>=2||I.siege)counter('cn:siege','Der Gegner baut Türme und Burgen – {0} ausbilden, um sie zu brechen',['cannon','catapult','ram']);
+    if(I.vis>=4&&I.vis>mil+2&&hq)push({id:'in:weak',txt:'Achtung: Der Gegner hat mehr Truppen in Sicht ({0}) als du ({1}) – mehr Truppen und Türme einplanen',args:[I.vis,mil],go:()=>{sfx('click')}});
+    if(I.known&&I.ep>ep&&ep<EPOCHS.length-1)push({id:'in:behind',txt:'Der Gegner ist schon in der {0} – du liegst zurück, steige bald auf',args:[tr(EPOCHS[I.ep].name)],go:()=>{sfx('click')}});
+    if((I.harbor||I.naval)&&!has('harbor').length&&workers.length>=8&&afford(0,BLDS.harbor.cost)&&advFindSpot('harbor'))push({id:'in:harbor',txt:'Der Gegner hat Schiffe oder einen Hafen – baue selbst einen Hafen und Kriegsschiffe',cost:BLDS.harbor.cost,go:()=>advBuild('harbor')});
+  }
+  const bw=(S.w||{}),base={defend:0,idle:1,explore:3,in:4},key=r=>{const k=r.id.split(':')[0];return bw[k]!==undefined?bw[k]:base[k]!==undefined?base[k]:5};
+  rules.sort((a,b)=>key(a)-key(b));
   return rules}
 function advisorUI(){
   const el=$('advisor');if(!el)return;const c=advisor.cur;
-  if(!advOn||!c||!G||!G.running||menuOpen){el.hidden=true;advisor.shown='';return}
+  if(!advOn||!G||!G.running||menuOpen||G.mp){el.hidden=true;advisor.shown='';return}
   el.hidden=false;
-  const html=`<div class="ah"><span class="ai">★</span><b>${tr('Berater')}</b></div><p>${tr('Dein Berater schlägt vor:')} <b>${tr(c.txt,...(c.args||[]))}</b></p>${c.cost?`<div class="ac">${costHTML(c.cost)}</div>`:''}<div class="ab"><button class="ub ok" data-a="y">${tr('Annehmen')} (Y)</button><button class="ub bad" data-a="n">${tr('Ablehnen')} (X)</button></div>`;
+  const I=advisor.intel||advIntel();
+  const chips=Object.entries(STRATS).map(([k,v])=>`<button class="st" data-st="${k}" aria-pressed="${k===advisor.strat}" title="${tr(v.desc)}">${tr(v.name)}</button>`).join('');
+  const html=`<div class="ah"><span class="ai">★</span><b>${tr('Berater')}</b><button class="auto" data-ad="auto" aria-pressed="${advisor.auto}" title="${tr('Auto-Modus: Vorschläge werden nach 2 Sekunden automatisch angenommen')}">${tr('Auto')} ${advisor.auto?tr('an'):tr('aus')}</button><button class="x" data-ad="tog" title="${tr('Einklappen')}">${advisor.open?'–':'+'}</button></div>`+(advisor.open?`<div class="sts" role="group" aria-label="${tr('Taktik')}">${chips}</div><p class="intel">${advIntelText(I)}</p>`:'')+(c?`<p>${tr('Dein Berater schlägt vor:')} <b>${tr(c.txt,...(c.args||[]))}</b></p>${c.cost?`<div class="ac">${costHTML(c.cost)}</div>`:''}<div class="ab"><button class="ub ok" data-a="y">${tr('Annehmen')} (Y)</button><button class="ub bad" data-a="n">${tr('Ablehnen')} (X)</button></div>`:'');
   if(html!==advisor.shown){advisor.shown=html;el.innerHTML=html}}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#advisor [data-st],#advisor [data-ad]');if(!t)return;if(t.dataset.st){advisor.strat=t.dataset.st;advisor.ignore={};advisor.cur=null;advisor.next=0;advisor.last=-9;toast(tr('Taktik: {0}',tr(STRATS[advisor.strat].name)),'good');sfx('click')}else if(t.dataset.ad==='auto'){advisor.auto=!advisor.auto;advisor.autoAt=G.t+2;toast(advisor.auto?tr('Auto-Modus an: Der Berater handelt selbst.'):tr('Auto-Modus aus.'),'good')}else advisor.open=!advisor.open;advisor.shown='';advisorUI()});
 function advisorTick(){
   if(!G||!G.running||G.over)return;if(G.mp){advisor.cur=null;return}
   if(!advOn){advisor.cur=null;return}
   if(G.t-advisor.last<1)return;advisor.last=G.t;
   const rules=advRules().filter(r=>!(advisor.ignore[r.id]>G.t));
-  if(advisor.cur&&rules.some(r=>r.id===advisor.cur.id)){advisor.cur=rules.find(r=>r.id===advisor.cur.id);return}
+  if(advisor.cur&&rules.some(r=>r.id===advisor.cur.id)){advisor.cur=rules.find(r=>r.id===advisor.cur.id);if(advisor.auto&&G.t>=advisor.autoAt)advAnswer(true);return}
   advisor.cur=null;
-  if(G.t>=advisor.next&&rules.length){advisor.cur=rules[0];advisor.shown='';sfx('select')}}
+  if(G.t>=advisor.next&&rules.length){advisor.cur=rules[0];advisor.shown='';advisor.autoAt=G.t+2;sfx('select')}}
 function advAnswer(yes){const c=advisor.cur;if(!c)return;advisor.cur=null;advisor.shown='';advisor.next=G.t+(yes?5:3);advisor.ignore[c.id]=G.t+(yes?20:120);if(yes)c.go();panelSig='';infoCache='';advisorUI()}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#advisor [data-a]');if(b)advAnswer(b.dataset.a==='y')});
 
@@ -875,6 +914,8 @@ function draw(){
   // alles Aufrechte nach Tiefe (y) sortiert
   const order=vis.filter(e=>!(e.kind==='node'&&e.sea)).concat(ghosts).sort((a,b)=>a.y-b.y);
   for(const e of order){if(e.kind==='node')drawNode(e);else if(e.kind==='unit')drawUnit(e);else drawBld(e)}
+  // Einheiten hinter Gebäuden: durchscheinend noch einmal davor zeichnen
+  {const bl=order.filter(e=>e.kind==='bld');if(bl.length){ctx.save();ctx.globalAlpha=.5;for(const u of order){if(u.kind!=='unit')continue;if(bl.some(b=>u.y<b.y&&Math.abs(u.x-b.x)<b.r+4&&u.y>b.y-SPR.height(b)/TILT))drawUnit(u)}ctx.restore()}}
   // rally
   for(const b of selection())if(b.kind==='bld'&&b.team===0&&b.rally){ctx.setLineDash([5,5]);ctx.strokeStyle='rgba(243,212,138,.7)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(b.rally.x,b.rally.y);ctx.stroke();ctx.setLineDash([]);
     upright(b.rally.x,b.rally.y,()=>{ctx.strokeStyle='#2a2119';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-16);ctx.stroke();ctx.fillStyle=TC[0];ctx.beginPath();ctx.moveTo(0,-16);ctx.lineTo(10,-12);ctx.lineTo(0,-8);ctx.fill()})}
@@ -1004,7 +1045,7 @@ function showStart(){
   <p>${tr('Führe deinen Stamm durch fünf Zeitalter. Sammle Nahrung, Holz und Stein, baue deine Siedlung aus und zerstöre das Hauptlager des Gegners, bevor er deins erreicht.')}</p>
   <div class="eras">${EPOCHS.map(e=>`<span>${tr(e.name)}</span>`).join('')}</div>
   <div class="diff" role="group" aria-label="${tr('Schwierigkeit')}">${['leicht','normal','schwer'].map(d=>`<button data-d="${d}" aria-pressed="${d===diff}">${tr(d)}</button>`).join('')}</div>
-  <div class="maps" role="group" aria-label="${tr('Karte')}">${Object.entries(MAPS).map(([k,m])=>`<button data-map="${k}" aria-pressed="${k===curMap}"><b>${tr(m.name)}</b><small>${tr(m.desc)}</small></button>`).join('')}</div>
+  <div class="maps" role="group" aria-label="${tr('Karte')}">${Object.entries(MAPS).map(([k,m])=>`<button data-map="${k}" aria-pressed="${k===curMap}"><b>${tr(m.name)}</b><img src="${mapPreview(k)}" alt="" title="${tr(m.desc)}"></button>`).join('')}</div>
   <dl class="ctl"><dt>${tr('Auswählen')}</dt><dd>${tr('Linksklick, Rahmen ziehen, Doppelklick für alle gleichen')}</dd><dt>${tr('Befehl')}</dt><dd>${tr('Rechtsklick: bewegen, sammeln, bauen, angreifen, Sammelpunkt')}</dd><dt>${tr('Kamera')}</dt><dd>${tr('WASD oder Pfeiltasten, Bildschirmrand, Minikarte, Mausrad zoomt')}</dd><dt>${tr('Tasten')}</dt><dd>${tr('Q Angriffsmarsch · H Hauptlager · . untätiger Arbeiter · Leertaste Pause · Esc Menü')}</dd><dt>${tr('Touch')}</dt><dd>${tr('Tippen wählt aus, mit Auswahl tippen gibt Befehl, Wischen bewegt die Karte')}</dd></dl>
   <div class="langrow"><span>${tr('Sprache')}</span><div class="diff" role="group">${['de','en'].map(l=>`<button data-l="${l}" aria-pressed="${l===LANG}">${l==='de'?'Deutsch':'English'}</button>`).join('')}</div></div>
   <div class="btnrow row"><button class="go" id="goBtn">${tr('Einzelspiel starten')}</button><button class="btn2" id="mpBtn">${tr('Mehrspieler')} …</button></div></div>`;

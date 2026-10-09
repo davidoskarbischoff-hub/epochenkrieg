@@ -235,3 +235,27 @@ body{background:#101114}
 @media (max-width:900px){#panel{flex-wrap:wrap}#mini{width:170px;height:114px}#acts{flex:1 1 100%}#epoch{position:static;transform:none;order:0;padding:2px 12px;font-size:15px}}
 #top{gap:6px}.res{padding:2px 7px 2px 5px;gap:4px}.res b{font-size:15px;min-width:1.6em}#epoch{padding:5px 20px 7px;font-size:17px}.brand{font-size:17px}
 @media (max-width:1300px){.brand{display:none}}
+
+/* Startbildschirm / Lobby / Ende: keine Spiel-Oberfläche, Fenster oben nicht abgeschnitten */
+#app:has(#overlay:not([hidden]) .card) #panel,
+#app:has(#overlay:not([hidden]) .card) #top :is(.res,#epoch,.tbtn,.spacer){display:none!important}
+#overlay{align-items:flex-start}
+#overlay .card,#menu .card{margin:auto}
+#menu{align-items:flex-start;overflow:auto}
+#top{min-height:52px}
+#epoch{top:-2px;padding-top:9px}
+#app:has(#overlay:not([hidden]) .card) #top{display:none}
+#panel{padding:8px 12px 10px}
+#mini{width:200px;height:134px}
+@media (max-height:760px){#panel{max-height:32vh}}
+.maps{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.maps button img{display:block;width:100%;aspect-ratio:160/110;border:1px solid #000;border-radius:3px;margin-top:4px;image-rendering:auto}
+/* Berater: Taktik-Wahl, Lagebild, Auto-Modus */
+#advisor{width:min(330px,80%)}
+#advisor .ah .x{margin-left:4px;width:22px;height:22px}
+#advisor .ah .auto{margin-left:auto;background:#1b1c20;border:1px solid var(--bronze-lo);border-radius:3px;font-size:11px;padding:2px 7px;cursor:pointer}
+#advisor .ah .auto[aria-pressed="true"]{background:#2f5a26;border-color:#8fd35f;color:#e2f7d2}
+#advisor .sts{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 6px}
+#advisor .st{background:#1b1c20;border:1px solid var(--bronze-lo);border-radius:3px;font-size:11px;padding:3px 7px;cursor:pointer;color:var(--bone)}
+#advisor .st[aria-pressed="true"]{background:linear-gradient(var(--bronze-hi),var(--bronze-lo));color:#1a1208;border-color:var(--bronze-hi);font-weight:700}
+#advisor .intel{font-size:12px;color:var(--bone-dim);margin:0 0 6px}
