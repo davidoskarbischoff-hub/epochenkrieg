@@ -19,7 +19,7 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
 - `js/data.js` – Alle Spieldaten: Einheiten (`UNITS`), Gebäude (`BLDS`), Ressourcenquellen (`NODES`),
   Epochen (`EPOCHS`), Schwierigkeitsgrade (`DIFF`), Teamfarben und Baumaterial-Farben je Epoche.
   Balancing-Änderungen gehören hierher.
-- `js/audio.js` – Klang (Web Audio, keine Audiodateien): Geräusche `SND.play(name)` und Hintergrundmusik pro Epoche.
+- `js/audio.js` – Klang (Web Audio, keine Audiodateien): Geräusche `SND.play(name)` und klassische Hintergrundmusik pro Epoche (Satie, Pachelbel, Grieg).
 - `js/game.js` – Spiellogik in einem IIFE: Kartengenerierung, Einheiten-Zustandsmaschine
   (idle, move, amove, attack, gather, return, build), Kampf und Projektile, Gegner-KI (`aiTick`),
   Eingabe (Maus, Touch, Tastatur), Zeichnen und Oberfläche.
