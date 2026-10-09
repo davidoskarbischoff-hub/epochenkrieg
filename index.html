@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Epochenkrieg</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <div class="brand">Epochenkrieg</div>
+    <div class="res" title="Nahrung"><i class="rdot food"></i><b id="v-food">0</b><small>Nahrung</small></div>
+    <div class="res" title="Holz"><i class="rdot wood"></i><b id="v-wood">0</b><small>Holz</small></div>
+    <div class="res" title="Stein"><i class="rdot stone"></i><b id="v-stone">0</b><small>Stein</small></div>
+    <div class="res" title="Bevölkerung"><i class="rdot pop"></i><b id="v-pop">0</b><small>Bevölkerung</small></div>
+    <div id="epoch">Steinzeit</div>
+    <div class="spacer"></div>
+    <button class="tbtn" id="idleBtn" title="Untätigen Arbeiter auswählen">Untätig: 0</button>
+    <button class="tbtn" id="pauseBtn">Pause</button>
+    <button class="tbtn" id="speedBtn" title="Spieltempo">Tempo 1×</button>
+  </header>
+  <main id="view">
+    <canvas id="c" aria-label="Spielkarte"></canvas>
+    <div id="toasts" aria-live="polite"></div>
+    <div id="hint" hidden></div>
+    <div id="overlay"></div>
+  </main>
+  <footer id="panel">
+    <section id="info"></section>
+    <section id="acts"></section>
+    <canvas id="mini" aria-label="Minikarte"></canvas>
+  </footer>
+</div>
+<script src="js/data.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
