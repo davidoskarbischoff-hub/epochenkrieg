@@ -9,6 +9,11 @@
 - [x] KI-Gegner mit drei Schwierigkeitsstufen, greift in Wellen an
 - [x] Minikarte, Zoom, Sammelpunkte, Angriffsmarsch, Tempo 1–3×
 
+## Aufgeräumt
+- [x] Dateien in `css/` und `js/` einsortiert (style.css, game.js, data.js)
+- [x] Testlauf im Browser: Partie startet, keine Skriptfehler
+- [ ] Favicon ergänzen (Browser meldet 404 für /favicon.ico, harmlos)
+
 ## Ideen für die nächsten Schritte
 Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortieren.
 
