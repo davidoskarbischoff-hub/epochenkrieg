@@ -28,6 +28,7 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
   Eingabe (Maus, Touch, Tastatur), Zeichnen und Oberfläche.
 
 ## Wichtige Konzepte im Code
+- Epochen: `EPOCHS` in `data.js` (Steinzeit, Bronzezeit, Eisenzeit, Mittelalter, Neuzeit). Neue Epoche = Eintrag in `EPOCHS` (mit `cost`/`time` für den Aufstieg), `MAT` (Gebäudefarben), `LVL`/`LVLN`/`LVLC`/`UPG` (Stufenwerte), Musikstück in `audio.js` (`PIECES`), Einheiten/Gebäude mit passendem `ep`, KI-Listen in `aiTick` (`targetW`, `w8`, `types`).
 - Bewegung: `moveToward` nutzt `navPath` (A*), erkennt Festhängen (`u.stk`, nach 1,6 s Ausweichen + neuer Weg mit Zufallskosten) und gibt auf, wenn es keinen Weg gibt (`u.pf.fail`). Arbeiter verteilen sich auf Bäume/Büsche (`cap` je Vorkommen in `NODES`).
 - Wasser: Hafen (`harbor`, nur auf flachem Wasser am Ufer baubar, `placeBlock`/`harborOk`) bildet Schiffe aus (`naval:true` in `UNITS`: Fischerboot, Kriegsschiff). Fischquellen sind Nodes mit `sea:true` (Fischschwarm, Delfine ab Stufe II, Wale ab Stufe III) und liefern Nahrung. Einheiten mit `gather:true` sammeln, `passive:true` greifen nicht von selbst an. Zum Testen: `window.__seed=<zahl>` vor dem Laden setzen erzeugt immer dieselbe Karte.
 - Befehlsketten: `u.q` (Liste von Aufträgen), `giveOrder(u,order,append)`; Umschalt + Befehl hängt an, `nextOrder` startet den nächsten, sobald die Einheit idle ist (bei Sammlern nach dem Abliefern).

@@ -150,7 +150,7 @@ function newGame(d,reuse){
   const hq=G.ents.find(e=>e.type==='hq'&&e.team===0);centerOn(hq.x+120,hq.y-80);
   $('pauseBtn').textContent=tr('Pause');$('speedBtn').textContent=tr('Tempo {0}×',1);
 }
-function recount(){G.pop=[0,0];G.cap=[0,0];for(const e of G.ents){if(e.dead)continue;if(e.kind==='unit')G.pop[e.team]++;else if(e.kind==='bld'&&e.built&&BLDS[e.type].pop)G.cap[e.team]+=BLDS[e.type].pop}G.cap=G.cap.map(c=>Math.min(60,c))}
+function recount(){G.pop=[0,0];G.cap=[0,0];for(const e of G.ents){if(e.dead)continue;if(e.kind==='unit')G.pop[e.team]++;else if(e.kind==='bld'&&e.built&&BLDS[e.type].pop)G.cap[e.team]+=BLDS[e.type].pop}G.cap=G.cap.map(c=>Math.min(POPMAX,c))}
 function afford(t,c){return RES.every(r=>(G.res[t][r]||0)>=(c[r]||0))}
 function pay(t,c){if(!afford(t,c))return false;RES.forEach(r=>G.res[t][r]-=c[r]||0);return true}
 function refund(t,c){RES.forEach(r=>G.res[t][r]+=c[r]||0)}
@@ -241,8 +241,8 @@ function updUnit(u,dt){
     else moveToward(u,b.x,b.y,dt,b.id);break}
   }
 }
-function hit(u,t){const d=UNITS[u.type];sfx(d.ranged?'arrow':'hit',u);const mult=t.kind==='bld'?(d.ranged?.3:1):1;
-  if(d.ranged)G.proj.push({x:u.x,y:u.y,tid:t.id,dmg:d.atk*mult*LVL.atk[u.lvl],src:u.id,a:0});else damage(t,d.atk*mult*LVL.atk[u.lvl],u)}
+function hit(u,t){const d=UNITS[u.type];sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);const mult=t.kind==='bld'?(d.siege?1.8:d.ranged?.3:1):1;
+  if(d.ranged)G.proj.push({x:u.x,y:u.y,tid:t.id,dmg:d.atk*mult*LVL.atk[u.lvl],src:u.id,a:0,big:!!d.siege,gun:!!d.gun});else damage(t,d.atk*mult*LVL.atk[u.lvl],u)}
 function damage(t,amt,src){
   t.hp-=amt;
   if(src&&t.kind==='unit'&&!UNITS[t.type].passive&&t.state==='idle'){t.tid=src.id;t.state='attack'}
@@ -300,7 +300,7 @@ function startUpgrade(team,key){key=key||'all';const p=pending(team);if(!p.n||G.
   if(team===0){panelSig='';infoCache='';sfx('click');toast(tr('Upgrade gestartet: {0} ruhen, bis es fertig ist.',job.label))}return true}
 function canGather(u,x){const need=typeof x==='string'?(NEED_LVL[x]||0):(NODES[x.type].lvl!==undefined?NODES[x.type].lvl:(NEED_LVL[x.rt]||0));return u.lvl>=need}
 function advance(team){
-  const ep=G.epoch[team];if(ep>=2||G.adv[team])return false;
+  const ep=G.epoch[team];if(ep>=EPOCHS.length-1||G.adv[team])return false;
   if(team===0&&G.jobs[0].length){toast(tr('Erst die laufenden Upgrades abwarten.'));sfx('error');return false}
   if(team===0&&pending(0).n){toast(tr('Erst alle Gebäude und Truppen auf Stufe {0} bringen.',LVLN[ep]));sfx('error');return false}
   const c=EPOCHS[ep].cost;
@@ -325,12 +325,12 @@ function aiTick(){
   const hq=mine.find(e=>e.type==='hq');if(!hq)return;
   const workers=mine.filter(e=>e.type==='worker'),mil=mine.filter(e=>e.kind==='unit'&&e.type!=='worker'),blds=mine.filter(e=>e.kind==='bld');
   const unbuilt=blds.filter(b=>!b.built);
-  const targetW=[10,15,19][ep];
-  const saving=ep<2&&!G.adv[1]&&workers.length>=targetW-2;
-  const adv=ep<2?EPOCHS[ep].cost:null;
+  const targetW=[10,15,19,22,25][ep];
+  const saving=ep<EPOCHS.length-1&&!G.adv[1]&&workers.length>=targetW-2;
+  const adv=ep<EPOCHS.length-1?EPOCHS[ep].cost:null;
   if(workers.length+hq.queue.filter(q=>q.type==='worker').length<targetW&&hq.queue.length<2&&!(saving&&r.food<adv.food+50))enqueue(hq,'worker',1);
   // gathering balance
-  const w8=[{food:.6,wood:.4,stone:0,iron:0},{food:.4,wood:.32,stone:.28,iron:0},{food:.4,wood:.24,stone:.16,iron:.2}][ep];
+  const w8=[{food:.6,wood:.4,stone:0,iron:0},{food:.4,wood:.32,stone:.28,iron:0},{food:.4,wood:.24,stone:.16,iron:.2},{food:.36,wood:.22,stone:.18,iron:.24},{food:.34,wood:.2,stone:.18,iron:.28}][ep];
   const cnt={food:0,wood:0,stone:0,iron:0};workers.forEach(w=>{if(w.state!=='idle'&&w.rtype)cnt[w.rtype]++});
   for(const w of workers){if(w.state!=='idle')continue;
     const n=workers.length;const order=RES.filter(rt=>canGather(w,rt)).sort((a,b)=>(w8[b]*n-cnt[b])-(w8[a]*n-cnt[a]));
@@ -338,13 +338,13 @@ function aiTick(){
   // builders
   for(const b of unbuilt){const busy=workers.some(w=>w.state==='build'&&w.tid===b.id);if(!busy){let bw=null,bd=1e9;for(const w of workers){if(w.state==='build')continue;const d=dist(w,b);if(d<bd){bd=d;bw=w}}if(bw){bw.state='build';bw.tid=b.id}}}
   // buildings
-  if(G.cap[1]-G.pop[1]<=3&&G.cap[1]<60&&!unbuilt.some(b=>b.type==='house'))aiPlace('house',hq,90,200);
+  if(G.cap[1]-G.pop[1]<=3&&G.cap[1]<POPMAX&&!unbuilt.some(b=>b.type==='house'))aiPlace('house',hq,90,200);
   const nBar=blds.filter(b=>b.type==='barracks').length,wantBar=ep>=2&&diff!=='leicht'?2:1;
   if(nBar<wantBar&&workers.length>=6&&!unbuilt.some(b=>b.type==='barracks')){const b=aiPlace('barracks',hq,110,210);if(b){const a=Math.atan2(H/2-hq.y,W/2-hq.x);b.rally={x:hq.x+Math.cos(a)*170,y:hq.y+Math.sin(a)*170}}}
   if(ep>=1&&diff!=='leicht'&&!saving&&!blds.some(b=>b.type==='tower'))aiPlace('tower',hq,70,140);
   if(saving&&afford(1,adv))advance(1);
   // army
-  const types=[['club'],['spear','archer','spear'],['sword','archer','sword','spear']][ep];
+  const types=[['club'],['spear','archer','spear'],['sword','archer','sword','spear'],['knight','crossbow','sword','knight'],['musket','cannon','knight','musket','crossbow']][ep];
   for(const b of blds){if(b.type!=='barracks'||!b.built||b.queue.length>=2)continue;
     if(saving&&!(r.food>adv.food+90&&r.wood>(adv.wood||0)+90))continue;
     enqueue(b,types[(G.stats.trained[1]+b.id)%types.length],1)}
@@ -526,21 +526,21 @@ function advRules(){
   const workers=has('worker'),idle=mine.filter(e=>e.kind==='unit'&&UNITS[e.type].gather&&e.state==='idle'&&!e.upj);
   const queuedW=hq.queue.filter(q=>q.type==='worker').length,rules=[],push=r=>rules.push(r);
   const bars=has('barracks'),mil=mine.filter(e=>e.kind==='unit'&&!UNITS[e.type].passive).length;
-  if(G.pop[0]>=G.cap[0]-1&&G.cap[0]<60&&!mine.some(e=>e.type==='house'&&!e.built)&&afford(0,BLDS.house.cost)&&advFindSpot('house'))
+  if(G.pop[0]>=G.cap[0]-1&&G.cap[0]<POPMAX&&!mine.some(e=>e.type==='house'&&!e.built)&&afford(0,BLDS.house.cost)&&advFindSpot('house'))
     push({id:'house',txt:'eine Hütte bauen (die Bevölkerungsgrenze ist fast erreicht)',cost:BLDS.house.cost,go:()=>advBuild('house')});
   if(idle.length)push(idle.length===1?{id:'idle',txt:'eine untätige Einheit an die Arbeit schicken',go:advIdle}:{id:'idle',txt:'{0} untätige Einheiten an die Arbeit schicken',args:[idle.length],go:advIdle});
-  if(workers.length+queuedW<[10,14,18][ep]&&hq.queue.length<2&&G.pop[0]<G.cap[0]&&afford(0,UNITS.worker.cost))
+  if(workers.length+queuedW<[10,14,18,20,22][ep]&&hq.queue.length<2&&G.pop[0]<G.cap[0]&&afford(0,UNITS.worker.cost))
     push({id:'worker',txt:'einen Arbeiter ausbilden',cost:UNITS.worker.cost,go:()=>enqueue(hq,'worker',0)&&(panelSig='')});
   const pd=pending(0);
   if(pd.n&&!G.adv[0]){const gs=pd.groups.filter(g=>afford(0,g.cost)).sort((a,b)=>a.n-b.n);
     if(afford(0,pd.cost)&&pd.groups.length>1)push({id:'upg:all',txt:'alles auf Stufe {0} upgraden',args:[LVLN[ep]],cost:pd.cost,go:()=>startUpgrade(0,'all')});
     else if(gs[0])push({id:'upg:'+gs[0].key,txt:'{0} auf Stufe {1} upgraden',args:[tr(gs[0].nm),LVLN[ep]],cost:gs[0].cost,go:()=>startUpgrade(0,gs[0].key)})}
-  if(ep<2&&!G.adv[0]&&!pd.n&&!G.jobs[0].length&&afford(0,EPOCHS[ep].cost))push({id:'adv',txt:'in die {0} aufsteigen',args:[tr(EPOCHS[ep+1].name)],cost:EPOCHS[ep].cost,go:()=>advance(0)});
+  if(ep<EPOCHS.length-1&&!G.adv[0]&&!pd.n&&!G.jobs[0].length&&afford(0,EPOCHS[ep].cost))push({id:'adv',txt:'in die {0} aufsteigen',args:[tr(EPOCHS[ep+1].name)],cost:EPOCHS[ep].cost,go:()=>advance(0)});
   if(!bars.length&&workers.length>=6&&afford(0,BLDS.barracks.cost)&&advFindSpot('barracks'))push({id:'barracks',txt:'eine Kaserne bauen, um Truppen auszubilden',cost:BLDS.barracks.cost,go:()=>advBuild('barracks')});
   if(ep>=1&&!has('tower').length&&workers.length>=8&&afford(0,BLDS.tower.cost)&&advFindSpot('tower'))push({id:'tower',txt:'einen Wachturm bauen, um Land zu erobern und zu überblicken',cost:BLDS.tower.cost,go:()=>advBuild('tower')});
   if(!has('harbor').length&&workers.length>=9&&afford(0,BLDS.harbor.cost)&&advFindSpot('harbor'))push({id:'harbor',txt:'einen Hafen bauen, um Fische zu fangen',cost:BLDS.harbor.cost,go:()=>advBuild('harbor')});
   const ub=bars.find(b=>b.built&&b.queue.length<1);
-  if(ub&&mil<6+ep*3){const t=['sword','spear','club'].find(k=>UNITS[k].ep<=ep&&afford(0,UNITS[k].cost));if(t)push({id:'army',txt:'{0} ausbilden',args:[tr(UNITS[t].name)],cost:UNITS[t].cost,go:()=>enqueue(ub,t,0)&&(panelSig='')})}
+  if(ub&&mil<6+ep*3){const t=Object.keys(UNITS).filter(k=>UNITS[k].from==='barracks'&&UNITS[k].ep<=ep&&!UNITS[k].siege).sort((a,b)=>UNITS[b].ep-UNITS[a].ep).find(k=>afford(0,UNITS[k].cost));if(t)push({id:'army',txt:'{0} ausbilden',args:[tr(UNITS[t].name)],cost:UNITS[t].cost,go:()=>enqueue(ub,t,0)&&(panelSig='')})}
   if(G.t>40&&!has('scout').length&&hq.queue.length<2&&afford(0,UNITS.scout.cost))push({id:'scout',txt:'einen Späher ausbilden, um die Karte zu erkunden',cost:UNITS.scout.cost,go:()=>enqueue(hq,'scout',0)&&(panelSig='')});
   return rules}
 function advisorUI(){
@@ -620,6 +620,12 @@ function drawBld(b){
     ctx.fillStyle=m.roof;ctx.beginPath();ctx.arc(0,0,r*.62,0,6.283);ctx.fill();ctx.stroke();
     ctx.beginPath();for(let i=0;i<8;i++){const a=i/8*6.283;ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*r*.62,Math.sin(a)*r*.62)}ctx.stroke();
     ctx.fillStyle=tc;ctx.beginPath();ctx.arc(0,0,r*.2,0,6.283);ctx.fill();ctx.strokeStyle=TCD[b.team];ctx.stroke();
+  }else if(b.type==='castle'){
+    ctx.fillStyle=m.wall;ctx.fillRect(-r,-r,2*r,2*r);ctx.strokeRect(-r,-r,2*r,2*r);
+    ctx.fillStyle=m.line;for(let i=-4;i<=4;i++){ctx.fillRect(i*r*.22-2,-r-3,4,5);ctx.fillRect(i*r*.22-2,r-2,4,5);ctx.fillRect(-r-3,i*r*.22-2,5,4);ctx.fillRect(r-2,i*r*.22-2,5,4)}
+    ctx.fillStyle=m.roof;ctx.fillRect(-r*.62,-r*.62,r*1.24,r*1.24);ctx.strokeRect(-r*.62,-r*.62,r*1.24,r*1.24);
+    for(const[cx,cy]of[[-r,-r],[r,-r],[-r,r],[r,r]]){ctx.fillStyle=m.wall;ctx.beginPath();ctx.arc(cx,cy,r*.34,0,6.283);ctx.fill();ctx.stroke();ctx.fillStyle=m.roof;ctx.beginPath();ctx.arc(cx,cy,r*.2,0,6.283);ctx.fill()}
+    ctx.fillStyle=tc;ctx.beginPath();ctx.arc(0,0,r*.28,0,6.283);ctx.fill();ctx.strokeStyle=TCD[b.team];ctx.stroke();
   }else if(b.type==='harbor'){
     ctx.rotate(b.ang||0);ctx.fillStyle=m.wall;ctx.fillRect(-r,-r*.7,r*1.5,r*1.4);ctx.fillStyle=m.roof;ctx.fillRect(-r,-r*.7,r*1.5,r*.55);ctx.strokeRect(-r,-r*.7,r*1.5,r*1.4);
     ctx.fillStyle='#8a6a42';ctx.fillRect(r*.4,-r*.32,r*1.15,r*.64);ctx.strokeStyle=m.line;ctx.lineWidth=1;for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(r*.4+i*r*.23,-r*.32);ctx.lineTo(r*.4+i*r*.23,r*.32);ctx.stroke()}
@@ -649,7 +655,7 @@ function drawBld(b){
     if(b.team===0){ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.lineWidth=3;ctx.strokeStyle='rgba(20,15,10,.9)';const lb=warn?tr('Kein Bauarbeiter!'):tr('Im Bau')+' '+Math.floor(b.prog*100)+' %';ctx.strokeText(lb,b.x,by+10);ctx.fillStyle=warn?'#ff9a85':'#f3e2b3';ctx.fillText(lb,b.x,by+10)}}
 }
 function drawBoat(u){
-  const r=u.r,a=u.fa,T=G.t,bob=Math.sin(T*2+u.id)*.9,war=u.type==='warship';
+  const r=u.r,a=u.fa,T=G.t,bob=Math.sin(T*2+u.id)*.9,war=!!UNITS[u.type].ranged;
   ctx.save();ctx.translate(u.x,u.y+bob);
   ctx.fillStyle='rgba(8,40,60,.3)';ctx.beginPath();ctx.ellipse(2,4,r*1.5,r*.8,a,0,6.283);ctx.fill();
   ctx.strokeStyle='rgba(235,250,250,.55)';ctx.lineWidth=1.3;ctx.beginPath();ctx.ellipse(-Math.cos(a)*r*.9,-Math.sin(a)*r*.9,r*.9,r*.5,a,0,6.283);ctx.stroke();
@@ -700,7 +706,7 @@ function draw(){
     ctx.font='bold 9px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
     pts.forEach((q,i)=>{ctx.fillStyle='rgba(33,26,19,.92)';ctx.strokeStyle='#f3d48a';ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(q.x,q.y,7,0,6.283);ctx.fill();ctx.stroke();ctx.fillStyle='#f3d48a';ctx.fillText(String(i+1),q.x,q.y+.5)})}}
   // projectiles
-  ctx.strokeStyle='#2a2119';ctx.lineWidth=1.4;for(const p of G.proj){ctx.beginPath();ctx.moveTo(p.x-Math.cos(p.a)*7,p.y-Math.sin(p.a)*7);ctx.lineTo(p.x,p.y);ctx.stroke()}
+  ctx.strokeStyle='#2a2119';ctx.lineWidth=1.4;for(const p of G.proj){if(p.big||p.gun){ctx.fillStyle=p.big?'#2b2b30':'#46464c';ctx.beginPath();ctx.arc(p.x,p.y,p.big?4.2:2,0,6.283);ctx.fill();continue}ctx.beginPath();ctx.moveTo(p.x-Math.cos(p.a)*7,p.y-Math.sin(p.a)*7);ctx.lineTo(p.x,p.y);ctx.stroke()}
   for(const e of vis)if((e.kind!=='node')&&(s.has(e.id)||e.hp<e.maxHp))hpBar(e);
   for(const e of vis)if(e.kind==='node'&&s.has(e.id)){ctx.fillStyle='rgba(20,15,10,.75)';ctx.fillRect(e.x-12,e.y-e.r-9,24,4);ctx.fillStyle='#ecdfc3';ctx.fillRect(e.x-12,e.y-e.r-9,24*e.amount/e.maxAmt,4)}
   // fx
@@ -732,7 +738,7 @@ const costHTML=c=>RES.filter(r=>c[r]).map(r=>`<span class="c ${(G&&G.res[0][r]||
 function actionsFor(s){
   if(!s.length||s[0].team!==0)return[];const f=s[0],acts=[],ep=G.epoch[0];
   if(f.kind==='unit'){
-    if(s.some(u=>u.type==='worker'))for(const k of ['house','store','barracks','harbor','tower']){const d=BLDS[k];acts.push({key:'b'+k,nm:tr(d.name),cost:d.cost,sub:tr(d.sub),lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>startPlace(k)})}
+    if(s.some(u=>u.type==='worker'))for(const k of ['house','store','barracks','harbor','tower','castle']){const d=BLDS[k];acts.push({key:'b'+k,nm:tr(d.name),cost:d.cost,sub:tr(d.sub),lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>startPlace(k)})}
     if(s.some(u=>u.kind==='unit'&&!UNITS[u.type].passive))acts.push({key:'am',nm:tr('Angriffsmarsch'),sub:tr('Taste Q, dann Ziel'),run:()=>{armed=true;placing=null}});
     acts.push({key:'stop',nm:tr('Halt'),sub:tr('Befehle abbrechen'),run:()=>s.forEach(u=>{if(u.kind==='unit'){u.state='idle';u.amove=null;u.q=[]}})});
     return acts;
@@ -741,7 +747,7 @@ function actionsFor(s){
     for(const [k,d] of Object.entries(UNITS))if(d.from===f.type)acts.push({key:'t'+k,nm:tr(d.name),cost:d.cost,lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>enqueue(f,k,0),unit:k});
     if(f.type==='hq'&&f.team===0){const pd=pending(0);
       if(pd.n)acts.push({key:'upg',nm:tr('Alle upgraden'),cost:pd.cost,adv:true,sub:tr('{0} Gebäude · {1} Truppen',pd.nb,pd.nu),run:()=>startUpgrade(0,'all')});
-      if(ep<2)acts.push({key:'adv',nm:tr('Aufstieg: {0}',tr(EPOCHS[ep+1].name)),cost:EPOCHS[ep].cost,adv:true,need:pd.n?tr('Erst alle Gebäude und Truppen auf Stufe {0} bringen.',LVLN[ep]):null,sub:pd.n?tr('Erst upgraden'):null,run:()=>advance(0)})}
+      if(ep<EPOCHS.length-1)acts.push({key:'adv',nm:tr('Aufstieg: {0}',tr(EPOCHS[ep+1].name)),cost:EPOCHS[ep].cost,adv:true,need:pd.n?tr('Erst alle Gebäude und Truppen auf Stufe {0} bringen.',LVLN[ep]):null,sub:pd.n?tr('Erst upgraden'):null,run:()=>advance(0)})}
   }
   return acts;
 }
@@ -800,8 +806,8 @@ function updateUI(){
 function showStart(){
   const ov=$('overlay');ov.hidden=false;
   ov.innerHTML=`<div class="card"><p class="eyebrow">${tr('Prototyp · Echtzeitstrategie · 1 gegen 1')}</p><h1>Epochenkrieg</h1>
-  <p>${tr('Führe deinen Stamm durch drei Zeitalter. Sammle Nahrung, Holz und Stein, baue deine Siedlung aus und zerstöre das Hauptlager des Gegners, bevor er deins erreicht.')}</p>
-  <div class="eras"><span>${tr('Steinzeit')}</span><span>${tr('Bronzezeit')}</span><span>${tr('Eisenzeit')}</span></div>
+  <p>${tr('Führe deinen Stamm durch fünf Zeitalter. Sammle Nahrung, Holz und Stein, baue deine Siedlung aus und zerstöre das Hauptlager des Gegners, bevor er deins erreicht.')}</p>
+  <div class="eras">${EPOCHS.map(e=>`<span>${tr(e.name)}</span>`).join('')}</div>
   <div class="diff" role="group" aria-label="${tr('Schwierigkeit')}">${['leicht','normal','schwer'].map(d=>`<button data-d="${d}" aria-pressed="${d===diff}">${tr(d)}</button>`).join('')}</div>
   <dl class="ctl"><dt>${tr('Auswählen')}</dt><dd>${tr('Linksklick, Rahmen ziehen, Doppelklick für alle gleichen')}</dd><dt>${tr('Befehl')}</dt><dd>${tr('Rechtsklick: bewegen, sammeln, bauen, angreifen, Sammelpunkt')}</dd><dt>${tr('Kamera')}</dt><dd>${tr('WASD oder Pfeiltasten, Bildschirmrand, Minikarte, Mausrad zoomt')}</dd><dt>${tr('Tasten')}</dt><dd>${tr('Q Angriffsmarsch · H Hauptlager · . untätiger Arbeiter · Leertaste Pause · Esc Menü')}</dd><dt>${tr('Touch')}</dt><dd>${tr('Tippen wählt aus, mit Auswahl tippen gibt Befehl, Wischen bewegt die Karte')}</dd></dl>
   <div class="langrow"><span>${tr('Sprache')}</span><div class="diff" role="group">${['de','en'].map(l=>`<button data-l="${l}" aria-pressed="${l===LANG}">${l==='de'?'Deutsch':'English'}</button>`).join('')}</div></div>

@@ -58,6 +58,8 @@ const FX={
   arrow:t=>{tone(rnd(190,230),t,.12,{type:'triangle',vol:.3,to:120,atk:.001});tone(rnd(380,460),t,.06,{type:'square',vol:.06,to:240});
     noise(t+.02,.22,{f:2000,to:6500,q:2.5,vol:.2})},
   die:t=>{tone(260,t,.4,{type:'sawtooth',vol:.12,to:60});noise(t,.18,{f:600,to:200,vol:.2});tone(90,t+.05,.3,{type:'sine',vol:.3,to:40})},
+  boom:t=>{noise(t,.5,{f:420,to:70,q:.5,vol:.9});tone(60,t,.45,{type:'sine',vol:.7,to:28});noise(t,.12,{f:2400,q:.8,vol:.5})},
+  shot:t=>{noise(t,.18,{f:1800,to:300,q:.6,vol:.7});tone(120,t,.14,{type:'sine',vol:.35,to:60})},
   crumble:t=>{noise(t,.8,{f:600,to:80,q:.6,vol:.7});for(let i=0;i<5;i++)noise(t+i*.1,.12,{f:rnd(300,1200),q:1,vol:.3});tone(70,t,.6,{type:'sine',vol:.5,to:35})},
   built:t=>[0,.1,.2].forEach((d,i)=>tone([392,494,587][i],t+d,.3,{type:'triangle',vol:.2})),
   ready:t=>{tone(523,t,.18,{type:'triangle',vol:.2});tone(784,t+.12,.3,{type:'triangle',vol:.2})},
@@ -121,7 +123,26 @@ function pieceGrieg(){ // 4/4, schleichend, wird in Wiederholungen lauter
   }
   return{bpm:120,len:32,ev};
 }
-const PIECES=[pieceSatie(),piecePachelbel(),pieceGrieg()];
+const line=(out,start,list,inst,vol)=>{let b=start;for(const[n,d]of list){if(n)out.push({b,m:midi(n),d:d*1.05,i:inst,v:vol});b+=d}return b};
+function pieceGreensleeves(){ // Mittelalter: Lautenmusik, 3/4 (traditionell, gemeinfrei)
+  const ev=[],A=[['A3',1],['C4',2],['D4',1],['E4',1.5],['F4',.5],['E4',1],['D4',2],['B3',1],['G3',1.5],['A3',.5],['B3',1],['C4',2],['A3',1],['A3',1.5],['G#3',.5],['A3',1],['B3',2],['G#3',1],['E3',3]];
+  const B=[['A3',1],['C4',2],['D4',1],['E4',1.5],['F4',.5],['E4',1],['D4',2],['B3',1],['G3',1.5],['A3',.5],['B3',1],['C4',1.5],['B3',.5],['A3',1],['G#3',1.5],['F#3',.5],['G#3',1],['A3',3]];
+  let t=line(ev,0,A,'pluck',.36);t=line(ev,t,B,'pluck',.36);
+  const t2=line(ev,0,A.map(([n,d])=>[n&&n.replace(/(\d)/,x=>+x+1),d]),'flute',.2); line(ev,t2,B.map(([n,d])=>[n&&n.replace(/(\d)/,x=>+x+1),d]),'flute',.2);
+  const len=Math.ceil(t/3)*3,roots=['A2','A2','C3','G2','E2','A2','A2','E2'],fifths=['E3','E3','G3','D3','B2','E3','E3','B2'];
+  for(let bar=0;bar<len/3;bar++){const r=roots[bar%roots.length],f=fifths[bar%fifths.length];ev.push({b:bar*3,m:midi(r),d:2.6,i:'pluck',v:.4});ev.push({b:bar*3+1,m:midi(f),d:1.2,i:'pluck',v:.22});ev.push({b:bar*3+2,m:midi(f)+5,d:1.2,i:'pluck',v:.2});if(bar%4===0)ev.push({b:bar*3,m:0,d:0,i:'drum',v:.3})}
+  return{bpm:104,len,ev}}
+function pieceOde(){ // Neuzeit: Beethoven, Ode an die Freude (gemeinfrei)
+  const ev=[],P1=[['E4',1],['E4',1],['F4',1],['G4',1],['G4',1],['F4',1],['E4',1],['D4',1],['C4',1],['C4',1],['D4',1],['E4',1]],
+    E1=[['E4',1.5],['D4',.5],['D4',2]],E2=[['D4',1.5],['C4',.5],['C4',2]],
+    M=[['D4',1],['D4',1],['E4',1],['C4',1],['D4',1],['E4',.5],['F4',.5],['E4',1],['C4',1],['D4',1],['E4',.5],['F4',.5],['E4',1],['D4',1],['C4',1],['D4',1],['G3',2]];
+  let t=line(ev,0,P1.concat(E1),'brass',.34);t=line(ev,t,P1.concat(E2),'brass',.34);t=line(ev,t,M,'brass',.34);t=line(ev,t,P1.concat(E2),'brass',.34);
+  line(ev,0,[],'flute',0);
+  let t3=0;for(const seg of[P1.concat(E1),P1.concat(E2),M,P1.concat(E2)])t3=line(ev,t3,seg.map(([n,d])=>[n&&n.replace(/(\d)/,x=>+x+1),d]),'flute',.16);
+  const len=Math.ceil(t/4)*4,bass=['C2','C2','C2','G2','C2','C2','C2','G2','G2','C2','G2','C2'];
+  for(let bar=0;bar<len/4;bar++){const r=bass[bar%bass.length];ev.push({b:bar*4,m:midi(r),d:3.6,i:'pad',v:.3});ev.push({b:bar*4,m:midi(r),d:1.8,i:'pluck',v:.34});ev.push({b:bar*4+2,m:midi(r)+7,d:1.8,i:'pluck',v:.26});ev.push({b:bar*4,m:0,d:0,i:'drum',v:.4});ev.push({b:bar*4+2,m:0,d:0,i:'drum',v:.25})}
+  return{bpm:108,len,ev}}
+const PIECES=[pieceSatie(),piecePachelbel(),pieceGrieg(),pieceGreensleeves(),pieceOde()];
 
 /* Instrumente */
 const INST={
@@ -164,7 +185,7 @@ function applyGains(){
 }
 return{
   init,play,
-  setEpoch(e){epoch=Math.max(0,Math.min(2,e|0))},
+  setEpoch(e){epoch=Math.max(0,Math.min(PIECES.length-1,e|0))},
   setMusic(v){const was=musicV;musicV=Math.max(0,Math.min(1,v));if(was<=0&&musicV>0)cur=-1;save();applyGains()},
   setSfx(v){sfxV=Math.max(0,Math.min(1,v));save();applyGains()},
   get music(){return musicV},get sfx(){return sfxV}
