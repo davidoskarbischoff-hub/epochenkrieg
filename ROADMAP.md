@@ -21,7 +21,7 @@
 Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortieren.
 
 ### Als Nächstes (Davids Wunsch, früh wichtig)
-- [x] Nebel des Krieges: schwarz = unerkundet, abgedunkelt = erkundet, hell = gerade sichtbar (auch auf der Minikarte)
+- [x] Nebel des Krieges: dunkelgrau = unerkundet, hellgrau = erkundet, hell = gerade sichtbar (Karte nie schwarz) (auch auf der Minikarte)
 - [x] Späher (Hauptlager, 60 Nahrung + 20 Holz): schnell, Sichtweite 300, kämpft nicht von selbst
 - [ ] Gegner-KI sieht noch die ganze Karte (kein Nebel für sie)
 - [ ] Gegnerische Gebäude merken sich (zeigen im Nebel den letzten bekannten Stand)

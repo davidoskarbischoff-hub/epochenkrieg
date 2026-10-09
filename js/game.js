@@ -17,11 +17,11 @@ function fogUpdate(){
   fogVis.fill(0);
   for(const e of G.ents){if(e.dead||e.team!==0)continue;const rc=sightOf(e)/FC,cx=e.x/FC,cy=e.y/FC;
     for(let y=Math.max(0,Math.floor(cy-rc));y<=Math.min(FH-1,Math.ceil(cy+rc));y++)for(let x=Math.max(0,Math.floor(cx-rc));x<=Math.min(FW-1,Math.ceil(cx+rc));x++){const dx=x+.5-cx,dy=y+.5-cy;if(dx*dx+dy*dy<=rc*rc){const i=y*FW+x;fogVis[i]=1;fogEx[i]=1}}}
-  const px=fogImg.data;for(let i=0;i<fogVis.length;i++){const o=i*4;px[o]=13;px[o+1]=10;px[o+2]=7;px[o+3]=fogVis[i]?0:fogEx[i]?125:255}
+  const px=fogImg.data;for(let i=0;i<fogVis.length;i++){const o=i*4;px[o]=44;px[o+1]=46;px[o+2]=50;px[o+3]=fogVis[i]?0:fogEx[i]?70:165}
   fogCtx.putImageData(fogImg,0,0);
 }
-/* Gegnerische Einheiten sieht man nur im hellen Bereich */
-const shown=e=>e.team!==1||e.kind!=='unit'||fogVis[fogIdx(e.x,e.y)]===1;
+/* Die Karte ist überall zu sehen (grau abgedunkelt). Gegnerische Einheiten nur im hellen Bereich, gegnerische Gebäude erst nach dem Erkunden */
+const shown=e=>{if(e.team!==1)return true;const i=fogIdx(e.x,e.y);return e.kind==='unit'?fogVis[i]===1:fogEx[i]===1};
 function sfx(name,e){if(typeof SND==='undefined')return;if(e&&!shown(e))return;if(e){const sx=(e.x-cam.x)*cam.z,sy=(e.y-cam.y)*cam.z;if(sx<-40||sy<-40||sx>VW+40||sy>VH+40)return}SND.play(name)}
 let G=null,bg=null,bgSmall=null,diff='normal';
 const sel=new Set();
