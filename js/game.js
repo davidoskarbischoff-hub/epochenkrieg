@@ -157,8 +157,9 @@ function updUnit(u,dt){
   case 'gather':{let n=get(u.tid);
     if(!n){n=nearestNode(u.rtype,u.x,u.y,350);if(!n){if(u.carry>0)u.state='return';else{u.state='idle';u.rtype=null}break}u.tid=n.id}
     if(u.carry>0&&u.ctype!==n.rt)u.carry=0;
-    if(u.carry>=CARRY){u.state='return';break}
-    if(reach(u,n)){u.fa=Math.atan2(n.y-u.y,n.x-u.x);if((u.gt=(u.gt||0)-dt)<=0){u.gt=.75+Math.random()*.2;sfx(n.rt==='wood'?'chop':n.rt==='stone'?'mine':'pick',u)}const rate=.85*(u.team===1?DIFF[diff].gather:1);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;if(n.amount<=0.001)kill(n);if(u.carry>=CARRY)u.state='return'}
+    const gc=GATHER[n.rt];
+    if(u.carry>=gc.carry){u.state='return';break}
+    if(reach(u,n)){u.fa=Math.atan2(n.y-u.y,n.x-u.x);if((u.gt=(u.gt||0)-dt)<=0){u.gt=.75+Math.random()*.2;sfx(n.rt==='wood'?'chop':n.rt==='stone'?'mine':'pick',u)}const rate=.85*gc.rate*(u.team===1?DIFF[diff].gather:1);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;if(n.amount<=0.001)kill(n);if(u.carry>=gc.carry)u.state='return'}
     else moveToward(u,n.x,n.y,dt,n.id);break}
   case 'return':{const dp=nearestDrop(u.team,u.x,u.y);if(!dp||!u.ctype){u.state='idle';break}
     if(reach(u,dp)){G.res[u.team][u.ctype]+=u.carry;if(u.team===0)sfx('drop',u);u.carry=0;u.state='gather'}else moveToward(u,dp.x,dp.y,dt,dp.id);break}
