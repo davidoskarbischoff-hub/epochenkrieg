@@ -203,9 +203,9 @@ function ship(u,tm,war,big){const g=new THREE.Group(),rig={g,legs:[],arms:[],shi
   const L=2.6*S;const hull=new THREE.Shape();hull.moveTo(-L,0);hull.lineTo(-L*.8,-.6*S);hull.lineTo(L*.8,-.6*S);hull.lineTo(L*1.25,.35*S);hull.lineTo(L*1.0,.5*S);hull.lineTo(-L*.9,.5*S);hull.closePath();
   const hg=new THREE.ExtrudeGeometry(hull,{depth:1.5*S,bevelEnabled:true,bevelSize:.12,bevelThickness:.12,bevelSegments:2});hg.translate(0,0,-.75*S);uvScale(hg,.4);put(g,hg,hm,0,.55*S,0);
   put(g,new THREE.BoxGeometry(L*1.6,.1,.1),tm,0,1.1*S,.78*S);put(g,new THREE.BoxGeometry(L*1.6,.1,.1),tm,0,1.1*S,-.78*S);
-  const mast=put(g,cyl(.07,.09,war||big?4.6*S:3.8*S,6),woodD(),.2*S,2.9*S,0);
-  const sail=put(g,new THREE.PlaneGeometry(2.0*S,2.4*S,6,1),new THREE.MeshStandardMaterial({color:war?0xe9e1cc:0xf1e7cf,side:THREE.DoubleSide,roughness:.9}),.25*S,3.1*S,0);sail.rotation.y=Math.PI/2;sail.castShadow=true;rig.sail=sail;
-  put(g,new THREE.PlaneGeometry(1.0*S,.9*S),new THREE.MeshStandardMaterial({color:TC[u.team],side:THREE.DoubleSide}),.25*S,3.5*S,0).rotation.y=Math.PI/2;
+  const mast=put(g,cyl(.07,.09,war||big?4.6*S:3.8*S,6),woodD(),.2*S,2.9*S,0);const hullM=null;
+  const sail=put(g,new THREE.PlaneGeometry(2.0*S,2.4*S,6,1),new THREE.MeshStandardMaterial({color:war?0xe9e1cc:0xf1e7cf,side:THREE.DoubleSide,roughness:.9}),.25*S,3.1*S,0);sail.castShadow=true;rig.sail=sail;
+  put(g,new THREE.PlaneGeometry(1.0*S,.9*S),new THREE.MeshStandardMaterial({color:TC[u.team],side:THREE.DoubleSide}),.25*S,3.5*S,.02);
   if(war||big){for(let i=0;i<(big?4:3);i++)for(const z of[-1,1])put(g,cyl(.1,.1,.7,8),darkM(),-L*.5+i*L*.5,1.25*S,z*.82*S).rotation.x=Math.PI/2}
   else{put(g,new THREE.SphereGeometry(.4,8,6),m3Plain(0xcfe6ee),-.8,1.3,0).scale.set(1.4,.5,1)}
   return rig}

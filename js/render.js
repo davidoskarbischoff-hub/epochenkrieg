@@ -60,7 +60,8 @@ let lastDraw=0;
 function draw(){
   ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
   if(!G||!bg||!window.THREE)return;
-  if(!R3.ok){r3Init();camUpdate()}
+  if(R3.fail)return;
+  if(!R3.ok){try{r3Init();camUpdate()}catch(err){R3.fail=true;console.error(err);const m=document.getElementById('hint');if(m){m.hidden=false;m.textContent=tr('Die 3D-Grafik (WebGL) wird von diesem Browser oder Gerät nicht unterstützt.')}return}}
   const now=performance.now(),dt=Math.min(.05,Math.max(.001,(now-lastDraw)/1000));lastDraw=now;
   // sichtbarer Ausschnitt der Karte (mit Rand), um nur Nahes zu behandeln
   const cs=[toWorld(0,0),toWorld(VW,0),toWorld(0,VH),toWorld(VW,VH)],x0=Math.min(...cs.map(c=>c.x))-140,x1=Math.max(...cs.map(c=>c.x))+140,y0=Math.min(...cs.map(c=>c.y))-140,y1=Math.max(...cs.map(c=>c.y))+200;

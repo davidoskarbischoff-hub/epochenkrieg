@@ -44,7 +44,15 @@ function r3Map(){
   // Boden-Textur: das fertig gemalte Bild der Karte (renderBg), bei Bedarf verkleinert
   let src=bg;if(Math.max(bg.width,bg.height)>r3.maxTex){const k=r3.maxTex/Math.max(bg.width,bg.height);src=document.createElement('canvas');src.width=Math.floor(bg.width*k);src.height=Math.floor(bg.height*k);src.getContext('2d').drawImage(bg,0,0,src.width,src.height)}
   const tex=new THREE.CanvasTexture(src);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=Math.min(8,r3.rd.capabilities.getMaxAnisotropy());
-  const mesh=new THREE.Mesh(g,new THREE.MeshStandardMaterial({map:tex,roughness:1,metalness:0}));mesh.receiveShadow=true;scene.add(mesh);r3.terrain=mesh;
+  if(!r3.detail){const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d'),im=x.createImageData(256,256);let a=7;for(let i=0;i<256*256;i++){a=(a*1664525+1013904223)>>>0;const v=100+(a>>>24)*.6;im.data[i*4]=im.data[i*4+1]=im.data[i*4+2]=v;im.data[i*4+3]=255}x.putImageData(im,0,0);
+    for(let i=0;i<500;i++){const px=Math.random()*256,py=Math.random()*256,r=3+Math.random()*10,gr=x.createRadialGradient(px,py,0,px,py,r);gr.addColorStop(0,'rgba(255,255,255,.12)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(px-r,py-r,2*r,2*r)}
+    const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(SX/6,SZ/6);r3.detail=t;
+    const wc=document.createElement('canvas');wc.width=wc.height=256;const wx=wc.getContext('2d');wx.clearRect(0,0,256,256);wx.strokeStyle='rgba(255,255,255,.9)';wx.lineCap='round';
+    for(let i=0;i<70;i++){const px=Math.random()*256,py=Math.random()*256,l=8+Math.random()*22;wx.lineWidth=1+Math.random()*1.5;wx.globalAlpha=.25+Math.random()*.5;for(const[ox,oy]of[[0,0],[256,0],[-256,0],[0,256],[0,-256]]){wx.beginPath();wx.moveTo(px-l+ox,py+oy);wx.quadraticCurveTo(px+ox,py-4+oy,px+l+ox,py+oy);wx.stroke()}}
+    r3.waveTex=wc}
+  const mesh=new THREE.Mesh(g,new THREE.MeshStandardMaterial({map:tex,roughness:1,metalness:0,bumpMap:r3.detail,bumpScale:.9}));mesh.receiveShadow=true;scene.add(mesh);r3.terrain=mesh;
+  if(r3.waves)for(const w of r3.waves)scene.remove(w);r3.waves=[];
+  for(const[sp,rep,op]of[[1,SX/9,.32],[-1,SX/5.3,.22]]){const wt=new THREE.CanvasTexture(r3.waveTex);wt.wrapS=wt.wrapT=THREE.RepeatWrapping;wt.repeat.set(rep,rep*SZ/SX);const wm=new THREE.Mesh(new THREE.PlaneGeometry(SX,SZ).rotateX(-Math.PI/2).translate(SX/2,0,SZ/2),new THREE.MeshBasicMaterial({map:wt,transparent:true,opacity:op,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));wm.position.y=-.34;wm.renderOrder=1;wm.userData.sp=sp;scene.add(wm);r3.waves.push(wm)}
   const ovMat=(cv,order,op)=>{const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,fog:false}));m.renderOrder=order;m.material.opacity=op;scene.add(m);return m};
   r3.terrOv=ovMat(terrCv,2,.75);r3.fogOv=ovMat(fogCv,3,1);
   r3NodesInit();R3.bgRef=bg;R3.gRef=G;
@@ -120,7 +128,7 @@ function r3Sync(list,dt,t){
 }
 function r3Make(e,sig){
   const S=R3.S;
-  if(e.kind==='unit'){const rig=buildUnit(e),sc=e.r/7*1.25*(UNITS[e.type].naval?.55:UNITS[e.type].siege?.7:1);rig.g.scale.setScalar(sc);const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
+  if(e.kind==='unit'){const rig=buildUnit(e),sc=e.r/7*1.25*(UNITS[e.type].naval?.46:UNITS[e.type].siege?.7:1);rig.g.scale.setScalar(sc);const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
   if(e.kind==='bld'){const g=buildBld(e.type,e.r/S*1.05,G.epoch[e.team],e.team);return{obj:g,sig,flags:g.userData.flags||[]}}
   if(e.kind==='animal'){const rig=buildAnimal(e);const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
   const g=seaModel(e);return{obj:g,sig,flags:[]}}
@@ -130,7 +138,7 @@ function r3Unit(o,e,h,dt,t){
   const sw=e.swing&&G.t-e.swing<.28?1-(G.t-e.swing)/.28:0,work=G.t-(e.gat||-9)<.25,build=e.state==='build';
   if(moving)o.ph+=dt*(d.naval?2:7+d.spd*.06);const s=Math.sin(o.ph);
   let y=h;
-  if(rig.ship){y=-.42+Math.sin(t*2+e.id)*.06;obj.rotation.z=Math.sin(t*1.7+e.id)*.035;obj.rotation.x=0;if(rig.sail)rig.sail.rotation.y=Math.PI/2+Math.sin(t*1.3)*.06}
+  if(rig.ship){y=-.42+Math.sin(t*2+e.id)*.06;obj.rotation.z=Math.sin(t*1.7+e.id)*.035;obj.rotation.x=0;if(rig.sail)rig.sail.rotation.y=Math.sin(t*1.3+e.id)*.1}
   else{
     if(moving)y+=Math.abs(s)*.07*(rig.horse?1.6:1);
     if(rig.horse){rig.legs.forEach((l,i)=>l.rotation.z=(i%2?s:-s)*.7);const rd=rig.rider;rd.arms[1].rotation.z=.2+sw*.6}
@@ -168,6 +176,7 @@ function r3Frame(list,rings,dt){
   const t=(performance.now()-R3.t0)/1000;
   if(R3.bgRef!==bg||R3.gRef!==G)r3Map();
   camUpdate();
+  for(const w of r3.waves){const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes()}
   r3Sync(list,dt,t);
