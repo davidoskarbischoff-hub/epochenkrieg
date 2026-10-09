@@ -62,6 +62,9 @@ const EN={
   'Upgrade läuft: Truppen und Gebäude ruhen, bis es fertig ist.':'Upgrade in progress: troops and buildings rest until it is done.',
   'Arbeiter brauchen Stufe {0}, um {1} abzubauen.':'Workers need level {0} to mine {1}.',
   'Vor dem nächsten Aufstieg müssen alle darauf sein':'All must reach this before the next age',
+  // Wasser
+  'Hafen':'Harbor','Boote und Fischfang':'Boats and fishing','Fischerboot':'Fishing Boat','Kriegsschiff':'Warship','Fischschwarm':'School of Fish','Delfine':'Dolphins','Wal':'Whale',
+  'Der Hafen muss zwischen Land und flachem Wasser stehen.':'The harbor must stand between land and shallow water.',
   // Gebiet
   'Neues Gebiet erobert!':'New territory claimed!',
   'Nur im eigenen Gebiet. Ein Wachturm erobert neues Land.':'Only inside your territory. A watchtower claims new land.'

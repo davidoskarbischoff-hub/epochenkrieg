@@ -24,7 +24,8 @@ function genTerrain(seed){
     const pp=(H*px+W*py-W*H)/L,t=(px*W+(H-py)*H)/(L*L);
     const w=250+650*Math.pow(Math.abs(t-.5)*2,1.4);
     const noise=(sym(n1,px,py)-.5)*340+(sym(n2,px,py)-.5)*110;
-    land[y*TW+x]=w+noise-Math.abs(pp)>0?1:0}
+    const edge=Math.min(px,py,W-px,H-py),fall=Math.max(0,170-edge)*3; // Wasserrand rundum
+    land[y*TW+x]=w+noise-Math.abs(pp)-fall>0?1:0}
   // flaches Wasser: Küstenstreifen (Abstand zum Land) plus Sandbänke
   const dist=new Int16Array(TW*TH).fill(-1),q=[];
   for(let i=0;i<land.length;i++)if(land[i]){dist[i]=0;q.push(i)}

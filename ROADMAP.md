@@ -44,7 +44,9 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 
 - [x] Karte größer (3600×2400) mit Land und Wasser: tiefes Wasser (nur für Schiffe), flaches Wasser (auch für Truppen), Küste mit Strand
 - [x] Wegfindung (A*), Festhänge-Erkennung, Arbeiter verteilen sich auf Bäume; Bäume stehen weiter auseinander
-- [ ] Fischquellen (Fische, Delfine, Wale), Hafen, Fischerboote, Kriegsschiffe
+- [x] Fischquellen (Fische, Delfine ab Stufe II, Wale ab Stufe III), Hafen am Ufer, Fischerboote, Kriegsschiffe (Bronzezeit)
+- [ ] Seegefechte und Landungen testen und balancen (Kriegsschiffe, Küstenverteidigung)
+- [ ] Gegner-KI nutzt Wasser noch nicht (kein Hafen, keine Boote)
 - [ ] Brücken über tiefes Wasser
 
 ### Einfach
