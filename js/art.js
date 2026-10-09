@@ -138,5 +138,15 @@ function unit(c,u,r,E){
   (ART_UNIT[u.type]||ART_UNIT.worker)(c,u,r,E);
   c.restore();
 }
-return{tree,bush,rock,unit};
+/* Symbole für Ressourcen (SVG, 16x16): gleicher Stil mit dunklem Umriss */
+const SV='stroke="#2a2119" stroke-width="1" stroke-linejoin="round"';
+const ICONS={
+  food:`<circle cx="5.2" cy="10.2" r="3.6" fill="#d23c47" ${SV}/><circle cx="10.8" cy="9.4" r="3.6" fill="#e04b55" ${SV}/><path d="M8 6.4C7.6 3.6 9.6 2 12.4 2c.2 2.6-1.6 4.4-4.4 4.4z" fill="#62ab4a" ${SV}/><circle cx="4" cy="9" r=".9" fill="#fff" opacity=".7"/><circle cx="9.7" cy="8.2" r=".9" fill="#fff" opacity=".7"/>`,
+  wood:`<circle cx="4.6" cy="11.4" r="3.5" fill="#b27a3e" ${SV}/><circle cx="11.4" cy="11.4" r="3.5" fill="#b27a3e" ${SV}/><circle cx="8" cy="5.2" r="3.5" fill="#b27a3e" ${SV}/><circle cx="4.6" cy="11.4" r="1.7" fill="#e3b97a" stroke="#6b4a2b" stroke-width=".8"/><circle cx="11.4" cy="11.4" r="1.7" fill="#e3b97a" stroke="#6b4a2b" stroke-width=".8"/><circle cx="8" cy="5.2" r="1.7" fill="#e3b97a" stroke="#6b4a2b" stroke-width=".8"/>`,
+  stone:`<polygon points="1.6,12 3.6,6 8.6,2.6 14,6.6 13.2,12.6 7.4,14.4" fill="#aeaaa0" ${SV}/><polygon points="3.6,6 8.6,2.6 14,6.6 8.8,8.6" fill="#dcd8cd" ${SV}/><polyline points="8.8,8.6 7.4,14.4" fill="none" stroke="#2a2119" stroke-width=".8"/>`,
+  iron:`<polygon points="2.6,7 13.4,7 15,12.6 1,12.6" fill="#65738a" ${SV}/><polygon points="2.6,7 13.4,7 12.2,4 3.8,4" fill="#a4b2c6" ${SV}/><circle cx="8" cy="9.8" r="1.1" fill="#f0903a"/>`,
+  pop:`<circle cx="8" cy="4.8" r="3" fill="#e8c29a" ${SV}/><path d="M1.8 15c0-4.4 2.6-6 6.2-6s6.2 1.6 6.2 6z" fill="#5f8fd3" ${SV}/>`
+};
+const icon=n=>`<svg class="ic ic-${n}" viewBox="0 0 16 16" aria-hidden="true">${ICONS[n]||''}</svg>`;
+return{tree,bush,rock,unit,icon};
 })();

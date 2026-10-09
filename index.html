@@ -14,11 +14,11 @@
 <div id="app">
   <header id="top">
     <div class="brand">Epochenkrieg</div>
-    <div class="res" data-tt="Nahrung" title="Nahrung"><i class="rdot food"></i><b id="v-food">0</b><small data-t="Nahrung">Nahrung</small></div>
-    <div class="res" data-tt="Holz" title="Holz"><i class="rdot wood"></i><b id="v-wood">0</b><small data-t="Holz">Holz</small></div>
-    <div class="res" data-tt="Stein" title="Stein"><i class="rdot stone"></i><b id="v-stone">0</b><small data-t="Stein">Stein</small></div>
-    <div class="res" id="res-iron" data-tt="Eisen" title="Eisen" hidden><i class="rdot iron"></i><b id="v-iron">0</b><small data-t="Eisen">Eisen</small></div>
-    <div class="res" data-tt="Bevölkerung" title="Bevölkerung"><i class="rdot pop"></i><b id="v-pop">0</b><small data-t="Bevölkerung">Bevölkerung</small></div>
+    <div class="res" data-tt="Nahrung" title="Nahrung"><span class="icn" data-ic="food"></span><b id="v-food">0</b><small data-t="Nahrung">Nahrung</small></div>
+    <div class="res" data-tt="Holz" title="Holz"><span class="icn" data-ic="wood"></span><b id="v-wood">0</b><small data-t="Holz">Holz</small></div>
+    <div class="res" data-tt="Stein" title="Stein"><span class="icn" data-ic="stone"></span><b id="v-stone">0</b><small data-t="Stein">Stein</small></div>
+    <div class="res" id="res-iron" data-tt="Eisen" title="Eisen" hidden><span class="icn" data-ic="iron"></span><b id="v-iron">0</b><small data-t="Eisen">Eisen</small></div>
+    <div class="res" data-tt="Bevölkerung" title="Bevölkerung"><span class="icn" data-ic="pop"></span><b id="v-pop">0</b><small data-t="Bevölkerung">Bevölkerung</small></div>
     <div id="epoch">Steinzeit</div>
     <div class="spacer"></div>
     <button class="tbtn idle ok" id="idleBtn" data-tt="Untätigen Arbeiter auswählen (.)" title="Untätigen Arbeiter auswählen (.)">Alle Arbeiter beschäftigt</button>
@@ -30,6 +30,7 @@
     <canvas id="c" aria-label="Spielkarte"></canvas>
     <div id="upgbar" hidden><span></span><div><i></i></div></div>
     <div id="toasts" aria-live="polite"></div>
+    <div id="advisor" hidden></div>
     <div id="hint" hidden></div>
     <div id="overlay"></div>
     <div id="menu" hidden></div>
