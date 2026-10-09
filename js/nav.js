@@ -57,12 +57,22 @@ function genTerrain(seed,mapId){
         if(cfg.mount&&sym(n4,px,py)>thr&&Math.hypot(px-a0.x,py-a0.y)>850&&Math.hypot(px-b0.x,py-b0.y)>850)T[i]=3}
       if(passable(T)){TERR.set(T);ok=true}}
   }
-  // Landfelder, die vom Hauptland aus nicht erreichbar sind (kleine Inseln), merken
+  computeMainland();
+}
+/* Landfelder, die vom Hauptland aus erreichbar sind (kleine Inseln zählen nicht), merken */
+function computeMainland(){
   MAINLAND=new Uint8Array(TW*TH);
   const sx=Math.floor(W*.17/TG),sy=Math.floor(H*.83/TG);
   const st=[sy*TW+sx];MAINLAND[st[0]]=1;
   while(st.length){const i=st.pop(),x=i%TW,y=(i/TW)|0;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=TW||ny>=TH)continue;const j=ny*TW+nx;if(!MAINLAND[j]&&TERR[j]===2){MAINLAND[j]=1;st.push(j)}}}
 }
+/* Klippen rund um einen Punkt (Basis) öffnen, damit dort immer ein Hafen möglich ist */
+function carveCoast(x,y,r){
+  for(let cy=Math.max(0,Math.floor((y-r)/TG));cy<=Math.min(TH-1,Math.floor((y+r)/TG));cy++)for(let cx=Math.max(0,Math.floor((x-r)/TG));cx<=Math.min(TW-1,Math.floor((x+r)/TG));cx++){
+    const i=cy*TW+cx;if(TERR[i]!==3||Math.hypot((cx+.5)*TG-x,(cy+.5)*TG-y)>r)continue;let wet=false;
+    for(let dy=-3;dy<=3&&!wet;dy++)for(let dx=-3;dx<=3;dx++){const nx=cx+dx,ny=cy+dy;if(nx>=0&&ny>=0&&nx<TW&&ny<TH&&TERR[ny*TW+nx]<2){wet=true;break}}
+    if(wet)TERR[i]=2}
+  computeMainland()}
 function terrAt(x,y){const cx=Math.max(0,Math.min(TW-1,(x/TG)|0)),cy=Math.max(0,Math.min(TH-1,(y/TG)|0));return TERR[cy*TW+cx]}
 const onLand=(x,y)=>terrAt(x,y)===2;
 const inWater=(x,y)=>terrAt(x,y)<2;

@@ -85,6 +85,7 @@ function genMap(seed){
   for(let pp=700;pp>=0&&!A;pp-=20){const c={x:.17*W+nx*pp,y:.83*H+ny*pp};if(okSpot(c.x,c.y,175))A=c}
   if(!A)A={x:.17*W,y:.83*H};
   const bases=[{x:A.x,y:A.y,s:1},{x:W-A.x,y:H-A.y,s:-1}];
+  if(MAPS[curMap]&&MAPS[curMap].cliff){carveCoast(A.x,A.y,380);carveCoast(W-A.x,H-A.y,380);navInit()}
   const GAP={tree:20,bush:14,stone:14,iron:14,fish:10,dolphin:14,whale:20};
   const free=(x,y,r,type)=>!G.ents.some(e=>Math.hypot(e.x-x,e.y-y)<e.r+r+GAP[type]);
   const cluster=(type,cx,cy,n,spread,okFn)=>{for(let i=0;i<n;i++){for(let k=0;k<20;k++){const a=R()*6.283,d=Math.sqrt(R())*spread;const x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d,r=NODES[type].r;if(!okFn(x,y,r))continue;if(!free(x,y,r,type))continue;addNode(type,x,y);break}}};
@@ -363,7 +364,7 @@ function validSpot(x,y,r,anyTerrain){if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)retur
 function separate(){
   const us=G.ents.filter(e=>e.kind==='unit'&&!e.dead);
   for(let i=0;i<us.length;i++){const a=us[i];for(let j=i+1;j<us.length;j++){const b=us[j];let dx=b.x-a.x,dy=b.y-a.y;const m=a.r+b.r;if(Math.abs(dx)>m||Math.abs(dy)>m)continue;let d=Math.hypot(dx,dy);if(d>=m)continue;if(d<.01){dx=Math.random()-.5;dy=Math.random()-.5;d=Math.hypot(dx,dy)}const p=(m-d)/2*.8;a.x-=dx/d*p;a.y-=dy/d*p;b.x+=dx/d*p;b.y+=dy/d*p}}
-  for(const u of us){for(const o of G.solids){if(o.dead)continue;let dx=u.x-o.x,dy=u.y-o.y;const R=o.r+u.r;if(Math.abs(dx)>R||Math.abs(dy)>R)continue;let d=Math.hypot(dx,dy);if(d>=R)continue;if(d<.01){dx=1;dy=0;d=1}u.x=o.x+dx/d*R;u.y=o.y+dy/d*R}
+  for(const u of us){const nav=!!UNITS[u.type].naval;for(const o of G.solids){if(o.dead||(o.sea&&!nav))continue;let dx=u.x-o.x,dy=u.y-o.y;const R=o.r+u.r;if(Math.abs(dx)>R||Math.abs(dy)>R)continue;let d=Math.hypot(dx,dy);if(d>=R)continue;if(d<.01){dx=1;dy=0;d=1}u.x=o.x+dx/d*R;u.y=o.y+dy/d*R}
     u.x=Math.max(u.r,Math.min(W-u.r,u.x));u.y=Math.max(u.r,Math.min(H-u.r,u.y));
     if(u.px!==undefined&&!terrOk(u.x,u.y,!!UNITS[u.type].naval)){u.x=u.px;u.y=u.py}}
 }
@@ -1027,7 +1028,7 @@ function frame(ts){
 }
 new ResizeObserver(resize).observe(view);new ResizeObserver(resize).observe(mm);
 window.EKG={startMP,endMP,execRemote,applySnap,peerLeft,toast,tr:(...a)=>tr(...a),get G(){return G},showStart:()=>showStart(),NET,setMap:m=>{curMap=m}};
-window.__ek={flipTeams,encodeSnap,applySnap,execRemote,startMP,NET,bgCanvas:()=>bg,fogEx:()=>fogEx,grantAiTechs,startResearch,get G(){return G},applyLevels,pending,addUnit,addBld,placeBlock,spawn,nearestNode,centerOn,terrAt,cam};
+window.__ek={terrOk,navOpen,navCell,navLos,flipTeams,encodeSnap,applySnap,execRemote,startMP,NET,bgCanvas:()=>bg,fogEx:()=>fogEx,grantAiTechs,startResearch,get G(){return G},applyLevels,pending,addUnit,addBld,placeBlock,spawn,nearestNode,centerOn,terrAt,cam};
 document.querySelectorAll('[data-ic]').forEach(el=>{el.innerHTML=ART.icon(el.dataset.ic)});
 setLang(LANG);resize();newGame('normal');updateUI();showStart();requestAnimationFrame(frame);
 })();
