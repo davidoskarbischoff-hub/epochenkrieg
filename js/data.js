@@ -15,6 +15,8 @@ const UNITS={
   crossbow:{tech:'crossbowbuild',name:'Armbrustschütze',sight:180,hp:95,spd:52,atk:21,rng:150,cd:2,r:7,cost:{food:70,wood:60,iron:30},time:18,ep:3,from:'barracks',ranged:true},
   musket:{tech:'powder',name:'Musketier',sight:190,hp:115,spd:52,atk:34,rng:175,cd:2.6,r:7,cost:{food:80,wood:40,iron:60},time:20,ep:4,from:'barracks',ranged:true,gun:true},
   cannon:{tech:'foundry',name:'Kanone',sight:200,hp:170,spd:34,atk:60,rng:240,cd:4.2,r:11,cost:{wood:160,iron:140},time:30,ep:4,from:'barracks',ranged:true,siege:true},
+  ram:{tech:'siegeworks',name:'Rammbock',sight:150,hp:330,spd:42,atk:42,rng:6,cd:2.2,r:11,cost:{wood:200,iron:60},time:26,ep:3,from:'barracks',siege:true},
+  catapult:{tech:'siegeworks',name:'Katapult',sight:190,hp:140,spd:36,atk:48,rng:250,cd:4.8,r:10,cost:{wood:220,stone:120},time:30,ep:3,from:'barracks',ranged:true,siege:true},
   galleon:{tech:'galleonbuild',name:'Galeone',naval:true,ranged:true,sight:260,hp:380,spd:58,atk:28,rng:210,cd:2.2,r:15,cost:{wood:200,iron:80},time:32,ep:3,from:'harbor'},
   sword:{tech:'smithy',name:'Schwertkämpfer',sight:150,hp:170,spd:52,atk:17,rng:5,cd:1.1,r:9,cost:{food:80,iron:40},time:18,ep:2,from:'barracks'}
 };
@@ -25,6 +27,7 @@ const BLDS={
   barracks:{name:'Kaserne',sight:190,claim:130,hp:700,r:27,cost:{wood:150},time:24,ep:0,sub:'Bildet Krieger aus'},
   harbor:{name:'Hafen',sight:190,claim:140,hp:600,r:24,drop:true,cost:{wood:120},time:20,ep:0,sub:'Boote und Fischfang'},
   castle:{name:'Burg',sight:330,claim:240,hp:1500,r:30,cost:{wood:200,stone:260,iron:80},time:45,ep:3,shoot:{rng:205,atk:15,cd:1.3},sub:'Starke Festung, erobert Land'},
+  wall:{name:'Mauer',sight:60,hp:520,r:9,cost:{stone:12},time:5,ep:3,sub:'Hält Feinde auf'},
   tower:{name:'Wachturm',sight:300,claim:320,hp:550,r:14,cost:{wood:70,stone:60},time:26,ep:0,shoot:{rng:170,atk:9,cd:1.5},sub:'Schiesst auf Gegner'}
 };
 const NODES={tree:{cap:3,rt:'wood',amt:120,r:11,name:'Baum'},bush:{cap:4,rt:'food',amt:220,r:10,name:'Beerenstrauch'},stone:{cap:3,rt:'stone',amt:300,r:13,name:'Steinvorkommen'},iron:{cap:3,rt:'iron',amt:260,r:12,name:'Eisenvorkommen'},
@@ -75,6 +78,7 @@ const TECHS=[
   {id:'whet',bld:'barracks',ep:1,name:'Schleifstein',desc:'Nahkämpfer machen 15 % mehr Schaden',cost:{food:150,stone:80},time:26,fx:{matk:.15}},
   {id:'smithy',bld:'barracks',ep:2,name:'Eisenschmiede',desc:'Erlaubt Schwertkämpfer',cost:{food:250,wood:150,iron:80},time:32,fx:{}},
   {id:'marksman',bld:'barracks',ep:2,name:'Treffsicherheit',desc:'Fernkämpfer machen 20 % mehr Schaden (bessere Genauigkeit)',cost:{food:240,wood:200},time:32,fx:{ratk:.2}},
+  {id:'siegeworks',bld:'barracks',ep:3,name:'Belagerungswerkstatt',desc:'Erlaubt Rammbock und Katapult',cost:{wood:350,iron:180},time:40,fx:{}},
   {id:'stables',bld:'barracks',ep:3,name:'Reiterei',desc:'Erlaubt Ritter',cost:{food:400,wood:250,iron:150},time:38,fx:{}},
   {id:'crossbowbuild',bld:'barracks',ep:3,name:'Armbrustbau',desc:'Erlaubt Armbrustschützen',cost:{food:300,wood:250,iron:100},time:36,fx:{}},
   {id:'plate',bld:'barracks',ep:3,name:'Plattenpanzer',desc:'Alle Truppen haben 20 % mehr Leben',cost:{food:420,iron:200},time:40,fx:{hp:.2}},

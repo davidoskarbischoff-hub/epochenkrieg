@@ -152,6 +152,8 @@ const EN={
   'Erkunden':'Explore','Taste E: automatisch':'Key E: automatic','Späher erkunden automatisch.':'Scouts explore automatically.','Erkundet':'Exploring',
   'die Späher automatisch erkunden lassen':'let the scouts explore automatically','Feinde nähern sich! Alle Truppen zur Verteidigung schicken':'Enemies approach! Send all troops to defend',
   'mit {0} Truppen das gegnerische {1} angreifen':'attack the enemy {1} with {0} troops','Arbeiter auf {0} umstellen (wird für den Aufstieg gebraucht)':'switch workers to {0} (needed for the next age)',
+  'Rammbock':'Battering Ram','Katapult':'Catapult','Mauer':'Wall','Hält Feinde auf':'Holds enemies back','Belagerungswerkstatt':'Siege Workshop','Erlaubt Rammbock und Katapult':'Allows battering ram and catapult',
+  'Befehlskette wird wiederholt (Patrouille). Taste L beendet sie.':'Order chain repeats (patrol). Key L stops it.','Schleife beendet.':'Loop ended.','Dafür braucht es mindestens zwei Wegpunkte (Umschalt + Rechtsklick).':'This needs at least two waypoints (Shift + right-click).','Befehlskette gelöscht.':'Order chain cleared.','Schleife':'loop',
   // Gebiet
   'Neues Gebiet erobert!':'New territory claimed!',
   'Nur im eigenen Gebiet. Ein Wachturm erobert neues Land.':'Only inside your territory. A watchtower claims new land.'

@@ -17,7 +17,7 @@ function sightOf(e){return e.kind==='unit'?UNITS[e.type].sight:e.built?BLDS[e.ty
 const ss=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t)};
 function terrUpdate(){
   terrK.fill(9);terrT.fill(-1);terr.fill(-1);
-  for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const rad=BLDS[e.type].claim,rc=rad/FC,cx=e.x/FC,cy=e.y/FC,R=rc*1.14;
+  for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const rad=BLDS[e.type].claim;if(!rad)continue;const rc=rad/FC,cx=e.x/FC,cy=e.y/FC,R=rc*1.14;
     for(let y=Math.max(0,Math.floor(cy-R));y<=Math.min(FH-1,Math.ceil(cy+R));y++)for(let x=Math.max(0,Math.floor(cx-R));x<=Math.min(FW-1,Math.ceil(cx+R));x++){const dx=x+.5-cx,dy=y+.5-cy,k=Math.sqrt(dx*dx+dy*dy)/rc,i=y*FW+x;if(k<=1.14&&k<terrK[i]){terrK[i]=k;terrT[i]=e.team}}}
   for(let i=0;i<terr.length;i++)if(terrK[i]<=1)terr[i]=terrT[i];
 }
@@ -218,6 +218,7 @@ function pickExplore(u){const g=exGrid(u.team),naval=!!UNITS[u.type].naval;let b
   return best}
 function updUnit(u,dt){
   const d=UNITS[u.type];u.cd=Math.max(0,u.cd-dt);u.px=u.x;u.py=u.y;
+  if(u.state==='idle'&&u.loop&&!(u.q&&u.q.length)){u.q=u.loop.map(o=>({...o}))}
   if(u.state==='idle'&&u.q&&u.q.length)nextOrder(u);
   switch(u.state){
   case 'idle':
@@ -254,7 +255,7 @@ function updUnit(u,dt){
     else moveToward(u,b.x,b.y,dt,b.id);break}
   }
 }
-function hit(u,t){const d=UNITS[u.type];sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);const mult=(t.kind==='bld'?(d.siege?1.8:d.ranged?.3:1):1)*(1+(d.ranged?G.tfx[u.team].ratk:G.tfx[u.team].matk));
+function hit(u,t){const d=UNITS[u.type];sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);const mult=(t.kind==='bld'?(d.siege?1.8:d.ranged?.3:1):(d.siege&&!d.ranged?.35:1))*(1+(d.ranged?G.tfx[u.team].ratk:G.tfx[u.team].matk));
   if(d.ranged)G.proj.push({x:u.x,y:u.y,tid:t.id,dmg:d.atk*mult*LVL.atk[u.lvl],src:u.id,a:0,big:!!d.siege,gun:!!d.gun});else damage(t,d.atk*mult*LVL.atk[u.lvl],u)}
 function damage(t,amt,src){
   t.hp-=amt;
@@ -369,7 +370,7 @@ function aiTick(){
   const adv=ep<EPOCHS.length-1?EPOCHS[ep].cost:null;
   if(workers.length+hq.queue.filter(q=>q.type==='worker').length<targetW&&hq.queue.length<2&&!(saving&&r.food<adv.food+50))enqueue(hq,'worker',1);
   // Späher: einer erkundet die Karte
-  if(G.t>45&&!scouts.length&&!hq.queue.some(q=>q.type==='scout')&&hq.queue.length<2&&G.pop[1]<G.cap[1])enqueue(hq,'scout',1);
+  if(G.t>60&&r.food>=130&&!scouts.length&&!hq.queue.some(q=>q.type==='scout')&&hq.queue.length<2&&G.pop[1]<G.cap[1])enqueue(hq,'scout',1);
   for(const sc of scouts)if(sc.state==='idle')sc.state='explore';
   // Sammeln verteilen
   const w8=[{food:.6,wood:.4,stone:0,iron:0},{food:.4,wood:.32,stone:.28,iron:0},{food:.4,wood:.24,stone:.16,iron:.2},{food:.36,wood:.22,stone:.18,iron:.24},{food:.34,wood:.2,stone:.18,iron:.28}][ep];
@@ -383,7 +384,7 @@ function aiTick(){
   if(G.cap[1]-G.pop[1]<=3&&G.cap[1]<POPMAX&&!unbuilt.some(b=>b.type==='house'))aiPlace('house',hq,90,200);
   const nBar=blds.filter(b=>b.type==='barracks').length,wantBar=ep>=2&&diff!=='leicht'?2:1;
   if(nBar<wantBar&&workers.length>=6&&!unbuilt.some(b=>b.type==='barracks')){const b=aiPlace('barracks',hq,110,210);if(b){const a=Math.atan2(H/2-hq.y,W/2-hq.x);b.rally={x:hq.x+Math.cos(a)*170,y:hq.y+Math.sin(a)*170}}}
-  if(diff!=='leicht'&&!saving&&!blds.some(b=>b.type==='tower'))aiPlace('tower',hq,70,140);
+  if(diff!=='leicht'&&!saving&&!blds.some(b=>b.type==='tower')&&(ep>=1||(G.t>170&&workers.length>=10)))aiPlace('tower',hq,70,140);
   // Expansion: weitere Türme Richtung Kartenmitte erobern Land
   const nTow=blds.filter(b=>b.type==='tower').length;
   if(ep>=1&&diff!=='leicht'&&!saving&&nTow<Math.min(4,1+ep)&&G.t>ai.towT&&!unbuilt.some(b=>b.type==='tower')&&afford(1,BLDS.tower.cost)&&aiPlaceToward('tower',hq,190,320))ai.towT=G.t+75;
@@ -402,7 +403,7 @@ function aiTick(){
     }
   }
   // Armee
-  const types=[['club'],['spear','archer','spear'],['sword','archer','sword','spear'],['knight','crossbow','sword','knight'],['musket','cannon','knight','musket','crossbow']][ep];
+  const types=[['club'],['spear','archer','spear'],['sword','archer','sword','spear'],['knight','crossbow','sword','catapult','knight'],['musket','cannon','knight','musket','crossbow']][ep];
   for(const b of blds){if(b.type!=='barracks'||!b.built||b.queue.length>=2)continue;
     if(saving&&!(r.food>adv.food+90&&r.wood>(adv.wood||0)+90))continue;
     enqueue(b,types[(G.stats.trained[1]+b.id)%types.length],1)}
@@ -445,6 +446,7 @@ function applyOrder(u,o){u.pf=null;
     case'return':u.state='return';break}}
 function orderValid(o){if(o.t==='build'){const b=get(o.tid);return !!b&&!b.built}if(o.t==='gather'||o.t==='attack')return !!get(o.tid);return true}
 function giveOrder(u,o,append){
+  if(!append)u.loop=null;
   if(!append||(u.state==='idle'&&!(u.q&&u.q.length))){u.q=[];applyOrder(u,o);return}
   (u.q||(u.q=[])).push(o)}
 function nextOrder(u){while(u.q&&u.q.length){const o=u.q.shift();if(orderValid(o)){applyOrder(u,o);return true}}return false}
@@ -549,6 +551,11 @@ addEventListener('keydown',e=>{
   else if(e.key==='h'||e.key==='H'){const hq=G.ents.find(o=>o.type==='hq'&&o.team===0&&!o.dead);if(hq){sel.clear();sel.add(hq.id);centerOn(hq.x,hq.y);panelSig=''}}
   else if(e.key==='.'){selectIdle()}
   else if(e.key==='e'||e.key==='E'){let n=0;ownSel().forEach(u=>{if(u.type==='scout'){u.state='explore';u.q=[];u.ex=null;n++}});if(n){sfx('order');toast(tr('Späher erkunden automatisch.'))}}
+  else if(e.key==='l'||e.key==='L'){let n=0,tog=0;ownSel().forEach(u=>{if(u.kind!=='unit')return;if(u.loop){u.loop=null;tog=-1;return}
+      const cur=u.state==='move'&&u.dest?{t:'move',x:u.dest.x,y:u.dest.y}:u.state==='amove'&&u.amove?{t:'amove',x:u.amove.x,y:u.amove.y}:null;
+      const list=[...(cur?[cur]:[]),...(u.q||[]).filter(o=>o.t==='move'||o.t==='amove')];if(list.length>=2){u.loop=list.map(o=>({...o}));n++;tog=1}});
+    if(tog===1)toast(tr('Befehlskette wird wiederholt (Patrouille). Taste L beendet sie.'));else if(tog===-1)toast(tr('Schleife beendet.'));else toast(tr('Dafür braucht es mindestens zwei Wegpunkte (Umschalt + Rechtsklick).'))}
+  else if(e.key==='Backspace'||e.key==='Delete'){let n=0;ownSel().forEach(u=>{if(u.kind==='unit'&&((u.q&&u.q.length)||u.loop)){u.q=[];u.loop=null;n++}});if(n){toast(tr('Befehlskette gelöscht.'));e.preventDefault()}}
   else if(e.key==='y'||e.key==='Y'){advAnswer(true)}
   else if(e.key==='x'||e.key==='X'){advAnswer(false)}
   if(e.key.startsWith('Arrow'))e.preventDefault();
@@ -698,40 +705,9 @@ function drawNode(e){
 }
 function drawBld(b){
   const m=MAT[G.epoch[b.team]],tc=TC[b.team],r=b.r;
-  ctx.save();ctx.globalAlpha=b.built?1:.55;shadow(b.x,b.y,r,r*.85);ctx.translate(b.x,b.y);ctx.lineWidth=1.5;ctx.strokeStyle=m.line;
-  if(b.type==='hq'){
-    ctx.fillStyle=m.wall;ctx.beginPath();ctx.arc(0,0,r,0,6.283);ctx.fill();
-    ctx.fillStyle=m.line;for(let i=0;i<28;i++){const a=i/28*6.283;ctx.beginPath();ctx.arc(Math.cos(a)*(r-3),Math.sin(a)*(r-3),2.6,0,6.283);ctx.fill()}
-    ctx.fillStyle=m.roof;ctx.beginPath();ctx.arc(0,0,r*.62,0,6.283);ctx.fill();ctx.stroke();
-    ctx.beginPath();for(let i=0;i<8;i++){const a=i/8*6.283;ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*r*.62,Math.sin(a)*r*.62)}ctx.stroke();
-    ctx.fillStyle=tc;ctx.beginPath();ctx.arc(0,0,r*.2,0,6.283);ctx.fill();ctx.strokeStyle=TCD[b.team];ctx.stroke();
-  }else if(b.type==='castle'){
-    ctx.fillStyle=m.wall;ctx.fillRect(-r,-r,2*r,2*r);ctx.strokeRect(-r,-r,2*r,2*r);
-    ctx.fillStyle=m.line;for(let i=-4;i<=4;i++){ctx.fillRect(i*r*.22-2,-r-3,4,5);ctx.fillRect(i*r*.22-2,r-2,4,5);ctx.fillRect(-r-3,i*r*.22-2,5,4);ctx.fillRect(r-2,i*r*.22-2,5,4)}
-    ctx.fillStyle=m.roof;ctx.fillRect(-r*.62,-r*.62,r*1.24,r*1.24);ctx.strokeRect(-r*.62,-r*.62,r*1.24,r*1.24);
-    for(const[cx,cy]of[[-r,-r],[r,-r],[-r,r],[r,r]]){ctx.fillStyle=m.wall;ctx.beginPath();ctx.arc(cx,cy,r*.34,0,6.283);ctx.fill();ctx.stroke();ctx.fillStyle=m.roof;ctx.beginPath();ctx.arc(cx,cy,r*.2,0,6.283);ctx.fill()}
-    ctx.fillStyle=tc;ctx.beginPath();ctx.arc(0,0,r*.28,0,6.283);ctx.fill();ctx.strokeStyle=TCD[b.team];ctx.stroke();
-  }else if(b.type==='harbor'){
-    ctx.rotate(b.ang||0);ctx.fillStyle=m.wall;ctx.fillRect(-r,-r*.7,r*1.5,r*1.4);ctx.fillStyle=m.roof;ctx.fillRect(-r,-r*.7,r*1.5,r*.55);ctx.strokeRect(-r,-r*.7,r*1.5,r*1.4);
-    ctx.fillStyle='#8a6a42';ctx.fillRect(r*.4,-r*.32,r*1.15,r*.64);ctx.strokeStyle=m.line;ctx.lineWidth=1;for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(r*.4+i*r*.23,-r*.32);ctx.lineTo(r*.4+i*r*.23,r*.32);ctx.stroke()}
-    ctx.fillStyle=m.line;for(const[px,py]of[[r*1.55,-r*.32],[r*1.55,r*.32],[r*.95,-r*.32],[r*.95,r*.32]]){ctx.beginPath();ctx.arc(px,py,2.4,0,6.283);ctx.fill()}
-    ctx.fillStyle=tc;ctx.beginPath();ctx.arc(-r*.2,0,r*.2,0,6.283);ctx.fill();
-  }else if(b.type==='house'){
-    ctx.rotate(.25);ctx.fillStyle=m.wall;ctx.fillRect(-r,-r*.8,2*r,1.6*r);ctx.fillStyle=m.roof;ctx.beginPath();ctx.moveTo(-r,-r*.8);ctx.lineTo(r,-r*.8);ctx.lineTo(r*.7,0);ctx.lineTo(-r*.7,0);ctx.closePath();ctx.fill();
-    ctx.strokeRect(-r,-r*.8,2*r,1.6*r);ctx.beginPath();ctx.moveTo(-r*.7,0);ctx.lineTo(r*.7,0);ctx.stroke();ctx.fillStyle=tc;ctx.fillRect(r*.45,r*.25,r*.4,r*.4);
-  }else if(b.type==='store'){
-    ctx.fillStyle=m.wall;ctx.fillRect(-r,-r*.75,2*r,1.5*r);ctx.strokeRect(-r,-r*.75,2*r,1.5*r);ctx.fillStyle=m.roof;
-    [[-.6,-.4],[0,-.4],[.6,-.4],[-.3,.25],[.3,.25]].forEach(([x,y])=>{ctx.fillRect(x*r-4,y*r-4,8,8);ctx.strokeRect(x*r-4,y*r-4,8,8)});ctx.fillStyle=tc;ctx.fillRect(-r,-r*.75,4,1.5*r);
-  }else if(b.type==='barracks'){
-    ctx.fillStyle=m.wall;ctx.fillRect(-r,-r,2*r,2*r);ctx.strokeRect(-r,-r,2*r,2*r);ctx.fillStyle=m.roof;ctx.fillRect(-r*.7,-r*.7,1.4*r,1.4*r);ctx.strokeRect(-r*.7,-r*.7,1.4*r,1.4*r);
-    ctx.beginPath();ctx.moveTo(-r*.7,0);ctx.lineTo(r*.7,0);ctx.stroke();
-    ctx.strokeStyle='#2a2119';ctx.beginPath();ctx.moveTo(r*.85,-r*.9);ctx.lineTo(r*.85,-r*1.6);ctx.stroke();ctx.fillStyle=tc;ctx.beginPath();ctx.moveTo(r*.85,-r*1.6);ctx.lineTo(r*1.35,-r*1.45);ctx.lineTo(r*.85,-r*1.3);ctx.fill();
-  }else if(b.type==='tower'){
-    ctx.fillStyle=m.wall;ctx.beginPath();ctx.arc(0,0,r,0,6.283);ctx.fill();ctx.stroke();ctx.fillStyle=m.line;for(let i=0;i<10;i++){const a=i/10*6.283;ctx.fillRect(Math.cos(a)*(r-2)-2,Math.sin(a)*(r-2)-2,4,4)}
-    ctx.fillStyle=m.roof;ctx.beginPath();ctx.arc(0,0,r*.55,0,6.283);ctx.fill();ctx.fillStyle=tc;ctx.beginPath();ctx.arc(0,0,r*.25,0,6.283);ctx.fill();
-  }
+  ctx.save();ctx.globalAlpha=b.built?1:.55;shadow(b.x,b.y,r*1.05,r*.9);ART.bld(ctx,b,{m,tc,tcd:TCD[b.team],tcl:TCL[b.team],t:G.t,ep:G.epoch[b.team]});
   ctx.restore();
-  {const bx=b.x-r+1,by=b.y-r-2;ctx.fillStyle='rgba(20,15,10,.85)';ctx.strokeStyle=LVLC[b.lvl];ctx.lineWidth=1.5;ctx.beginPath();ctx.rect(bx-9,by-6,18,12);ctx.fill();ctx.stroke();ctx.fillStyle=LVLC[b.lvl];ctx.font='bold 9px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(LVLN[b.lvl],bx,by+.5)}
+  if(b.type!=='wall'){const bx=b.x-r+1,by=b.y-r-2;ctx.fillStyle='rgba(20,15,10,.85)';ctx.strokeStyle=LVLC[b.lvl];ctx.lineWidth=1.5;ctx.beginPath();ctx.rect(bx-9,by-6,18,12);ctx.fill();ctx.stroke();ctx.fillStyle=LVLC[b.lvl];ctx.font='bold 9px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(LVLN[b.lvl],bx,by+.5)}
   if(!b.built){ctx.strokeStyle='#ecdfc3';ctx.lineWidth=3;ctx.beginPath();ctx.arc(b.x,b.y,r+6,-1.57,-1.57+b.prog*6.283);ctx.stroke();
     ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.strokeStyle='rgba(236,223,195,.6)';ctx.beginPath();ctx.arc(b.x,b.y,r+6,0,6.283);ctx.stroke();ctx.setLineDash([])
     // Fortschrittsbalken mit Beschriftung; rot, wenn niemand baut
@@ -759,7 +735,7 @@ function drawUnit(u){
   const r=u.r,a=u.fa,ca=Math.cos(a),sa=Math.sin(a);
   shadow(u.x,u.y,r*1.05,r*.8);
   const lunge=u.swing&&G.t-u.swing<.15?2.5:0,moving=G.t-(u.mvT||-9)<.2,sw=u.swing&&G.t-u.swing<.28?1-(G.t-u.swing)/.28:0;
-  ART.unit(ctx,u,r,{x:u.x+ca*lunge,y:u.y+sa*lunge,a,tc:TC[u.team],tcd:TCD[u.team],tcl:TCL[u.team],ph:moving?Math.sin(G.t*10+u.id):0,sw,work:G.t-(u.gat||-9)<.25,attacking:u.state==='attack',t:G.t});
+  ART.unit(ctx,u,r,{lvl:u.lvl,lc:LVLC[u.lvl],x:u.x+ca*lunge,y:u.y+sa*lunge,a,tc:TC[u.team],tcd:TCD[u.team],tcl:TCL[u.team],ph:moving?Math.sin(G.t*10+u.id):0,sw,work:G.t-(u.gat||-9)<.25,attacking:u.state==='attack',t:G.t});
   {const n=u.lvl+1;ctx.fillStyle=LVLC[u.lvl];ctx.strokeStyle='rgba(20,15,10,.8)';ctx.lineWidth=1;for(let i=0;i<n;i++){const px=u.x+(i-(n-1)/2)*5,py=u.y+r+6;ctx.beginPath();ctx.arc(px,py,2.1,0,6.283);ctx.fill();ctx.stroke()}}
   if(u.team===0&&UNITS[u.type].gather&&u.state==='idle'){const bx=u.x,by=u.y-r-11;ctx.fillStyle='#d0432c';ctx.strokeStyle='#fff3ea';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(bx,by,6.5,0,6.283);ctx.fill();ctx.stroke();ctx.fillStyle='#fff3ea';ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('!',bx,by+.5)}
 }
@@ -825,7 +801,7 @@ const costHTML=c=>RES.filter(r=>c[r]).map(r=>`<span class="c ${(G&&G.res[0][r]||
 function actionsFor(s){
   if(!s.length||s[0].team!==0)return[];const f=s[0],acts=[],ep=G.epoch[0];
   if(f.kind==='unit'){
-    if(s.some(u=>u.type==='worker'))for(const k of ['house','store','barracks','harbor','tower','castle'].filter(k=>BLDS[k].ep<=ep)){const d=BLDS[k];acts.push({key:'b'+k,nm:tr(d.name),cost:d.cost,sub:tr(d.sub),lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>startPlace(k)})}
+    if(s.some(u=>u.type==='worker'))for(const k of ['house','store','barracks','harbor','tower','castle','wall'].filter(k=>BLDS[k].ep<=ep)){const d=BLDS[k];acts.push({key:'b'+k,nm:tr(d.name),cost:d.cost,sub:tr(d.sub),lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>startPlace(k)})}
     if(s.some(u=>u.kind==='unit'&&!UNITS[u.type].passive))acts.push({key:'am',nm:tr('Angriffsmarsch'),sub:tr('Taste Q, dann Ziel'),run:()=>{armed=true;placing=null}});
     if(s.some(u=>u.type==='scout'))acts.push({key:'exp',nm:tr('Erkunden'),sub:tr('Taste E: automatisch'),run:()=>s.forEach(u=>{if(u.type==='scout'){u.state='explore';u.q=[];u.ex=null}})});
     acts.push({key:'stop',nm:tr('Halt'),sub:tr('Befehle abbrechen'),run:()=>s.forEach(u=>{if(u.kind==='unit'){u.state='idle';u.amove=null;u.q=[]}})});
@@ -860,7 +836,7 @@ function infoHTML(s){
   if(e.kind==='node')return h+`<div class="line">${tr('Vorrat')}: <b>${Math.ceil(e.amount)}</b> ${rn(e.rt)}</div>`;
   h+=`<div class="hpw"><div class="hp"><span style="width:${Math.max(0,e.hp/e.maxHp*100).toFixed(0)}%"></span></div>${Math.ceil(e.hp)} / ${e.maxHp}</div>`;
   if(e.kind==='unit'){const d=UNITS[e.type];let st=tr(STATE[e.state]||'');if(e.state==='gather')st=tr('Sammelt {0}',rn(e.rtype||e.ctype||'food'));if(e.state==='return')st=tr('Bringt {0} zum Lager',rn(e.ctype));
-    h+=`<div class="line">${st}${e.carry>0?` <em>· ${tr('trägt {0} {1}',Math.floor(e.carry),rn(e.ctype))}</em>`:''}</div>${e.q&&e.q.length?`<div class="line"><em>${tr('Befehlskette: {0} weitere Aufträge',e.q.length)}</em></div>`:''}<div class="line"><em>${tr('Angriff {0} · Reichweite {1}',d.atk,d.ranged?d.rng:tr('Nahkampf'))}</em></div>`}
+    h+=`<div class="line">${st}${e.carry>0?` <em>· ${tr('trägt {0} {1}',Math.floor(e.carry),rn(e.ctype))}</em>`:''}</div>${e.q&&e.q.length?`<div class="line"><em>${tr('Befehlskette: {0} weitere Aufträge',e.q.length)}${e.loop?' · '+tr('Schleife'):''}</em></div>`:''}<div class="line"><em>${tr('Angriff {0} · Reichweite {1}',d.atk,d.ranged?d.rng:tr('Nahkampf'))}</em></div>`}
   else{
     if(!e.built)h+=`<div class="line">${tr('Im Bau: {0} %',Math.floor(e.prog*100))}${e.team===0?' <em>· '+tr('Arbeiter per Rechtsklick zum Bauen schicken')+'</em>':''}</div>`;
     if(e.team===0&&e.type==='hq'&&G.adv[0])h+=`<div class="line">${tr('Aufstieg in die {0}',tr(EPOCHS[G.epoch[0]+1].name))}: <b>${Math.floor(G.adv[0].t/G.adv[0].time*100)} %</b></div>`;

@@ -22,7 +22,7 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
 - `js/nav.js` – Gelände (`TERR`: 0 tiefes Wasser, 1 flaches Wasser, 2 Land; Karte wird aus Zufallszahlen punktsymmetrisch erzeugt) und Wegfindung (A* auf 10-px-Raster, Gebäude und Ressourcen blockieren per `navStamp`).
 - `js/i18n.js` – Sprachen Deutsch/Englisch: im Code deutsch schreiben, mit `tr('Text {0}',wert)` umschliessen, englische Übersetzung im Wörterbuch `EN` ergänzen.
 - `js/audio.js` – Klang (Web Audio, keine Audiodateien): Geräusche `SND.play(name)`, Lautstärke per Regler im Menü und klassische Hintergrundmusik pro Epoche (Satie, Pachelbel, Grieg).
-- `js/art.js` – Grafik für Einheiten, Bäume, Büsche und Felsen (`ART.unit/tree/bush/rock`): gleicher Stil mit dunklem Umriss und hellem Lichtpunkt. Jede Einheit hat eine eigene Funktion in `ART_UNIT`.
+- `js/art.js` – Grafik für Einheiten, Gebäude, Bäume, Büsche und Felsen (`ART.unit/bld/tree/bush/rock`): gleicher Stil mit dunklem Umriss und hellem Lichtpunkt. Jede Einheit hat eine eigene Funktion in `ART_UNIT`.
 - `js/game.js` – Spiellogik in einem IIFE: Kartengenerierung, Einheiten-Zustandsmaschine
   (idle, move, amove, attack, gather, return, build), Kampf und Projektile, Gegner-KI (`aiTick`),
   Eingabe (Maus, Touch, Tastatur), Zeichnen und Oberfläche.
@@ -31,6 +31,9 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
 - Epochen: `EPOCHS` in `data.js` (Steinzeit, Bronzezeit, Eisenzeit, Mittelalter, Neuzeit). Neue Epoche = Eintrag in `EPOCHS` (mit `cost`/`time` für den Aufstieg), `MAT` (Gebäudefarben), `LVL`/`LVLN`/`LVLC`/`UPG` (Stufenwerte), Musikstück in `audio.js` (`PIECES`), Einheiten/Gebäude mit passendem `ep`, KI-Listen in `aiTick` (`targetW`, `w8`, `types`).
 - Bewegung: `moveToward` nutzt `navPath` (A*), erkennt Festhängen (`u.stk`, nach 1,6 s Ausweichen + neuer Weg mit Zufallskosten) und gibt auf, wenn es keinen Weg gibt (`u.pf.fail`). Arbeiter verteilen sich auf Bäume/Büsche (`cap` je Vorkommen in `NODES`).
 - Wasser: Hafen (`harbor`, nur auf flachem Wasser am Ufer baubar, `placeBlock`/`harborOk`) bildet Schiffe aus (`naval:true` in `UNITS`: Fischerboot, Kriegsschiff). Fischquellen sind Nodes mit `sea:true` (Fischschwarm, Delfine ab Stufe II, Wale ab Stufe III) und liefern Nahrung. Einheiten mit `gather:true` sammeln, `passive:true` greifen nicht von selbst an. Zum Testen: `window.__seed=<zahl>` vor dem Laden setzen erzeugt immer dieselbe Karte.
+- Technologien: `TECHS` in `data.js` (gehören zu einem Gebäudetyp `bld`/`blds`, Epoche `ep`, Effekte `fx`); Einheiten brauchen ggf. `tech` in `UNITS`. Team-Effekte stehen in `G.tfx[team]` (`techFx`), Besitz in `G.tech[team]`, laufende Forschung in `G.rs[team]`. Die KI bekommt beim Aufstieg alle Technologien (`grantAiTechs`). Achtung: `G.fx` sind die Bildeffekte, nicht die Technologien.
+- KI (`aiTick`): Erkundung `ai.ex`, gesehene Spielerobjekte `ai.seen`, Angriff erst wenn ein Ziel bekannt ist, Marine (Hafen, Boote, Schiffe), Turm-Expansion. Spieler-Gedächtnis für Gegnergebäude: `G.mem`.
+- Späher: Zustand `explore` (`pickExplore`), Taste E.
 - Befehlsketten: `u.q` (Liste von Aufträgen), `giveOrder(u,order,append)`; Umschalt + Befehl hängt an, `nextOrder` startet den nächsten, sobald die Einheit idle ist (bei Sammlern nach dem Abliefern).
 - Upgrades laufen als Aufträge (`G.jobs[team]`, einzeln pro Gruppe oder "Alle", `pending()` liefert die Gruppen); betroffene Einheiten/Gebäude haben `e.upj` und ruhen. Die Liste steht im Info-Feld des Hauptlagers.
 - Berater (`advRules`, `advisorTick`): schlägt eine Aktion nach der anderen vor (Hütte, Arbeiter, Upgrade, Aufstieg, Kaserne, Turm, Hafen, Truppen, Späher); Annehmen = Taste Y, Ablehnen = X; im Menü abschaltbar. Neue Regeln dort ergänzen.
