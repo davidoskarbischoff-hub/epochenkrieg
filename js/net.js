@@ -60,7 +60,7 @@ const Lobby=(()=>{
   function open(){if(!role)view='menu';render()}
   function render(){
     const ov=$('overlay');ov.hidden=false;
-    const maps=(editable)=>`<div class="maps" role="group">${Object.entries(MAPS).map(([k,m])=>`<button data-m="${k}" ${editable?'':'disabled'} aria-pressed="${k===st.map}"><b>${T(m.name)}</b><small>${T(m.desc)}</small></button>`).join('')}</div>`;
+    const maps=(editable)=>`<div class="maps" role="group">${Object.entries(MAPS).map(([k,m])=>`<button data-m="${k}" ${editable?'':'disabled'} aria-pressed="${k===st.map}"><b>${T(m.name)}</b><img src="${mapPreview(k)}" alt="" title="${T(m.desc)}"></button>`).join('')}</div>`;
     const sides=(editable)=>`<div class="diff" role="group">${[['A','Start unten links'],['B','Start oben rechts']].map(([k,l])=>`<button data-s="${k}" ${editable?'':'disabled'} aria-pressed="${k===st.side}">${T(l)}</button>`).join('')}</div>`;
     const err=st.error?`<p class="lerr">${T(st.error)}</p>`:'';
     let h='';

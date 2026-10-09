@@ -248,3 +248,5 @@ body{background:#101114}
 #panel{padding:8px 12px 10px}
 #mini{width:200px;height:134px}
 @media (max-height:760px){#panel{max-height:32vh}}
+.maps{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.maps button img{display:block;width:100%;aspect-ratio:160/110;border:1px solid #000;border-radius:3px;margin-top:4px;image-rendering:auto}

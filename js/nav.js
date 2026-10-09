@@ -9,10 +9,11 @@ let TERR=null,MAINLAND=null;
 /* ---------- Gelände erzeugen ---------- */
 /* Kartenarten: mid/ends = Breite der Landzunge in der Mitte und an den Enden, amp = Unregelmäßigkeit, full = nur Land, mount = Berge, cliff = Klippen an der Küste (Zugänge nur an Lücken), bank = Sandbänke */
 const MAPS={
-  coast:{name:'Küste und Landzunge',desc:'Zwei Küsten, Landzunge, Fischgründe',mid:250,ends:650,amp:1,bank:.6,mount:0,cliff:0},
+  coast:{name:'Küste und Landzunge',desc:'Zwei Küsten, Landzunge, Fischgründe',mid:250,ends:650,amp:1,bank:.6,mount:0,cliff:0,lakes:1.1},
   land:{name:'Festland',desc:'Nur Land, kein Wasser',full:1,amp:1,bank:.6,mount:0,cliff:0},
-  mountains:{name:'Bergland',desc:'Berge und Klippen, Häfen nur an Zugängen',mid:260,ends:680,amp:1,bank:.6,mount:1,cliff:1},
-  bay:{name:'Große Bucht',desc:'Viel Wasser, schmale Landbrücke',mid:175,ends:610,amp:.5,bank:.5,mount:0,cliff:0}
+  lakes:{name:'Seenplatte',desc:'Viele Seen und Teiche, Fische im Binnenland',full:1,amp:1,bank:.6,mount:0,cliff:0,lakes:1.7},
+  mountains:{name:'Bergland',desc:'Berge und Klippen, Häfen nur an Zugängen',mid:260,ends:680,amp:1,bank:.6,mount:1,cliff:1,lakes:.9},
+  bay:{name:'Große Bucht',desc:'Viel Wasser, schmale Landbrücke',mid:175,ends:610,amp:.5,bank:.5,mount:0,cliff:0,lakes:.8}
 };
 function genTerrain(seed,mapId){
   const cfg=MAPS[mapId]||MAPS.coast;
@@ -21,7 +22,7 @@ function genTerrain(seed,mapId){
     return(x,y)=>{const fx=Math.max(0,Math.min(gw-1e-6,x/W*gw)),fy=Math.max(0,Math.min(gh-1e-6,y/H*gh));const ix=Math.floor(fx),iy=Math.floor(fy);
       let tx=fx-ix,ty=fy-iy;tx=tx*tx*(3-2*tx);ty=ty*ty*(3-2*ty);const a=g[iy*(gw+1)+ix],b=g[iy*(gw+1)+ix+1],c=g[(iy+1)*(gw+1)+ix],d=g[(iy+1)*(gw+1)+ix+1];
       return(a*(1-tx)+b*tx)*(1-ty)+(c*(1-tx)+d*tx)*ty}};
-  const n1=mk(9,6),n2=mk(18,12),n3=mk(14,9),n4=mk(11,7),n5=mk(22,15);
+  const n1=mk(9,6),n2=mk(18,12),n3=mk(14,9),n4=mk(11,7),n5=mk(22,15),n6=mk(16,11),n7=mk(7,5);
   // punktsymmetrisch, damit beide Seiten gleich fair sind
   const sym=(f,x,y)=>(f(x,y)+f(W-x,H-y))/2;
   const L=Math.hypot(W,H);
@@ -34,6 +35,16 @@ function genTerrain(seed,mapId){
     const noise=((sym(n1,px,py)-.5)*340+(sym(n2,px,py)-.5)*110)*cfg.amp;
     const edge=Math.min(px,py,W-px,H-py),fall=Math.max(0,170-edge)*3; // Wasserrand rundum
     land[y*TW+x]=w+noise-Math.abs(pp)-fall>0?1:0}
+  // Seen und Teiche im Landesinneren (punktsymmetrisch, Basen und Landverbindung bleiben frei)
+  if(cfg.lakes){
+    const A={x:W*.17,y:H*.83},B={x:W-A.x,y:H-A.y},base=land.slice();let thr=.66-.08*cfg.lakes;
+    const lakeAt=(px,py,thr)=>{const v=sym(n6,px,py)*.65+sym(n7,px,py)*.35;return v>thr&&Math.hypot(px-A.x,py-A.y)>420&&Math.hypot(px-B.x,py-B.y)>420};
+    for(let k=0;k<10;k++,thr+=.02){
+      for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const i=y*TW+x;land[i]=base[i]&&!lakeAt((x+.5)*TG,(y+.5)*TG,thr)?1:0}
+      const seen=new Uint8Array(TW*TH),st=[Math.floor(A.y/TG)*TW+Math.floor(A.x/TG)],tg=Math.floor(B.y/TG)*TW+Math.floor(B.x/TG);seen[st[0]]=1;let ok=false;
+      while(st.length&&!ok){const i=st.pop();if(i===tg){ok=true;break}const x=i%TW,y=(i/TW)|0;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=TW||ny>=TH)continue;const j=ny*TW+nx;if(!seen[j]&&land[j]){seen[j]=1;st.push(j)}}}
+      if(ok)break;if(k===9)land.set(base)}
+  }
   // flaches Wasser: Küstenstreifen (Abstand zum Land) plus Sandbänke
   const dist=new Int16Array(TW*TH).fill(-1),q=[];
   for(let i=0;i<land.length;i++)if(land[i]){dist[i]=0;q.push(i)}
@@ -59,6 +70,17 @@ function genTerrain(seed,mapId){
   }
   computeMainland();
 }
+/* Kleines Vorschaubild einer Karte (für Auswahl und Lobby): Gelände einer Beispiel-Karte als Bild */
+const _mpCache={};
+function mapPreview(id){
+  if(_mpCache[id])return _mpCache[id];
+  const sT=TERR,sM=MAINLAND;genTerrain(11,id);
+  const c=document.createElement('canvas');c.width=TW;c.height=TH;const x=c.getContext('2d'),im=x.createImageData(TW,TH);
+  const col=[[28,66,98],[62,142,160],[104,142,66],[122,118,110]];
+  for(let i=0;i<TW*TH;i++){const k=col[TERR[i]],j=i*4;const sh=TERR[i]===2?((i%TW+((i/TW)|0))%7<1?-8:0):0;im.data[j]=k[0]+sh;im.data[j+1]=k[1]+sh;im.data[j+2]=k[2]+sh;im.data[j+3]=255}
+  x.putImageData(im,0,0);
+  x.fillStyle='#4a8fe0';x.strokeStyle='#10202f';x.lineWidth=1;for(const[px,py,cl]of[[.17,.83,'#4a8fe0'],[.83,.17,'#e0533c']]){x.fillStyle=cl;x.beginPath();x.arc(px*TW,py*TH,4,0,6.283);x.fill();x.stroke()}
+  TERR=sT;MAINLAND=sM;return _mpCache[id]=c.toDataURL()}
 /* Landfelder, die vom Hauptland aus erreichbar sind (kleine Inseln zählen nicht), merken */
 function computeMainland(){
   MAINLAND=new Uint8Array(TW*TH);

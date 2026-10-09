@@ -159,7 +159,7 @@ const EN={
   'Küste und Landzunge':'Coast and Land Tongue',
   'Festland':'Mainland',
   'Bergland':'Highlands',
-  'Große Bucht':'Great Bay',
+  'Große Bucht':'Great Bay','Seenplatte':'Lake District',
   'Zwei Küsten, Landzunge, Fischgründe':'Two coasts, land tongue, fishing grounds',
   'Nur Land, kein Wasser':'Land only, no water',
   'Berge und Klippen, Häfen nur an Zugängen':'Mountains and cliffs, harbors only at gaps',
