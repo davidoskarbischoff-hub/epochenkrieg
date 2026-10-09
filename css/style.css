@@ -161,3 +161,9 @@ button:focus-visible{outline:2px solid var(--bronze);outline-offset:2px}
 #advisor .ab{display:flex;gap:8px}
 #advisor .ab .ub{flex:1;padding:5px 6px}
 .chk{width:18px;height:18px;accent-color:var(--bronze);justify-self:start}
+
+/* Technologien */
+.ur .un small{display:block;color:var(--bone-dim);font-size:11px;line-height:1.25}
+.ur .tn{color:var(--bone);font-weight:600}
+#upgbar .uj.tech{border-color:#7fb2e8;color:#a9d0f5}
+#upgbar .uj.tech i{background:#7fb2e8}
