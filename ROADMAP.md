@@ -49,6 +49,9 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Gegner-KI nutzt Wasser noch nicht (kein Hafen, keine Boote)
 - [ ] Brücken über tiefes Wasser
 
+- [x] Grafik aufgewertet: jede Einheit eigenes Aussehen (mit Lauf-, Arbeits- und Schlaganimation), Bäume (Laub und Nadel), Büsche mit Beeren, Felsen und Eisen mit Facetten
+- [ ] Grafik: Gebäude im gleichen Stil überarbeiten, Einheiten sehen je nach Stufe unterschiedlich aus (Rüstung)
+
 ### Einfach
 - [ ] Sounds nach dem Testspielen feinjustieren
 - [ ] Balancing nach dem Testspielen anpassen
