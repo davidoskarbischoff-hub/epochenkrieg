@@ -26,6 +26,7 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
   Eingabe (Maus, Touch, Tastatur), Zeichnen und Oberfläche.
 
 ## Wichtige Konzepte im Code
+- Stufen: jede Einheit/jedes Gebäude hat `lvl` (0–2, Werte in `LVL` in `data.js`). Neue starten auf der Epochenstufe; der Spieler muss nach dem Aufstieg per "Alle upgraden" (`startUpgrade`) nachziehen, sonst ist der nächste Aufstieg gesperrt. Während des Upgrades ruhen die Einheiten/Gebäude des Teams. Stein braucht Arbeiter ab Stufe 1, Eisen ab Stufe 2 (`NEED_LVL`). Die KI wird beim Aufstieg sofort hochgestuft. Zum Testen gibt es `window.__ek` (Zugriff auf `G`).
 - Gebiet (Territorium): Raster `terr` in `game.js`; fertige Gebäude beanspruchen einen Kreis (`claim` in `data.js`), eigenes Gebiet = grün + dauerhafte Sicht, gegnerisches = rot. Ausser dem Wachturm darf nur im eigenen Gebiet gebaut werden (`placeBlock`).
 - Nebel des Krieges: Raster `fogEx` (erkundet) und `fogVis` (sichtbar) in `game.js`; Sichtweite steht als `sight` in `data.js`. Karte bleibt überall sichtbar (grau), gegnerische Einheiten/Gebäude nur bei `shown(e)`.
 - Globaler Spielzustand `G` (Entitäten, Ressourcen, Epochen, Statistiken).
