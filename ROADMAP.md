@@ -58,10 +58,17 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Berater klüger machen (Angriffe erkennen, Ressourcenengpässe, Verteidigung)
 - [ ] Interface weiter an War Selection annähern (Farben, Minikarte, Bildschirmanordnung)
 
+- [x] Befehlsketten: Umschalt + Rechtsklick/Bauen/Angriffsmarsch hängt Aufträge an (Nummern und Linie auf der Karte)
+- [ ] Befehlsketten: Schleife (Patrouille), Kette per Tastenkürzel löschen
+
+- [x] Nebel und Gebietsrand mit weichen Kanten
+- [x] Zwei neue Zeitalter: Mittelalter (Ritter, Armbrustschütze, Galeone, Burg; Musik: Greensleeves) und Neuzeit (Musketier, Kanone; Musik: Ode an die Freude)
+- [ ] Neue Epochen balancen (Kosten, Aufstiegszeit, Einheitenwerte) und weitere Gebäude/Technologien
+- [ ] Mauern und Belagerung (Rammbock, Katapult) fürs Mittelalter
+
 ### Einfach
 - [ ] Sounds nach dem Testspielen feinjustieren
 - [ ] Balancing nach dem Testspielen anpassen
-- [ ] Weitere Epochen (z. B. Mittelalter, Neuzeit) mit eigenen Einheiten
 - [ ] Grössere Karte, Wahl der Kartengrösse
 
 ### Mittel
