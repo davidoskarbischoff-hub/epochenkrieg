@@ -9,15 +9,17 @@ const cam={x:0,y:0,z:1};
 /* Ton: Eigene Geräusche immer, fremde nur wenn sie im Bild sind */
 /* ---------- Nebel des Krieges ---------- */
 const FC=20,FW=W/FC,FH=H/FC;
-let fogEx=null,fogVis=null,fogCv=null,fogCtx=null,fogImg=null,fogT=0,terr=null,terrCv=null,terrCtx=null,terrImg=null;
-function fogReset(){fogEx=new Uint8Array(FW*FH);fogVis=new Uint8Array(FW*FH);fogCv=document.createElement('canvas');fogCv.width=FW;fogCv.height=FH;fogCtx=fogCv.getContext('2d');fogImg=fogCtx.createImageData(FW,FH);terr=new Int8Array(FW*FH);terrCv=document.createElement('canvas');terrCv.width=FW;terrCv.height=FH;terrCtx=terrCv.getContext('2d');terrImg=terrCtx.createImageData(FW,FH);fogT=0;fogUpdate()}
+let visF=null,exF=null,terrK=null,terrT=null,fogEx=null,fogVis=null,fogCv=null,fogCtx=null,fogImg=null,fogT=0,terr=null,terrCv=null,terrCtx=null,terrImg=null;
+function fogReset(){fogEx=new Uint8Array(FW*FH);fogVis=new Uint8Array(FW*FH);visF=new Float32Array(FW*FH);exF=new Float32Array(FW*FH);terrK=new Float32Array(FW*FH);terrT=new Int8Array(FW*FH);fogCv=document.createElement('canvas');fogCv.width=FW;fogCv.height=FH;fogCtx=fogCv.getContext('2d');fogImg=fogCtx.createImageData(FW,FH);terr=new Int8Array(FW*FH);terrCv=document.createElement('canvas');terrCv.width=FW;terrCv.height=FH;terrCtx=terrCv.getContext('2d');terrImg=terrCtx.createImageData(FW,FH);fogT=0;fogUpdate()}
 const fogIdx=(x,y)=>Math.max(0,Math.min(FH-1,y/FC|0))*FW+Math.max(0,Math.min(FW-1,x/FC|0));
 function sightOf(e){return e.kind==='unit'?UNITS[e.type].sight:e.built?BLDS[e.type].sight:50}
 /* Gebiet: jedes fertige Gebäude beansprucht einen Kreis; bei Überschneidung gewinnt das nähere Gebäude */
+const ss=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t)};
 function terrUpdate(){
-  const best=new Float32Array(FW*FH).fill(9);terr.fill(-1);
-  for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const rad=BLDS[e.type].claim,rc=rad/FC,cx=e.x/FC,cy=e.y/FC;
-    for(let y=Math.max(0,Math.floor(cy-rc));y<=Math.min(FH-1,Math.ceil(cy+rc));y++)for(let x=Math.max(0,Math.floor(cx-rc));x<=Math.min(FW-1,Math.ceil(cx+rc));x++){const dx=x+.5-cx,dy=y+.5-cy,k=Math.sqrt(dx*dx+dy*dy)/rc;if(k<=1&&k<best[y*FW+x]){best[y*FW+x]=k;terr[y*FW+x]=e.team}}}
+  terrK.fill(9);terrT.fill(-1);terr.fill(-1);
+  for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const rad=BLDS[e.type].claim,rc=rad/FC,cx=e.x/FC,cy=e.y/FC,R=rc*1.14;
+    for(let y=Math.max(0,Math.floor(cy-R));y<=Math.min(FH-1,Math.ceil(cy+R));y++)for(let x=Math.max(0,Math.floor(cx-R));x<=Math.min(FW-1,Math.ceil(cx+R));x++){const dx=x+.5-cx,dy=y+.5-cy,k=Math.sqrt(dx*dx+dy*dy)/rc,i=y*FW+x;if(k<=1.14&&k<terrK[i]){terrK[i]=k;terrT[i]=e.team}}}
+  for(let i=0;i<terr.length;i++)if(terrK[i]<=1)terr[i]=terrT[i];
 }
 const inOwn=(x,y)=>terr[fogIdx(x,y)]===0;
 /* Warum darf hier nicht gebaut werden? (null = erlaubt) */
@@ -32,16 +34,18 @@ function placeBlock(type,x,y){
 }
 function fogUpdate(){
   terrUpdate();
-  fogVis.fill(0);
-  for(let i=0;i<terr.length;i++)if(terr[i]===0){fogVis[i]=1;fogEx[i]=1}
-  for(const e of G.ents){if(e.dead||e.team!==0)continue;const rc=sightOf(e)/FC,cx=e.x/FC,cy=e.y/FC;
-    for(let y=Math.max(0,Math.floor(cy-rc));y<=Math.min(FH-1,Math.ceil(cy+rc));y++)for(let x=Math.max(0,Math.floor(cx-rc));x<=Math.min(FW-1,Math.ceil(cx+rc));x++){const dx=x+.5-cx,dy=y+.5-cy;if(dx*dx+dy*dy<=rc*rc){const i=y*FW+x;fogVis[i]=1;fogEx[i]=1}}}
-  const px=fogImg.data;for(let i=0;i<fogVis.length;i++){const o=i*4;px[o]=44;px[o+1]=46;px[o+2]=50;px[o+3]=fogVis[i]?0:fogEx[i]?70:165}
+  // Sicht: weicher Rand (Übergang über etwa 2 Felder), eigenes Gebiet ist immer sichtbar
+  visF.fill(0);
+  for(const e of G.ents){if(e.dead||e.team!==0)continue;const rc=sightOf(e)/FC,cx=e.x/FC,cy=e.y/FC,R=rc+1.2;
+    for(let y=Math.max(0,Math.floor(cy-R));y<=Math.min(FH-1,Math.ceil(cy+R));y++)for(let x=Math.max(0,Math.floor(cx-R));x<=Math.min(FW-1,Math.ceil(cx+R));x++){const dx=x+.5-cx,dy=y+.5-cy,v=ss((rc+1-Math.sqrt(dx*dx+dy*dy))/2),i=y*FW+x;if(v>visF[i])visF[i]=v}}
+  for(let i=0;i<terr.length;i++){if(terr[i]===0)visF[i]=1;fogVis[i]=visF[i]>.5?1:0;if(visF[i]>exF[i])exF[i]=visF[i];fogEx[i]=exF[i]>.5?1:0}
+  const px=fogImg.data;for(let i=0;i<visF.length;i++){const o=i*4;px[o]=44;px[o+1]=46;px[o+2]=50;px[o+3]=Math.round((1-visF[i])*(165-95*exF[i]))}
   fogCtx.putImageData(fogImg,0,0);
+  // Gebiet: weicher Rand, grün für dich, rot für den Gegner (erst nach dem Erkunden)
   const tp=terrImg.data;
-  for(let y=0;y<FH;y++)for(let x=0;x<FW;x++){const i=y*FW+x,o=i*4,v=terr[i];let a=0;
-    if(v===0||(v===1&&fogEx[i])){a=70;const nb=[x>0?terr[i-1]:v,x<FW-1?terr[i+1]:v,y>0?terr[i-FW]:v,y<FH-1?terr[i+FW]:v];if(nb.some(n=>n!==v))a=190}
-    tp[o]=v===0?110:215;tp[o+1]=v===0?215:80;tp[o+2]=v===0?95:60;tp[o+3]=a}
+  for(let i=0;i<terrK.length;i++){const o=i*4,t=terrT[i],k=terrK[i];let a=0;
+    if(t>=0){a=k<=1?60+130*ss((k-.84)/.16):190*(1-ss((k-1)/.14));if(t===1)a*=exF[i]}
+    tp[o]=t===0?110:215;tp[o+1]=t===0?215:80;tp[o+2]=t===0?95:60;tp[o+3]=Math.round(a)}
   terrCtx.putImageData(terrImg,0,0);
 }
 /* Die Karte ist überall zu sehen (grau abgedunkelt). Gegnerische Einheiten nur im hellen Bereich, gegnerische Gebäude erst nach dem Erkunden */
