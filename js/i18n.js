@@ -149,6 +149,9 @@ const EN={
   'Forschung gestartet: {0}':'Research started: {0}',
   'Erforscht: {0}':'Researched: {0}',
   'die Technologie {0} erforschen':'research the technology {0}',
+  'Erkunden':'Explore','Taste E: automatisch':'Key E: automatic','Späher erkunden automatisch.':'Scouts explore automatically.','Erkundet':'Exploring',
+  'die Späher automatisch erkunden lassen':'let the scouts explore automatically','Feinde nähern sich! Alle Truppen zur Verteidigung schicken':'Enemies approach! Send all troops to defend',
+  'mit {0} Truppen das gegnerische {1} angreifen':'attack the enemy {1} with {0} troops','Arbeiter auf {0} umstellen (wird für den Aufstieg gebraucht)':'switch workers to {0} (needed for the next age)',
   // Gebiet
   'Neues Gebiet erobert!':'New territory claimed!',
   'Nur im eigenen Gebiet. Ein Wachturm erobert neues Land.':'Only inside your territory. A watchtower claims new land.'
