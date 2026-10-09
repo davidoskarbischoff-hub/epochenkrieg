@@ -36,6 +36,12 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Wachturm schon in der Steinzeit erlauben? (jetzt erst ab Bronzezeit, Expansion bis dahin nur über Hütte/Lager am Rand)
 - [ ] KI soll ebenfalls Türme zur Expansion bauen
 
+- [x] Balancing Nahrung: Beeren schneller (×1,5), 15 pro Fuhre, Büsche mit 220 Vorrat (`GATHER` in `data.js`)
+- [x] Stufen für Einheiten und Gebäude (I/II/III, Farbe + Anzeige): mehr Leben, Schaden, Abbautempo; Upgrade-Knopf im Hauptlager mit Kosten, Dauer und Balken oben; Aufstieg erst nach Upgrade
+- [x] Stein erst ab Stufe II, neues Eisen ab Stufe III (Schwertkämpfer kosten Eisen)
+- [ ] Upgrade-Kosten und -Dauer nach dem Testspielen anpassen (`UPG`, `UPG_TIME`)
+- [ ] Einzelne Upgrades statt "alle auf einmal", eigene Technologien pro Epoche
+
 ### Einfach
 - [ ] Sounds nach dem Testspielen feinjustieren
 - [ ] Balancing nach dem Testspielen anpassen

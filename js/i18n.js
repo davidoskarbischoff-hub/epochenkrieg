@@ -53,6 +53,15 @@ const EN={
   'Das gegnerische Hauptlager ist gefallen':'The enemy town center has fallen','Dein Hauptlager wurde zerstört':'Your town center was destroyed',
   'Sieg':'Victory','Niederlage':'Defeat','Spielzeit':'Time played','Ausgebildet':'Trained','Gegner besiegt':'Enemies defeated',
   'Erreichtes Zeitalter: {0}. Schwierigkeit: {1}.':'Age reached: {0}. Difficulty: {1}.',
+  // Stufen und Upgrades
+  'Eisen':'Iron','Eisenvorkommen':'Iron Deposit','Stufe {0}':'Level {0}','Upgrade':'Upgrade','Alle upgraden':'Upgrade all','Erst upgraden':'Upgrade first',
+  '{0} Gebäude · {1} Truppen':'{0} buildings · {1} troops',
+  'Erst alle Gebäude und Truppen auf Stufe {0} bringen.':'First bring all buildings and troops to level {0}.',
+  'Alle Gebäude und Truppen sind jetzt auf Stufe {0}.':'All buildings and troops are now level {0}.',
+  'Upgrade gestartet: Truppen und Gebäude ruhen, bis es fertig ist.':'Upgrade started: troops and buildings rest until it is done.',
+  'Upgrade läuft: Truppen und Gebäude ruhen, bis es fertig ist.':'Upgrade in progress: troops and buildings rest until it is done.',
+  'Arbeiter brauchen Stufe {0}, um {1} abzubauen.':'Workers need level {0} to mine {1}.',
+  'Vor dem nächsten Aufstieg müssen alle darauf sein':'All must reach this before the next age',
   // Gebiet
   'Neues Gebiet erobert!':'New territory claimed!',
   'Nur im eigenen Gebiet. Ein Wachturm erobert neues Land.':'Only inside your territory. A watchtower claims new land.'

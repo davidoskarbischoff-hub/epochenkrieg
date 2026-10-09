@@ -9,7 +9,7 @@ const UNITS={
   club:{name:'Keulenkrieger',sight:140,hp:75,spd:52,atk:7,rng:4,cd:1.1,r:8,cost:{food:60,wood:20},time:12,ep:0,from:'barracks'},
   spear:{name:'Speerträger',sight:140,hp:115,spd:54,atk:11,rng:8,cd:1.1,r:8,cost:{food:70,wood:40},time:14,ep:1,from:'barracks'},
   archer:{name:'Bogenschütze',sight:170,hp:55,spd:55,atk:8,rng:130,cd:1.6,r:7,cost:{food:40,wood:60},time:14,ep:1,from:'barracks',ranged:true},
-  sword:{name:'Schwertkämpfer',sight:150,hp:170,spd:52,atk:17,rng:5,cd:1.1,r:9,cost:{food:80,stone:40},time:18,ep:2,from:'barracks'}
+  sword:{name:'Schwertkämpfer',sight:150,hp:170,spd:52,atk:17,rng:5,cd:1.1,r:9,cost:{food:80,iron:40},time:18,ep:2,from:'barracks'}
 };
 const BLDS={
   hq:{name:'Hauptlager',sight:280,claim:260,hp:1400,r:36,pop:10,drop:true,shoot:{rng:150,atk:6,cd:1.8}},
@@ -18,10 +18,18 @@ const BLDS={
   barracks:{name:'Kaserne',sight:190,claim:130,hp:700,r:27,cost:{wood:150},time:24,ep:0,sub:'Bildet Krieger aus'},
   tower:{name:'Wachturm',sight:300,claim:320,hp:550,r:14,cost:{wood:60,stone:100},time:28,ep:1,shoot:{rng:170,atk:9,cd:1.5},sub:'Schiesst auf Gegner'}
 };
-const NODES={tree:{rt:'wood',amt:120,r:11,name:'Baum'},bush:{rt:'food',amt:220,r:10,name:'Beerenstrauch'},stone:{rt:'stone',amt:300,r:13,name:'Steinvorkommen'}};
+const NODES={tree:{rt:'wood',amt:120,r:11,name:'Baum'},bush:{rt:'food',amt:220,r:10,name:'Beerenstrauch'},stone:{rt:'stone',amt:300,r:13,name:'Steinvorkommen'},iron:{rt:'iron',amt:260,r:12,name:'Eisenvorkommen'}};
 const EPOCHS=[{name:'Steinzeit',cost:{food:350,wood:200},time:30},{name:'Bronzezeit',cost:{food:500,wood:250,stone:200},time:40},{name:'Eisenzeit'}];
-const RES=['food','wood','stone'],RN={food:'Nahrung',wood:'Holz',stone:'Stein'};
+const RES=['food','wood','stone','iron'],RN={food:'Nahrung',wood:'Holz',stone:'Stein',iron:'Eisen'};
 const DIFF={leicht:{gather:.7,first:420,wave:5},normal:{gather:1,first:300,wave:6},schwer:{gather:1.35,first:220,wave:7}};
 const TC=['#3d72b8','#b9442f'],TCD=['#1f3f6b','#6e2215'],TCL=['#8fb4e6','#ef9b86'];
 const MAT=[{wall:'#7d5f3b',roof:'#a8834f',line:'#4f3a22'},{wall:'#b48a5a',roof:'#cfa66e',line:'#6f5131'},{wall:'#86837c',roof:'#aaa69d',line:'#55524c'}];
 const STATE={idle:'Wartet',move:'Unterwegs',amove:'Angriffsmarsch',attack:'Kämpft',build:'Baut'};
+
+// Stufen (Level) von Einheiten und Gebäuden: Stufe 0 = Steinzeit, 1 = Bronzezeit, 2 = Eisenzeit.
+// Neue Einheiten/Gebäude starten auf der Stufe der aktuellen Epoche; ältere müssen per Upgrade nachgezogen werden.
+const LVL={hp:[1,1.25,1.55],atk:[1,1.2,1.45],gather:[1,1.25,1.5],bhp:[1,1.3,1.7]};
+const LVLN=['I','II','III'],LVLC=['#a39a88','#6fc46a','#eab94b'];
+const NEED_LVL={stone:1,iron:2}; // ab welcher Stufe ein Arbeiter diese Ressource abbauen kann
+const UPG={unit:[null,{food:20},{food:30,stone:15}],bld:[null,{wood:25},{wood:40,stone:25}]}; // Kosten pro Stück für die Zielstufe
+const UPG_TIME={base:5,each:.7,max:40}; // Dauer in Sekunden
