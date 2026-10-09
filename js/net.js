@@ -43,7 +43,7 @@ const Lobby=(()=>{
     target=(target||'').trim();const m=/[?&]join=([^&#\s]+)/.exec(target);if(m)target=decodeURIComponent(m[1]);
     if(!target){st.error='Bitte einen Einladungslink oder Code eingeben.';view='enter';render();return}
     if(target.startsWith('local:')){const code=target.slice(6);bc=new BroadcastChannel('ek-'+code);bc.onmessage=e=>{if(e.data&&e.data.to==='c')onData(e.data.msg)};raw=m=>bc.postMessage({to:'h',msg:m});
-      raw({t:'hello'});helloTimer=setInterval(()=>raw&&raw({t:'hello'}),1000);return}
+      raw({t:'hello'});let tries=0;helloTimer=setInterval(()=>{if(!raw||st.connected)return;raw({t:'hello'});if(++tries===6){st.error='Kein Gastgeber gefunden. Der Gastgeber-Tab muss in DIESEM Browser (kein privates Fenster) offen bleiben und in der Lobby warten. Am besten das Spiel mit „npx serve .“ starten und beide Tabs über http://localhost:… öffnen.';render()}},1000);return}
     try{await loadPeerJS()}catch(_){st.error='Der Vermittlungsdienst (PeerJS) ist nicht erreichbar. Prüfe deine Internetverbindung.';render();return}
     peer=new Peer();
     peer.on('open',()=>{conn=peer.connect(target,{reliable:true});conn.on('open',()=>{raw=m=>{if(conn&&conn.open)conn.send(m)};st.status='Verbunden – warte auf den Gastgeber …';raw({t:'hello'});render()});conn.on('data',onData);conn.on('close',onClosed);conn.on('error',()=>{})});
