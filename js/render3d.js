@@ -84,7 +84,36 @@ function r3NodesInit(){
   const cnt={tree:0,bush:0,stone:0,iron:0};for(const e of G.ents)if(e.kind==='node'&&cnt[e.type]!==undefined)cnt[e.type]++;
   const mk=(geo,n,flat)=>{const m=new THREE.InstancedMesh(geo,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.92,flatShading:!!flat}),Math.max(1,n));m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(m);return m};
   r3.i_pine=mk(treeGeo(true),cnt.tree,false);r3.i_broad=mk(treeGeo(false),cnt.tree,false);r3.i_bush=mk(bushGeoC(),cnt.bush,false);r3.i_rock=mk(rockGeoC(false,1),cnt.stone*5,true);r3.i_ore=mk(rockGeoC(true,2),cnt.iron*5,true);
-  R3.nodeT=0;
+  r3Grass();R3.nodeT=0;
+}
+/* Grasbüschel und Blumen: viele winzige Instanzen auf dem Land, damit der Boden aus der Nähe lebendig wirkt */
+function r3Grass(){
+  const{scene}=r3;for(const k of['i_tuft','i_flower'])if(r3[k]){scene.remove(r3[k]);r3[k].dispose();r3[k]=null}
+  const R=mulberry(4242),S=R3.S,pts=[],fl=[];
+  for(let i=0;i<52000&&pts.length<15000;i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;let ok=true;for(let k=0;k<4;k++)if(terrAt(x+Math.cos(k*1.57)*14,y+Math.sin(k*1.57)*14)!==2){ok=false;break}if(!ok)continue;
+    const dens=.5+.5*Math.sin(x*.013+Math.cos(y*.011)*2);if(R()>dens*1.1)continue;pts.push({x,y,r:R()*6.28,s:.6+R()*.8,c:.8+R()*.5,j:R()})}
+  for(let i=0;i<9000&&fl.length<1800;i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;const cx=Math.cos(x*.02)*Math.sin(y*.017);if(cx<.35)continue;fl.push({x,y,r:R()*6.28,s:.7+R()*.6,k:(R()*5)|0})}
+  const blade=(r,h,ax,az,col)=>{const g=new THREE.ConeGeometry(r,h,3);g.translate(0,h/2,0);g.rotateZ(az);g.rotateX(ax);return[g,col]};
+  const tg=mergeColored([blade(.05,.5,.18,.2,0x5f8a3a),blade(.05,.62,-.15,-.1,0x6f9a44),blade(.045,.42,.1,-.3,0x4f7a32),blade(.045,.55,-.2,.25,0x7aa24b)]);
+  r3.i_tuft=new THREE.InstancedMesh(tg,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide}),pts.length);
+  r3.grassPts=pts;
+  const fg=mergeColored([[tr3(cyl(.012,.012,.38,4),0,.19,0),0x4f7a32],[tr3(new THREE.IcosahedronGeometry(.085,0),0,.4,0),0xffffff]]);
+  r3.i_flower=new THREE.InstancedMesh(fg,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.8}),fl.length);r3.flowerPts=fl;
+  for(const m of[r3.i_tuft,r3.i_flower]){m.frustumCulled=false;m.castShadow=false;m.receiveShadow=true;scene.add(m)}
+  const o=new THREE.Object3D(),pal=[0xf4e66a,0xf7f3ea,0xe07a8a,0x9f7ad6,0xf0a24a];
+  pts.forEach((p,i)=>{o.position.set(p.x/S,hAt(p.x,p.y),p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(p.s);o.updateMatrix();r3.i_tuft.setMatrixAt(i,o.matrix)});
+  fl.forEach((p,i)=>{o.position.set(p.x/S,hAt(p.x,p.y),p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(p.s);o.updateMatrix();r3.i_flower.setMatrixAt(i,o.matrix);r3.i_flower.setColorAt(i,new THREE.Color(pal[p.k]))});
+  r3.i_tuft.instanceMatrix.needsUpdate=true;r3.i_flower.instanceMatrix.needsUpdate=true;r3.blk=new Uint8Array(FW*FH);r3.grassHid=new Uint8Array(pts.length+fl.length);
+}
+/* Büschel unter Gebäuden und im Nebel ausblenden bzw. abdunkeln (alle 0,4 s) */
+function r3GrassShade(){
+  if(!r3.i_tuft)return;const blk=r3.blk,S=R3.S;blk.fill(0);
+  for(const e of G.ents)if(!e.dead&&e.kind==='bld'){const rr=e.r+10,x0=Math.max(0,(e.x-rr)/FC|0),x1=Math.min(FW-1,(e.x+rr)/FC|0),y0=Math.max(0,(e.y-rr)/FC|0),y1=Math.min(FH-1,(e.y+rr)/FC|0);for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)blk[y*FW+x]=1}
+  const c=new THREE.Color(),m=new THREE.Matrix4(),o=new THREE.Object3D();
+  r3.grassPts.forEach((p,i)=>{const hid=blk[fogIdx(p.x,p.y)]?1:0,sh=fogShade(p.x,p.y)*p.c;c.setRGB(sh,sh*(.96+p.j*.08),sh*.95);r3.i_tuft.setColorAt(i,c);
+    if(hid!==r3.grassHid[i]){r3.grassHid[i]=hid;o.position.set(p.x/S,hAt(p.x,p.y),p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(hid?.0001:p.s);o.updateMatrix();r3.i_tuft.setMatrixAt(i,o.matrix);r3.i_tuft.instanceMatrix.needsUpdate=true}});
+  r3.i_tuft.instanceColor.needsUpdate=true;
+  r3.flowerPts.forEach((p,i)=>{const j=r3.grassPts.length+i,hid=blk[fogIdx(p.x,p.y)]?1:0;if(hid!==r3.grassHid[j]){r3.grassHid[j]=hid;o.position.set(p.x/S,hAt(p.x,p.y),p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(hid?.0001:p.s);o.updateMatrix();r3.i_flower.setMatrixAt(i,o.matrix);r3.i_flower.instanceMatrix.needsUpdate=true}});
 }
 let _o=null,_c=null;
 function fogShade(x,y){const i=fogIdx(x,y),a=(1-visF[i])*(165-95*exF[i])/255;return 1-a*.82}
@@ -102,10 +131,18 @@ function r3Nodes(){
 }
 
 /* ---------- Meeresbewohner ---------- */
-function seaModel(e){const g=new THREE.Group(),bodyM=m3Plain(e.type==='whale'?0x41587a:0x7f9fb8,.5);
-  if(e.type==='fish'){for(let i=0;i<5;i++){const f=new THREE.Group(),b=put(f,new THREE.SphereGeometry(.28,8,6),m3Plain(i%2?0xcfe6ee:0xa9d0de,.4,{metalness:.3}),0,0,0);b.scale.set(1.6,.55,.45);put(f,cone(.14,.3,4),bodyM,-.5,0,0).rotation.z=Math.PI/2;f.position.set(Math.cos(i*1.7)*e.r/R3.S*.8,-.2,Math.sin(i*2.3)*e.r/R3.S*.8);f.userData.ph=i;g.add(f)}}
-  else{const n=e.type==='whale'?1:2,sc=e.type==='whale'?3.4:1;for(let i=0;i<n;i++){const f=new THREE.Group(),b=put(f,new THREE.CapsuleGeometry(.4*sc,1.5*sc,4,10),bodyM,0,0,0);b.rotation.z=Math.PI/2;put(f,new THREE.BoxGeometry(.5*sc,.5*sc,.06),bodyM,-1.2*sc,0,0).rotation.z=.5;put(f,cone(.2*sc,.55*sc,4),bodyM,-.1*sc,.45*sc,0).rotation.z=-.3;const belly=put(f,new THREE.CapsuleGeometry(.3*sc,1.3*sc,4,8),m3Plain(0xd4e2ea,.5),0,-.12*sc,0);belly.rotation.z=Math.PI/2;f.position.set(0,-.1,(i-.5)*(n-1)*1.4);f.userData.ph=i;g.add(f)}}
-  return g}
+function seaModel(e){const g=new THREE.Group(),dark=m3Plain(e.type==='whale'?0x3b5273:0x7f9fb8,.45),belly=m3Plain(e.type==='whale'?0xcdd9e3:0xdce8ef,.5);
+  if(e.type==='fish'){const sk=[0xa9d0de,0xcfe6ee,0xd9c48a];for(let i=0;i<6;i++){const f=new THREE.Group(),b=put(f,new THREE.SphereGeometry(.26,10,8),m3Plain(sk[i%3],.35,{metalness:.35}),0,0,0);b.scale.set(1.7,.6,.4);put(f,cone(.12,.3,4),dark,-.52,0,0).rotation.z=Math.PI/2;put(f,cone(.07,.18,3),dark,0,.17,0);f.position.set(Math.cos(i*1.7)*e.r/R3.S*.9,-.2,Math.sin(i*2.3)*e.r/R3.S*.9);f.userData.ph=i;g.add(f)}}
+  else{const whale=e.type==='whale',n=whale?1:2,L=whale?5.4:2.2,Rr=whale?.95:.34,topC=whale?0x56709a:0x86a8c4,botC=whale?0xdde6ee:0xe8f1f6;
+    for(let i=0;i<n;i++){const f=new THREE.Group(),bg=swimBody(L,Rr,topC,botC);f.add(new THREE.Mesh(bg,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.4,metalness:.05})));
+      const k=L/2.2,tailX=-L/2;
+      const fl=put(f,new THREE.SphereGeometry(1,10,6),dark,tailX-.12*k,.02*k,0);fl.scale.set(.22*k,.035*k,.62*k*(whale?1.1:.7));fl.rotation.z=.1;
+      const dors=put(f,cone(.2*k,.5*k,4),dark,-.12*k*(whale?.6:1),Rr*.9,0);dors.rotation.z=-.5;dors.scale.z=.3;
+      for(const z of[-1,1]){const fn=put(f,new THREE.SphereGeometry(1,8,6),dark,L*.2,-Rr*.55,z*Rr*.9);fn.scale.set(.3*k,.03*k,.12*k);fn.rotation.y=z*.5;fn.rotation.x=z*.3}
+      if(!whale)put(f,new THREE.CylinderGeometry(.04,.075,.32,6),dark,L/2+.1,-.04,0).rotation.z=-Math.PI/2;
+      for(const z of[-1,1])put(f,new THREE.SphereGeometry(.05*k,6,6),m3Plain(0x0d1115),L*.36,Rr*.35,z*Rr*.6,false);
+      f.position.set(0,-.12,(i-.5)*(n-1)*1.4);f.userData.ph=i;g.add(f)}}
+  return setShadows(g)}
 
 /* ---------- Entitäten abgleichen ---------- */
 function entKey(e,ghost){return(ghost?'g':e.kind[0])+e.id}
@@ -178,7 +215,7 @@ function r3Frame(list,rings,dt){
   camUpdate();
   for(const w of r3.waves){const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
-  R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes()}
+  R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}
   r3Sync(list,dt,t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;

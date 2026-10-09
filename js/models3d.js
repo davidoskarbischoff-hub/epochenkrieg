@@ -236,11 +236,15 @@ const ANI3={
   bear:{col:0x5b3f2a,belly:0x4a3322,dark:0x1c130c,br:.55,bl:1.0,legH:.5,lw:.14,hr:.31,neck:[.5,.3],snout:.8,earLen:.4,hump:true,tail:.15,snoutCol:0x8a6a4a},
   tiger:{col:0xd9822b,belly:0xf1dcb5,dark:0x1d1510,br:.34,bl:1.1,legH:.58,lw:.1,hr:.25,neck:[.45,.28],snout:.9,earLen:.5,stripes:true,tail:.9,tailCol:0xd9822b}
 };
+/* Stromlinienkörper für Wale und Delfine: Drehkörper mit dickem Kopf und dünnem Schwanz, oben dunkel, unten hell. Nase zeigt nach +x. */
+function swimBody(L,R,topC,botC){const N=20,pts=[];for(let i=N;i>=0;i--){const u=i/N,y=L/2-u*L;pts.push(new THREE.Vector2(R*Math.pow(Math.sin(Math.PI*Math.pow(u,.7)),.75)*(1-.45*u)+.002,y))}
+  const g=new THREE.LatheGeometry(pts,16);g.rotateZ(-Math.PI/2);const n=g.attributes.normal,col=new Float32Array(n.count*3),a=new THREE.Color(topC),b=new THREE.Color(botC),c=new THREE.Color();
+  for(let i=0;i<n.count;i++){c.copy(a).lerp(b,Math.max(0,Math.min(1,.35-n.getY(i)*1.4)));col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b}g.setAttribute('color',new THREE.BufferAttribute(col,3));return g}
 function buildAnimal(e){const rig=quad(ANI3[e.type]||ANI3.deer);setShadows(rig.g);rig.g.scale.setScalar(e.type==='bear'?1.15:1.1);return rig}
 function buildUnit(u){const f=UNIT3[u.type]||UNIT3.worker,tm=m3Team(u.team),rig=f(u,tm);setShadows(rig.g);return rig}
 
 /* ---------- Ressourcen ---------- */
-function rockGeo(seed){const g=new THREE.DodecahedronGeometry(1,1),p=g.attributes.position;for(let i=0;i<p.count;i++){const n=1+Math.sin(i*7.3+seed*13)*.16+Math.cos(i*3.1+seed*7)*.1;p.setXYZ(i,p.getX(i)*n,p.getY(i)*n*.75,p.getZ(i)*n)}g.computeVertexNormals();return g}
+function rockGeo(seed){const g=new THREE.IcosahedronGeometry(1,2),p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i);const n=1+Math.sin(x*3.1+seed*13)*.13+Math.cos(z*2.7+seed*7)*.1+Math.sin(y*4.3+x*1.7)*.07;p.setXYZ(i,x*n,Math.max(y*n*.8,-.15),z*n)}g.computeVertexNormals();return g}
 function pineGeos(){const T=cyl(.22,.34,2.4,6);T.translate(0,1.2,0);const cs=[[2.0,2.6,2.7],[1.55,2.4,4.1],[1.0,2.1,5.4]].map(([r,h,y])=>{const c=new THREE.ConeGeometry(r,h,9);c.translate(0,y,0);return c});return{T,cs}}
 function broadGeos(){const T=cyl(.25,.4,2.6,6);T.translate(0,1.3,0);const mk=(r,x,y,z,s)=>{const b=new THREE.IcosahedronGeometry(r,1),p=b.attributes.position;for(let i=0;i<p.count;i++){const k=1+Math.sin(i*12.9+s)*.14;p.setXYZ(i,p.getX(i)*k,p.getY(i)*k*.88,p.getZ(i)*k)}b.computeVertexNormals();b.translate(x,y,z);return b};
   return{T,bl:[mk(1.7,0,3.6,0,1),mk(1.2,.9,2.9,.5,2),mk(1.1,-.8,3.0,-.5,3),mk(1.0,.1,4.7,.2,4)]}}
@@ -257,4 +261,11 @@ function treeGeo(pine){
   return mergeColored([[T,0x5b4228],bl(1.6,0,3.5,0,1,0x2e6b33),bl(1.15,.9,2.9,.5,2,0x3a7d3b),bl(1.1,-.8,3.0,-.5,3,0x2e6b33),bl(1.0,.1,4.6,.2,4,0x58a04a)])}
 function bushGeoC(){const bl=(r,x,y,z,c)=>{const b=new THREE.IcosahedronGeometry(r,1);b.translate(x,y,z);return[b,c]};const parts=[bl(.8,-.5,.55,0,0x3a6a2c),bl(.8,.5,.55,.2,0x3a6a2c),bl(.9,0,.95,-.2,0x467c33)];
   for(let i=0;i<7;i++){const a=i*2.4;parts.push(bl(.1,Math.cos(a)*.9,.5+(i%3)*.3,Math.sin(a)*.8,0xd03b46))}return mergeColored(parts)}
-function rockGeoC(iron,seed){const r=rockGeo(seed),parts=[[r,iron?0x55627a:0x9a968c]];if(iron)for(let i=0;i<6;i++){const a=i*1.9+seed*9,b=new THREE.IcosahedronGeometry(.13,0);b.translate(Math.cos(a)*.8,.5+((i*37)%10)/16,Math.sin(a)*.8);parts.push([b,0xf0903a])}return mergeColored(parts)}
+function rockGeoC(iron,seed){const g=rockGeo(seed).toNonIndexed();g.computeVertexNormals();const p=g.attributes.position,col=new Float32Array(p.count*3),base=new THREE.Color(iron?0x5a6780:0x9d998e),moss=new THREE.Color(iron?0x4b5870:0x7f8a62),c=new THREE.Color();
+  for(let i=0;i<p.count;i++){const y=p.getY(i),n=.86+.2*Math.sin(p.getX(i)*5+p.getZ(i)*3+seed*4);c.copy(base).multiplyScalar(n);if(y>.45)c.lerp(moss,Math.min(1,(y-.45)*1.3)*.55);col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b}
+  g.setAttribute('color',new THREE.BufferAttribute(col,3));
+  if(!iron)return g;
+  const parts=[[g,0xffffff]],out=[g];for(let i=0;i<7;i++){const a=i*1.9+seed*9,b=new THREE.IcosahedronGeometry(.12,0);b.translate(Math.cos(a)*.78,.3+((i*37)%10)/14,Math.sin(a)*.78);out.push(b)}
+  const ore=mergeColored(out.slice(1).map(b=>[b,0xf0903a])),all=new THREE.BufferGeometry(),pa=[g.attributes.position.array,ore.attributes.position.array],na=[g.attributes.normal.array,ore.attributes.normal.array],ca=[g.attributes.color.array,ore.attributes.color.array];
+  const cat=arr=>{let n=0;arr.forEach(a=>n+=a.length);const r=new Float32Array(n);let o=0;arr.forEach(a=>{r.set(a,o);o+=a.length});return r};
+  all.setAttribute('position',new THREE.BufferAttribute(cat(pa),3));all.setAttribute('normal',new THREE.BufferAttribute(cat(na),3));all.setAttribute('color',new THREE.BufferAttribute(cat(ca),3));return all}
