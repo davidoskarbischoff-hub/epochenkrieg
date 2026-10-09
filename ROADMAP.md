@@ -14,7 +14,8 @@
 - [x] Testlauf im Browser: Partie startet, keine Skriptfehler
 - [x] Flackernde Aktionsleiste behoben (hell/dunkel-Wechsel); bezahlbar = hell, Rest ausgegraut
 - [x] Favicon ergänzt
-- [x] Sounds: Musik (je Epoche andere Stimmung) und Geräusche (Sammeln, Bauen, Kampf, Alarm, Epochen-Fanfare), Knöpfe Musik/Ton, Tasten M und N
+- [x] Sounds: Geräusche (Axt, Spitzhacke, Rascheln im Busch, Schwert, Pfeil, Alarm, Fanfare), Knöpfe Musik/Ton, Tasten M und N
+- [x] Musik: klassische, gemeinfreie Stücke je Epoche (Satie, Pachelbel, Grieg)
 
 ## Ideen für die nächsten Schritte
 Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortieren.
