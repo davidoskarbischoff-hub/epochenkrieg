@@ -32,6 +32,10 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] WASD bewegt die Kamera (Angriffsmarsch jetzt auf Q)
 - [x] Menü (Esc oder Knopf oben rechts): Regler für Musik und Ton, Sprache Deutsch/Englisch, Neues Spiel
 
+- [x] Gebiet: eigenes Reich grün mit dauerhafter Sicht, Gegner rot (sichtbar nach dem Erkunden); Wachturm erobert neues Land, andere Gebäude nur im eigenen Gebiet
+- [ ] Wachturm schon in der Steinzeit erlauben? (jetzt erst ab Bronzezeit, Expansion bis dahin nur über Hütte/Lager am Rand)
+- [ ] KI soll ebenfalls Türme zur Expansion bauen
+
 ### Einfach
 - [ ] Sounds nach dem Testspielen feinjustieren
 - [ ] Balancing nach dem Testspielen anpassen

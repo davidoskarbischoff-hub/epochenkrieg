@@ -54,10 +54,8 @@ const EN={
   'Sieg':'Victory','Niederlage':'Defeat','Spielzeit':'Time played','Ausgebildet':'Trained','Gegner besiegt':'Enemies defeated',
   'Erreichtes Zeitalter: {0}. Schwierigkeit: {1}.':'Age reached: {0}. Difficulty: {1}.',
   // Gebiet
-  'Dein Gebiet':'Your territory','Gegnerisches Gebiet':'Enemy territory','Gebiet erobert':'Territory claimed',
-  'Neues Gebiet erobert!':'New territory claimed!','Das Gebiet des Gegners wächst.':'The enemy territory is growing.',
-  'Nur im eigenen Gebiet oder in Sichtweite eines Arbeiters.':'Only inside your territory.',
-  'Hier kann nur ein Wachturm stehen.':'Only a watchtower can be built here.'
+  'Neues Gebiet erobert!':'New territory claimed!',
+  'Nur im eigenen Gebiet. Ein Wachturm erobert neues Land.':'Only inside your territory. A watchtower claims new land.'
 };
 let LANG='de';try{LANG=localStorage.getItem('ek-lang')==='en'?'en':'de'}catch(_){}
 function tr(de,...a){let s=LANG==='en'&&EN[de]!==undefined?EN[de]:de;a.forEach((v,i)=>{s=s.split('{'+i+'}').join(v)});return s}

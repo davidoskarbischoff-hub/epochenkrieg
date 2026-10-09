@@ -26,6 +26,7 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
   Eingabe (Maus, Touch, Tastatur), Zeichnen und Oberfläche.
 
 ## Wichtige Konzepte im Code
+- Gebiet (Territorium): Raster `terr` in `game.js`; fertige Gebäude beanspruchen einen Kreis (`claim` in `data.js`), eigenes Gebiet = grün + dauerhafte Sicht, gegnerisches = rot. Ausser dem Wachturm darf nur im eigenen Gebiet gebaut werden (`placeBlock`).
 - Nebel des Krieges: Raster `fogEx` (erkundet) und `fogVis` (sichtbar) in `game.js`; Sichtweite steht als `sight` in `data.js`. Karte bleibt überall sichtbar (grau), gegnerische Einheiten/Gebäude nur bei `shown(e)`.
 - Globaler Spielzustand `G` (Entitäten, Ressourcen, Epochen, Statistiken).
 - Entitäten haben `kind`: `unit`, `bld` (Gebäude) oder `node` (Ressourcenquelle). Team 0 = Spieler, 1 = KI, -1 = neutral.
