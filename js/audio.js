@@ -1,16 +1,16 @@
 /* Epochenkrieg – Klang. Alles wird im Browser erzeugt (Web Audio), keine Audiodateien. */
 const SND=(()=>{
-let ac=null,master,sfxG,musG,noiseBuf,musicOn=true,sfxOn=true,musTimer=null,epoch=0,fight=0;
+let ac=null,master,sfxG,musG,noiseBuf,musicV=.7,sfxV=.7,musTimer=null,epoch=0,fight=0;
 const last={};
-try{musicOn=localStorage.getItem('ek-music')!=='0';sfxOn=localStorage.getItem('ek-sfx')!=='0'}catch(_){}
-const save=()=>{try{localStorage.setItem('ek-music',musicOn?'1':'0');localStorage.setItem('ek-sfx',sfxOn?'1':'0')}catch(_){}};
+try{const m=localStorage.getItem('ek-music-v'),f=localStorage.getItem('ek-sfx-v');if(m!==null)musicV=+m;if(f!==null)sfxV=+f}catch(_){}
+const save=()=>{try{localStorage.setItem('ek-music-v',musicV);localStorage.setItem('ek-sfx-v',sfxV)}catch(_){}};
 
 function init(){
   if(ac){if(ac.state==='suspended')ac.resume();return}
   const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
   ac=new C();master=ac.createGain();master.gain.value=.8;master.connect(ac.destination);
-  sfxG=ac.createGain();sfxG.gain.value=sfxOn?.4:0;sfxG.connect(master);
-  musG=ac.createGain();musG.gain.value=musicOn?.32:0;musG.connect(master);
+  sfxG=ac.createGain();sfxG.gain.value=sfxV*.57;sfxG.connect(master);
+  musG=ac.createGain();musG.gain.value=musicV*.45;musG.connect(master);
   noiseBuf=ac.createBuffer(1,ac.sampleRate,ac.sampleRate);
   const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
   if(!musTimer)musTimer=setInterval(schedule,250);
@@ -68,7 +68,7 @@ const FX={
 };
 const GAP={chop:.18,mine:.18,pick:.18,hammer:.18,hit:.06,arrow:.06,die:.05,click:.03,select:.05,order:.05,drop:.1,crumble:.2};
 function play(name){
-  if(!ac||!sfxOn||!FX[name])return;
+  if(!ac||sfxV<=0||!FX[name])return;
   const n=ac.currentTime;if(last[name]&&n-last[name]<(GAP[name]||.02))return;last[name]=n;
   if(name==='hit'||name==='arrow'||name==='die'||name==='crumble')fight=Math.min(1,fight+.3);
   FX[name](n+.005);
@@ -144,7 +144,7 @@ const INST={
 let cur=-1,loopT=0,beatDone=0;
 function startPiece(e){cur=e;loopT=ac.currentTime+.4;beatDone=0}
 function schedule(){
-  if(!ac||!musicOn)return;
+  if(!ac||musicV<=0)return;
   if(cur!==epoch)startPiece(epoch);
   let P=PIECES[cur],spb=60/P.bpm;
   if(loopT+beatDone*spb<ac.currentTime-.5){startPiece(cur);P=PIECES[cur]}
@@ -160,13 +160,13 @@ function schedule(){
 
 function applyGains(){
   if(!ac)return;const n=ac.currentTime;
-  musG.gain.setTargetAtTime(musicOn?.32:0,n,.1);sfxG.gain.setTargetAtTime(sfxOn?.4:0,n,.05);
+  musG.gain.setTargetAtTime(musicV*.45,n,.1);sfxG.gain.setTargetAtTime(sfxV*.57,n,.05);
 }
 return{
   init,play,
   setEpoch(e){epoch=Math.max(0,Math.min(2,e|0))},
-  toggleMusic(){musicOn=!musicOn;cur=-1;save();applyGains();return musicOn},
-  toggleSfx(){sfxOn=!sfxOn;save();applyGains();return sfxOn},
-  get music(){return musicOn},get sfx(){return sfxOn}
+  setMusic(v){const was=musicV;musicV=Math.max(0,Math.min(1,v));if(was<=0&&musicV>0)cur=-1;save();applyGains()},
+  setSfx(v){sfxV=Math.max(0,Math.min(1,v));save();applyGains()},
+  get music(){return musicV},get sfx(){return sfxV}
 };
 })();

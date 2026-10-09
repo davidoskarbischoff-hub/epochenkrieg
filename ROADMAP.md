@@ -26,8 +26,14 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Gegner-KI sieht noch die ganze Karte (kein Nebel für sie)
 - [ ] Gegnerische Gebäude merken sich (zeigen im Nebel den letzten bekannten Stand)
 
+### Erledigt: Bedienung
+- [x] Statusknopf oben: rot "N untätige Arbeiter", grün "Alle Arbeiter beschäftigt"; rote ! über untätigen Arbeitern
+- [x] Gebäude im Bau: Balken mit Prozent, rot und "Kein Bauarbeiter!" wenn niemand baut
+- [x] WASD bewegt die Kamera (Angriffsmarsch jetzt auf Q)
+- [x] Menü (Esc oder Knopf oben rechts): Regler für Musik und Ton, Sprache Deutsch/Englisch, Neues Spiel
+
 ### Einfach
-- [ ] Lautstärke-Regler statt nur An/Aus; Sounds nach dem Testspielen feinjustieren
+- [ ] Sounds nach dem Testspielen feinjustieren
 - [ ] Balancing nach dem Testspielen anpassen
 - [ ] Weitere Epochen (z. B. Mittelalter, Neuzeit) mit eigenen Einheiten
 - [ ] Grössere Karte, Wahl der Kartengrösse

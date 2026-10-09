@@ -14,23 +14,23 @@
 <div id="app">
   <header id="top">
     <div class="brand">Epochenkrieg</div>
-    <div class="res" title="Nahrung"><i class="rdot food"></i><b id="v-food">0</b><small>Nahrung</small></div>
-    <div class="res" title="Holz"><i class="rdot wood"></i><b id="v-wood">0</b><small>Holz</small></div>
-    <div class="res" title="Stein"><i class="rdot stone"></i><b id="v-stone">0</b><small>Stein</small></div>
-    <div class="res" title="Bevölkerung"><i class="rdot pop"></i><b id="v-pop">0</b><small>Bevölkerung</small></div>
+    <div class="res" data-tt="Nahrung" title="Nahrung"><i class="rdot food"></i><b id="v-food">0</b><small data-t="Nahrung">Nahrung</small></div>
+    <div class="res" data-tt="Holz" title="Holz"><i class="rdot wood"></i><b id="v-wood">0</b><small data-t="Holz">Holz</small></div>
+    <div class="res" data-tt="Stein" title="Stein"><i class="rdot stone"></i><b id="v-stone">0</b><small data-t="Stein">Stein</small></div>
+    <div class="res" data-tt="Bevölkerung" title="Bevölkerung"><i class="rdot pop"></i><b id="v-pop">0</b><small data-t="Bevölkerung">Bevölkerung</small></div>
     <div id="epoch">Steinzeit</div>
     <div class="spacer"></div>
-    <button class="tbtn" id="idleBtn" title="Untätigen Arbeiter auswählen">Untätig: 0</button>
-    <button class="tbtn" id="musicBtn" title="Musik an/aus (M)">Musik</button>
-    <button class="tbtn" id="sfxBtn" title="Geräusche an/aus (N)">Ton</button>
+    <button class="tbtn idle ok" id="idleBtn" data-tt="Untätigen Arbeiter auswählen (.)" title="Untätigen Arbeiter auswählen (.)">Alle Arbeiter beschäftigt</button>
     <button class="tbtn" id="pauseBtn">Pause</button>
-    <button class="tbtn" id="speedBtn" title="Spieltempo">Tempo 1×</button>
+    <button class="tbtn" id="speedBtn" data-tt="Spieltempo" title="Spieltempo">Tempo 1×</button>
+    <button class="tbtn" id="menuBtn" data-tt="Menü (Esc)" title="Menü (Esc)"><span data-t="Menü">Menü</span> ☰</button>
   </header>
   <main id="view">
     <canvas id="c" aria-label="Spielkarte"></canvas>
     <div id="toasts" aria-live="polite"></div>
     <div id="hint" hidden></div>
     <div id="overlay"></div>
+    <div id="menu" hidden></div>
   </main>
   <footer id="panel">
     <section id="info"></section>
@@ -39,6 +39,7 @@
   </footer>
 </div>
 <script src="js/data.js"></script>
+<script src="js/i18n.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/game.js"></script>
 </body>
