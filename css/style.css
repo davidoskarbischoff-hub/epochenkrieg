@@ -233,3 +233,5 @@ body{background:#101114}
 .diff button[aria-pressed="true"],.maps button[aria-pressed="true"]{background:linear-gradient(var(--bronze-hi),var(--bronze-lo));color:#1a1208;border-color:var(--bronze-hi)}
 .stats div{background:#1b1c20;border-color:var(--bronze-lo)}
 @media (max-width:900px){#panel{flex-wrap:wrap}#mini{width:170px;height:114px}#acts{flex:1 1 100%}#epoch{position:static;transform:none;order:0;padding:2px 12px;font-size:15px}}
+#top{gap:6px}.res{padding:2px 7px 2px 5px;gap:4px}.res b{font-size:15px;min-width:1.6em}#epoch{padding:5px 20px 7px;font-size:17px}.brand{font-size:17px}
+@media (max-width:1300px){.brand{display:none}}
