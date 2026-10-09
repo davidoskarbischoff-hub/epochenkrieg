@@ -19,12 +19,14 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
 - `js/data.js` – Alle Spieldaten: Einheiten (`UNITS`), Gebäude (`BLDS`), Ressourcenquellen (`NODES`),
   Epochen (`EPOCHS`), Schwierigkeitsgrade (`DIFF`), Teamfarben und Baumaterial-Farben je Epoche.
   Balancing-Änderungen gehören hierher.
-- `js/audio.js` – Klang (Web Audio, keine Audiodateien): Geräusche `SND.play(name)` und klassische Hintergrundmusik pro Epoche (Satie, Pachelbel, Grieg).
+- `js/i18n.js` – Sprachen Deutsch/Englisch: im Code deutsch schreiben, mit `tr('Text {0}',wert)` umschliessen, englische Übersetzung im Wörterbuch `EN` ergänzen.
+- `js/audio.js` – Klang (Web Audio, keine Audiodateien): Geräusche `SND.play(name)`, Lautstärke per Regler im Menü und klassische Hintergrundmusik pro Epoche (Satie, Pachelbel, Grieg).
 - `js/game.js` – Spiellogik in einem IIFE: Kartengenerierung, Einheiten-Zustandsmaschine
   (idle, move, amove, attack, gather, return, build), Kampf und Projektile, Gegner-KI (`aiTick`),
   Eingabe (Maus, Touch, Tastatur), Zeichnen und Oberfläche.
 
 ## Wichtige Konzepte im Code
+- Gebiet (Territorium): Raster `terr` in `game.js`; fertige Gebäude beanspruchen einen Kreis (`claim` in `data.js`), eigenes Gebiet = grün + dauerhafte Sicht, gegnerisches = rot. Ausser dem Wachturm darf nur im eigenen Gebiet gebaut werden (`placeBlock`).
 - Nebel des Krieges: Raster `fogEx` (erkundet) und `fogVis` (sichtbar) in `game.js`; Sichtweite steht als `sight` in `data.js`. Karte bleibt überall sichtbar (grau), gegnerische Einheiten/Gebäude nur bei `shown(e)`.
 - Globaler Spielzustand `G` (Entitäten, Ressourcen, Epochen, Statistiken).
 - Entitäten haben `kind`: `unit`, `bld` (Gebäude) oder `node` (Ressourcenquelle). Team 0 = Spieler, 1 = KI, -1 = neutral.

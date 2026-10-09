@@ -9,16 +9,37 @@ const cam={x:0,y:0,z:1};
 /* Ton: Eigene Geräusche immer, fremde nur wenn sie im Bild sind */
 /* ---------- Nebel des Krieges ---------- */
 const FC=20,FW=W/FC,FH=H/FC;
-let fogEx=null,fogVis=null,fogCv=null,fogCtx=null,fogImg=null,fogT=0;
-function fogReset(){fogEx=new Uint8Array(FW*FH);fogVis=new Uint8Array(FW*FH);fogCv=document.createElement('canvas');fogCv.width=FW;fogCv.height=FH;fogCtx=fogCv.getContext('2d');fogImg=fogCtx.createImageData(FW,FH);fogT=0;fogUpdate()}
+let fogEx=null,fogVis=null,fogCv=null,fogCtx=null,fogImg=null,fogT=0,terr=null,terrCv=null,terrCtx=null,terrImg=null;
+function fogReset(){fogEx=new Uint8Array(FW*FH);fogVis=new Uint8Array(FW*FH);fogCv=document.createElement('canvas');fogCv.width=FW;fogCv.height=FH;fogCtx=fogCv.getContext('2d');fogImg=fogCtx.createImageData(FW,FH);terr=new Int8Array(FW*FH);terrCv=document.createElement('canvas');terrCv.width=FW;terrCv.height=FH;terrCtx=terrCv.getContext('2d');terrImg=terrCtx.createImageData(FW,FH);fogT=0;fogUpdate()}
 const fogIdx=(x,y)=>Math.max(0,Math.min(FH-1,y/FC|0))*FW+Math.max(0,Math.min(FW-1,x/FC|0));
 function sightOf(e){return e.kind==='unit'?UNITS[e.type].sight:e.built?BLDS[e.type].sight:50}
+/* Gebiet: jedes fertige Gebäude beansprucht einen Kreis; bei Überschneidung gewinnt das nähere Gebäude */
+function terrUpdate(){
+  const best=new Float32Array(FW*FH).fill(9);terr.fill(-1);
+  for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const rad=BLDS[e.type].claim,rc=rad/FC,cx=e.x/FC,cy=e.y/FC;
+    for(let y=Math.max(0,Math.floor(cy-rc));y<=Math.min(FH-1,Math.ceil(cy+rc));y++)for(let x=Math.max(0,Math.floor(cx-rc));x<=Math.min(FW-1,Math.ceil(cx+rc));x++){const dx=x+.5-cx,dy=y+.5-cy,k=Math.sqrt(dx*dx+dy*dy)/rc;if(k<=1&&k<best[y*FW+x]){best[y*FW+x]=k;terr[y*FW+x]=e.team}}}
+}
+const inOwn=(x,y)=>terr[fogIdx(x,y)]===0;
+/* Warum darf hier nicht gebaut werden? (null = erlaubt) */
+function placeBlock(type,x,y){
+  const d=BLDS[type];if(!validSpot(x,y,d.r))return tr('Hier ist kein Platz.');
+  if(!fogEx[fogIdx(x,y)])return tr('Dieses Gebiet ist noch unerkundet.');
+  if(type!=='tower'&&!inOwn(x,y))return tr('Nur im eigenen Gebiet. Ein Wachturm erobert neues Land.');
+  return null;
+}
 function fogUpdate(){
+  terrUpdate();
   fogVis.fill(0);
+  for(let i=0;i<terr.length;i++)if(terr[i]===0){fogVis[i]=1;fogEx[i]=1}
   for(const e of G.ents){if(e.dead||e.team!==0)continue;const rc=sightOf(e)/FC,cx=e.x/FC,cy=e.y/FC;
     for(let y=Math.max(0,Math.floor(cy-rc));y<=Math.min(FH-1,Math.ceil(cy+rc));y++)for(let x=Math.max(0,Math.floor(cx-rc));x<=Math.min(FW-1,Math.ceil(cx+rc));x++){const dx=x+.5-cx,dy=y+.5-cy;if(dx*dx+dy*dy<=rc*rc){const i=y*FW+x;fogVis[i]=1;fogEx[i]=1}}}
   const px=fogImg.data;for(let i=0;i<fogVis.length;i++){const o=i*4;px[o]=44;px[o+1]=46;px[o+2]=50;px[o+3]=fogVis[i]?0:fogEx[i]?70:165}
   fogCtx.putImageData(fogImg,0,0);
+  const tp=terrImg.data;
+  for(let y=0;y<FH;y++)for(let x=0;x<FW;x++){const i=y*FW+x,o=i*4,v=terr[i];let a=0;
+    if(v===0||(v===1&&fogEx[i])){a=70;const nb=[x>0?terr[i-1]:v,x<FW-1?terr[i+1]:v,y>0?terr[i-FW]:v,y<FH-1?terr[i+FW]:v];if(nb.some(n=>n!==v))a=190}
+    tp[o]=v===0?110:215;tp[o+1]=v===0?215:80;tp[o+2]=v===0?95:60;tp[o+3]=a}
+  terrCtx.putImageData(terrImg,0,0);
 }
 /* Die Karte ist überall zu sehen (grau abgedunkelt). Gegnerische Einheiten nur im hellen Bereich, gegnerische Gebäude erst nach dem Erkunden */
 const shown=e=>{if(e.team!==1)return true;const i=fogIdx(e.x,e.y);return e.kind==='unit'?fogVis[i]===1:fogEx[i]===1};
@@ -37,8 +58,9 @@ function reg(e){G.ents.push(e);G.byId.set(e.id,e);return e}
 function addUnit(type,team,x,y){const d=UNITS[type];return reg({id:G.nid++,kind:'unit',type,team,x,y,r:d.r,hp:d.hp,maxHp:d.hp,state:'idle',cd:0,carry:0,ctype:null,rtype:null,tid:null,dest:null,amove:null,fa:team===0?-1.57:1.57})}
 function addBld(type,team,x,y,built){const d=BLDS[type];return reg({id:G.nid++,kind:'bld',type,team,x,y,r:d.r,maxHp:d.hp,hp:built?d.hp:1,built,prog:built?1:0,queue:[],rally:null,cd:0})}
 function addNode(type,x,y){const d=NODES[type];return reg({id:G.nid++,kind:'node',type,team:-1,x,y,r:d.r,rt:d.rt,amount:d.amt,maxAmt:d.amt,seed:Math.random()})}
+const rn=r=>tr(RN[r]);
 function get(id){const e=G.byId.get(id);return e&&!e.dead?e:null}
-function nameOf(e){return e.kind==='unit'?UNITS[e.type].name:e.kind==='bld'?BLDS[e.type].name:NODES[e.type].name}
+function nameOf(e){return e.kind==='unit'?tr(UNITS[e.type].name):e.kind==='bld'?tr(BLDS[e.type].name):tr(NODES[e.type].name)}
 
 /* ---------- map ---------- */
 function genMap(seed){
@@ -85,20 +107,20 @@ function newGame(d){
   const seed=(Math.random()*1e9)|0;genMap(seed);renderBg(seed);
   G.solids=G.ents.filter(e=>e.kind!=='unit');recount();fogReset();
   const hq=G.ents.find(e=>e.type==='hq'&&e.team===0);centerOn(hq.x+120,hq.y-80);
-  $('pauseBtn').textContent='Pause';$('speedBtn').textContent='Tempo 1×';
+  $('pauseBtn').textContent=tr('Pause');$('speedBtn').textContent=tr('Tempo {0}×',1);
 }
 function recount(){G.pop=[0,0];G.cap=[0,0];for(const e of G.ents){if(e.dead)continue;if(e.kind==='unit')G.pop[e.team]++;else if(e.kind==='bld'&&e.built&&BLDS[e.type].pop)G.cap[e.team]+=BLDS[e.type].pop}G.cap=G.cap.map(c=>Math.min(60,c))}
 function afford(t,c){return RES.every(r=>(G.res[t][r]||0)>=(c[r]||0))}
 function pay(t,c){if(!afford(t,c))return false;RES.forEach(r=>G.res[t][r]-=c[r]||0);return true}
 function refund(t,c){RES.forEach(r=>G.res[t][r]+=c[r]||0)}
-function missing(t,c){const m=RES.filter(r=>(G.res[t][r]||0)<(c[r]||0)).map(r=>RN[r]);return 'Nicht genug '+m.join(' und ')}
+function missing(t,c){const m=RES.filter(r=>(G.res[t][r]||0)<(c[r]||0)).map(r=>rn(r));return tr('Nicht genug {0}',m.join(tr(' und ')))}
 
 function step(dt){
   G.t+=dt;
   G.solids=G.ents.filter(e=>e.kind!=='unit'&&!e.dead);
   recount();
   for(const e of G.ents){if(e.dead)continue;if(e.kind==='unit')updUnit(e,dt);else if(e.kind==='bld')updBld(e,dt)}
-  for(let t=0;t<2;t++){const a=G.adv[t];if(!a)continue;a.t+=dt;if(a.t>=a.time){G.epoch[t]++;G.adv[t]=null;panelSig='';if(t===0){sfx('epoch');if(typeof SND!=='undefined')SND.setEpoch(G.epoch[0])}if(t===0)toast(EPOCHS[G.epoch[0]].name+' erreicht! Neue Einheiten und Gebäude verfügbar.','good');else toast('Der Gegner hat die '+EPOCHS[G.epoch[1]].name+' erreicht.','warn')}}
+  for(let t=0;t<2;t++){const a=G.adv[t];if(!a)continue;a.t+=dt;if(a.t>=a.time){G.epoch[t]++;G.adv[t]=null;panelSig='';if(t===0){sfx('epoch');if(typeof SND!=='undefined')SND.setEpoch(G.epoch[0])}if(t===0)toast(tr('{0} erreicht! Neue Einheiten und Gebäude verfügbar.',tr(EPOCHS[G.epoch[0]].name)),'good');else toast(tr('Der Gegner hat die {0} erreicht.',tr(EPOCHS[G.epoch[1]].name)),'warn')}}
   for(const p of G.proj){const t=get(p.tid);if(!t){p.dead=true;continue}const dx=t.x-p.x,dy=t.y-p.y,d=Math.hypot(dx,dy),s=380*dt;p.a=Math.atan2(dy,dx);if(d<=s+t.r*.5){damage(t,p.dmg,get(p.src));p.dead=true}else{p.x+=dx/d*s;p.y+=dy/d*s}}
   G.proj=G.proj.filter(p=>!p.dead);
   separate();
@@ -143,7 +165,7 @@ function updUnit(u,dt){
   case 'build':{const b=get(u.tid);
     if(!b||b.built){u.state='idle';if(b&&b.built&&BLDS[b.type].drop){const n=nearestNode(null,b.x,b.y,260);if(n){u.tid=n.id;u.rtype=n.rt;u.state='gather'}}break}
     if(reach(u,b)){u.fa=Math.atan2(b.y-u.y,b.x-u.x);if((u.bt=(u.bt||0)-dt)<=0){u.bt=.6;sfx('hammer',u)}const inc=dt/BLDS[b.type].time;b.prog=Math.min(1,b.prog+inc);b.hp=Math.min(b.maxHp,b.hp+inc*b.maxHp);
-      if(b.prog>=1){b.built=true;panelSig='';if(b.team===0){toast(BLDS[b.type].name+' fertiggestellt.');sfx('built')}}}
+      if(b.prog>=1){b.built=true;panelSig='';if(b.team===0){toast(tr('{0} fertiggestellt.',tr(BLDS[b.type].name)));sfx('built');if(BLDS[b.type].claim>150){fogT=1;toast(tr('Neues Gebiet erobert!'),'good')}}}}
     else moveToward(u,b.x,b.y,dt,b.id);break}
   }
 }
@@ -152,7 +174,7 @@ function hit(u,t){const d=UNITS[u.type];sfx(d.ranged?'arrow':'hit',u);const mult
 function damage(t,amt,src){
   t.hp-=amt;
   if(src&&t.kind==='unit'&&!UNITS[t.type].passive&&t.state==='idle'){t.tid=src.id;t.state='attack'}
-  if(t.team===0&&G.t-G.alertT>12){G.alertT=G.t;G.ping={x:t.x,y:t.y,t:G.t};toast('Deine Siedlung wird angegriffen!','warn');sfx('alert')}
+  if(t.team===0&&G.t-G.alertT>12){G.alertT=G.t;G.ping={x:t.x,y:t.y,t:G.t};toast(tr('Deine Siedlung wird angegriffen!'),'warn');sfx('alert')}
   if(t.hp<=0)kill(t);
 }
 function kill(e){if(e.dead)return;e.dead=true;if(e.kind==='unit')sfx('die',e);else if(e.kind==='bld')sfx('crumble',e);sel.delete(e.id);if(e.kind==='unit')G.stats.lost[e.team]++;
@@ -173,15 +195,15 @@ function spawn(b,type){
 }
 function enqueue(b,type,team){
   const d=UNITS[type];
-  if(d.ep>G.epoch[team]){if(team===0){toast('Erst ab der '+EPOCHS[d.ep].name+' verfügbar.');sfx('error')}return false}
-  if(b.queue.length>=5){if(team===0){toast('Die Warteschlange ist voll (max. 5).');sfx('error')}return false}
+  if(d.ep>G.epoch[team]){if(team===0){toast(tr('Erst ab der {0} verfügbar.',tr(EPOCHS[d.ep].name)));sfx('error')}return false}
+  if(b.queue.length>=5){if(team===0){toast(tr('Die Warteschlange ist voll (max. 5).'));sfx('error')}return false}
   if(!pay(team,d.cost)){if(team===0){toast(missing(team,d.cost)+'.');sfx('error')}return false}
   b.queue.push({type,t:0});if(team===0)panelSig='';return true;
 }
 function advance(team){
   const ep=G.epoch[team];if(ep>=2||G.adv[team])return false;const c=EPOCHS[ep].cost;
   if(!pay(team,c)){if(team===0)toast(missing(team,c)+'.');return false}
-  G.adv[team]={t:0,time:EPOCHS[ep].time};if(team===0){panelSig='';toast('Aufstieg in die '+EPOCHS[ep+1].name+' begonnen.')}return true;
+  G.adv[team]={t:0,time:EPOCHS[ep].time};if(team===0){panelSig='';toast(tr('Aufstieg in die {0} begonnen.',tr(EPOCHS[ep+1].name)))}return true;
 }
 function validSpot(x,y,r){if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)return false;for(const e of G.ents){if(e.dead||e.kind==='unit')continue;if(Math.hypot(e.x-x,e.y-y)<e.r+r+5)return false}return true}
 function separate(){
@@ -261,10 +283,9 @@ function attackMove(wx,wy){
   units.forEach((u,i)=>{u.amove={x:wx+(i%cols-(cols-1)/2)*18,y:wy+(Math.floor(i/cols)-(cols-1)/2)*18};u.state='amove'});
   armed=false;fxMark(wx,wy,'attack');
 }
-function startPlace(type){const d=BLDS[type];if(d.ep>G.epoch[0]){toast('Erst ab der '+EPOCHS[d.ep].name+' verfügbar.');sfx('error');return}if(!afford(0,d.cost)){toast(missing(0,d.cost)+'.');sfx('error');return}placing=type;armed=false}
+function startPlace(type){const d=BLDS[type];if(d.ep>G.epoch[0]){toast(tr('Erst ab der {0} verfügbar.',tr(EPOCHS[d.ep].name)));sfx('error');return}if(!afford(0,d.cost)){toast(missing(0,d.cost)+'.');sfx('error');return}placing=type;armed=false}
 function tryPlace(wx,wy,keep){
-  const d=BLDS[placing];if(!validSpot(wx,wy,d.r)){toast('Hier ist kein Platz.');return}
-  if(!fogEx[fogIdx(wx,wy)]){toast('Dieses Gebiet ist noch unerkundet.');sfx('error');return}
+  const d=BLDS[placing],blk=placeBlock(placing,wx,wy);if(blk){toast(blk);sfx('error');return}
   if(!pay(0,d.cost)){toast(missing(0,d.cost)+'.');placing=null;return}
   const b=addBld(placing,0,wx,wy,false);
   ownSel().filter(u=>u.type==='worker').forEach(u=>{u.state='build';u.tid=b.id});
@@ -334,33 +355,52 @@ mm.addEventListener('pointermove',e=>{if(mmDrag)mmGo(e)});
 mm.addEventListener('pointerup',()=>{mmDrag=false});
 mm.addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('keydown',e=>{
-  keys[e.key]=true;if(!G||!G.running)return;
+  keys[e.key]=true;keys[e.key.toLowerCase()]=true;
+  if(e.key==='Escape'&&menuOpen){toggleMenu();return}
+  if(menuOpen||!G||!G.running)return;
   if(e.key===' '){e.preventDefault();togglePause()}
-  else if(e.key==='Escape'){if(placing||armed){placing=null;armed=false}else{sel.clear();panelSig=''}}
-  else if(e.key==='a'||e.key==='A'){if(ownSel().some(u=>u.kind==='unit'&&u.type!=='worker')){armed=true;placing=null}}
+  else if(e.key==='Escape'){if(placing||armed){placing=null;armed=false}else toggleMenu()}
+  else if(e.key==='q'||e.key==='Q'){if(ownSel().some(u=>u.kind==='unit'&&u.type!=='worker')){armed=true;placing=null}}
   else if(e.key==='h'||e.key==='H'){const hq=G.ents.find(o=>o.type==='hq'&&o.team===0&&!o.dead);if(hq){sel.clear();sel.add(hq.id);centerOn(hq.x,hq.y);panelSig=''}}
   else if(e.key==='.'){selectIdle()}
-  else if(e.key==='m'||e.key==='M'){$('musicBtn').click()}
-  else if(e.key==='n'||e.key==='N'){$('sfxBtn').click()}
   if(e.key.startsWith('Arrow'))e.preventDefault();
 });
-addEventListener('keyup',e=>{keys[e.key]=false});
+addEventListener('keyup',e=>{keys[e.key]=false;keys[e.key.toLowerCase()]=false});
 function scrollCam(dt){
   let vx=0,vy=0;const s=700/cam.z;
-  if(keys.ArrowLeft)vx-=1;if(keys.ArrowRight)vx+=1;if(keys.ArrowUp)vy-=1;if(keys.ArrowDown)vy+=1;
+  if(keys.ArrowLeft||keys.a)vx-=1;if(keys.ArrowRight||keys.d)vx+=1;if(keys.ArrowUp||keys.w)vy-=1;if(keys.ArrowDown||keys.s)vy+=1;
   if(mouse.in&&mouse.type==='mouse'&&!drag&&!mmDrag&&G&&G.running){const m=14;if(mouse.x<m)vx-=1;if(mouse.x>VW-m)vx+=1;if(mouse.y<m)vy-=1;if(mouse.y>VH-m)vy+=1}
   if(vx||vy){cam.x+=vx*s*dt;cam.y+=vy*s*dt;clampCam()}
 }
-function togglePause(){G.paused=!G.paused;$('pauseBtn').textContent=G.paused?'Weiter':'Pause'}
+function togglePause(){G.paused=!G.paused;$('pauseBtn').textContent=G.paused?tr('Weiter'):tr('Pause')}
 let idleIdx=0;
-function selectIdle(){const idle=G.ents.filter(e=>!e.dead&&e.team===0&&e.type==='worker'&&e.state==='idle');if(!idle.length){toast('Alle Arbeiter haben zu tun.');return}const u=idle[idleIdx++%idle.length];sel.clear();sel.add(u.id);centerOn(u.x,u.y);panelSig=''}
-function soundBtns(){if(typeof SND==='undefined')return;$('musicBtn').classList.toggle('off',!SND.music);$('sfxBtn').classList.toggle('off',!SND.sfx)}
-$('musicBtn').onclick=()=>{SND.init();SND.toggleMusic();soundBtns()};
-$('sfxBtn').onclick=()=>{SND.init();SND.toggleSfx();soundBtns()};
-soundBtns();
+function selectIdle(){const idle=G.ents.filter(e=>!e.dead&&e.team===0&&e.type==='worker'&&e.state==='idle');if(!idle.length){toast(tr('Alle Arbeiter haben zu tun.'));return}const u=idle[idleIdx++%idle.length];sel.clear();sel.add(u.id);centerOn(u.x,u.y);panelSig=''}
+/* ---------- Menü ---------- */
+let menuOpen=false,menuPaused=false;
+function toggleMenu(){
+  menuOpen=!menuOpen;const m=$('menu');
+  if(menuOpen){if(G&&G.running&&!G.paused){G.paused=true;menuPaused=true}else menuPaused=false;renderMenu();m.hidden=false}
+  else{m.hidden=true;if(menuPaused&&G){G.paused=false;menuPaused=false}$('pauseBtn').textContent=G&&G.paused?tr('Weiter'):tr('Pause')}
+}
+function renderMenu(){
+  const pc=v=>Math.round(v*100)+' %';
+  $('menu').innerHTML=`<div class="card"><h1>${tr('Menü')}</h1>
+  <div class="set"><label for="mv">${tr('Musik')}</label><input type="range" id="mv" min="0" max="100" value="${Math.round(SND.music*100)}"><output id="mvo">${pc(SND.music)}</output></div>
+  <div class="set"><label for="sv">${tr('Ton')}</label><input type="range" id="sv" min="0" max="100" value="${Math.round(SND.sfx*100)}"><output id="svo">${pc(SND.sfx)}</output></div>
+  <div class="langrow"><span>${tr('Sprache')}</span><div class="diff" role="group">${['de','en'].map(l=>`<button data-l="${l}" aria-pressed="${l===LANG}">${l==='de'?'Deutsch':'English'}</button>`).join('')}</div></div>
+  <div class="btnrow"><button class="go" id="mResume">${tr('Spiel fortsetzen')}</button><button class="btn2" id="mNew">${tr('Neues Spiel')}</button></div></div>`;
+  $('mv').oninput=e=>{SND.init();SND.setMusic(e.target.value/100);$('mvo').textContent=pc(SND.music)};
+  $('sv').oninput=e=>{SND.init();SND.setSfx(e.target.value/100);$('svo').textContent=pc(SND.sfx)};
+  $('sv').onchange=()=>SND.play('select');
+  $('menu').querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{applyLang(b.dataset.l);renderMenu()});
+  $('mResume').onclick=toggleMenu;
+  $('mNew').onclick=()=>{toggleMenu();showStart()};
+}
+function applyLang(l){setLang(l);panelSig='';infoCache='';$('speedBtn').textContent=tr('Tempo {0}×',G?G.speed:1);$('pauseBtn').textContent=G&&G.paused?tr('Weiter'):tr('Pause');if(!$('overlay').hidden&&G&&!G.running&&!G.overShown)showStart();if(G)updateUI()}
+$('menuBtn').onclick=()=>{SND.init();toggleMenu()};
 ['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>{if(typeof SND!=='undefined')SND.init()},{once:true}));
 $('pauseBtn').onclick=()=>{if(G&&G.running)togglePause()};
-$('speedBtn').onclick=()=>{if(!G)return;G.speed=G.speed===1?2:G.speed===2?3:1;$('speedBtn').textContent='Tempo '+G.speed+'×'};
+$('speedBtn').onclick=()=>{if(!G)return;G.speed=G.speed===1?2:G.speed===2?3:1;$('speedBtn').textContent=tr('Tempo {0}×',G.speed)};
 $('idleBtn').onclick=()=>{if(G&&G.running)selectIdle()};
 
 /* ---------- drawing ---------- */
@@ -402,7 +442,11 @@ function drawBld(b){
   }
   ctx.restore();
   if(!b.built){ctx.strokeStyle='#ecdfc3';ctx.lineWidth=3;ctx.beginPath();ctx.arc(b.x,b.y,r+6,-1.57,-1.57+b.prog*6.283);ctx.stroke();
-    ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.strokeStyle='rgba(236,223,195,.6)';ctx.beginPath();ctx.arc(b.x,b.y,r+6,0,6.283);ctx.stroke();ctx.setLineDash([])}
+    ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.strokeStyle='rgba(236,223,195,.6)';ctx.beginPath();ctx.arc(b.x,b.y,r+6,0,6.283);ctx.stroke();ctx.setLineDash([])
+    // Fortschrittsbalken mit Beschriftung; rot, wenn niemand baut
+    const bw=Math.max(46,r*2+10),bx=b.x-bw/2,by=b.y+r+12,busy=G.ents.some(w=>!w.dead&&w.team===b.team&&w.state==='build'&&w.tid===b.id),warn=b.team===0&&!busy;
+    ctx.fillStyle='rgba(20,15,10,.85)';ctx.fillRect(bx-1,by-1,bw+2,9);ctx.fillStyle=warn?'#d0432c':'#e0a24a';ctx.fillRect(bx,by,bw*b.prog,7);
+    if(b.team===0){ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.lineWidth=3;ctx.strokeStyle='rgba(20,15,10,.9)';const lb=warn?tr('Kein Bauarbeiter!'):tr('Im Bau')+' '+Math.floor(b.prog*100)+' %';ctx.strokeText(lb,b.x,by+10);ctx.fillStyle=warn?'#ff9a85':'#f3e2b3';ctx.fillText(lb,b.x,by+10)}}
 }
 function drawUnit(u){
   const tc=TC[u.team],r=u.r,a=u.fa,ca=Math.cos(a),sa=Math.sin(a);
@@ -416,6 +460,7 @@ function drawUnit(u){
   ctx.fillStyle=tc;ctx.beginPath();ctx.arc(x,y,r,0,6.283);ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle=TCD[u.team];ctx.stroke();
   ctx.fillStyle=TCL[u.team];ctx.beginPath();ctx.arc(x+ca*r*.25,y+sa*r*.25,r*.42,0,6.283);ctx.fill();
   if(u.type!=='worker'){ctx.strokeStyle=u.type==='scout'?'#9fc7a0':u.type==='sword'?'#d8d4cb':u.type==='spear'||u.type==='archer'?'#c9a36a':'#8a6a42';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x,y,r-1.5,0,6.283);ctx.stroke()}
+  if(u.team===0&&u.type==='worker'&&u.state==='idle'){const bx=u.x,by=u.y-r-11;ctx.fillStyle='#d0432c';ctx.strokeStyle='#fff3ea';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(bx,by,6.5,0,6.283);ctx.fill();ctx.stroke();ctx.fillStyle='#fff3ea';ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('!',bx,by+.5)}
   if(u.carry>0&&u.ctype){ctx.fillStyle=u.ctype==='food'?'#c2553f':u.ctype==='wood'?'#9a6c3c':'#c8c4ba';ctx.beginPath();ctx.arc(x-ca*r*.9,y-sa*r*.9,2.6+u.carry/CARRY*1.5,0,6.283);ctx.fill()}
 }
 function hpBar(e){const w=Math.max(18,e.r*2+4),x=e.x-w/2,y=e.y-e.r-(e.kind==='bld'?12:8);const f=Math.max(0,e.hp/e.maxHp);
@@ -426,6 +471,7 @@ function draw(){
   const z=cam.z;ctx.setTransform(dpr*z,0,0,dpr*z,-cam.x*dpr*z,-cam.y*dpr*z);
   const vw=VW/z,vh=VH/z;const sx=Math.max(0,cam.x),sy=Math.max(0,cam.y),sw=Math.min(W-sx,vw+2),sh=Math.min(H-sy,vh+2);
   if(sw>0&&sh>0)ctx.drawImage(bg,sx,sy,sw,sh,sx,sy,sw,sh);
+  ctx.imageSmoothingEnabled=true;ctx.drawImage(terrCv,0,0,W,H);
   const x0=cam.x-60,y0=cam.y-60,x1=cam.x+vw+60,y1=cam.y+vh+60;
   const vis=G.ents.filter(e=>!e.dead&&e.x>x0&&e.x<x1&&e.y>y0&&e.y<y1&&shown(e));
   const s=new Set(sel);
@@ -446,8 +492,8 @@ function draw(){
   // Nebel
   ctx.imageSmoothingEnabled=true;ctx.drawImage(fogCv,0,0,W,H);
   // ghost
-  if(placing&&mouse.in){const w=toWorld(mouse.x,mouse.y),d=BLDS[placing],ok=validSpot(w.x,w.y,d.r);ctx.fillStyle=ok?'rgba(143,191,99,.3)':'rgba(208,83,60,.35)';ctx.strokeStyle=ok?'#8fbf63':'#d0533c';ctx.lineWidth=2;ctx.beginPath();ctx.arc(w.x,w.y,d.r,0,6.283);ctx.fill();ctx.stroke();
-    if(d.shoot){ctx.setLineDash([4,6]);ctx.lineWidth=1;ctx.beginPath();ctx.arc(w.x,w.y,d.r+d.shoot.rng,0,6.283);ctx.stroke();ctx.setLineDash([])}}
+  if(placing&&mouse.in){const w=toWorld(mouse.x,mouse.y),d=BLDS[placing],ok=!placeBlock(placing,w.x,w.y);ctx.fillStyle=ok?'rgba(143,191,99,.3)':'rgba(208,83,60,.35)';ctx.strokeStyle=ok?'#8fbf63':'#d0533c';ctx.lineWidth=2;ctx.beginPath();ctx.arc(w.x,w.y,d.r,0,6.283);ctx.fill();ctx.stroke();
+    ctx.setLineDash([4,6]);ctx.lineWidth=1;if(d.shoot){ctx.beginPath();ctx.arc(w.x,w.y,d.r+d.shoot.rng,0,6.283);ctx.stroke()}ctx.strokeStyle='rgba(143,191,99,.8)';ctx.beginPath();ctx.arc(w.x,w.y,d.claim,0,6.283);ctx.stroke();ctx.setLineDash([])}
   ctx.setTransform(dpr,0,0,dpr,0,0);
   if(drag&&drag.box){ctx.strokeStyle='#f3d48a';ctx.fillStyle='rgba(243,212,138,.08)';ctx.lineWidth=1;const x=Math.min(drag.sx,mouse.x),y=Math.min(drag.sy,mouse.y),w=Math.abs(mouse.x-drag.sx),h=Math.abs(mouse.y-drag.sy);ctx.fillRect(x,y,w,h);ctx.strokeRect(x+.5,y+.5,w,h)}
   if(armed&&mouse.in){ctx.strokeStyle='#e0533c';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(mouse.x,mouse.y,9,0,6.283);ctx.moveTo(mouse.x-14,mouse.y);ctx.lineTo(mouse.x+14,mouse.y);ctx.moveTo(mouse.x,mouse.y-14);ctx.lineTo(mouse.x,mouse.y+14);ctx.stroke()}
@@ -459,7 +505,7 @@ function drawMini(){
     if(e.kind==='node'){mctx.fillStyle=e.type==='tree'?'#2b4f27':e.type==='bush'?'#c2553f':'#c8c4ba';mctx.fillRect(e.x*kx-1,e.y*ky-1,2,2)}
     else if(e.kind==='bld'){mctx.fillStyle=TC[e.team];const s=e.type==='hq'?6:4;mctx.fillRect(e.x*kx-s/2,e.y*ky-s/2,s,s);mctx.strokeStyle='#1d1812';mctx.lineWidth=.8;mctx.strokeRect(e.x*kx-s/2,e.y*ky-s/2,s,s)}
     else{mctx.fillStyle=e.team===0?'#a9c8f0':'#f2a28c';mctx.fillRect(e.x*kx-1.2,e.y*ky-1.2,2.4,2.4)}}
-  mctx.imageSmoothingEnabled=true;mctx.drawImage(fogCv,0,0,MW,MH);
+  mctx.imageSmoothingEnabled=true;mctx.drawImage(terrCv,0,0,MW,MH);mctx.drawImage(fogCv,0,0,MW,MH);
   if(G.ping&&G.t-G.ping.t<4){const k=((G.t-G.ping.t)%1);mctx.strokeStyle='#e0533c';mctx.lineWidth=1.5;mctx.beginPath();mctx.arc(G.ping.x*kx,G.ping.y*ky,3+k*10,0,6.283);mctx.stroke()}
   mctx.strokeStyle='#ecdfc3';mctx.lineWidth=1;mctx.strokeRect(cam.x*kx+.5,cam.y*ky+.5,VW/cam.z*kx,VH/cam.z*ky);
 }
@@ -470,75 +516,77 @@ const costHTML=c=>RES.filter(r=>c[r]).map(r=>`<span class="c"><i class="rdot ${r
 function actionsFor(s){
   if(!s.length||s[0].team!==0)return[];const f=s[0],acts=[],ep=G.epoch[0];
   if(f.kind==='unit'){
-    if(s.some(u=>u.type==='worker'))for(const k of ['house','store','barracks','tower']){const d=BLDS[k];acts.push({key:'b'+k,nm:d.name,cost:d.cost,sub:d.sub,lock:d.ep>ep?EPOCHS[d.ep].name:null,run:()=>startPlace(k)})}
-    if(s.some(u=>u.kind==='unit'&&u.type!=='worker'))acts.push({key:'am',nm:'Angriffsmarsch',sub:'Taste A, dann Ziel',run:()=>{armed=true;placing=null}});
-    acts.push({key:'stop',nm:'Halt',sub:'Befehle abbrechen',run:()=>s.forEach(u=>{if(u.kind==='unit'){u.state='idle';u.amove=null}})});
+    if(s.some(u=>u.type==='worker'))for(const k of ['house','store','barracks','tower']){const d=BLDS[k];acts.push({key:'b'+k,nm:tr(d.name),cost:d.cost,sub:tr(d.sub),lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>startPlace(k)})}
+    if(s.some(u=>u.kind==='unit'&&u.type!=='worker'))acts.push({key:'am',nm:tr('Angriffsmarsch'),sub:tr('Taste Q, dann Ziel'),run:()=>{armed=true;placing=null}});
+    acts.push({key:'stop',nm:tr('Halt'),sub:tr('Befehle abbrechen'),run:()=>s.forEach(u=>{if(u.kind==='unit'){u.state='idle';u.amove=null}})});
     return acts;
   }
   if(f.kind==='bld'&&f.built){
-    for(const [k,d] of Object.entries(UNITS))if(d.from===f.type)acts.push({key:'t'+k,nm:d.name,cost:d.cost,lock:d.ep>ep?EPOCHS[d.ep].name:null,run:()=>enqueue(f,k,0),unit:k});
-    if(f.type==='hq'&&ep<2)acts.push({key:'adv',nm:'Aufstieg: '+EPOCHS[ep+1].name,cost:EPOCHS[ep].cost,adv:true,run:()=>advance(0)});
+    for(const [k,d] of Object.entries(UNITS))if(d.from===f.type)acts.push({key:'t'+k,nm:tr(d.name),cost:d.cost,lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>enqueue(f,k,0),unit:k});
+    if(f.type==='hq'&&ep<2)acts.push({key:'adv',nm:tr('Aufstieg: {0}',tr(EPOCHS[ep+1].name)),cost:EPOCHS[ep].cost,adv:true,run:()=>advance(0)});
   }
   return acts;
 }
 let curActs=[],infoCache='';
-$('acts').addEventListener('click',e=>{const b=e.target.closest('.act');if(!b||!G||!G.running)return;const a=curActs[+b.dataset.i];if(!a)return;if(a.lock){toast('Erst ab der '+a.lock+' verfügbar.');sfx('error');return}sfx('click');a.run()});
+$('acts').addEventListener('click',e=>{const b=e.target.closest('.act');if(!b||!G||!G.running)return;const a=curActs[+b.dataset.i];if(!a)return;if(a.lock){toast(tr('Erst ab der {0} verfügbar.',a.lock));sfx('error');return}sfx('click');a.run()});
 $('info').addEventListener('pointerdown',e=>{if(!G||!G.running)return;const q=e.target.closest('[data-q]');if(q){const b=selection()[0];if(b&&b.team===0)cancelQueue(b,+q.dataset.q);return}if(e.target.closest('[data-clear]')){sel.clear();panelSig=''}});
 function infoHTML(s){
-  const clr='<button class="x" data-clear aria-label="Auswahl aufheben">×</button>';
-  if(!s.length)return '<p class="muted">Linksklick oder Rahmen ziehen wählt aus. Rechtsklick gibt Befehle: bewegen, sammeln, bauen, angreifen. Doppelklick wählt alle gleichen Einheiten im Bild.</p>';
-  if(s.length>1){const c={};s.forEach(e=>{const n=nameOf(e);c[n]=(c[n]||0)+1});return `<div class="ih"><h2>${s.length} ausgewählt</h2>${clr}</div><div class="chips">${Object.entries(c).map(([n,k])=>`<span class="chip">${k}× ${n}</span>`).join('')}</div>`}
-  const e=s[0];const tag=e.team===1?'<span class="tag enemy">Gegner</span>':e.team===0?'<span class="tag">'+EPOCHS[G.epoch[0]].name+'</span>':'';
+  const clr='<button class="x" data-clear aria-label="'+tr('Auswahl aufheben')+'">×</button>';
+  if(!s.length)return '<p class="muted">'+tr('Linksklick oder Rahmen ziehen wählt aus. Rechtsklick gibt Befehle: bewegen, sammeln, bauen, angreifen. Doppelklick wählt alle gleichen Einheiten im Bild.')+'</p>';
+  if(s.length>1){const c={};s.forEach(e=>{const n=nameOf(e);c[n]=(c[n]||0)+1});return `<div class="ih"><h2>${s.length} ${tr('ausgewählt')}</h2>${clr}</div><div class="chips">${Object.entries(c).map(([n,k])=>`<span class="chip">${k}× ${n}</span>`).join('')}</div>`}
+  const e=s[0];const tag=e.team===1?'<span class="tag enemy">'+tr('Gegner')+'</span>':e.team===0?'<span class="tag">'+tr(EPOCHS[G.epoch[0]].name)+'</span>':'';
   let h=`<div class="ih"><h2>${nameOf(e)}</h2>${tag}${clr}</div>`;
-  if(e.kind==='node')return h+`<div class="line">Vorrat: <b>${Math.ceil(e.amount)}</b> ${RN[e.rt]}</div>`;
+  if(e.kind==='node')return h+`<div class="line">${tr('Vorrat')}: <b>${Math.ceil(e.amount)}</b> ${rn(e.rt)}</div>`;
   h+=`<div class="hpw"><div class="hp"><span style="width:${Math.max(0,e.hp/e.maxHp*100).toFixed(0)}%"></span></div>${Math.ceil(e.hp)} / ${e.maxHp}</div>`;
-  if(e.kind==='unit'){const d=UNITS[e.type];let st=STATE[e.state]||'';if(e.state==='gather')st='Sammelt '+RN[e.rtype||e.ctype||'food'];if(e.state==='return')st='Bringt '+RN[e.ctype]+' zum Lager';
-    h+=`<div class="line">${st}${e.carry>0?` <em>· trägt ${Math.floor(e.carry)} ${RN[e.ctype]}</em>`:''}</div><div class="line"><em>Angriff ${d.atk} · Reichweite ${d.ranged?d.rng:'Nahkampf'}</em></div>`}
+  if(e.kind==='unit'){const d=UNITS[e.type];let st=tr(STATE[e.state]||'');if(e.state==='gather')st=tr('Sammelt {0}',rn(e.rtype||e.ctype||'food'));if(e.state==='return')st=tr('Bringt {0} zum Lager',rn(e.ctype));
+    h+=`<div class="line">${st}${e.carry>0?` <em>· ${tr('trägt {0} {1}',Math.floor(e.carry),rn(e.ctype))}</em>`:''}</div><div class="line"><em>${tr('Angriff {0} · Reichweite {1}',d.atk,d.ranged?d.rng:tr('Nahkampf'))}</em></div>`}
   else{
-    if(!e.built)h+=`<div class="line">Im Bau: ${Math.floor(e.prog*100)} %${e.team===0?' <em>· Arbeiter per Rechtsklick zum Bauen schicken</em>':''}</div>`;
-    if(e.team===0&&e.type==='hq'&&G.adv[0])h+=`<div class="line">Aufstieg in die ${EPOCHS[G.epoch[0]+1].name}: <b>${Math.floor(G.adv[0].t/G.adv[0].time*100)} %</b></div>`;
-    if(e.team===0&&e.queue.length){h+='<div class="chips">'+e.queue.map((q,i)=>`<button class="q${q.blocked?' blocked':''}" data-q="${i}" title="Klicken zum Abbrechen">${UNITS[q.type].name}${q.blocked?' – Platz fehlt':''}<span class="qb"><span style="width:${i===0?(q.t/UNITS[q.type].time*100).toFixed(0):0}%"></span></span></button>`).join('')+'</div>'}
-    if(e.team===0&&e.built&&(e.type==='hq'||e.type==='barracks')&&!e.queue.length)h+='<div class="line"><em>Rechtsklick auf die Karte setzt den Sammelpunkt.</em></div>';
-    if(e.team===0&&BLDS[e.type].pop)h+=`<div class="line"><em>Bietet Platz für ${BLDS[e.type].pop} Bewohner</em></div>`;
+    if(!e.built)h+=`<div class="line">${tr('Im Bau: {0} %',Math.floor(e.prog*100))}${e.team===0?' <em>· '+tr('Arbeiter per Rechtsklick zum Bauen schicken')+'</em>':''}</div>`;
+    if(e.team===0&&e.type==='hq'&&G.adv[0])h+=`<div class="line">${tr('Aufstieg in die {0}',tr(EPOCHS[G.epoch[0]+1].name))}: <b>${Math.floor(G.adv[0].t/G.adv[0].time*100)} %</b></div>`;
+    if(e.team===0&&e.queue.length){h+='<div class="chips">'+e.queue.map((q,i)=>`<button class="q${q.blocked?' blocked':''}" data-q="${i}" title="${tr('Klicken zum Abbrechen')}">${tr(UNITS[q.type].name)}${q.blocked?' – '+tr('Platz fehlt'):''}<span class="qb"><span style="width:${i===0?(q.t/UNITS[q.type].time*100).toFixed(0):0}%"></span></span></button>`).join('')+'</div>'}
+    if(e.team===0&&e.built&&(e.type==='hq'||e.type==='barracks')&&!e.queue.length)h+='<div class="line"><em>'+tr('Rechtsklick auf die Karte setzt den Sammelpunkt.')+'</em></div>';
+    if(e.team===0&&BLDS[e.type].pop)h+=`<div class="line"><em>${tr('Bietet Platz für {0} Bewohner',BLDS[e.type].pop)}</em></div>`;
   }
   return h;
 }
 function updateUI(){
   const r=G.res[0];$('v-food').textContent=Math.floor(r.food);$('v-wood').textContent=Math.floor(r.wood);$('v-stone').textContent=Math.floor(r.stone);
   const pe=$('v-pop');pe.textContent=G.pop[0]+'/'+G.cap[0];pe.style.color=G.pop[0]>=G.cap[0]?'var(--warn)':'';
-  $('epoch').innerHTML=EPOCHS[G.epoch[0]].name+(G.adv[0]?`<span class="prog">→ ${EPOCHS[G.epoch[0]+1].name} ${Math.floor(G.adv[0].t/G.adv[0].time*100)} %</span>`:'');
-  const idle=G.ents.filter(e=>!e.dead&&e.team===0&&e.type==='worker'&&e.state==='idle').length;const ib=$('idleBtn');ib.textContent='Untätig: '+idle;ib.classList.toggle('hot',idle>0);
+  $('epoch').innerHTML=tr(EPOCHS[G.epoch[0]].name)+(G.adv[0]?`<span class="prog">→ ${tr(EPOCHS[G.epoch[0]+1].name)} ${Math.floor(G.adv[0].t/G.adv[0].time*100)} %</span>`:'');
+  const idle=G.ents.filter(e=>!e.dead&&e.team===0&&e.type==='worker'&&e.state==='idle').length;const ib=$('idleBtn');ib.textContent=idle===0?tr('Alle Arbeiter beschäftigt'):idle===1?tr('1 untätiger Arbeiter'):tr('{0} untätige Arbeiter',idle);ib.classList.toggle('alert',idle>0);ib.classList.toggle('ok',idle===0);
   const s=selection();
   const sig=s.map(e=>e.id+(e.built?'b':'')).join(',')+'|'+G.epoch[0]+'|'+(G.adv[0]?1:0);
-  if(sig!==panelSig){panelSig=sig;curActs=actionsFor(s);$('acts').innerHTML=curActs.map((a,i)=>`<button class="act" data-i="${i}"><span class="nm">${a.nm}</span>${a.cost?`<span class="cost">${costHTML(a.cost)}</span>`:''}${a.lock?`<span class="sub">ab ${a.lock}</span>`:a.sub?`<span class="sub">${a.sub}</span>`:''}</button>`).join('')}
+  if(sig!==panelSig){panelSig=sig;curActs=actionsFor(s);$('acts').innerHTML=curActs.map((a,i)=>`<button class="act" data-i="${i}"><span class="nm">${a.nm}</span>${a.cost?`<span class="cost">${costHTML(a.cost)}</span>`:''}${a.lock?`<span class="sub">${tr('ab {0}',a.lock)}</span>`:a.sub?`<span class="sub">${a.sub}</span>`:''}</button>`).join('')}
   $('acts').querySelectorAll('.act').forEach(b=>{const a=curActs[+b.dataset.i];if(!a)return;b.classList.toggle('locked',!!a.lock||!!(a.adv&&G.adv[0]));b.classList.toggle('poor',!!a.cost&&!afford(0,a.cost))});
   const ih=infoHTML(s);if(ih!==infoCache){infoCache=ih;$('info').innerHTML=ih}
   const hint=$('hint');
-  if(placing){hint.hidden=false;hint.textContent=BLDS[placing].name+' platzieren: Klick auf freie Fläche · Umschalt hält den Modus · Rechtsklick oder Esc bricht ab'}
-  else if(armed){hint.hidden=false;hint.textContent='Angriffsmarsch: Ziel anklicken · Truppen greifen unterwegs alles an · Esc bricht ab'}
-  else if(G.paused){hint.hidden=false;hint.textContent='Pausiert · Leertaste setzt fort'}
+  if(placing){hint.hidden=false;hint.textContent=tr('{0} platzieren: Klick auf freie Fläche · Umschalt hält den Modus · Rechtsklick oder Esc bricht ab',tr(BLDS[placing].name))}
+  else if(armed){hint.hidden=false;hint.textContent=tr('Angriffsmarsch: Ziel anklicken · Truppen greifen unterwegs alles an · Esc bricht ab')}
+  else if(G.paused){hint.hidden=false;hint.textContent=tr('Pausiert · Leertaste setzt fort')}
   else hint.hidden=true;
 }
 
 /* ---------- overlay ---------- */
 function showStart(){
   const ov=$('overlay');ov.hidden=false;
-  ov.innerHTML=`<div class="card"><p class="eyebrow">Prototyp · Echtzeitstrategie · 1 gegen 1</p><h1>Epochenkrieg</h1>
-  <p>Führe deinen Stamm durch drei Zeitalter. Sammle Nahrung, Holz und Stein, baue deine Siedlung aus und zerstöre das Hauptlager des Gegners, bevor er deins erreicht.</p>
-  <div class="eras"><span>Steinzeit</span><span>Bronzezeit</span><span>Eisenzeit</span></div>
-  <div class="diff" role="group" aria-label="Schwierigkeit">${['leicht','normal','schwer'].map(d=>`<button data-d="${d}" aria-pressed="${d===diff}">${d[0].toUpperCase()+d.slice(1)}</button>`).join('')}</div>
-  <dl class="ctl"><dt>Auswählen</dt><dd>Linksklick, Rahmen ziehen, Doppelklick für alle gleichen</dd><dt>Befehl</dt><dd>Rechtsklick: bewegen, sammeln, bauen, angreifen, Sammelpunkt</dd><dt>Kamera</dt><dd>Pfeiltasten, Bildschirmrand, Minikarte, Mausrad zoomt</dd><dt>Tasten</dt><dd>A Angriffsmarsch · H Hauptlager · . untätiger Arbeiter · Leertaste Pause</dd><dt>Touch</dt><dd>Tippen wählt aus, mit Auswahl tippen gibt Befehl, Wischen bewegt die Karte</dd></dl>
-  <button class="go" id="goBtn">Spiel starten</button></div>`;
+  ov.innerHTML=`<div class="card"><p class="eyebrow">${tr('Prototyp · Echtzeitstrategie · 1 gegen 1')}</p><h1>Epochenkrieg</h1>
+  <p>${tr('Führe deinen Stamm durch drei Zeitalter. Sammle Nahrung, Holz und Stein, baue deine Siedlung aus und zerstöre das Hauptlager des Gegners, bevor er deins erreicht.')}</p>
+  <div class="eras"><span>${tr('Steinzeit')}</span><span>${tr('Bronzezeit')}</span><span>${tr('Eisenzeit')}</span></div>
+  <div class="diff" role="group" aria-label="${tr('Schwierigkeit')}">${['leicht','normal','schwer'].map(d=>`<button data-d="${d}" aria-pressed="${d===diff}">${tr(d)}</button>`).join('')}</div>
+  <dl class="ctl"><dt>${tr('Auswählen')}</dt><dd>${tr('Linksklick, Rahmen ziehen, Doppelklick für alle gleichen')}</dd><dt>${tr('Befehl')}</dt><dd>${tr('Rechtsklick: bewegen, sammeln, bauen, angreifen, Sammelpunkt')}</dd><dt>${tr('Kamera')}</dt><dd>${tr('WASD oder Pfeiltasten, Bildschirmrand, Minikarte, Mausrad zoomt')}</dd><dt>${tr('Tasten')}</dt><dd>${tr('Q Angriffsmarsch · H Hauptlager · . untätiger Arbeiter · Leertaste Pause · Esc Menü')}</dd><dt>${tr('Touch')}</dt><dd>${tr('Tippen wählt aus, mit Auswahl tippen gibt Befehl, Wischen bewegt die Karte')}</dd></dl>
+  <div class="langrow"><span>${tr('Sprache')}</span><div class="diff" role="group">${['de','en'].map(l=>`<button data-l="${l}" aria-pressed="${l===LANG}">${l==='de'?'Deutsch':'English'}</button>`).join('')}</div></div>
+  <button class="go" id="goBtn">${tr('Spiel starten')}</button></div>`;
+  ov.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>applyLang(b.dataset.l));
   ov.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{diff=b.dataset.d;ov.querySelectorAll('[data-d]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
-  $('goBtn').onclick=()=>{if(typeof SND!=='undefined')SND.init();newGame(diff);G.running=true;ov.hidden=true;toast('Tipp: Wähle deine Arbeiter aus und schick sie per Rechtsklick zu Beeren oder Bäumen.')};
+  $('goBtn').onclick=()=>{if(typeof SND!=='undefined')SND.init();newGame(diff);G.running=true;ov.hidden=true;toast(tr('Tipp: Wähle deine Arbeiter aus und schick sie per Rechtsklick zu Beeren oder Bäumen.'))};
 }
 function showEnd(){
   G.overShown=true;G.running=false;const win=G.over==='win';sfx(win?'win':'lose');const m=Math.floor(G.t/60),s=Math.floor(G.t%60);
   const ov=$('overlay');ov.hidden=false;
-  ov.innerHTML=`<div class="card"><p class="eyebrow">${win?'Das gegnerische Hauptlager ist gefallen':'Dein Hauptlager wurde zerstört'}</p><h1>${win?'Sieg':'Niederlage'}</h1>
-  <div class="stats"><div><b>${m}:${String(s).padStart(2,'0')}</b><small>Spielzeit</small></div><div><b>${G.stats.trained[0]}</b><small>Ausgebildet</small></div><div><b>${G.stats.lost[1]}</b><small>Gegner besiegt</small></div></div>
-  <p>Erreichtes Zeitalter: ${EPOCHS[G.epoch[0]].name}. Schwierigkeit: ${diff}.</p>
-  <button class="go" id="againBtn">Neues Spiel</button></div>`;
+  ov.innerHTML=`<div class="card"><p class="eyebrow">${win?tr('Das gegnerische Hauptlager ist gefallen'):tr('Dein Hauptlager wurde zerstört')}</p><h1>${win?tr('Sieg'):tr('Niederlage')}</h1>
+  <div class="stats"><div><b>${m}:${String(s).padStart(2,'0')}</b><small>${tr('Spielzeit')}</small></div><div><b>${G.stats.trained[0]}</b><small>${tr('Ausgebildet')}</small></div><div><b>${G.stats.lost[1]}</b><small>${tr('Gegner besiegt')}</small></div></div>
+  <p>${tr('Erreichtes Zeitalter: {0}. Schwierigkeit: {1}.',tr(EPOCHS[G.epoch[0]].name),tr(diff))}</p>
+  <button class="go" id="againBtn">${tr('Neues Spiel')}</button></div>`;
   $('againBtn').onclick=showStart;
 }
 
@@ -553,5 +601,5 @@ function frame(ts){
   requestAnimationFrame(frame);
 }
 new ResizeObserver(resize).observe(view);new ResizeObserver(resize).observe(mm);
-resize();newGame('normal');updateUI();showStart();requestAnimationFrame(frame);
+setLang(LANG);resize();newGame('normal');updateUI();showStart();requestAnimationFrame(frame);
 })();
