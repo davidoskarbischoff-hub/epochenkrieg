@@ -4,13 +4,15 @@
 /* ---------- player commands ---------- */
 function selection(){const a=[];for(const id of sel){const e=G.byId.get(id);if(e&&!e.dead)a.push(e)}return a}
 function ownSel(){return selection().filter(e=>e.team===0)}
-function entityAt(x,y){
+/* Was liegt an dieser Stelle? sp = Bildschirmpunkt (Maus): trifft die sichtbare Figur samt Höhe; ohne sp zählt nur der Bodenpunkt (x,y). */
+function entityAt(x,y,sp){
   let best=null,bd=1e9;
-  for(const e of G.ents){if(e.dead||!shown(e))continue;const dx=Math.abs(e.x-x),d=Math.hypot(e.x-x,e.y-y);
-    const h=SPR.height(e)/TILT,hw=e.r*(e.kind==='unit'?1.1:1.0)+(e.kind==='unit'?5:2);
-    const onSprite=dx<=hw&&y<=e.y+3&&y>=e.y-h*(e.kind==='node'?.8:1);
-    if(!onSprite&&d>e.r+(e.kind==='unit'?5:2))continue;
-    const sc=(e.kind==='unit'?0:e.kind==='bld'?1000:2000)-e.y*.01+d*.1;if(sc<bd){bd=sc;best=e}}
+  for(const e of G.ents){if(e.dead||!shown(e))continue;let sc;
+    if(sp){const b=scr(e.x,e.y,0);if(!b.front)continue;const k=R3.k,hp=entH(e)*k,u=e.kind==='unit'||e.kind==='animal',hw=Math.max(7,e.r*k*(e.kind==='node'?.8:1.1))+(u?3:1);
+      const onBody=Math.abs(sp.x-b.x)<=hw&&sp.y<=b.y+e.r*k*.4+3&&sp.y>=b.y-hp;if(!onBody&&Math.hypot(sp.x-b.x,(sp.y-b.y)*1.5)>e.r*k+4)continue;
+      sc=(u?0:e.kind==='bld'?1000:2000)-b.y*.01+Math.hypot(sp.x-b.x,sp.y-(b.y-hp*.4))*.05}
+    else{const d=Math.hypot(e.x-x,e.y-y),u=e.kind==='unit'||e.kind==='animal';if(d>e.r+(u?5:2))continue;sc=(u?0:e.kind==='bld'?1000:2000)+d}
+    if(sc<bd){bd=sc;best=e}}
   return best;
 }
 function fxMark(x,y,kind){G.fx.push({x,y,t:G.t,kind,rt:performance.now()})}
@@ -36,9 +38,9 @@ function giveOrder(u,o,append){
   (u.q||(u.q=[])).push(o)}
 function nextOrder(u){while(u.q&&u.q.length){const o=u.q.shift();if(orderValid(o)){applyOrder(u,o);return true}}return false}
 const ordPos=o=>{if(o.x!==undefined)return{x:o.x,y:o.y};const e=o.tid?get(o.tid):null;return e?{x:e.x,y:e.y}:null};
-function command(wx,wy,append){
+function command(wx,wy,append,sp){
   const s=ownSel();if(!s.length)return;
-  const t=NET.tgtSet?NET.tgt:entityAt(wx,wy);
+  const t=NET.tgtSet?NET.tgt:entityAt(wx,wy,sp);
   if(NET.client){NET.send({c:'cmd',ids:s.map(e=>e.id),x:wx,y:wy,tid:t?t.id:0,append:!!append});fxMark(wx,wy,t&&t.team===1?'attack':'move');return}
   if(s[0].kind==='bld'){s.forEach(b=>{if(b.kind==='bld')b.rally={x:wx,y:wy,id:t&&t.kind==='node'?t.id:null,nodeType:t&&t.kind==='node'?t.rt:null}});fxMark(wx,wy,'rally');return}
   const units=s.filter(e=>e.kind==='unit');const cols=Math.ceil(Math.sqrt(units.length));let i=0;
