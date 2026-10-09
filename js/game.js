@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const cv=$('c'),ctx=cv.getContext('2d'),mm=$('mini'),mctx=mm.getContext('2d'),view=$('view');
 let dpr=1,VW=0,VH=0,MW=0,MH=0;
 const cam={x:0,y:0,z:1};
-const TILT=.7; /* Kartenneigung: Boden wird in der Höhe auf 70 % gestaucht, Figuren stehen aufrecht darauf */
+const TILT=.86; /* Kartenneigung: Boden wird in der Höhe auf 70 % gestaucht, Figuren stehen aufrecht darauf */
 /* Ton: Eigene Geräusche immer, fremde nur wenn sie im Bild sind */
 /* ---------- Nebel des Krieges ---------- */
 const FC=20,FW=W/FC,FH=H/FC;
@@ -875,6 +875,8 @@ function draw(){
   // alles Aufrechte nach Tiefe (y) sortiert
   const order=vis.filter(e=>!(e.kind==='node'&&e.sea)).concat(ghosts).sort((a,b)=>a.y-b.y);
   for(const e of order){if(e.kind==='node')drawNode(e);else if(e.kind==='unit')drawUnit(e);else drawBld(e)}
+  // Einheiten hinter Gebäuden: durchscheinend noch einmal davor zeichnen
+  {const bl=order.filter(e=>e.kind==='bld');if(bl.length){ctx.save();ctx.globalAlpha=.5;for(const u of order){if(u.kind!=='unit')continue;if(bl.some(b=>u.y<b.y&&Math.abs(u.x-b.x)<b.r+4&&u.y>b.y-SPR.height(b)/TILT))drawUnit(u)}ctx.restore()}}
   // rally
   for(const b of selection())if(b.kind==='bld'&&b.team===0&&b.rally){ctx.setLineDash([5,5]);ctx.strokeStyle='rgba(243,212,138,.7)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(b.rally.x,b.rally.y);ctx.stroke();ctx.setLineDash([]);
     upright(b.rally.x,b.rally.y,()=>{ctx.strokeStyle='#2a2119';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-16);ctx.stroke();ctx.fillStyle=TC[0];ctx.beginPath();ctx.moveTo(0,-16);ctx.lineTo(10,-12);ctx.lineTo(0,-8);ctx.fill()})}
