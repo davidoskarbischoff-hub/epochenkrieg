@@ -25,6 +25,7 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
   Eingabe (Maus, Touch, Tastatur), Zeichnen und Oberfläche.
 
 ## Wichtige Konzepte im Code
+- Nebel des Krieges: Raster `fogEx` (erkundet) und `fogVis` (sichtbar) in `game.js`; Sichtweite steht als `sight` in `data.js`. Gegnerische Einheiten werden nur bei `shown(e)` gezeichnet/anklickbar.
 - Globaler Spielzustand `G` (Entitäten, Ressourcen, Epochen, Statistiken).
 - Entitäten haben `kind`: `unit`, `bld` (Gebäude) oder `node` (Ressourcenquelle). Team 0 = Spieler, 1 = KI, -1 = neutral.
 - Die Simulation läuft in festen Teilschritten (`step(dt)`), die KI denkt einmal pro Sekunde.
