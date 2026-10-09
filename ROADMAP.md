@@ -42,6 +42,13 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Upgrade-Kosten und -Dauer nach dem Testspielen anpassen (`UPG`, `UPG_TIME`)
 - [ ] Einzelne Upgrades statt "alle auf einmal", eigene Technologien pro Epoche
 
+- [x] Karte größer (3600×2400) mit Land und Wasser: tiefes Wasser (nur für Schiffe), flaches Wasser (auch für Truppen), Küste mit Strand
+- [x] Wegfindung (A*), Festhänge-Erkennung, Arbeiter verteilen sich auf Bäume; Bäume stehen weiter auseinander
+- [x] Fischquellen (Fische, Delfine ab Stufe II, Wale ab Stufe III), Hafen am Ufer, Fischerboote, Kriegsschiffe (Bronzezeit)
+- [ ] Seegefechte und Landungen testen und balancen (Kriegsschiffe, Küstenverteidigung)
+- [ ] Gegner-KI nutzt Wasser noch nicht (kein Hafen, keine Boote)
+- [ ] Brücken über tiefes Wasser
+
 ### Einfach
 - [ ] Sounds nach dem Testspielen feinjustieren
 - [ ] Balancing nach dem Testspielen anpassen
