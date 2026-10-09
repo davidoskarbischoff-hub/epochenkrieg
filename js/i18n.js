@@ -197,6 +197,7 @@ const EN={
   'Mehrspieler: Du bist der Gast.':'Multiplayer: you are the guest.',
   'Dein Mitspieler hat das Spiel verlassen':'Your opponent has left the game',
   'Keine Daten vom Gastgeber – Verbindung verloren?':'No data from the host – connection lost?',
+  'Kein Gastgeber gefunden. Der Gastgeber-Tab muss in DIESEM Browser (kein privates Fenster) offen bleiben und in der Lobby warten. Am besten das Spiel mit „npx serve .“ starten und beide Tabs über http://localhost:… öffnen.':'No host found. The host tab must stay open in THIS browser (no private window) and wait in the lobby. Best start the game with "npx serve ." and open both tabs via http://localhost:…',
   // Gebiet
   'Neues Gebiet erobert!':'New territory claimed!',
   'Nur im eigenen Gebiet. Ein Wachturm erobert neues Land.':'Only inside your territory. A watchtower claims new land.'
