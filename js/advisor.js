@@ -1,0 +1,124 @@
+/* Epochenkrieg – Berater: Taktiken, Lagebild, Vorschläge.
+   (Teil des Spiels; alle game-Dateien teilen sich die globalen Namen, Ladereihenfolge siehe index.html.) */
+'use strict';
+/* ---------- Berater: macht Vorschläge, die man annehmen oder ablehnen kann ---------- */
+let advOn=true;try{advOn=localStorage.getItem('ek-advisor')!=='0'}catch(_){}
+const advisor={cur:null,ignore:{},next:0,last:-9,shown:'',strat:'balanced',intel:null,open:true,auto:false,autoAt:0};
+/* Taktiken des Beraters: wk = Arbeiterziel je Epoche, mil = Truppenziel, atk = ab so vielen Truppen Angriff, tow = Türme, barW = ab so vielen Arbeitern Kaserne, w = Reihenfolge der Vorschläge (kleiner = früher) */
+const STRATS={
+  balanced:{name:'Ausgewogen',desc:'Von allem etwas',wk:[10,20,30,40,40],mil:ep=>6+ep*3,atk:ep=>7+ep*2,tow:()=>1,barW:6,bar2:99,hs:1,w:{}},
+  turtle:{name:'Verteidigung',desc:'Türme, solide Armee, spät angreifen',wk:[10,20,30,40,40],mil:ep=>8+ep*3,atk:ep=>16+ep*4,tow:ep=>2+ep,barW:6,bar2:99,hs:1,w:{tower:1,upg:2,army:2,barracks:2,tech:3,attack:9}},
+  boom:{name:'Aufstieg',desc:'So schnell wie möglich in die höchste Epoche',wk:[12,22,32,42,42],mil:ep=>3+ep*2,atk:ep=>14+ep*3,tow:()=>1,barW:9,bar2:99,hs:2,w:{adv:1,upg:1,tech:2,worker:2,house:2,barracks:8,army:8,attack:9}},
+  rush:{name:'Angriff',desc:'Früh viele Truppen, schnell zuschlagen',wk:[8,10,12,14,14],mil:ep=>12+ep*5,atk:ep=>5+ep,tow:()=>1,barW:4,bar2:8,hs:1,w:{barracks:1,army:1,attack:2,worker:4,adv:7,tech:7,upg:6}},
+  eco:{name:'Wirtschaft',desc:'Viele Arbeiter, große Vorräte',wk:[14,26,36,46,46],mil:ep=>4+ep*2,atk:ep=>12+ep*3,tow:()=>1,barW:10,bar2:99,hs:3,w:{worker:1,house:1,harbor:2,tech:2,shift:2,adv:3,upg:3,barracks:7,army:7,attack:9}}
+};
+/* Lagebild: was der Spieler vom Gegner weiß (gemerkte Gebäude, sichtbare Truppen) */
+function advIntel(){
+  const mem=[...G.mem.values()],vis=G.ents.filter(e=>!e.dead&&e.team===1&&e.kind==='unit'&&shown(e)&&!UNITS[e.type].passive);
+  const cnt=(a,f)=>a.filter(f).length,navalVis=cnt(vis,u=>UNITS[u.type].naval);
+  const I={known:mem.length>0,ep:G.epoch[1],bars:cnt(mem,m=>m.type==='barracks'),towers:cnt(mem,m=>m.type==='tower'||m.type==='castle'),harbor:cnt(mem,m=>m.type==='harbor')>0,
+    vis:vis.length,ranged:cnt(vis,u=>UNITS[u.type].ranged&&!UNITS[u.type].naval),horse:cnt(vis,u=>u.type==='knight'),siege:cnt(vis,u=>UNITS[u.type].siege),naval:navalVis,mel:cnt(vis,u=>!UNITS[u.type].ranged&&!UNITS[u.type].naval&&u.type!=='knight')};
+  return I}
+function advIntelText(I){
+  if(!I.known&&!I.vis)return tr('Noch nichts vom Gegner gesehen – Späher losschicken.');
+  const p=[];if(I.known)p.push(tr('Gegner: {0}',tr(EPOCHS[I.ep].name)));
+  if(I.bars)p.push(tr('{0} Kaserne(n)',I.bars));if(I.towers)p.push(tr('{0} Türme/Burgen',I.towers));if(I.harbor)p.push(tr('Hafen'));
+  if(I.vis)p.push(tr('{0} Truppen in Sicht',I.vis));return p.join(' · ')}
+function advFindSpot(type){
+  const hq=G.ents.find(e=>e.type==='hq'&&e.team===0&&!e.dead);if(!hq)return null;const d0=BLDS[type];
+  const base=Math.atan2(H/2-hq.y,W/2-hq.x),far=type==='tower';
+  for(let d=far?200:100;d<=(far?330:320);d+=20)for(let k=0;k<36;k++){const a=base+(k%2?1:-1)*Math.ceil(k/2)*.17;const x=hq.x+Math.cos(a)*d,y=hq.y+Math.sin(a)*d;if(!placeBlock(type,x,y))return{x,y}}
+  return null}
+function advBuild(type){
+  const spot=advFindSpot(type),d=BLDS[type];if(!spot){toast(tr('Kein passender Platz gefunden.'));sfx('error');return false}
+  if(!pay(0,d.cost)){toast(missing(0,d.cost)+'.');return false}
+  const b=addBld(type,0,spot.x,spot.y,false);
+  if(type==='harbor'){let best=0,bs=-9;for(let k=0;k<24;k++){const a=k*.2618;let sc=0;for(const dd of[40,70,100]){const t=terrAt(spot.x+Math.cos(a)*dd,spot.y+Math.sin(a)*dd);sc+=t===0?2:t===1?1:-2}if(sc>bs){bs=sc;best=a}}b.ang=best}
+  const ws=G.ents.filter(e=>!e.dead&&e.team===0&&e.type==='worker'&&!e.upj);
+  ws.sort((a,c)=>((a.state==='idle'?0:1)-(c.state==='idle'?0:1))||(Math.hypot(a.x-b.x,a.y-b.y)-Math.hypot(c.x-b.x,c.y-b.y)));
+  if(ws[0]){ws[0].state='build';ws[0].tid=b.id}
+  sfx('click');return true}
+function advIdle(){
+  const R=G.res[0],ep=G.epoch[0];let i=0;
+  const need=(ep>=2&&R.iron<100)?'iron':(ep>=1&&R.stone<150)?'stone':R.food<R.wood?'food':'wood';
+  for(const u of G.ents){if(u.dead||u.team!==0||u.kind!=='unit'||!UNITS[u.type].gather||u.state!=='idle'||u.upj)continue;
+    const order=UNITS[u.type].naval?['food']:[need,R.food<250?'food':'wood','wood','food'];
+    const rt0=order[i++%order.length];
+    for(const rt of [rt0,'wood','food']){if(!UNITS[u.type].naval&&!canGather(u,rt))continue;const n=nearestNode(rt,u.x,u.y,900,u,true)||nearestNode(rt,u.x,u.y,900,u);if(n){u.state='gather';u.tid=n.id;u.rtype=rt;u.pf=null;break}}}
+  sfx('order')}
+function shiftWorkers(from,to,n){let k=0;for(const w of G.ents){if(k>=n)break;if(w.dead||w.team!==0||w.type!=='worker'||w.rtype!==from||w.state!=='gather'||w.upj||!canGather(w,to))continue;const nd=nearestNode(to,w.x,w.y,900,w,true)||nearestNode(to,w.x,w.y,900,w);if(nd){w.tid=nd.id;w.rtype=to;w.pf=null;w.carry=0;k++}}sfx('order')}
+function sendArmy(tx,ty){const us=G.ents.filter(u=>!u.dead&&u.team===0&&u.kind==='unit'&&!UNITS[u.type].passive&&!UNITS[u.type].naval&&!u.upj);const cols=Math.ceil(Math.sqrt(us.length)||1);us.forEach((u,i)=>giveOrder(u,{t:'amove',x:tx+(i%cols-(cols-1)/2)*20,y:ty+(Math.floor(i/cols)-(cols-1)/2)*20},false));fxMark(tx,ty,'attack');sfx('order')}
+function advRules(){
+  const ep=G.epoch[0],R=G.res[0],hq=G.ents.find(e=>e.type==='hq'&&e.team===0&&!e.dead);if(!hq||!hq.built)return[];
+  const mine=G.ents.filter(e=>!e.dead&&e.team===0),has=t=>mine.filter(e=>e.type===t);
+  const workers=has('worker'),idle=mine.filter(e=>e.kind==='unit'&&UNITS[e.type].gather&&e.state==='idle'&&!e.upj);
+  const queuedW=hq.queue.filter(q=>q.type==='worker').length,rules=[],push=r=>rules.push(r);
+  const bars=has('barracks'),mil=mine.filter(e=>e.kind==='unit'&&!UNITS[e.type].passive&&!UNITS[e.type].naval).length,S=STRATS[advisor.strat]||STRATS.balanced,I=advIntel();advisor.intel=I;
+  // Gefahr: Feinde in der Nähe der Siedlung
+  const blds0=mine.filter(e=>e.kind==='bld');
+  const foes=G.ents.filter(e=>!e.dead&&e.team===1&&e.kind==='unit'&&shown(e)&&blds0.some(b=>dist(b,e)<320));
+  if(foes.length){const c=foes.reduce((a,e)=>({x:a.x+e.x/foes.length,y:a.y+e.y/foes.length}),{x:0,y:0});if(mil>0)push({id:'defend',txt:'Feinde nähern sich! Alle Truppen zur Verteidigung schicken',go:()=>sendArmy(c.x,c.y)})}
+  if(G.pop[0]>=G.cap[0]-S.hs&&G.cap[0]<POPMAX&&!mine.some(e=>e.type==='house'&&!e.built)&&afford(0,BLDS.house.cost)&&advFindSpot('house'))
+    push({id:'house',txt:'eine Hütte bauen (die Bevölkerungsgrenze ist fast erreicht)',cost:BLDS.house.cost,go:()=>advBuild('house')});
+  if(has('scout').some(u=>u.state==='idle'&&!u.upj))push({id:'explore',txt:'die Späher automatisch erkunden lassen',go:()=>{has('scout').forEach(u=>{if(u.state==='idle'){u.state='explore';u.ex=null}});sfx('order')}});
+  if(idle.length)push(idle.length===1?{id:'idle',txt:'eine untätige Einheit an die Arbeit schicken',go:advIdle}:{id:'idle',txt:'{0} untätige Einheiten an die Arbeit schicken',args:[idle.length],go:advIdle});
+  if(workers.length+queuedW<S.wk[ep]&&hq.queue.length<2&&G.pop[0]<G.cap[0]&&afford(0,UNITS.worker.cost))
+    push({id:'worker',txt:'einen Arbeiter ausbilden',cost:UNITS.worker.cost,go:()=>enqueue(hq,'worker',0)&&(panelSig='')});
+  const pd=pending(0);
+  if(pd.n&&!G.adv[0]){const gs=pd.groups.filter(g=>afford(0,g.cost)).sort((a,b)=>a.n-b.n);
+    if(afford(0,pd.cost)&&pd.groups.length>1)push({id:'upg:all',txt:'alles auf Stufe {0} upgraden',args:[LVLN[ep]],cost:pd.cost,go:()=>startUpgrade(0,'all')});
+    else if(gs[0])push({id:'upg:'+gs[0].key,txt:'{0} auf Stufe {1} upgraden',args:[tr(gs[0].nm),LVLN[ep]],cost:gs[0].cost,go:()=>startUpgrade(0,gs[0].key)})}
+  if(ep<EPOCHS.length-1&&!G.adv[0]&&!pd.n&&!G.jobs[0].length&&afford(0,EPOCHS[ep].cost))push({id:'adv',txt:'in die {0} aufsteigen',args:[tr(EPOCHS[ep+1].name)],cost:EPOCHS[ep].cost,go:()=>advance(0)});
+  if(!bars.length&&workers.length>=S.barW&&afford(0,BLDS.barracks.cost)&&advFindSpot('barracks'))push({id:'barracks',txt:'eine Kaserne bauen, um Truppen auszubilden',cost:BLDS.barracks.cost,go:()=>advBuild('barracks')});
+  if(ep>=(advisor.strat==='turtle'?0:1)&&has('tower').length<S.tow(ep)&&workers.length>=8&&afford(0,BLDS.tower.cost)&&advFindSpot('tower'))push({id:'tower',txt:'einen Wachturm bauen, um Land zu erobern und zu überblicken',cost:BLDS.tower.cost,go:()=>advBuild('tower')});
+  if(!has('harbor').length&&workers.length>=9&&afford(0,BLDS.harbor.cost)&&advFindSpot('harbor'))push({id:'harbor',txt:'einen Hafen bauen, um Fische zu fangen',cost:BLDS.harbor.cost,go:()=>advBuild('harbor')});
+  const ub=bars.find(b=>b.built&&b.queue.length<1);
+  if(ub&&mil<S.mil(ep)){const t=Object.keys(UNITS).filter(k=>UNITS[k].from==='barracks'&&UNITS[k].ep<=ep&&!UNITS[k].siege&&(!UNITS[k].tech||G.tech[0].has(UNITS[k].tech))).sort((a,b)=>UNITS[b].ep-UNITS[a].ep).find(k=>afford(0,UNITS[k].cost));if(t)push({id:'army',txt:'{0} ausbilden',args:[tr(UNITS[t].name)],cost:UNITS[t].cost,go:()=>enqueue(ub,t,0)&&(panelSig='')})}
+  {const have=new Set([...G.tech[0],...G.rs[0].map(r=>r.id)]);const cand=TECHS.filter(t=>t.ep<=ep&&!have.has(t.id)&&afford(0,t.cost)&&mine.some(e=>e.kind==='bld'&&e.built&&(e.type===t.bld||(t.blds&&t.blds.includes(e.type)))));
+    const prefer=cand.find(t=>t.bld==='barracks'&&bars.length&&!t.fx.ratk&&!t.fx.matk&&!t.fx.hp)||cand.find(t=>t.bld==='hq')||cand[0];
+    if(prefer&&!G.rs[0].length&&workers.length>=6)push({id:'tech:'+prefer.id,txt:'die Technologie {0} erforschen',args:[tr(prefer.name)],cost:prefer.cost,go:()=>startResearch(0,prefer.id)})}
+  // Angriff, wenn die Armee groß genug ist und ein Ziel bekannt ist
+  {const known=[...G.mem.values()];const tgt=known.find(m=>m.type==='hq')||known.sort((a,b)=>dist(a,hq)-dist(b,hq))[0];
+    if(tgt&&mil>=S.atk(ep)&&!foes.length)push({id:'attack',txt:'mit {0} Truppen das gegnerische {1} angreifen',args:[mil,tr(BLDS[tgt.type].name)],go:()=>sendArmy(tgt.x,tgt.y)})}
+  // Rohstoffmangel: für den nächsten Aufstieg fehlt eine Ressource, aber kaum jemand sammelt sie
+  if(ep<EPOCHS.length-1&&workers.length>=8){const goal=EPOCHS[ep].cost;
+    for(const rt of RES){const need=goal[rt]||0;if(!need||R[rt]>=need)continue;const on=workers.filter(w=>w.rtype===rt&&(w.state==='gather'||w.state==='return')).length;if(on>=2||!workers.some(w=>canGather(w,rt)))continue;
+      const donor=RES.filter(x=>x!==rt&&R[x]>(goal[x]||0)+150).sort((a,b)=>R[b]-R[a])[0];if(donor){push({id:'shift:'+rt,txt:'Arbeiter auf {0} umstellen (wird für den Aufstieg gebraucht)',args:[rn(rt)],go:()=>shiftWorkers(donor,rt,3)});break}}}
+  if(G.t>40&&!has('scout').length&&hq.queue.length<2&&afford(0,UNITS.scout.cost))push({id:'scout',txt:'einen Späher ausbilden, um die Karte zu erkunden',cost:UNITS.scout.cost,go:()=>enqueue(hq,'scout',0)&&(panelSig='')});
+  // zweite Kaserne bei Angriffstaktik
+  if(bars.length===1&&bars[0].built&&workers.length>=S.bar2&&afford(0,BLDS.barracks.cost)&&advFindSpot('barracks'))push({id:'barracks2',txt:'eine zweite Kaserne bauen, um mehr Truppen gleichzeitig auszubilden',cost:BLDS.barracks.cost,go:()=>advBuild('barracks')});
+  // Erkenntnisse über den Gegner
+  if(I.known||I.vis){
+    const trainable=ks=>{const b=bars.find(b=>b.built&&b.queue.length<2);if(!b)return null;const t=ks.find(k=>UNITS[k]&&UNITS[k].ep<=ep&&(!UNITS[k].tech||G.tech[0].has(UNITS[k].tech))&&afford(0,UNITS[k].cost));return t?{b,t}:null};
+    const counter=(id,txt,ks)=>{const c=trainable(ks);if(c)push({id,txt,args:[tr(UNITS[c.t].name)],cost:UNITS[c.t].cost,go:()=>enqueue(c.b,c.t,0)&&(panelSig='')})};
+    if(I.horse>=2)counter('cn:horse','Der Gegner hat Reiter – {0} ausbilden (stark gegen Reiter)',['spear']);
+    if(I.ranged>=4)counter('cn:ranged','Der Gegner setzt auf Fernkämpfer – {0} ausbilden, um sie schnell zu erreichen',['knight','sword','club']);
+    if(I.mel>=5&&I.mel>mil)counter('cn:mel','Viele gegnerische Nahkämpfer – {0} ausbilden (schießen aus der Distanz)',['musket','crossbow','archer']);
+    if(I.towers>=2||I.siege)counter('cn:siege','Der Gegner baut Türme und Burgen – {0} ausbilden, um sie zu brechen',['cannon','catapult','ram']);
+    if(I.vis>=4&&I.vis>mil+2&&hq)push({id:'in:weak',txt:'Achtung: Der Gegner hat mehr Truppen in Sicht ({0}) als du ({1}) – mehr Truppen und Türme einplanen',args:[I.vis,mil],go:()=>{sfx('click')}});
+    if(I.known&&I.ep>ep&&ep<EPOCHS.length-1)push({id:'in:behind',txt:'Der Gegner ist schon in der {0} – du liegst zurück, steige bald auf',args:[tr(EPOCHS[I.ep].name)],go:()=>{sfx('click')}});
+    if((I.harbor||I.naval)&&!has('harbor').length&&workers.length>=8&&afford(0,BLDS.harbor.cost)&&advFindSpot('harbor'))push({id:'in:harbor',txt:'Der Gegner hat Schiffe oder einen Hafen – baue selbst einen Hafen und Kriegsschiffe',cost:BLDS.harbor.cost,go:()=>advBuild('harbor')});
+  }
+  const bw=(S.w||{}),base={defend:0,idle:1,explore:3,in:4},key=r=>{const k=r.id.split(':')[0];return bw[k]!==undefined?bw[k]:base[k]!==undefined?base[k]:5};
+  rules.sort((a,b)=>key(a)-key(b));
+  return rules}
+function advisorUI(){
+  const el=$('advisor');if(!el)return;const c=advisor.cur;
+  if(!advOn||!G||!G.running||menuOpen||G.mp){el.hidden=true;advisor.shown='';return}
+  el.hidden=false;
+  const I=advisor.intel||advIntel();
+  const chips=Object.entries(STRATS).map(([k,v])=>`<button class="st" data-st="${k}" aria-pressed="${k===advisor.strat}" title="${tr(v.desc)}">${tr(v.name)}</button>`).join('');
+  const html=`<div class="ah"><span class="ai">★</span><b>${tr('Berater')}</b><button class="auto" data-ad="auto" aria-pressed="${advisor.auto}" title="${tr('Auto-Modus: Vorschläge werden nach 2 Sekunden automatisch angenommen')}">${tr('Auto')} ${advisor.auto?tr('an'):tr('aus')}</button><button class="x" data-ad="tog" title="${tr('Einklappen')}">${advisor.open?'–':'+'}</button></div>`+(advisor.open?`<div class="sts" role="group" aria-label="${tr('Taktik')}">${chips}</div><p class="intel">${advIntelText(I)}</p>`:'')+(c?`<p>${tr('Dein Berater schlägt vor:')} <b>${tr(c.txt,...(c.args||[]))}</b></p>${c.cost?`<div class="ac">${costHTML(c.cost)}</div>`:''}<div class="ab"><button class="ub ok" data-a="y">${tr('Annehmen')} (Y)</button><button class="ub bad" data-a="n">${tr('Ablehnen')} (X)</button></div>`:'');
+  if(html!==advisor.shown){advisor.shown=html;el.innerHTML=html}}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#advisor [data-st],#advisor [data-ad]');if(!t)return;if(t.dataset.st){advisor.strat=t.dataset.st;advisor.ignore={};advisor.cur=null;advisor.next=0;advisor.last=-9;toast(tr('Taktik: {0}',tr(STRATS[advisor.strat].name)),'good');sfx('click')}else if(t.dataset.ad==='auto'){advisor.auto=!advisor.auto;advisor.autoAt=G.t+2;toast(advisor.auto?tr('Auto-Modus an: Der Berater handelt selbst.'):tr('Auto-Modus aus.'),'good')}else advisor.open=!advisor.open;advisor.shown='';advisorUI()});
+function advisorTick(){
+  if(!G||!G.running||G.over)return;if(G.mp){advisor.cur=null;return}
+  if(!advOn){advisor.cur=null;return}
+  if(G.t-advisor.last<1)return;advisor.last=G.t;
+  const rules=advRules().filter(r=>!(advisor.ignore[r.id]>G.t));
+  if(advisor.cur&&rules.some(r=>r.id===advisor.cur.id)){advisor.cur=rules.find(r=>r.id===advisor.cur.id);if(advisor.auto&&G.t>=advisor.autoAt)advAnswer(true);return}
+  advisor.cur=null;
+  if(G.t>=advisor.next&&rules.length){advisor.cur=rules[0];advisor.shown='';advisor.autoAt=G.t+2;sfx('select')}}
+function advAnswer(yes){const c=advisor.cur;if(!c)return;advisor.cur=null;advisor.shown='';advisor.next=G.t+(yes?5:3);advisor.ignore[c.id]=G.t+(yes?20:120);if(yes)c.go();panelSig='';infoCache='';advisorUI()}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#advisor [data-a]');if(b)advAnswer(b.dataset.a==='y')});
+

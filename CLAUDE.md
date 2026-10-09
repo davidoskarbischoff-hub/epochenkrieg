@@ -23,12 +23,13 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
 - `js/i18n.js` – Sprachen Deutsch/Englisch: im Code deutsch schreiben, mit `tr('Text {0}',wert)` umschliessen, englische Übersetzung im Wörterbuch `EN` ergänzen.
 - `js/audio.js` – Klang (Web Audio, keine Audiodateien): Geräusche `SND.play(name)`, Lautstärke per Regler im Menü und klassische Hintergrundmusik pro Epoche (Satie, Pachelbel, Grieg).
 - `js/net.js` – Mehrspieler-Verbindung und Lobby (`Lobby`): WebRTC über PeerJS (Einladungslink `?join=ID`) oder lokal per BroadcastChannel (`?join=local:CODE`, zwei Tabs).
-- `js/sprites.js` – 2,5D-Grafik (`SPR.unit/bld/tree/bush/rock/height`): aufrechte Seitenansichten mit Volumen, Zeichenursprung = Bodenpunkt. Die Karte wird mit `TILT`=0.7 gestaucht (`game.js`: `draw`, `toWorld`, `clampCam`, `entityAt`); aufrechte Dinge zeichnet man mit `upright(x,y,fn)`. Alles wird nach y sortiert gezeichnet.
+- `js/sprites.js` – 2,5D-Grafik (`SPR.unit/bld/tree/bush/rock/height`): aufrechte Seitenansichten mit Volumen, Zeichenursprung = Bodenpunkt. Die Karte wird mit `TILT`=0.86 gestaucht (`render.js`: `draw`; `input.js`: `toWorld`, `clampCam`; `commands.js`: `entityAt`); aufrechte Dinge zeichnet man mit `upright(x,y,fn)`. Alles wird nach y sortiert gezeichnet.
 - `js/art.js` – (alte Draufsicht; nur noch `ART.icon` für die Oberfläche wird genutzt)
 - `js/art.js` – Grafik für Einheiten, Gebäude, Bäume, Büsche und Felsen (`ART.unit/bld/tree/bush/rock`): gleicher Stil mit dunklem Umriss und hellem Lichtpunkt. Jede Einheit hat eine eigene Funktion in `ART_UNIT`.
-- `js/game.js` – Spiellogik in einem IIFE: Kartengenerierung, Einheiten-Zustandsmaschine
-  (idle, move, amove, attack, gather, return, build), Kampf und Projektile, Gegner-KI (`aiTick`),
-  Eingabe (Maus, Touch, Tastatur), Zeichnen und Oberfläche.
+- Spiellogik (früher eine Datei `game.js`, jetzt aufgeteilt; alle Dateien teilen sich globale Namen, Ladereihenfolge siehe `index.html`):
+  `state.js` (Seite, Kamera, Nebel, Gebiet, Bauregeln, `NET`), `map.js` (Entitäten, Kartengenerierung), `sim.js` (Spielschritt, Einheiten-Zustandsmaschine, Kampf, Ausbildung, Stufen, Technologien),
+  `ai.js` (Gegner-KI `aiTick`), `commands.js` (Spielerbefehle, Befehlsketten), `input.js` (Kamera, Maus, Touch, Tastatur), `mp.js` (Mehrspieler im Spiel),
+  `advisor.js` (Berater, Taktiken `STRATS`, Lagebild), `render.js` (Zeichnen, Minikarte), `ui.js` (Menü, Info-Feld, Befehlsknöpfe, Startbildschirm, Ende), `main.js` (Spielschleife).
 
 ## Wichtige Konzepte im Code
 - Mehrspieler (`NET` und Abschnitt "Mehrspieler" in `game.js`): Der Gastgeber rechnet alles, der Gast bekommt 10-mal pro Sekunde einen Spielstand (`encodeSnap`/`applySnap`) und schickt Befehle (`NET.send({c:...})`, Gast-Wächter am Anfang von `command`, `attackMove`, `tryPlace`, `enqueue`, `advance`, `startUpgrade`, `startResearch`, `cancelQueue`). Jeder sieht sich selbst als Team 0 (blau): der Gastgeber vertauscht die Teams kurz (`flipTeams`) zum Senden des Standes und zum Ausführen von Gast-Befehlen (`execRemote`). Neue Spieleraktionen müssen deshalb einen `NET.client`-Wächter bekommen und in `execRemote` einen `case`. Im Mehrspieler gibt es keine KI, keinen Berater, keine Pause.
