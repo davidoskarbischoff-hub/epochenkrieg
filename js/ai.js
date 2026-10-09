@@ -40,8 +40,16 @@ function aiTick(){
     for(const rt of order){const node=nearestNode(rt,hq.x,hq.y,900,w,true)||nearestNode(rt,hq.x,hq.y,900,w);if(node){w.state='gather';w.tid=node.id;w.rtype=rt;cnt[rt]++;break}}}
   // Bauarbeiter
   for(const b of unbuilt){const busy=workers.some(w=>w.state==='build'&&w.tid===b.id);if(!busy){let bw=null,bd=1e9;for(const w of workers){if(w.state==='build')continue;const d=dist(w,b);if(d<bd){bd=d;bw=w}}if(bw){bw.state='build';bw.tid=b.id}}}
+  // Lager neben weit entfernten Vorkommen, damit die Wege kurz bleiben
+  if(G.t>(ai.storeT||60)&&workers.length>=8&&!unbuilt.some(b=>b.type==='store')&&afford(1,BLDS.store.cost)){ai.storeT=G.t+30;
+    const drops=blds.filter(b=>b.built&&BLDS[b.type].drop),far={};
+    for(const w of workers){if(w.state!=='gather'||!w.tid)continue;const n=get(w.tid);if(!n||n.sea)continue;if(Math.min(...drops.map(d=>dist(d,n)))>210)(far[n.rt]=far[n.rt]||[]).push(n)}
+    const best=Object.values(far).sort((a,b)=>b.length-a.length)[0];
+    const cx=best?best.reduce((s,n)=>s+n.x,0)/best.length:0,cy=best?best.reduce((s,n)=>s+n.y,0)/best.length:0;
+    if(best&&best.length>=3&&blds.filter(b=>b.type==='store').length<2+ep&&!blds.some(b=>b.type==='store'&&Math.hypot(b.x-cx,b.y-cy)<190)){
+      for(let d=24;d<=120;d+=12){let done=false;for(let k=0;k<14;k++){const a=Math.random()*6.283,x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d;if(validSpot(x,y,BLDS.store.r)){pay(1,BLDS.store.cost);addBld('store',1,x,y,false);done=true;break}}if(done)break}}}
   // Gebäude
-  if(G.cap[1]-G.pop[1]<=3&&G.cap[1]<POPMAX&&!unbuilt.some(b=>b.type==='house'))aiPlace('house',hq,90,200);
+  if(G.cap[1]-G.pop[1]<=3&&G.cap[1]<POPMAX&&!unbuilt.some(b=>b.type==='house'))(aiPlace('house',hq,90,200)||aiPlace('house',hq,150,330));
   const nBar=blds.filter(b=>b.type==='barracks').length,wantBar=ep>=2&&diff!=='leicht'?2:1;
   if(nBar<wantBar&&workers.length>=6&&!unbuilt.some(b=>b.type==='barracks')){const b=aiPlace('barracks',hq,110,210);if(b){const a=Math.atan2(H/2-hq.y,W/2-hq.x);b.rally={x:hq.x+Math.cos(a)*170,y:hq.y+Math.sin(a)*170}}}
   if(diff!=='leicht'&&!saving&&!blds.some(b=>b.type==='tower')&&(ep>=1||(G.t>170&&workers.length>=10)))aiPlace('tower',hq,70,140);
