@@ -76,6 +76,7 @@ const EN={
   'alles auf Stufe {0} upgraden':'upgrade everything to level {0}','{0} auf Stufe {1} upgraden':'upgrade {0} to level {1}','in die {0} aufsteigen':'advance to the {0}',
   'eine Kaserne bauen, um Truppen auszubilden':'build barracks to train troops','einen Wachturm bauen, um Land zu erobern und zu überblicken':'build a watchtower to claim and overlook land',
   'einen Hafen bauen, um Fische zu fangen':'build a harbor to catch fish','{0} ausbilden':'train {0}','einen Späher ausbilden, um die Karte zu erkunden':'train a scout to explore the map',
+  'Umschalt gedrückt: Befehle werden hintereinander ausgeführt':'Shift held: orders are carried out one after another','Befehlskette: {0} weitere Aufträge':'Order chain: {0} more orders',
   // Gebiet
   'Neues Gebiet erobert!':'New territory claimed!',
   'Nur im eigenen Gebiet. Ein Wachturm erobert neues Land.':'Only inside your territory. A watchtower claims new land.'

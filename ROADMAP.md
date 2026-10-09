@@ -58,6 +58,9 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Berater klüger machen (Angriffe erkennen, Ressourcenengpässe, Verteidigung)
 - [ ] Interface weiter an War Selection annähern (Farben, Minikarte, Bildschirmanordnung)
 
+- [x] Befehlsketten: Umschalt + Rechtsklick/Bauen/Angriffsmarsch hängt Aufträge an (Nummern und Linie auf der Karte)
+- [ ] Befehlsketten: Schleife (Patrouille), Kette per Tastenkürzel löschen
+
 ### Einfach
 - [ ] Sounds nach dem Testspielen feinjustieren
 - [ ] Balancing nach dem Testspielen anpassen
