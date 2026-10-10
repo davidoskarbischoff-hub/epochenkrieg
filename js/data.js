@@ -129,6 +129,10 @@ const AI_STYLES={
 };
 const AI_MINT=[230,520,900,1320,1800,2300]; /* früheste Zeit (s), zu der die KI in die nächste Epoche steigen darf (normal) */
 const TC=['#3d72b8','#b9442f'],TCD=['#1f3f6b','#6e2215'],TCL=['#8fb4e6','#ef9b86'];
+/* Teamfarben zur Auswahl (Mehrspieler) */
+const PALETTE=[['Blau','#3d72b8'],['Rot','#b9442f'],['Grün','#4a8a3a'],['Gelb','#d1a82c'],['Violett','#7a4aa8'],['Orange','#d27a2a'],['Türkis','#2a9a9a'],['Weiss','#d8d8d0']];
+function shadeHex(h,k){const n=parseInt(h.slice(1),16),f=c=>Math.max(0,Math.min(255,Math.round(k>=0?c+(255-c)*k:c*(1+k))));return'#'+[(n>>16)&255,(n>>8)&255,n&255].map(f).map(v=>v.toString(16).padStart(2,'0')).join('')}
+function setTeamColors(a,b){[a,b].forEach((c,i)=>{TC[i]=c;TCD[i]=shadeHex(c,-.45);TCL[i]=shadeHex(c,.5)})}
 const MAT=[{wall:'#7d5f3b',roof:'#a8834f',line:'#4f3a22'},{wall:'#b48a5a',roof:'#cfa66e',line:'#6f5131'},{wall:'#86837c',roof:'#aaa69d',line:'#55524c'},{wall:'#a29d94',roof:'#9a4a38',line:'#4a443d'},{wall:'#c0b4a0',roof:'#58708a',line:'#3a3d46'},{wall:'#a8503f',roof:'#3e444d',line:'#2d2926'},{wall:'#8a8f86',roof:'#4a4f4a',line:'#2a2d2a'}];
 const STATE={idle:'Wartet',move:'Unterwegs',amove:'Angriffsmarsch',attack:'Kämpft',build:'Baut',explore:'Erkundet'};
 

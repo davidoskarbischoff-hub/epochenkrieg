@@ -78,7 +78,8 @@ function execRemote(m){
 function startMP(o){
   NET.mp=true;NET.host=o.role==='host';NET.client=o.role==='client';NET.send=o.send;NET.acc=0;NET.lastSnap=performance.now();
   const flip=NET.host?o.side==='B':o.side!=='B';
-  newGame('normal',false,{map:o.map,seed:o.seed,flip,mp:true});
+  const cf=o.cfg||{};if(cf.colH&&cf.colG){NET.host?setTeamColors(cf.colH,cf.colG):setTeamColors(cf.colG,cf.colH)}
+  newGame('normal',false,{map:o.map,seed:o.seed,flip,mp:true,size:cf.size,speed:cf.speed});$('speedBtn').textContent=tr('Tempo {0}×',G.speed);
   G.running=true;G.started=true;$('overlay').hidden=true;$('menu').hidden=true;menuOpen=false;
   toast(tr(NET.host?'Mehrspieler: Du bist der Gastgeber.':'Mehrspieler: Du bist der Gast.'));updateUI()}
 function endMP(){NET.mp=false;NET.host=false;NET.client=false;NET.send=null}
