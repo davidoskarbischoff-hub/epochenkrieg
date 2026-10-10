@@ -109,6 +109,13 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
 - Veröffentlichen: GitHub-Release mit Tag `vX.Y.Z` → `.github/workflows/release-app.yml` baut (Version aus dem Tag via `-c.extraMetadata.version`), hängt `Epochenkrieg-Setup-X.Y.Z.exe` + `latest.yml` (+ Mac) ans Release; nutzt nur den automatischen `GITHUB_TOKEN` (Einstellung: Actions → Workflow permissions → Read and write). `.github/workflows/web-check.yml` prüft die Syntax bei jedem Push. `.nojekyll` hält GitHub Pages schlank. Anleitung für David/Tester: `VEROEFFENTLICHEN.md`.
 - Grenzen: Windows-Installer ist nicht signiert (SmartScreen-Warnung, siehe Anleitung); Mac ohne Auto-Installation; Linux nicht gebaut; Electron-Test lokal nur mit `xvfb-run npx electron . --no-sandbox --smoke` (Windows-Installer lässt sich unter Linux nur bis `win-unpacked` bauen, `wine` fehlt).
 
-## Grafik-Fahrplan (nach dem ersten Release)
-Schritte (jeweils eigenes Release): 1) Licht & Stimmung ✔ (wärmere Sonne `0xffe2b8`, kühles Gegenlicht `fill`, Kontaktschatten `aoDecal` unter Gebäuden, Vignette `#vig`, leichte Farbkorrektur `#gl{filter}`), 2) Gelände & Wasser (Bodentexturen, Küstenschaum, Wasserreflexion), 3) Vegetation (Bäume, Windbewegung, Gras), 4) Gebäude- und Einheitenmaterialien (Detailtexturen), 5) Effekte (Rauch, Feuer, Staub, Treffer), 6) Nachbearbeitung (Bloom, SSAO) – braucht Three.js-Zusätze.
+## Grafik-Fahrplan (Schritte 1–6 sind umgesetzt, noch nicht veröffentlicht)
+1) Licht & Stimmung (wärmere Sonne, kühles Gegenlicht `fill`, Kontaktschatten `aoDecal` unter Gebäuden, Vignette `#vig`, Farbkorrektur `#gl{filter}`; Achtung: `optApply` setzt den Filter inline).
+2) Gelände & Wasser: Küstenschaum `r3.foam` (pulsiert in `r3Frame`), grossflächige Bodenvariation per `onBeforeCompile` im Terrain-Material.
+3) Vegetation: Wind (`WIND`, `windify` – Vertex-Shader-Zusatz für Bäume, Büsche, Gras).
+4) Materialien: alle `MeshStandardMaterial` erben eine schwache Umgebungsspiegelung (Unterklasse am Anfang von `models3d.js`, `scene.environment`).
+5) Effekte: Rauch (`r3Smoke`, Sprite-Pool, Quellen in `SMOKE_SRC`, nur sichtbare Gebäude; im Sparmodus aus). Hinweis: `THREE.Points` mit eigenem Shader wurde in Tests nicht zuverlässig gezeichnet → Sprites.
+6) Leuchten: `#bloom` (verkleinerte, weichgezeichnete Kopie des GL-Bildes mit `mix-blend-mode:screen`, `r3Bloom`, Option `OPT.bloom`).
+Idee für später: echte Nachbearbeitung (SSAO, Bloom mit Render-Target) braucht Three.js-Zusätze; Wasserspiegelung; Tag/Nacht.
 - Mac-Bau: `desktop/scripts/adhoc-sign.js` (afterPack) setzt eine Eigen-Signatur gegen die Meldung „beschädigt“.
+- Vorkommen: Stein/Eisen in mittlerer und grosser Entfernung zahlreicher (`near(...)` Ringe und `feats` in `map.js`), `NODES` stone 2400, iron 3000; am Start bleibt es klein.
