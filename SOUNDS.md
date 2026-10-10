@@ -10,6 +10,7 @@ Epochenkrieg verwendet **keine Audiodateien**. Jeder Ton wird beim Spielen im Br
   - Mittelalter: *Greensleeves* (traditionell, gemeinfrei)
   - Renaissance: Ludwig van Beethoven, *Ode an die Freude* (1824, gemeinfrei)
   - Industriezeit: eigene Marschmelodie (Eigenkomposition im Stil des 19. Jahrhunderts)
+  - Klang-Technik: Hall (Faltungshall aus abklingendem Rauschen), Stereo-Position und Lautstärke nach Bildschirmposition, Kompressor gegen Übersteuern, Klavier/Zupf-/Streicher-Klänge aus Oszillatoren.
   - Kampfmusik: eigene Trommel-, Bläser- und Streicherebenen je Epoche (Eigenkomposition), mit drei Spannungsstufen (Epochenmusik, Kampfebene, Höchststufe bei großen Gefechten).
 
 Die Noten sind vereinfachte Eigenbearbeitungen; die Werke selbst sind gemeinfrei. Es werden keine Samples, Soundfonts oder Bibliotheken von Dritten eingebunden.

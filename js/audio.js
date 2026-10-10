@@ -1,6 +1,6 @@
 /* Epochenkrieg – Klang. Alles wird im Browser erzeugt (Web Audio), keine Audiodateien. */
 const SND=(()=>{
-let ac=null,master,sfxG,musG,musBase,musWar,musHi,muted=false,bat=0,noiseBuf,musicV=.7,sfxV=.7,musTimer=null,epoch=0,fight=0,alertV=0,tn=0,mdst=null;
+let cur=null,ac=null,master,sfxG,musG,musBase,musWar,musHi,muted=false,bat=0,noiseBuf,musicV=.7,sfxV=.7,musTimer=null,epoch=0,fight=0,alertV=0,tn=0,mdst=null;
 const last={};
 try{muted=localStorage.getItem('ek-mute')==='1'}catch(_){}
 try{const m=localStorage.getItem('ek-music-v'),f=localStorage.getItem('ek-sfx-v');if(m!==null)musicV=+m;if(f!==null)sfxV=+f}catch(_){}
@@ -9,10 +9,14 @@ const save=()=>{try{localStorage.setItem('ek-music-v',musicV);localStorage.setIt
 function init(){
   if(ac){if(ac.state==='suspended')ac.resume();return}
   const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
-  ac=new C();master=ac.createGain();master.gain.value=muted?0:.8;master.connect(ac.destination);
+  ac=new C();master=ac.createGain();master.gain.value=muted?0:.8;{const cp=ac.createDynamicsCompressor();cp.threshold.value=-14;cp.ratio.value=4;cp.attack.value=.01;cp.release.value=.25;master.connect(cp);cp.connect(ac.destination)}
   sfxG=ac.createGain();sfxG.gain.value=sfxV*.57;sfxG.connect(master);
   musG=ac.createGain();musG.gain.value=musicV*.45;musG.connect(master);
   musBase=ac.createGain();musBase.connect(musG);musWar=ac.createGain();musWar.gain.value=0;musWar.connect(musG);musHi=ac.createGain();musHi.gain.value=0;musHi.connect(musG);mdst=musBase;
+  /* Hall: ein künstlicher Nachhall (Rauschen, das schnell abklingt) macht Musik und Geräusche räumlicher */
+  {const len=Math.floor(ac.sampleRate*2.4),ir=ac.createBuffer(2,len,ac.sampleRate);for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6)}
+    const cv=ac.createConvolver();cv.buffer=ir;const out=ac.createGain();out.gain.value=1;cv.connect(out);out.connect(master);
+    const sm=ac.createGain();sm.gain.value=.32;musG.connect(sm);sm.connect(cv);const ss=ac.createGain();ss.gain.value=.14;sfxG.connect(ss);ss.connect(cv)}
   noiseBuf=ac.createBuffer(1,ac.sampleRate,ac.sampleRate);
   const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
   // Wind: leises, langsam an- und abschwellendes Rauschen
@@ -22,13 +26,13 @@ function init(){
 }
 
 /* ---- Bausteine ---- */
-function tone(f,t,dur,{type='sine',vol=.3,to=null,dest=sfxG,atk=.005}={}){
+function tone(f,t,dur,{type='sine',vol=.3,to=null,dest=cur||sfxG,atk=.005}={}){
   const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
   if(to)o.frequency.exponentialRampToValueAtTime(to,t+dur);
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+atk);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   o.connect(g);g.connect(dest);o.start(t);o.stop(t+dur+.05);
 }
-function noise(t,dur,{f=1000,to=null,q=1,type='bandpass',vol=.3,dest=sfxG}={}){
+function noise(t,dur,{f=1000,to=null,q=1,type='bandpass',vol=.3,dest=cur||sfxG}={}){
   const s=ac.createBufferSource();s.buffer=noiseBuf;s.loop=true;
   const fl=ac.createBiquadFilter();fl.type=type;fl.Q.value=q;fl.frequency.setValueAtTime(f,t);
   if(to)fl.frequency.exponentialRampToValueAtTime(to,t+dur);
@@ -83,11 +87,12 @@ const FX={
   lose:t=>[0,.3,.6].forEach((d,i)=>{tone([330,262,196][i],t+d,1.1,{type:'sawtooth',vol:.18})})
 };
 const GAP={grunt:.5,yell:1.2,horn:4,growl:.8,deer:.6,chop:.18,mine:.18,pick:.18,hammer:.18,hit:.06,arrow:.06,die:.05,click:.03,select:.05,order:.05,drop:.1,crumble:.2};
-function play(name){
+function play(name,pan=0,vol=1){
   if(!ac||sfxV<=0||!FX[name])return;
   const n=ac.currentTime;if(last[name]&&n-last[name]<(GAP[name]||.02))return;last[name]=n;
   if(name==='hit'||name==='arrow'||name==='die'||name==='crumble')fight=Math.min(1,fight+.3);
-  FX[name](n+.005);
+  const b=ac.createGain(),pn=ac.createStereoPanner();b.gain.value=vol;pn.pan.value=Math.max(-.9,Math.min(.9,pan));b.connect(pn);pn.connect(sfxG);cur=b;
+  try{FX[name](n+.005)}finally{cur=null}
 }
 
 /* ---- Musik: drei gemeinfreie klassische Stücke, vereinfacht und mit Synthesizer gespielt ----
@@ -100,13 +105,13 @@ const seq=(start,notes,dur,out,inst,vol)=>notes.forEach((n,i)=>{if(n)out.push({b
 function pieceSatie(){ // 3/4, ruhig und weit
   const ev=[],chords=[['G2',['B3','D4','F#4','A4']],['D2',['A3','C#4','F#4','A4']]];
   for(let bar=0;bar<8;bar++){const [bass,ch]=chords[bar%2];
-    ev.push({b:bar*3,m:midi(bass),d:2.8,i:'pad',v:.5});
-    ch.forEach(n=>ev.push({b:bar*3+1,m:midi(n),d:1.8,i:'pad',v:.16}));
+    ev.push({b:bar*3,m:midi(bass),d:2.8,i:'piano',v:.5});ev.push({b:bar*3,m:midi(bass),d:2.8,i:'pad',v:.2});
+    ch.forEach(n=>ev.push({b:bar*3+1,m:midi(n),d:1.8,i:'piano',v:.18}));
     ev.push({b:bar*3,m:0,d:0,i:'drum',v:.5});
   }
   const tune=[[0,'F#5',2],[2,'A5',1],[3,'G5',1.5],[4.5,'F#5',1.5],[6,'C#5',1.5],[7.5,'B4',1.5],[9,'C#5',1.5],[10.5,'D5',1.5],
     [12,'A4',3],[15,'F#5',2],[17,'A5',1],[18,'G5',1.5],[19.5,'F#5',1.5],[21,'C#5',1.5],[22.5,'D5',1.5]];
-  tune.forEach(([b,n,d])=>ev.push({b,m:midi(n),d:d+.5,i:'flute',v:.4}));
+  tune.forEach(([b,n,d])=>{ev.push({b,m:midi(n),d:d+.5,i:'flute',v:.3});ev.push({b,m:midi(n),d:d+.5,i:'piano',v:.28})});
   return{bpm:58,len:24,ev};
 }
 function piecePachelbel(){ // 4/4, acht Akkorde, drei Variationen
@@ -174,20 +179,23 @@ const INST={
   pad:(t,m,d,v)=>{const f=mhz(m);[0,3].forEach(c=>{const o=ac.createOscillator(),g=ac.createGain(),fl=ac.createBiquadFilter();o.type='sawtooth';o.frequency.value=f;o.detune.value=c*4;
     fl.type='lowpass';fl.frequency.value=900;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v*.5,t+Math.min(.4,d*.3));g.gain.exponentialRampToValueAtTime(.0001,t+d);
     o.connect(fl);fl.connect(g);g.connect(mdst);o.start(t);o.stop(t+d+.05)})},
-  pluck:(t,m,d,v)=>{tone(mhz(m),t,Math.min(d,1.2),{type:'triangle',vol:v,atk:.004,dest:mdst});tone(mhz(m)*2,t,.25,{type:'sine',vol:v*.3,atk:.002,dest:mdst})},
+  pluck:(t,m,d,v)=>{const f=mhz(m),o=ac.createOscillator(),fl=ac.createBiquadFilter(),g=ac.createGain();o.type='sawtooth';o.frequency.value=f;fl.type='lowpass';fl.frequency.setValueAtTime(Math.min(6000,f*9),t);fl.frequency.exponentialRampToValueAtTime(Math.max(300,f*1.5),t+.35);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v*.55,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+Math.min(d,1.3));o.connect(fl);fl.connect(g);g.connect(mdst);o.start(t);o.stop(t+Math.min(d,1.3)+.05);
+    tone(f*2.003,t,.3,{type:'sine',vol:v*.25,atk:.002,dest:mdst});noise(t,.03,{f:Math.min(7000,f*5),q:1,vol:v*.15,dest:mdst})},
+  piano:(t,m,d,v)=>{const f=mhz(m),life=Math.min(2.4,d+.8);[[1,1],[2,.38],[3,.22],[4,.12],[5.01,.06]].forEach(([h,a],i)=>tone(f*h,t,life/(1+i*.55),{type:'sine',vol:v*a,atk:.004,dest:mdst}));noise(t,.04,{f:Math.min(4000,f*3),q:.8,vol:v*.12,dest:mdst})},
   flute:(t,m,d,v)=>{const o=ac.createOscillator(),lfo=ac.createOscillator(),lg=ac.createGain(),g=ac.createGain();o.type='sine';o.frequency.value=mhz(m);
     lfo.frequency.value=5;lg.gain.value=mhz(m)*.006;lfo.connect(lg);lg.connect(o.frequency);
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.08);g.gain.setValueAtTime(v,t+Math.max(.1,d*.6));g.gain.exponentialRampToValueAtTime(.0001,t+d);
     o.connect(g);g.connect(mdst);o.start(t);lfo.start(t);o.stop(t+d+.05);lfo.stop(t+d+.05);
     noise(t,Math.min(d,.3),{f:mhz(m)*2,q:4,vol:v*.08,dest:mdst})},
   brass:(t,m,d,v)=>{const o=ac.createOscillator(),g=ac.createGain(),fl=ac.createBiquadFilter();o.type='sawtooth';o.frequency.value=mhz(m);
-    fl.type='lowpass';fl.frequency.setValueAtTime(500,t);fl.frequency.linearRampToValueAtTime(1800,t+d*.5);
+    fl.type='lowpass';fl.frequency.setValueAtTime(400,t);fl.frequency.linearRampToValueAtTime(2200,t+.12);fl.frequency.linearRampToValueAtTime(1300,t+d*.7);o.detune.value=-6;{const o2=ac.createOscillator();o2.type='sawtooth';o2.frequency.value=mhz(m);o2.detune.value=7;o2.connect(fl);o2.start(t);o2.stop(t+d+.05)}
     g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v*.55,t+.04);g.gain.exponentialRampToValueAtTime(.0001,t+d*.95);
     o.connect(fl);fl.connect(g);g.connect(mdst);o.start(t);o.stop(t+d+.05)},
   snare:(t,m,d,v)=>{noise(t,.14,{f:2600,q:.7,vol:v*.7,dest:mdst});tone(190,t,.08,{type:'triangle',vol:v*.4,to:120,dest:mdst})},
   tom:(t,m,d,v)=>{tone(mhz(m||50),t,.3,{type:'sine',vol:v,to:mhz(m||50)*.6,dest:mdst});noise(t,.05,{f:400,type:'lowpass',vol:v*.3,dest:mdst})},
-  strings:(t,m,d,v)=>{[-5,5].forEach(c=>{const o=ac.createOscillator(),g=ac.createGain(),fl=ac.createBiquadFilter(),lf=ac.createOscillator(),lg=ac.createGain();o.type='sawtooth';o.frequency.value=mhz(m);o.detune.value=c;fl.type='lowpass';fl.frequency.value=1500;
-    lf.frequency.value=11;lg.gain.value=v*.22;lf.connect(lg);lg.connect(g.gain);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v*.35,t+.15);g.gain.setValueAtTime(v*.35,t+d*.8);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  strings:(t,m,d,v)=>{[-9,-3,4,10].forEach(c=>{const o=ac.createOscillator(),g=ac.createGain(),fl=ac.createBiquadFilter(),lf=ac.createOscillator(),lg=ac.createGain();o.type='sawtooth';o.frequency.value=mhz(m);o.detune.value=c;fl.type='lowpass';fl.frequency.value=1500;
+    lf.frequency.value=11;lg.gain.value=v*.22;lf.connect(lg);lg.connect(g.gain);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v*.24,t+.28);g.gain.setValueAtTime(v*.24,t+d*.8);g.gain.exponentialRampToValueAtTime(.0001,t+d);
     o.connect(fl);fl.connect(g);g.connect(mdst);o.start(t);lf.start(t);o.stop(t+d+.05);lf.stop(t+d+.05)})},
   drum:(t,m,d,v)=>{tone(95,t,.3,{type:'sine',vol:v,to:48,dest:mdst});noise(t,.06,{f:300,type:'lowpass',vol:v*.5,dest:mdst})}
 };
