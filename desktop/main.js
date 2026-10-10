@@ -68,7 +68,7 @@ function runSmoke(){
   win.webContents.on('did-finish-load',()=>setTimeout(async()=>{
     try{await win.webContents.executeJavaScript("document.getElementById('goBtn')&&document.getElementById('goBtn').click()");
       await new Promise(r=>setTimeout(r,2500));
-      const r=await win.webContents.executeJavaScript("JSON.stringify({game:typeof G!=='undefined'&&!!G&&G.running,ents:typeof G!=='undefined'?G.ents.length:0,app:window.EK_APP,ua:navigator.userAgent.slice(0,60),bgthrottle:true})");
+      const r=await win.webContents.executeJavaScript("JSON.stringify({game:typeof G!=='undefined'&&!!G&&G.running,ents:typeof G!=='undefined'?G.ents.length:0,app:window.EK_APP,ua:navigator.userAgent.slice(0,60),bgthrottle:true,menu:(toggleMenu(),document.querySelector('.gm-foot')&&document.querySelector('.gm-foot').textContent.slice(0,30),(window.EK_APP&&document.getElementById('mUpd')?'Update-Knopf da':'kein Update-Knopf'))})");
       console.log('SMOKE',r,'ERRORS',JSON.stringify(errs));
       if(out){const img=await win.webContents.capturePage();fs.writeFileSync(out.slice(7),img.toPNG())}
     }catch(e){console.log('SMOKE-FEHLER',e.message)}

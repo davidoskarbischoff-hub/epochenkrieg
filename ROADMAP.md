@@ -158,3 +158,10 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Mehrspieler-Lobby: Grösse, Karte, Tempo, Farbe, Vorschläge
 - [x] Echte Kartengrössen (Randgebirge), Ausbau Hafen/Markt/Flugplatz
 - [ ] Kartengrösse auch im Einzelspieler-Startmenü, Fliegerabwehr, Diktaturen-Zweig ausbauen
+
+## Desktop-App
+- [x] Electron-App (Windows, Mac optional) mit Vollbild, ohne Server, ohne Hintergrund-Drosseln
+- [x] Auto-Update über GitHub Releases mit Bestätigung, Versionsanzeige im Menü
+- [x] GitHub Action baut den Installer bei neuem Release; Anleitung in `VEROEFFENTLICHEN.md`
+- [ ] Windows-Installer signieren (kostenpflichtig, entfernt die SmartScreen-Warnung), Mac-Signatur/Notarisierung
+- [ ] Einladungslink direkt in der App öffnen (eigenes `epochenkrieg://`-Protokoll), Steam-Anbindung später prüfen
