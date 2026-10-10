@@ -5,7 +5,7 @@ const AREA=W*H/(3600*2400); /* Kartengrösse im Vergleich zur ersten Version (f�
 // Sammeln je Ressource: Tempo-Faktor und Tragekapazität (Beeren bringen mehr, weil Nahrung sonst knapp ist)
 const GATHER={food:{rate:1.5,carry:15},wood:{rate:1.2,carry:12},stone:{rate:.9,carry:10},iron:{rate:.8,carry:8},gold:{rate:.7,carry:8},oil:{rate:.75,carry:10}};
 const UNITS={
-  worker:{cls:'wk',gather:true,builds:true,passive:true,name:'Arbeiter',sight:130,hp:40,spd:58,atk:3,rng:4,cd:1.2,r:7,cost:{food:50},time:9,ep:0,from:'hq'},
+  worker:{cls:'wk',gather:true,builds:true,passive:true,name:'Arbeiter',sight:130,hp:40,spd:58,atk:3,rng:4,cd:1.2,r:4,vr:7,cost:{food:50},time:9,ep:0,from:'hq'},
   scout:{cls:'wk',name:'Späher',passive:true,sight:300,hp:40,spd:105,atk:0,rng:4,cd:1.2,r:6,cost:{food:60,wood:20},time:10,ep:0,from:'hq'},
   boat:{cls:'ship',name:'Fischerboot',naval:true,gather:true,passive:true,sight:200,hp:90,spd:72,atk:0,rng:4,cd:1.2,r:11,cost:{wood:80},time:14,ep:0,from:'harbor'},
   warship:{cls:'ship',tech:'shipbuild',name:'Kriegsschiff',naval:true,ranged:true,sight:240,hp:230,spd:62,atk:15,rng:175,cd:1.8,r:13,cost:{wood:140,stone:60},time:24,ep:1,from:'harbor'},
@@ -29,18 +29,18 @@ const UNITS={
   /* ---- Weltkriegszeit (Zeitalter VII): gemeinsame Truppen für alle Nationen ---- */
   assault:{cls:'inf',name:'Sturmsoldat',sight:170,hp:200,spd:62,atk:32,rng:6,cd:1.0,r:8,cost:{food:110,iron:50,gold:30},time:16,ep:6,from:'barracks'},
   mg:{cls:'rng',name:'Maschinengewehr',sight:200,hp:150,spd:36,atk:20,rng:190,cd:.35,r:8,cost:{food:80,wood:40,iron:110,gold:40},time:22,ep:6,from:'barracks',ranged:true,gun:true},
-  plane:{cls:'air',air:true,name:'Jagdflugzeug',sight:280,hp:150,spd:160,atk:16,rng:110,cd:.45,r:10,cost:{wood:150,iron:200,gold:90,oil:80},time:26,ep:6,from:'airfield',ranged:true,gun:true},
+  plane:{cls:'air',air:true,name:'Jagdflugzeug',sight:280,hp:190,spd:160,atk:16,rng:110,cd:.45,r:10,cost:{wood:150,iron:200,gold:90,oil:80},time:26,ep:6,from:'airfield',ranged:true,gun:true},
   /* ---- Nationen-Spezialeinheiten (je zwei pro Nation) ---- */
-  skoda:{cls:'siege',nation:'at',name:'Škoda-Mörser „Emma“',sight:230,hp:190,spd:22,atk:150,rng:330,cd:6.2,r:13,cost:{wood:320,iron:420,gold:200,oil:50},time:44,ep:6,from:'barracks',splash:50,ranged:true,siege:true},
+  skoda:{cls:'siege',nation:'at',name:'Škoda-Mörser „Emma“',sight:230,hp:240,spd:22,atk:150,rng:330,cd:6.2,r:13,cost:{wood:320,iron:420,gold:200,oil:50},time:44,ep:6,from:'barracks',splash:50,ranged:true,siege:true},
   alpini:{cls:'rng',nation:'at',name:'Kaiserjäger',sight:210,hp:195,spd:54,atk:64,rng:215,cd:1.7,r:7,cost:{food:110,wood:40,iron:90,gold:30},time:22,ep:6,from:'barracks',ranged:true,gun:true},
   sturm:{cls:'inf',nation:'de',name:'Sturmtruppe',sight:180,hp:270,spd:64,atk:42,rng:6,cd:1.0,r:8,cost:{food:115,iron:70,gold:50},time:20,ep:6,from:'barracks'},
-  bertha:{cls:'siege',nation:'de',name:'Dicke Bertha',sight:240,hp:220,spd:18,atk:175,rng:380,cd:8,r:14,cost:{wood:400,iron:500,gold:260,oil:70},time:50,ep:6,from:'barracks',splash:60,ranged:true,siege:true},
+  bertha:{cls:'siege',nation:'de',name:'Dicke Bertha',sight:240,hp:280,spd:18,atk:175,rng:380,cd:8,r:14,cost:{wood:400,iron:500,gold:260,oil:70},time:50,ep:6,from:'barracks',splash:60,ranged:true,siege:true},
   rekrut:{cls:'rng',nation:'ru',name:'Rekrut',sight:150,hp:70,spd:56,atk:9,rng:130,cd:1.8,r:7,cost:{food:40,wood:20},time:6,ep:6,from:'barracks',ranged:true,gun:true},
   kosak:{cls:'cav',nation:'ru',name:'Kosak',sight:200,hp:220,spd:92,atk:30,rng:6,cd:1.0,r:11,cost:{food:150,gold:50},time:18,ep:6,from:'barracks'},
   kamel:{cls:'cav',nation:'ot',name:'Kamelreiter',sight:210,hp:200,spd:84,atk:26,rng:6,cd:1.0,r:12,cost:{food:130,gold:30},time:17,ep:6,from:'barracks'},
   janit:{cls:'rng',nation:'ot',name:'Janitschar',sight:190,hp:170,spd:54,atk:50,rng:150,cd:1.5,r:7,cost:{food:100,wood:30,iron:60,gold:40},time:20,ep:6,from:'barracks',ranged:true,gun:true},
   mark1:{cls:'siege',nation:'uk',name:'Mark I',sight:200,hp:780,spd:30,atk:100,rng:150,cd:3,r:15,cost:{wood:230,iron:380,gold:120,oil:70},time:40,ep:6,from:'barracks',splash:26,ranged:true,siege:true},
-  bomber:{cls:'air',air:true,nation:'uk',name:'Bomber',sight:260,hp:240,spd:110,atk:120,rng:26,cd:3.5,r:13,cost:{wood:220,iron:260,gold:150,oil:110},time:36,ep:6,from:'airfield',bomber:true},
+  bomber:{cls:'air',air:true,nation:'uk',name:'Bomber',sight:260,hp:320,spd:110,atk:120,rng:26,cd:3.5,r:13,cost:{wood:220,iron:260,gold:150,oil:110},time:36,ep:6,from:'airfield',bomber:true},
   renault:{cls:'siege',nation:'fr',name:'Renault FT',sight:190,hp:320,spd:60,atk:55,rng:170,cd:1.8,r:11,cost:{wood:120,iron:180,gold:70,oil:30},time:24,ep:6,from:'barracks',ranged:true,siege:true},
   kurass:{cls:'cav',nation:'fr',name:'Kürassier',sight:200,hp:270,spd:80,atk:36,rng:6,cd:1.0,r:11,cost:{food:140,iron:60,gold:40},time:20,ep:6,from:'barracks'},
   bersag:{cls:'rng',nation:'it',name:'Bersagliere',sight:200,hp:150,spd:78,atk:32,rng:150,cd:1.3,r:7,cost:{food:90,wood:30,iron:50,gold:20},time:16,ep:6,from:'barracks',ranged:true,gun:true},

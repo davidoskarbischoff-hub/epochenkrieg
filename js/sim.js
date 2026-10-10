@@ -226,7 +226,7 @@ function enqueue(b,type,team){
   const d=UNITS[type];
   if(d.ep>G.epoch[team]){if(team===0){toast(tr('Erst ab der {0} verfügbar.',tr(EPOCHS[d.ep].name)));sfx('error')}return false}
   if(d.tech&&!G.tech[team].has(d.tech)){if(team===0){toast(tr('Technologie nötig: {0}',tr(TECH[d.tech].name)));sfx('error')}return false}
-  if(b.queue.length>=5){if(team===0){toast(tr('Die Warteschlange ist voll (max. 5).'));sfx('error')}return false}
+  if(b.queue.length>=10){if(team===0){toast(tr('Die Warteschlange ist voll (max. 10).'));sfx('error')}return false}
   if(d.nation&&G.nation[team]!==d.nation){if(team===0){toast(tr('Diese Einheit gehört zu einer anderen Nation.'));sfx('error')}return false}
   const uc=ucost(team,type);if(!pay(team,uc)){if(team===0){toast(missing(team,uc)+'.');sfx('error')}return false}
   b.queue.push({type,t:0});if(team===0)panelSig='';return true;

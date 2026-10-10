@@ -20,7 +20,7 @@ const EN={
   'Der Gegner hat die {0} erreicht.':'The enemy has reached the {0}.',
   'Deine Siedlung wird angegriffen!':'Your settlement is under attack!',
   'Erst ab der {0} verfügbar.':'Available from the {0}.',
-  'Die Warteschlange ist voll (max. 5).':'The queue is full (max. 5).',
+  'Die Warteschlange ist voll (max. 10).':'The queue is full (max. 10).',
   'Aufstieg in die {0} begonnen.':'Advancing to the {0}.',
   '{0} fertiggestellt.':'{0} completed.',
   'Hier ist kein Platz.':'No room here.','Dieses Gebiet ist noch unerkundet.':'This area is still unexplored.',

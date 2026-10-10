@@ -12,7 +12,7 @@ const ICONS={
   oil:`<path d="M8 1.5C5.6 5.2 3.6 7.4 3.6 10a4.4 4.4 0 008.8 0C12.4 7.4 10.4 5.2 8 1.5z" fill="#1d1a18" ${SV}/><path d="M6 10a2.2 2.2 0 001.6 2.1" fill="none" stroke="#6d6a66" stroke-width="1"/>`,
   pop:`<circle cx="8" cy="4.8" r="3" fill="#e8c29a" ${SV}/><path d="M1.8 15c0-4.4 2.6-6 6.2-6s6.2 1.6 6.2 6z" fill="#5f8fd3" ${SV}/>`
 };
-const icon=n=>`<svg class="ic ic-${n}" viewBox="0 0 16 16" aria-hidden="true">${ICONS[n]||''}</svg>`;
+const icon=n=>{const u=(typeof ICON3!=='undefined'&&ICON3.res)?ICON3.res(n):null;return u?`<img class="ic ic-${n}" src="${u}" alt="">`:`<svg class="ic ic-${n}" viewBox="0 0 16 16" aria-hidden="true">${ICONS[n]||''}</svg>`};
 /* ---------------- Gebäude (Draufsicht, gleicher Stil) ----------------
    E: {m: Materialfarben der Epoche, tc/tcd/tcl: Teamfarben, t: Zeit, ep: Epoche} */
 function flag(c,x,y,len,col,t,seed){c.strokeStyle=OUT;c.lineWidth=3;c.beginPath();c.moveTo(x,y);c.lineTo(x,y-len);c.stroke();c.strokeStyle='#cbb88f';c.lineWidth=1.4;c.beginPath();c.moveTo(x,y);c.lineTo(x,y-len);c.stroke();

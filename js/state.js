@@ -14,12 +14,12 @@ const fogIdx=(x,y)=>Math.max(0,Math.min(FH-1,y/FC|0))*FW+Math.max(0,Math.min(FW-
 /* Erze, Gold und Öl sieht man erst, wenn das Gebiet erkundet wurde (Nebel des Krieges); Bäume und Büsche sieht man immer */
 const HIDDEN_NODES=new Set(['stone','iron','gold','oil']);
 function nodeKnown(e){return !HIDDEN_NODES.has(e.type)||!fogEx||fogEx[fogIdx(e.x,e.y)]===1}
-function sightOf(e){return e.kind==='unit'?UNITS[e.type].sight:e.built?BLDS[e.type].sight*(e.spec==='obs'?2:1):50}
+function sightOf(e){return e.kind==='unit'?UNITS[e.type].sight:e.built?BLDS[e.type].sight*(e.spec==='obs'?2:1)*(1.2+.05*(G.epoch[e.team]||0)):50}
 /* Gebiet: jedes fertige Gebäude beansprucht einen Kreis; bei Überschneidung gewinnt das nähere Gebäude */
 const ss=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t)};
 function terrUpdate(){
   terrK.fill(9);terrT.fill(-1);terr.fill(-1);
-  for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const rad=BLDS[e.type].claim*(1+(G.tfx?G.tfx[e.team].claim:0))*(e.spec==='obs'?1.7:1);if(!BLDS[e.type].claim)continue;const rc=rad/FC,cx=e.x/FC,cy=e.y/FC,R=rc*1.14;
+  for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const rad=BLDS[e.type].claim*(1+(G.tfx?G.tfx[e.team].claim:0))*(e.spec==='obs'?1.7:1)*(1.35+.07*(G.epoch[e.team]||0));if(!BLDS[e.type].claim)continue;const rc=rad/FC,cx=e.x/FC,cy=e.y/FC,R=rc*1.14;
     for(let y=Math.max(0,Math.floor(cy-R));y<=Math.min(FH-1,Math.ceil(cy+R));y++)for(let x=Math.max(0,Math.floor(cx-R));x<=Math.min(FW-1,Math.ceil(cx+R));x++){const dx=x+.5-cx,dy=y+.5-cy,k=Math.sqrt(dx*dx+dy*dy)/rc,i=y*FW+x;if(k<=1.14&&k<terrK[i]){terrK[i]=k;terrT[i]=e.team}}}
   for(let i=0;i<terr.length;i++)if(terrK[i]<=1)terr[i]=terrT[i];
 }

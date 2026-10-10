@@ -53,7 +53,7 @@ function command(wx,wy,append,sp){
   const t=NET.tgtSet?NET.tgt:entityAt(wx,wy,sp);
   if(NET.client){NET.send({c:'cmd',ids:s.map(e=>e.id),x:wx,y:wy,tid:t?t.id:0,append:!!append});fxMark(wx,wy,t&&t.team===1?'attack':'move');return}
   if(s[0].kind==='bld'){s.forEach(b=>{if(b.kind==='bld')b.rally={x:wx,y:wy,id:t&&t.kind==='node'?t.id:null,nodeType:t&&t.kind==='node'?t.rt:null}});fxMark(wx,wy,'rally');return}
-  const units=s.filter(e=>e.kind==='unit');const mv=units.filter(u=>!UNITS[u.type].gather&&!UNITS[u.type].naval),movers=new Map();if(!t&&mv.length>1){const sp3=formationSpots(mv,wx,wy,curForm);mv.forEach((u,k)=>movers.set(u.id,sp3[k]))}const spread=t&&t.kind==='node'?spreadGather(units.filter(u=>UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval),t):null;const cols=Math.ceil(Math.sqrt(units.length));let i=0;
+  const units=s.filter(e=>e.kind==='unit');const csp=Math.max(11,Math.max(1,...units.map(u=>u.r))*2.6);const mv=units.filter(u=>!UNITS[u.type].gather&&!UNITS[u.type].naval),movers=new Map();if(!t&&mv.length>1){const sp3=formationSpots(mv,wx,wy,curForm);mv.forEach((u,k)=>movers.set(u.id,sp3[k]))}const spread=t&&t.kind==='node'?spreadGather(units.filter(u=>UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval),t):null;const cols=Math.ceil(Math.sqrt(units.length));let i=0;
   for(const u of units){
     if(t&&t.kind==='node'&&UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval&&!minedBy(0,t)){if(!u.mineMsg||G.t-u.mineMsg>4){u.mineMsg=G.t;toast(tr(MINE_RT[t.rt]==='derrick'?'Für {0} brauchst du einen fertigen Bohrturm in der Nähe.':'Für {0} brauchst du eine fertige Mine in der Nähe.',rn(t.rt)));sfx('error')}}
     else if(t&&t.kind==='node'&&UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval){const tg=(spread&&spread.get(u.id))||t;giveOrder(u,{t:'gather',tid:tg.id,rt:tg.rt},append)}
@@ -62,7 +62,7 @@ function command(wx,wy,append,sp){
     else if(t&&t.team===0&&t.kind==='bld'&&t.built&&(t.type==='wall'||t.type==='tower')&&UNITS[u.type].ranged&&!UNITS[u.type].siege&&!UNITS[u.type].air&&!UNITS[u.type].builds){giveOrder(u,{t:'garrison',tid:t.id},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&t.built&&t.hp<t.maxHp-1&&UNITS[u.type].builds){giveOrder(u,{t:'build',tid:t.id,rep:true},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&BLDS[t.type].drop&&UNITS[u.type].gather&&u.carry>0&&(!UNITS[u.type].naval||t.type==='harbor')){giveOrder(u,{t:'return'},append)}
-    else{const sp2=movers.get(u.id);const ox=sp2?sp2.x-wx:(i%cols-(cols-1)/2)*18,oy=sp2?sp2.y-wy:(Math.floor(i/cols)-(cols-1)/2)*18;giveOrder(u,{t:'move',x:wx+ox,y:wy+oy},append);i++}
+    else{const sp2=movers.get(u.id);const ox=sp2?sp2.x-wx:(i%cols-(cols-1)/2)*csp,oy=sp2?sp2.y-wy:(Math.floor(i/cols)-(cols-1)/2)*csp;giveOrder(u,{t:'move',x:wx+ox,y:wy+oy},append);i++}
   }
   fxMark(wx,wy,t&&t.team===1?'attack':'move');
 }
@@ -71,7 +71,7 @@ let curForm=0;const FORMS=['Linie','Keil','Kolonne','Karree','Kreis'];
 const FROLE={inf:0,spear:0,cav:1,rng:2,siege:3,med:3,wk:3};
 function formationSpots(units,tx,ty,form){
   const n=units.length;if(n<2)return units.map(()=>({x:tx,y:ty}));
-  let cx=0,cy=0;units.forEach(u=>{cx+=u.x;cy+=u.y});cx/=n;cy/=n;const th=Math.atan2(ty-cy,tx-cx),co=Math.cos(th),si=Math.sin(th),sp=21,loc=[];
+  let cx=0,cy=0;units.forEach(u=>{cx+=u.x;cy+=u.y});cx/=n;cy/=n;const th=Math.atan2(ty-cy,tx-cx),co=Math.cos(th),si=Math.sin(th),sp=Math.max(11,Math.max(...units.map(u=>u.r))*2.6),loc=[];
   if(form===0){const per=Math.min(10,Math.ceil(Math.sqrt(n*2.2)));for(let i=0;i<n;i++){const r=Math.floor(i/per),c=i%per,cnt=Math.min(per,n-r*per);loc.push([-r*sp,(c-(cnt-1)/2)*sp])}}
   else if(form===1){let r=0,k=0;while(loc.length<n){const w=2*r+1;for(let c=0;c<w&&loc.length<n;c++)loc.push([-r*sp,(c-(w-1)/2)*sp]);r++}}
   else if(form===2){for(let i=0;i<n;i++)loc.push([-Math.floor(i/2)*sp,(i%2?1:-1)*sp*.5])}
