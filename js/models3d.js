@@ -707,3 +707,7 @@ function wallPostModel(g,pc,R,ep,team){const L=R*2.3,H0=g.userData.h||R*1.8,H=H0
     put(g,cyl(.3,.36,H,ep<=2?7:10),mat,x,H/2,0);put(g,cyl(.42,.34,.22,10),mat,x,H,0);
     if(ep<=2)put(g,cone(.34,.5,7),mat,x,H+.35,0);else{for(let k=0;k<4;k++)put(g,new THREE.BoxGeometry(.2,.22,.2),mat,x+Math.cos(k*1.57)*.3,H+.2,Math.sin(k*1.57)*.3)}
     const f=put(g,new THREE.BoxGeometry(.02,.28,.4),tm,x,H+.65,.2);f.userData.flag=true})}
+UNIT3.bersag=natInf(0x5a6a3a,(g)=>{for(let i=0;i<4;i++)put(g,cone(.03,.45,4),m3Plain(0x1a1a1a,.7),-.12-i*.04,2.5,.1+i*.05)});
+UNIT3.banzai=natInf(0x7a6a3a,(g)=>{put(g,new THREE.BoxGeometry(.03,.5,.5),m3Plain(0xeeeeee,.8),0,2.0,-.3)});
+UNIT3.carro=viaGun('tank',.6);
+UNIT3.zero=(u,tm)=>jetBody(u,tm,{col:0xb8c0b0,wcol:0xc8d0c0});

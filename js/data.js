@@ -43,6 +43,10 @@ const UNITS={
   bomber:{cls:'air',air:true,nation:'uk',name:'Bomber',sight:260,hp:240,spd:110,atk:120,rng:26,cd:3.5,r:13,cost:{wood:220,iron:260,gold:150,oil:110},time:36,ep:6,from:'airfield',bomber:true},
   renault:{cls:'siege',nation:'fr',name:'Renault FT',sight:190,hp:260,spd:60,atk:30,rng:170,cd:1.8,r:11,cost:{wood:120,iron:180,gold:70,oil:30},time:24,ep:6,from:'barracks',ranged:true,siege:true},
   kurass:{cls:'cav',nation:'fr',name:'Kürassier',sight:200,hp:260,spd:80,atk:36,rng:6,cd:1.0,r:11,cost:{food:130,iron:60,gold:40},time:20,ep:6,from:'barracks'},
+  bersag:{cls:'rng',nation:'it',name:'Bersagliere',sight:200,hp:150,spd:78,atk:28,rng:150,cd:1.3,r:7,cost:{food:90,wood:30,iron:50,gold:20},time:16,ep:6,from:'barracks',ranged:true,gun:true},
+  carro:{cls:'siege',nation:'it',name:'Carro Veloce',sight:200,hp:300,spd:78,atk:28,rng:150,cd:1.4,r:11,cost:{wood:110,iron:170,gold:60,oil:30},time:22,ep:6,from:'barracks',ranged:true,siege:true},
+  banzai:{cls:'inf',nation:'jp',name:'Sturmsoldat Banzai',sight:170,hp:260,spd:70,atk:48,rng:6,cd:.9,r:8,cost:{food:100,iron:50,gold:20},time:16,ep:6,from:'barracks'},
+  zero:{cls:'air',air:true,nation:'jp',name:'Jagdflugzeug Zero',sight:290,hp:150,spd:200,atk:20,rng:120,cd:.4,r:10,cost:{wood:140,iron:190,gold:100,oil:80},time:28,ep:6,from:'airfield',ranged:true,gun:true},
   doughboy:{cls:'rng',nation:'us',name:'Doughboy',sight:200,hp:210,spd:56,atk:30,rng:170,cd:1.5,r:7,cost:{food:100,wood:30,iron:70,gold:20},time:18,ep:6,from:'barracks',ranged:true,gun:true},
   fighter:{cls:'air',air:true,nation:'us',name:'Jagdflieger',sight:290,hp:190,spd:175,atk:22,rng:120,cd:.4,r:10,cost:{wood:160,iron:210,gold:110,oil:90},time:30,ep:6,from:'airfield',ranged:true,gun:true},
   sword:{cls:'inf',tech:'smithy',name:'Schwertkämpfer',sight:150,hp:150,spd:52,atk:15,rng:5,cd:1.1,r:9,cost:{food:80,iron:40},time:18,ep:2,from:'barracks'}
@@ -95,6 +99,8 @@ const NATIONS={
   ru:{name:'Russisches Zarenreich',short:'Zarenreich',grp:'Kaiserreiche',reg:'Europa / Asien',col:'#3f7a4a',desc:'Unerschöpfliche Menschenmassen, aber schlechter ausgerüstet.',bonus:'Truppen kosten 25 % weniger Nahrung, +30 Bevölkerung, Truppen −8 % Leben',fx:{foodCost:.25,pop:30,hp:-.08},sp:['rekrut','kosak']},
   ot:{name:'Osmanisches Reich',short:'Osmanen',grp:'Kaiserreiche',reg:'Asien',col:'#b8362e',desc:'Herr über Wüste und Ölvorkommen.',bonus:'Öl und Gold +40 % Ertrag, Reiter +10 % Tempo',fx:{oilgold:.4},sp:['kamel','janit']},
   uk:{name:'Britisches Empire',short:'Empire',grp:'Demokratien',reg:'Europa',col:'#2d4a8a',desc:'Seemacht mit Panzern der ersten Stunde und Bomberflotte.',bonus:'Schiffe +25 % Leben, Flugzeuge +15 % Leben',fx:{navhp:.25,air:.15},sp:['mark1','bomber']},
+  it:{name:'Königreich Italien',short:'Faschisten',grp:'Diktaturen',reg:'Europa',col:'#4a8a4a',desc:'Schnelle Truppen und wendige Panzerchen unter einem starken Mann.',bonus:'Ausbildung 15 % schneller',fx:{prod:.15},sp:['bersag','carro']},
+  jp:{name:'Kaiserreich Japan',short:'Japan',grp:'Kaiserreiche',reg:'Asien',col:'#c8d0e0',desc:'Fanatische Sturmtruppen und wendige Jäger aus dem Osten.',bonus:'Flugzeuge +15 % Leben',fx:{air:.15},sp:['banzai','zero']},
   fr:{name:'Frankreich',short:'Republik',grp:'Demokratien',reg:'Europa',col:'#3a64b0',desc:'Erbe Napoleons: Reiterei und leichte Panzer in Massen.',bonus:'Panzer kosten 25 % weniger, Reiter +15 % Leben',fx:{tankCost:.25,cavhp:.15},sp:['renault','kurass']},
   us:{name:'Vereinigte Staaten',short:'USA',grp:'Demokratien',reg:'Amerika',col:'#4a6ca8',desc:'Frische Truppen, starke Wirtschaft, überlegene Jäger.',bonus:'Sammeln +20 %, Ausbildung +20 % schneller',fx:{gather:.2,prod:.2},sp:['doughboy','fighter']}
 };
