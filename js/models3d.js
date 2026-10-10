@@ -193,16 +193,37 @@ function buildBld(type,R,ep,team){const st=bStyle(ep),g=(ep===0&&PRIM[type]||BLD
 /* ---------- Figuren ---------- */
 function limbPivot(parent,x,y,z){const p=new THREE.Group();p.position.set(x,y,z);parent.add(p);return p}
 /* Grundfigur mit Beinen, Rumpf, Kopf, Armen. Rückgabe: Rig mit Teilen zum Animieren. */
+const SKINS=[0xe2b98f,0xc8946a,0xf0cfae,0x9c6b48],HAIRS=[0x2c2018,0x5a3a20,0xb88a4e,0x1a1612,0x7a4a2a];
 function human(o){
-  const g=new THREE.Group(),skin=skinM(),legM=o.legs||cloth(0x5a4630),rig={g,legs:[],arms:[],tools:{}};
-  for(const s of[-1,1]){const p=limbPivot(g,0,.88,s*.17);put(p,cyl(.115,.1,.82,8),legM,0,-.41,0);put(p,new THREE.BoxGeometry(.34,.14,.2),m3Plain(0x2f241a),.06,-.84,0);rig.legs.push(p)}
-  const torso=put(g,new THREE.CapsuleGeometry(.29,.52,4,10),o.body,0,1.38,0);torso.scale.z=1.18;rig.torso=torso;
-  if(o.belt)put(g,cyl(.33,.33,.1,12),o.belt,0,1.05,0);
-  const head=put(g,new THREE.SphereGeometry(.25,14,12),skin,.02,2.0,0);rig.head=head;
-  for(const s of[-1,1]){put(g,new THREE.SphereGeometry(.035,6,6),m3Plain(0x15110c),.21,2.03,s*.09,false)}
-  for(const s of[-1,1]){const p=limbPivot(g,0,1.7,s*.38);put(p,cyl(.09,.08,.7,8),o.arm||o.body,0,-.34,0);put(p,new THREE.SphereGeometry(.09,8,8),skin,0,-.72,0);rig.arms.push(p)}
+  const id=M3.curId||0,g=new THREE.Group(),skin=o.skin||m3Plain(SKINS[id%4],.7),legM=o.legs||cloth(0x5a4630),boot=o.boot||m3Plain(0x2f241a),sleeve=o.arm||o.body,rig={g,legs:[],knees:[],arms:[],elbows:[],hands:[],tools:{}};
+  /* Beine: Oberschenkel, Knie, Unterschenkel, Fuß mit Spitze */
+  for(const s of[-1,1]){const p=limbPivot(g,0,.9,s*.15);put(p,cyl(.125,.1,.46,9),legM,0,-.22,0);
+    const k=limbPivot(p,0,-.45,0);put(k,new THREE.SphereGeometry(.1,8,6),legM,0,0,0);put(k,cyl(.098,.075,.42,9),legM,0,-.21,0);
+    put(k,cyl(.085,.09,.14,8),boot,0,-.36,0);put(k,new THREE.BoxGeometry(.3,.11,.17),boot,.07,-.425,0);put(k,new THREE.SphereGeometry(.085,6,6),boot,.2,-.42,0);
+    rig.legs.push(p);rig.knees.push(k)}
+  /* Rumpf: Becken, Taille, Brustkorb mit breiten Schultern, Hals */
+  put(g,new THREE.BoxGeometry(.3,.2,.42),legM,0,1.0,0);
+  const waist=put(g,new THREE.CapsuleGeometry(.2,.16,4,10),o.body,0,1.2,0);waist.scale.set(.9,1,1.12);
+  const torso=put(g,new THREE.CapsuleGeometry(.27,.26,4,12),o.body,0,1.5,0);torso.scale.set(.82,1,1.34);rig.torso=torso;
+  put(g,new THREE.SphereGeometry(.13,8,6),o.body,0,1.74,-.4,false);put(g,new THREE.SphereGeometry(.13,8,6),o.body,0,1.74,.4,false);
+  if(o.belt)put(g,cyl(.3,.3,.1,12),o.belt,0,1.07,0);
+  put(g,cyl(.085,.1,.17,8),skin,.01,1.88,0);
+  /* Kopf: gestreckt, Nase, Kinn, Ohren, Brauen, Augen, Haare */
+  const head=new THREE.Group();head.position.set(.02,2.04,0);g.add(head);rig.head=head;
+  const hs=put(head,new THREE.SphereGeometry(.235,14,12),skin,0,0,0);hs.scale.set(.96,1.1,.9);
+  put(head,new THREE.SphereGeometry(.09,8,6),skin,.12,-.17,0,false).scale.set(1,.8,1);
+  put(head,cone(.04,.11,5),skin,.24,-.02,0,false).rotation.z=-Math.PI/2;
+  for(const s of[-1,1]){put(head,new THREE.SphereGeometry(.045,6,6),skin,-.02,-.02,s*.225,false).scale.set(.6,1.1,.5);
+    put(head,new THREE.SphereGeometry(.04,6,6),m3Plain(0xf2eee4,.5),.2,.04,s*.085,false);put(head,new THREE.SphereGeometry(.022,6,6),m3Plain(0x15110c),.235,.04,s*.085,false);
+    put(head,new THREE.BoxGeometry(.04,.025,.1),m3Plain(HAIRS[(id*7)%5],.95),.215,.1,s*.085,false)}
+  const hr=put(head,new THREE.SphereGeometry(.25,12,10,0,6.283,0,1.75),o.hairM||m3Plain(HAIRS[(id*7)%5],.95),-.03,.03,0);hr.scale.set(1.02,1.05,.98);
+  /* Arme: Schulter, Oberarm, Ellbogen, Unterarm, Hand */
+  for(const s of[-1,1]){const p=limbPivot(g,0,1.72,s*.4);put(p,new THREE.SphereGeometry(.11,8,6),sleeve,0,0,0,false);put(p,cyl(.088,.074,.37,9),sleeve,0,-.18,0);
+    const el=limbPivot(p,0,-.36,0);put(el,new THREE.SphereGeometry(.075,8,6),sleeve,0,0,0,false);put(el,cyl(.07,.058,.34,9),o.fore||sleeve,0,-.17,0);
+    const hd=limbPivot(el,0,-.36,0);put(hd,new THREE.SphereGeometry(.085,8,8),skin,0,0,0);
+    rig.arms.push(p);rig.elbows.push(el);rig.hands.push(hd)}
   return rig}
-const armHand=(rig,i)=>{const p=new THREE.Group();p.position.set(0,-.72,0);rig.arms[i].add(p);return p};
+const armHand=(rig,i)=>rig.hands[i];
 
 /* ---------- Ausrüstung je Zeitalter ----------
    Die Stufe der Einheit (u.lvl, steigt mit dem Zeitalter) bestimmt den Look: 0 Steinzeit (Fell, Stein), 1 Bronze, 2 Eisen, 3 Kettenhemd/Mittelalter,
@@ -273,14 +294,35 @@ function swordW(t){const sw=new THREE.Group(),m=metT(t);
 function gunW(t,rifle){const g=new THREE.Group();put(g,cyl(.025,.025,rifle?1.7:1.5,6),m3Plain(0x4a4a50,.4,{metalness:.5}),0,.75,0);put(g,new THREE.BoxGeometry(.12,.6,.1),m3Plain(0x7a5535),0,.05,0);
   if(rifle)put(g,cone(.03,.42,5),metT(5),0,1.78,0);return g}
 
+/* Werkzeug-Stufe der Arbeiter: Epoche, aber auch erforschte Werkzeug-Technologien */
+function wkTier(u){const tf=G&&G.tech?G.tech[u.team]:null;let t=Math.min(5,u.lvl||0);if(tf){if(tf.has('bronzetools'))t=Math.max(t,1);if(tf.has('irontools'))t=Math.max(t,2);if(tf.has('industry'))t=Math.max(t,4);if(tf.has('electric'))t=Math.max(t,5)}return t}
 const UNIT3={
-  worker(u,tm){const t=Math.min(5,u.lvl||0),bo=bodyOf(t,'worker',tm),rig=human({body:bo.body,legs:bo.legs,arm:bo.arm,belt:bo.belt}),R=armHand(rig,1);dress(rig,t,'worker',tm);headgear(rig,t,'work',tm);
-    const hm=t===0?m3Plain(0x8d8a80,.95):metT(t);
-    const axe=new THREE.Group();put(axe,cyl(.04,.04,.9,6),wood(),0,.35,0);put(axe,new THREE.BoxGeometry(.38,.28,.05),hm,.2,.7,0);axe.rotation.z=-.25;R.add(axe);rig.tools.wood=axe;
-    const pick=new THREE.Group();put(pick,cyl(.04,.04,.95,6),wood(),0,.35,0);put(pick,new THREE.BoxGeometry(.7,.08,.08),hm,0,.8,0);pick.rotation.z=-.25;R.add(pick);rig.tools.stone=pick;rig.tools.iron=pick;rig.tools.gold=pick;
-    const ham=new THREE.Group();put(ham,cyl(.04,.04,.7,6),wood(),0,.3,0);put(ham,new THREE.BoxGeometry(.3,.2,.2),t===0?m3Plain(0x8d8a80,.95):m3Plain(0x7e7a72),0,.7,0);ham.rotation.z=-.25;R.add(ham);rig.tools.build=ham;
-    const bas=new THREE.Group();put(bas,new THREE.CylinderGeometry(.3,.22,.25,10),m3Plain(0xb88a4e),.15,-.05,0);R.add(bas);rig.tools.food=bas;
-    const sack=put(rig.g,new THREE.SphereGeometry(.3,10,8),m3Plain(0x9a6c3c),-.38,1.4,0);rig.sack=sack;sack.visible=false;
+  worker(u,tm){const tt=wkTier(u),t=Math.min(5,u.lvl||0),bo=bodyOf(t,'worker',tm),tf=G&&G.tech?G.tech[u.team]:null,shoes=tf&&tf.has('shoes'),
+      rig=human({body:bo.body,legs:bo.legs,arm:bo.arm,belt:bo.belt,boot:shoes?m3Plain(0x7a4a28,.7):null}),R=armHand(rig,1);dress(rig,t,'worker',tm);headgear(rig,t,'work',tm);
+    const hd=tt===0?m3Plain(0x8d8a80,.95):metT(tt),lash=m3Plain(0x6b4a2a,.9),L=[.85,.95,1.0,1.1,1.15,1.2][tt];
+    /* Alle Werkzeuge: Griff zeigt in der Hand nach +y, der Kopf sitzt oben; die Gruppe wird gedreht, damit der Kopf in Armrichtung (nach unten/vorn) zeigt */
+    const mk=(fn)=>{const gr=new THREE.Group();fn(gr);gr.rotation.z=Math.PI+.18;R.add(gr);return gr};
+    const axe=mk(gr=>{put(gr,cyl(.034,.04,L,6),wood(),0,L/2-.1,0);const w=.26+.045*tt,h=.2+.025*tt;
+      if(tt===0){const st=put(gr,new THREE.DodecahedronGeometry(.13,0),hd,-.1,L-.12,0);st.scale.set(1.4,1,.5);put(gr,new THREE.TorusGeometry(.06,.014,5,8),lash,-.02,L-.12,0).rotation.y=1.57}
+      else{const bl=put(gr,new THREE.BoxGeometry(w,h,.05),hd,-w/2-.02,L-.14,0);bl.geometry.translate(0,0,0);put(gr,new THREE.BoxGeometry(.09,.2,.07),metT(tt),0,L-.14,0);
+        if(tt>=3)put(gr,new THREE.BoxGeometry(w*.8,h*.7,.05),hd,.14+w*.1,L-.14,0)}});
+    const pw=[.5,.62,.7,.8,.85,.9][tt],pick=mk(gr=>{put(gr,cyl(.034,.04,L,6),wood(),0,L/2-.1,0);
+      if(tt===0){const st=put(gr,new THREE.DodecahedronGeometry(.1,0),hd,0,L-.12,0);st.scale.set(.7,1,2.6);put(gr,new THREE.TorusGeometry(.055,.014,5,8),lash,0,L-.12,0)}
+      else{const bar=put(gr,new THREE.BoxGeometry(.07,.08,pw),hd,0,L-.12,0);for(const z of[-1,1]){put(gr,cone(.05,.2,6),hd,0,L-.12,z*(pw/2+.07)).rotation.x=z*-Math.PI/2}}});
+    const ham=mk(gr=>{put(gr,cyl(.034,.04,.7,6),wood(),0,.25,0);put(gr,new THREE.BoxGeometry(.3,.2,.2),tt===0?m3Plain(0x8d8a80,.95):m3Plain(0x7e7a72),0,.62,0)});
+    rig.tools.wood=axe;rig.tools.stone=pick;rig.tools.iron=pick;rig.tools.gold=pick;rig.tools.build=ham;
+    /* Beeren: Korb in der Hand (geflochten, mit Beeren) */
+    const bas=new THREE.Group();bas.position.y=.05;R.add(bas);put(bas,new THREE.CylinderGeometry(.24,.17,.22,10,1,true),m3Plain(0xb88a4e,.9),.12,-.1,0);put(bas,cyl(.17,.17,.03,10),m3Plain(0xa07840,.9),.12,-.21,0);
+    for(let i=0;i<7;i++)put(bas,new THREE.SphereGeometry(.045,6,5),m3Plain(i%2?0xc2352f:0x8a2a4a,.5),.12+Math.cos(i*2.1)*.1,-.04,Math.sin(i*2.1)*.1,false);
+    rig.tools.food=bas;
+    /* Tragekorb auf dem Rücken (Technologie Tragekörbe), Handkarren-Ausbau mit zweitem Korb (Technologie Handkarren) */
+    const hasB=tf&&tf.has('baskets'),hasC=tf&&tf.has('carts');
+    if(hasB){const bk=new THREE.Group();bk.position.set(-.34,1.5,0);rig.g.add(bk);const wk=m3Plain(0xb88a4e,.9);put(bk,new THREE.CylinderGeometry(.3,.2,.5,10,1,true),wk,0,0,0);put(bk,cyl(.2,.2,.04,10),m3Plain(0xa07840,.9),0,-.25,0);
+      for(let i=0;i<3;i++)put(bk,new THREE.TorusGeometry(.26-i*.02,.014,5,12),m3Plain(0x8a6a38,.9),0,.1-i*.17,0).rotation.x=Math.PI/2;
+      for(const z of[-1,1])put(bk,cyl(.014,.014,.7,4),lash,.26,.1,z*.2).rotation.z=.5;
+      if(hasC){const b2=put(bk,new THREE.CylinderGeometry(.22,.15,.4,10,1,true),wk,-.12,.45,0);put(b2,cyl(.15,.15,.03,10),m3Plain(0xa07840,.9),0,-.2,0)}
+      rig.back=bk}
+    const sack=put(rig.g,new THREE.SphereGeometry(.28,10,8),m3Plain(0x9a6c3c),-.4,hasB?1.78:1.45,0);rig.sack=sack;sack.visible=false;
     rig.tool=k=>{for(const n in rig.tools)rig.tools[n].visible=(n===k)};rig.tool(null);return rig},
   scout(u,tm){const t=Math.min(5,u.lvl||0),bo=bodyOf(t,'scout',tm),rig=human({body:bo.body,legs:bo.legs,arm:bo.arm,belt:tm});dress(rig,t,'scout',tm);headgear(rig,t,'hood',tm);
     if(t===0){const p=put(rig.g,new THREE.ConeGeometry(.5,.9,5),furM(0x6e5030),-.3,1.5,0);p.rotation.z=.15}else{const p=put(rig.g,new THREE.ConeGeometry(.5,.9,3),cloth(t>=4?0x3a4a3a:0x44704a),-.3,1.5,0);p.rotation.z=.15}
@@ -404,10 +446,10 @@ function buildAnimal(e){const rig=quad(ANI3[e.type]||ANI3.deer);setShadows(rig.g
 /* Oberkörper an einem Hüftgelenk aufhängen, damit er sich beim Gehen, Arbeiten und Kämpfen neigen und drehen kann */
 function addUpper(rig){
   if(!rig.legs||rig.legs.length!==2||!rig.arms||rig.arms.length!==2||rig.horse||rig.wheels||rig.ship)return;
-  const up=new THREE.Group();up.position.y=.88;
-  for(const ch of[...rig.g.children]){if(rig.legs.includes(ch))continue;rig.g.remove(ch);ch.position.y-=.88;up.add(ch)}
+  const up=new THREE.Group();up.position.y=.9;
+  for(const ch of[...rig.g.children]){if(rig.legs.includes(ch))continue;rig.g.remove(ch);ch.position.y-=.9;up.add(ch)}
   rig.g.add(up);rig.up=up}
-function buildUnit(u){const f=UNIT3[u.type]||UNIT3.worker,tm=m3Team(u.team),rig=f(u,tm);addUpper(rig);setShadows(rig.g);return rig}
+function buildUnit(u){M3.curId=u.id;const f=UNIT3[u.type]||UNIT3.worker,tm=m3Team(u.team),rig=f(u,tm);addUpper(rig);setShadows(rig.g);return rig}
 
 /* ---------- Ressourcen ---------- */
 function rockGeo(seed){const g=new THREE.IcosahedronGeometry(1,2),p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i);const n=1+Math.sin(x*3.1+seed*13)*.13+Math.cos(z*2.7+seed*7)*.1+Math.sin(y*4.3+x*1.7)*.07;p.setXYZ(i,x*n,Math.max(y*n*.8,-.15),z*n)}g.computeVertexNormals();return g}

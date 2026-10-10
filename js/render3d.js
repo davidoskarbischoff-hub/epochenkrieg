@@ -155,7 +155,7 @@ function r3Sync(list,dt,t){
   const S=R3.S,seen=new Set();
   for(const[e,ghost]of list){
     const key=entKey(e,ghost);seen.add(key);
-    const ep=e.kind==='bld'?G.epoch[e.team]:0,sig=e.kind==='unit'?e.type+e.team+':'+(e.lvl||0):e.kind==='bld'?e.type+':'+ep+':'+e.team:e.kind==='animal'?e.type:e.type;
+    const ep=e.kind==='bld'?G.epoch[e.team]:0,sig=e.kind==='unit'?e.type+e.team+':'+(e.lvl||0)+(e.type==='worker'?':'+wkTier(e)+(G.tech[e.team].has('baskets')?'b':'')+(G.tech[e.team].has('carts')?'c':'')+(G.tech[e.team].has('shoes')?'s':''):''):e.kind==='bld'?e.type+':'+ep+':'+e.team:e.kind==='animal'?e.type:e.type;
     let o=R3.reg.get(key);
     if(!o||o.sig!==sig){if(o)r3.gEnt.remove(o.obj);o=r3Make(e,sig);R3.reg.set(key,o);r3.gEnt.add(o.obj)}
     const h=hAt(e.x,e.y),obj=o.obj;
@@ -183,32 +183,41 @@ function r3Make(e,sig){
   const g=seaModel(e);return{obj:g,sig,flags:[]}}
 /* Gliederbewegung der Menschen: Gehen (Gegenschwung, Neigen, Wippen), Atmen im Stand, Arbeiten je Werkzeug, Kampf mit Ausholen/Schlag/Rückstoß, Zucken bei Treffern */
 function r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t){
-  const up=rig.up,L=rig.legs,A=rig.arms,id=e.id,k=Math.max(0,Math.min(1,(G.t-(e.swing||-9))/.5)),fresh=G.t-(e.swing||-9)<.5;
+  const up=rig.up,L=rig.legs,K=rig.knees,A=rig.arms,E=rig.elbows,id=e.id,since=G.t-(e.swing||-9),k=Math.max(0,Math.min(1,since/.5)),fresh=since<.5;
   const heavy=d.siege||e.type==='musket'||e.type==='rifle',carry=e.carry>0&&(e.state==='return'||e.state==='gather');
-  if(o.hp===undefined)o.hp=e.hp;if(e.hp<o.hp-.5)o.fl=.28;o.hp=e.hp;o.fl=Math.max(0,(o.fl||0)-dt);
-  const fl=o.fl/.28;
-  const run=moving?Math.min(1.25,.75+d.spd/110):0,sa=Math.sin(o.ph)*.85*run;
-  L[0].rotation.z=-sa;L[1].rotation.z=sa;
-  let lean=moving?-.07-.07*run-(carry?.1:0):0,twist=moving?Math.sin(o.ph)*.14*run:0,bob=moving?Math.abs(Math.cos(o.ph))*.06*run:Math.sin(t*1.8+id)*.012;
-  let a0=moving?-sa*.7:Math.sin(t*1.3+id)*.04,a1=.12+(moving?sa*.7:Math.sin(t*1.3+id+1.4)*.04);
-  if(rig.bow)a0=1.5;
+  if(o.hp===undefined)o.hp=e.hp;if(e.hp<o.hp-.5)o.fl=.28;o.hp=e.hp;o.fl=Math.max(0,(o.fl||0)-dt);const fl=o.fl/.28;
+  const run=moving?Math.min(1.25,.75+d.spd/110):0,sa=Math.sin(o.ph)*.85*run,cb=Math.cos(o.ph);
+  const cl=(v,a,b)=>Math.max(a,Math.min(b,v)),ease=x=>x*x*(3-2*x),lerp=(a,b,x)=>a+(b-a)*x;
+  /* Beine mit Kniebeuge: das Schwungbein beugt das Knie */
+  L[0].rotation.z=-sa;L[1].rotation.z=sa;K[0].rotation.z=moving?Math.max(0,-Math.sin(o.ph+.9))*1.0*run:0;K[1].rotation.z=moving?Math.max(0,Math.sin(o.ph+.9))*1.0*run:0;
+  let lean=moving?-.07-.07*run-(carry?.1:0):0,twist=moving?Math.sin(o.ph)*.14*run:0,bob=moving?Math.abs(cb)*.06*run:Math.sin(t*1.8+id)*.012;
+  let a0=moving?-sa*.7:Math.sin(t*1.3+id)*.04,a1=.12+(moving?sa*.7:Math.sin(t*1.3+id+1.4)*.04),e0=.18+(moving?.25:0),e1=.18+(moving?.25:0);
+  if(rig.bow){a0=1.5;e0=.05}
   const atk=e.state==='attack';
   if(atk&&!moving){
-    const ranged=d.ranged;
-    if(rig.bow){const pull=e.cd<.45?1-e.cd/.45:0;a1=1.5+(fresh?-.3*(1-k):0);a0=1.5;lean=-.05+(pull?.1*pull:0)+(fresh?.12*(1-k):0);twist=-.25}
-    else if(ranged){a1=1.25+(fresh?-.5*(1-k):0);a0=.5;lean=fresh?.16*(1-k):-.05;twist=.2}
-    else{const wind=e.cd<.4?1-e.cd/.4:0;a1=fresh?.3+1.9*(1-k):-1.5*wind+.15;lean=fresh?-.28*(1-k):.14*wind;twist=fresh?.3*(1-k):-.3*wind;if(!heavy)a0=fresh?-.4*(1-k):-.2*wind}}
+    if(rig.bow){const pull=e.cd<.45?1-e.cd/.45:0;a1=1.5;e1=.2+pull*1.9;a0=1.5;lean=-.05+(pull?.1*pull:0)+(fresh?.12*(1-k):0);twist=-.25}
+    else if(d.ranged){a1=1.25+(fresh?-.5*(1-k):0);a0=.5;e1=.2;e0=.9;lean=fresh?.16*(1-k):-.05;twist=.2}
+    else{const wind=e.cd<.4?1-e.cd/.4:0;
+      /* Nahkampf: Waffe wird über die Schulter gehoben (Ausholen), dann schnell nach vorn-unten geführt */
+      if(fresh){a1=lerp(.2,2.3,1-ease(k));e1=lerp(.2,1.0,1-k);lean=-.3*(1-k);twist=.3*(1-k)}else{a1=lerp(.2,2.3,ease(wind));e1=lerp(.2,1.2,wind);lean=.14*wind;twist=-.3*wind}
+      if(!heavy)a0=fresh?-.4*(1-k):-.2*wind}}
   else if((work||build)&&!moving){
-    const kind=build?'build':e.rtype,c=(t*(kind==='wood'?6.5:kind==='build'?9:5.2)+id*1.7),ph=.5+.5*Math.sin(c),pow=ph*ph;
-    if(kind==='wood'){a1=-2.1+2.8*pow;a0=a1*.85;lean=-.05-.32*pow;twist=-.2+.3*pow;bob=-.04*pow}
-    else if(kind==='stone'||kind==='iron'||kind==='gold'){a1=-1.8+2.5*pow;a0=a1*.9;lean=-.12-.3*pow;twist=.15-.2*pow;bob=-.05*pow}
-    else if(kind==='build'){a1=-.9+1.6*pow;a0=.3+.4*Math.sin(c*.5);lean=-.18-.1*pow;twist=0}
-    else{lean=-.55-.1*ph;a1=.9+.5*Math.sin(c);a0=.9-.5*Math.sin(c);bob=-.1}}
+    const kind=build?'build':e.rtype,ph=cl(1-((build?e.bt:e.gt)||0)/(build?.6:.85),0,1);
+    if(kind==='wood'||kind==='stone'||kind==='iron'||kind==='gold'){
+      /* Zweihändiger Hieb: ausholen (Arm hoch über den Kopf), schnell herabsausen (Aufprall bei ph=1 = Geräusch), kurz verharren */
+      const hi=kind==='wood'?2.55:2.7,low=kind==='wood'?.55:.3;let a;
+      if(ph<.62)a=lerp(low+.4,hi,ease(ph/.62));else if(ph<.9)a=lerp(hi,low,Math.pow((ph-.62)/.28,1.6));else a=low-.08*Math.sin((ph-.9)*30);
+      a1=a;a0=a*.92;e1=lerp(.15,1.15,cl((a-low)/(hi-low),0,1));e0=e1;
+      const w=cl((a-low)/(hi-low),0,1);lean=lerp(-.38,.18,w);twist=lerp(.25,-.2,w);bob=-.05*(1-w)}
+    else if(kind==='build'){const w=ph<.7?ease(ph/.7):1-ease((ph-.7)/.3)*.0;a1=lerp(.5,1.9,ph<.7?w:1-Math.pow((ph-.7)/.3,2));e1=lerp(.3,1.2,ph<.7?w:1-(ph-.7)/.3);a0=.5;e0=.9;lean=-.2-.1*(1-w);twist=0}
+    else{ /* Beeren pflücken: vorgebeugt, rechte Hand greift nach vorn-unten zum Strauch und zurück zum Korb in der linken Hand */
+      const c=Math.sin(ph*Math.PI);lean=-.6;a1=lerp(.7,1.7,c);e1=lerp(1.0,.2,c);a0=.75;e0=1.25;bob=-.1;twist=.12*Math.sin(ph*Math.PI*2)}}
   else if(e.state==='gather'&&!moving&&rig.tool){a1=.12}
   if(o.fl>0){lean+=.45*fl;a0+=.5*fl;a1+=.7*fl}
-  A[0].rotation.z+=(a0-A[0].rotation.z)*Math.min(1,dt*16);A[1].rotation.z+=(a1-A[1].rotation.z)*Math.min(1,dt*18);
-  up.rotation.z+=(lean-up.rotation.z)*Math.min(1,dt*14);up.rotation.y+=(twist-up.rotation.y)*Math.min(1,dt*14);
-  up.position.y=.88+bob;up.position.x=(fresh&&atk&&!rig.bow?.18*(1-k):0)-(o.fl>0?.12*fl:0);
+  const sm=(cur,tg,r)=>cur+(tg-cur)*Math.min(1,dt*r);
+  A[0].rotation.z=sm(A[0].rotation.z,a0,18);A[1].rotation.z=sm(A[1].rotation.z,a1,work||build||atk?30:18);E[0].rotation.z=sm(E[0].rotation.z,e0,18);E[1].rotation.z=sm(E[1].rotation.z,e1,work||build||atk?30:18);
+  up.rotation.z=sm(up.rotation.z,lean,work||atk?22:14);up.rotation.y=sm(up.rotation.y,twist,14);
+  up.position.y=.9+bob;up.position.x=(fresh&&atk&&!rig.bow?.18*(1-k):0)-(o.fl>0?.12*fl:0);
   if(rig.head)rig.head.rotation.y=moving||atk?0:Math.sin(t*.6+id*3)*.45;
   if(rig.tool){const kk=build?'build':(e.state==='gather'||e.state==='return'||work)?e.rtype:null;rig.tool(kk==='food'&&e.carry>0&&e.state==='return'?null:kk);if(rig.sack){rig.sack.visible=e.carry>0&&e.state!=='gather'||e.carry>4;rig.sack.scale.setScalar(.6+Math.min(1,e.carry/CARRY)*.6)}}
 }
