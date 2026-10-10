@@ -10,10 +10,10 @@ window.run=async(list,cols)=>{
  const cam=new T.PerspectiveCamera(35,1,.01,500);const ld=new EKGLTF.GLTFLoader();
  for(let i=0;i<list.length;i++){
   const [p,flt]=list[i].split('#');let g;try{g=await ld.loadAsync(p)}catch(e){c.fillStyle='#f55';c.fillText('ERR',(i%cols)*W+5,Math.floor(i/cols)*H+20);continue}
-  const m=g.scene;if(flt)m.traverse(o=>{if(o.isMesh&&o.name!==flt.replace(/\./g,''))o.visible=false});if(g.animations.length){const mx=new T.AnimationMixer(m);const a=g.animations.find(a=>/idle/i.test(a.name))||g.animations[0];mx.clipAction(a).play();mx.update(.1)}
+  const m=g.scene;if(flt)m.traverse(o=>{if(o.isMesh&&o.name!==flt.replace(/\./g,''))o.visible=false});if(g.animations.length){const mx=new T.AnimationMixer(m);const cr=new URLSearchParams(location.search).get('clip');const a=(cr&&g.animations.find(a=>new RegExp(cr,'i').test(a.name)))||g.animations.find(a=>/idle/i.test(a.name))||g.animations[0];mx.clipAction(a).play();mx.update(.1)}
   m.updateMatrixWorld(true);const b=new T.Box3();m.traverse(o=>{if(o.isMesh&&o.visible){const bb=new T.Box3();if(o.isSkinnedMesh){o.skeleton.update();bb.copy(o.geometry.boundingBox||(o.geometry.computeBoundingBox(),o.geometry.boundingBox)).applyMatrix4(o.matrixWorld)}else bb.setFromObject(o);b.union(bb)}});
   const s=b.getSize(new T.Vector3()),ctr=b.getCenter(new T.Vector3()),r=Math.max(s.x,s.y,s.z)||1;
-  sc.add(m);cam.position.set(ctr.x+r*1.1,ctr.y+r*.9,ctr.z+r*1.5);cam.lookAt(ctr);cam.near=r/100;cam.far=r*20;cam.updateProjectionMatrix();rd.render(sc,cam);
+  sc.add(m);if(location.hash==='#side')cam.position.set(ctr.x,ctr.y,ctr.z+r*2.6);else if(location.hash==='#top')cam.position.set(ctr.x+.001,ctr.y+r*2.6,ctr.z);else cam.position.set(ctr.x+r*1.1,ctr.y+r*.9,ctr.z+r*1.5);cam.lookAt(ctr);cam.near=r/100;cam.far=r*20;cam.updateProjectionMatrix();rd.render(sc,cam);
   c.drawImage(document.getElementById('gl'),(i%cols)*W,Math.floor(i/cols)*H);sc.remove(m);
   const nm=flt||decodeURIComponent(p.split('/').pop().replace('.glb',''));c.font='13px sans-serif';c.fillStyle='rgba(0,0,0,.65)';c.fillRect((i%cols)*W,Math.floor(i/cols)*H+H-18,W,18);c.fillStyle='#fff';c.fillText((i+1)+' '+nm.slice(0,26),(i%cols)*W+4,Math.floor(i/cols)*H+H-5);
  }
