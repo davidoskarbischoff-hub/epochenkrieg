@@ -1,0 +1,78 @@
+{
+  "name": "epochenkrieg",
+  "productName": "Epochenkrieg",
+  "version": "0.1.0",
+  "description": "Epochenkrieg – Echtzeitstrategie im Browser, als Desktop-App",
+  "author": "David",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "prepare-game": "node scripts/copy-game.js",
+    "start": "npm run prepare-game && electron .",
+    "dist:win": "npm run prepare-game && electron-builder --win --publish never",
+    "dist:mac": "npm run prepare-game && electron-builder --mac --publish never",
+    "smoke": "npm run prepare-game && electron . --smoke"
+  },
+  "dependencies": {
+    "electron-updater": "6.3.9"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "webUrl": "https://davidoskarbischoff-hub.github.io/epochenkrieg/",
+  "build": {
+    "appId": "com.epochenkrieg.app",
+    "productName": "Epochenkrieg",
+    "copyright": "Epochenkrieg",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "updater.js",
+      "package.json",
+      "game/**/*",
+      "build/icon.png"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "davidoskarbischoff-hub",
+        "repo": "epochenkrieg",
+        "releaseType": "release"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "Epochenkrieg-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false,
+      "shortcutName": "Epochenkrieg"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.games",
+      "icon": "build/icon.png",
+      "identity": null,
+      "artifactName": "Epochenkrieg-${version}-${arch}.${ext}"
+    }
+  }
+}

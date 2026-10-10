@@ -9,7 +9,8 @@ const Lobby=(()=>{
   const SPEEDS=[[1,'Normal (1×)'],[2,'Schnell (2×)'],[3,'Superschnell (3×)']];
   const st={cfg:{size:'M',map:'land',speed:1,side:'A',colH:PALETTE[0][1],colG:PALETTE[1][1]},prop:{},connected:false,status:'',error:''};
   const $=id=>document.getElementById(id);
-  const baseUrl=()=>location.href.split('?')[0].split('#')[0];
+  /* In der Desktop-App zeigt der Einladungslink auf die Web-Version (die App selbst hat keine öffentliche Adresse) */
+  const baseUrl=()=>(window.EK_APP&&window.EK_APP.webUrl)||location.href.split('?')[0].split('#')[0];
   const rid=()=>Math.random().toString(36).slice(2,7);
   const T=(...a)=>tr(...a);
 

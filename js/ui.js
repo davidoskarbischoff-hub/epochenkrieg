@@ -13,9 +13,10 @@ let optTab='game';
 function renderMenu(){
   const m=$('menu');
   m.innerHTML=`<div class="gm"><div class="gm-frame"><div class="gm-crest">⚔</div><h1 class="gm-title">Epochenkrieg</h1><div class="gm-sub">${tr('Pause')}</div><div class="gm-rule"></div>
-  <nav class="gm-nav"><button class="go" id="mResume">${tr('Spiel fortsetzen')}</button><button id="mOpt">${tr('Optionen')}</button><button id="mMulti">${tr('Mehrspieler')}</button><button id="mNew">${tr('Neues Spiel')}</button></nav>
-  <div class="gm-foot">v6 · ${tr('Tipp')}: M = ${tr('Ton')}, F = ${tr('Kampfrausch')}, Esc = ${tr('Menü')}</div></div></div>`;
+  <nav class="gm-nav"><button class="go" id="mResume">${tr('Spiel fortsetzen')}</button><button id="mOpt">${tr('Optionen')}</button><button id="mMulti">${tr('Mehrspieler')}</button>${window.EK_APP?`<button id="mUpd">${tr('Nach Updates suchen')}</button>`:''}<button id="mNew">${tr('Neues Spiel')}</button></nav>
+  <div class="gm-foot">${versionLabel()} · ${tr('Tipp')}: M = ${tr('Ton')}, F = ${tr('Kampfrausch')}, Esc = ${tr('Menü')}</div></div></div>`;
   $('mResume').onclick=toggleMenu;$('mOpt').onclick=renderOptions;
+  const up=$('mUpd');if(up)up.onclick=()=>{window.EK_APP.checkForUpdates();toggleMenu()};
   $('mNew').onclick=()=>{toggleMenu();showStart()};
   $('mMulti').onclick=()=>{toggleMenu();if(window.Lobby)Lobby.open()};
 }
@@ -241,3 +242,6 @@ addEventListener('keydown',e=>{if(e.key==='t'||e.key==='T'){if(!G||!G.running||m
 /* Vorschaubild für Ausbildungs- und Baukacheln */
 function actIcon(a){const k=a.key||'';let kind=null,type=null;if(k[0]==='t'&&UNITS[k.slice(1)]){kind='unit';type=k.slice(1)}else if(k[0]==='b'&&BLDS[k.slice(1)]){kind='bld';type=k.slice(1)}
   if(!kind||typeof ICON3==='undefined')return'';const u=ICON3.thing(kind,type);return u?`<img class="aic" src="${u}" alt="">`:''}
+
+/* Versionsanzeige im Menü: in der Desktop-App die App-Version, im Browser „Web-Version“ */
+function versionLabel(){return window.EK_APP?tr('App-Version')+' '+window.EK_APP.version:tr('Web-Version')}
