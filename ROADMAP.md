@@ -128,3 +128,14 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Idee: Modelle durch echte glTF-Modelle ersetzen (`models3d.js` ist die einzige Stelle)
 - [ ] Idee: Spielserver für zuverlässigen Mehrspieler, Steam-Vorbereitung (Electron/Tauri)
 - [ ] Idee: Tag/Nacht, Wetter, Schnee/Wüste-Gebiete
+
+## Runde: Epochen-Looks, Gegner-Typen, Gold, Ton
+- [x] Sechstes Zeitalter (Industriezeit), Einheiten sehen je Stufe anders aus, Steinzeit-Gebäude (Zelte, Totem, Menhire), Renaissance-/Industrie-Zusätze
+- [x] Sprachwahl bleibt hervorgehoben, Tempo 5
+- [x] Gegner-KI auf „normal“ abgeschwächt, Gegner-Typen (Turtle, Rush, Wirtschaft, Aufstieg, Ausgewogen)
+- [x] Berater schneller, konkreter, dringende Vorschläge unterbrechen, Minen/Markt/Mangel-Regeln
+- [x] Gold, Minen (für Eisen und Gold), Markt, Rohstoffe erscheinen je Epoche
+- [x] Mammut und Säbelzahntiger (sterben aus), Wölfe/Bären/Tiger erst später
+- [x] Stimmen, Kriegshorn, dritte Musikstufe, Ton-Schalter, `SOUNDS.md`
+- [ ] Idee: Gegner-Typ „Zufall“, Handelsrouten/Schiffe mit Gold, Berater-Warnung bei Gold-Überschuss
+- [ ] Idee: Mehrspieler siehe `MEHRSPIELER-VORSCHLAG.md`

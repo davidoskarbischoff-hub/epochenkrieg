@@ -157,7 +157,6 @@ const PRIM={
     g.userData.h=R*1.8;return g},
   barracks(R,st,team){const g=new THREE.Group(),sm=m3Plain(0x8d8a80,.95);
     const n=8;for(let i=0;i<n;i++){const a=i/n*6.283,h=R*(.9+.5*((i*37)%5)/4);const m=put(g,new THREE.BoxGeometry(.6,h,.35),sm,Math.cos(a)*R*1.15,h/2,Math.sin(a)*R*.8);m.rotation.y=-a;m.rotation.z=((i*13)%5-2)*.02}
-    put(g,new THREE.BoxGeometry(R*.9,.18,R*.4),sm,0,R*1.6,-R*.8,false).visible=false;
     put(g,cyl(R*.3,R*.35,.1,10),m3Plain(0x4a443d,.95),0,.05,0);put(g,cone(.16,.45,6),m3Plain(0xf08a2c,.5,{emissive:0xd45a10,emissiveIntensity:.8}),0,.35,0);
     for(let i=0;i<4;i++){const c=put(g,cyl(.05,.07,R*1.0,6),wood(),R*.3+i*.22,R*.5,-R*.2);c.rotation.z=-.25;put(g,new THREE.DodecahedronGeometry(.13,0),sm,R*.3+i*.22+R*.12,R*1.0,-R*.2)}
     for(let i=0;i<3;i++){const sk=put(g,new THREE.SphereGeometry(.14,8,6),m3Plain(0xe8dfc8),-R*.3+i*.3,.14,R*.4)}
@@ -197,7 +196,6 @@ function human(o){
   for(const s of[-1,1]){const p=limbPivot(g,0,1.7,s*.38);put(p,cyl(.09,.08,.7,8),o.arm||o.body,0,-.34,0);put(p,new THREE.SphereGeometry(.09,8,8),skin,0,-.72,0);rig.arms.push(p)}
   return rig}
 const armHand=(rig,i)=>{const p=new THREE.Group();p.position.set(0,-.72,0);rig.arms[i].add(p);return p};
-function hat(rig,geo,mat,y=2.2,x=0){return put(rig.g,geo,mat,x,y,0)}
 
 /* ---------- Ausrüstung je Zeitalter ----------
    Die Stufe der Einheit (u.lvl, steigt mit dem Zeitalter) bestimmt den Look: 0 Steinzeit (Fell, Stein), 1 Bronze, 2 Eisen, 3 Kettenhemd/Mittelalter,
