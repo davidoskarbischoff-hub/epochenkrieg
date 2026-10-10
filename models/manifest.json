@@ -451,6 +451,58 @@
      0
     ]
    }
+  },
+  "boat": [
+   {
+    "file": "neu/Rowboat by Poly by Google - adoP7kR7S17.glb",
+    "fit": "length",
+    "epochs": [
+     0,
+     1,
+     2
+    ],
+    "yaw": -90
+   },
+   {
+    "file": "neu/Boat by Poly by Google - 1ZuSXvhkRg_.glb",
+    "fit": "length",
+    "epochs": [
+     3,
+     4,
+     5,
+     6
+    ]
+   }
+  ],
+  "warship": {
+   "file": "neu/Sail Boat by Quaternius - BgSZXwmm7k.glb",
+   "fit": "length",
+   "yaw": -90
+  },
+  "galleon": {
+   "file": "neu/Sail Ship by Quaternius - cIzO4MBPqI.glb",
+   "fit": "length",
+   "yaw": -90
+  },
+  "catapult": {
+   "file": "neu/Catapult by Poly by Google - 7P_ZOjZbbMJ.glb",
+   "fit": "length"
+  },
+  "plane": {
+   "file": "neu/Aeroplane by Gilang Romadhan - 9VeIc0cybp4.glb",
+   "fit": "length"
+  },
+  "fighter": {
+   "file": "neu/Airplane by Poly by Google - 6D4MwQoxK-K.glb",
+   "fit": "length"
+  },
+  "bomber": {
+   "file": "neu/Airplane by Poly by Google - 8VysVKMXN2J.glb",
+   "fit": "length"
+  },
+  "zero": {
+   "file": "neu/Aeroplane by Gilang Romadhan - 9VeIc0cybp4.glb",
+   "fit": "length"
   }
  },
  "buildings": {
@@ -689,6 +741,86 @@
    }
   ]
  },
- "animals": {},
- "nodes": {}
+ "animals": {
+  "deer": {
+   "file": "neu/Stag.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Attack_Headbutt",
+    "work": "Eating"
+   }
+  },
+  "wolf": {
+   "file": "neu/Wolf.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Attack",
+    "work": "Eating"
+   }
+  },
+  "bear": {
+   "file": "neu/Bear.glb"
+  },
+  "mammoth": {
+   "file": "neu/Bizon.glb",
+   "scale": 1.0,
+   "yaw": 180
+  },
+  "sabertooth": {
+   "file": "neu/Cat.glb",
+   "tintAll": "#c79a5a"
+  },
+  "tiger": {
+   "file": "neu/Cat.glb",
+   "tintAll": "#d9792b"
+  },
+  "croc": {
+   "file": "neu/Lizard.glb",
+   "tintAll": "#4f6b3a"
+  }
+ },
+ "nodes": {
+  "pine": {
+   "file": "neu/Pine.glb"
+  },
+  "broad": {
+   "file": "neu/dorf/Tree-t9KbsfYdXz.glb"
+  },
+  "bush": {
+   "file": "neu/Bush.glb",
+   "tint": "#5a9a42"
+  },
+  "stone": [
+   {
+    "file": "neu/Rock Medium.glb"
+   },
+   {
+    "file": "neu/Rock Medium-s1OJ3bBzqc.glb"
+   },
+   {
+    "file": "neu/Rock Medium-JQxF95498B.glb"
+   }
+  ],
+  "iron": [
+   {
+    "file": "neu/Rock Medium.glb",
+    "tint": "#8a7a74"
+   },
+   {
+    "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
+    "tint": "#8a7a74"
+   },
+   {
+    "file": "neu/Rock Medium-JQxF95498B.glb",
+    "tint": "#8a7a74"
+   }
+  ],
+  "gold": [
+   {
+    "file": "neu/Gold Rocks.glb"
+   }
+  ]
+ }
 }

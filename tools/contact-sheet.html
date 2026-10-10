@@ -1,0 +1,22 @@
+<!doctype html><meta charset=utf-8><title>Kontaktbogen</title><body style="margin:0;background:#222"><canvas id=out></canvas><canvas id=gl width=200 height=200 style="display:none"></canvas>
+<!-- Entwicklerwerkzeug: zeigt viele .glb-Dateien als Übersichtsbild (wird per Skript mit run(liste,spalten) benutzt) -->
+<script src="../js/vendor/three.min.js"></script><script src="../js/vendor/gltf-bundle.js"></script>
+<script>
+const T=THREE;
+window.run=async(list,cols)=>{
+ const W=200,H=200,rows=Math.ceil(list.length/cols),out=document.getElementById('out');out.width=cols*W;out.height=rows*H;const c=out.getContext('2d');c.fillStyle='#3a4a3a';c.fillRect(0,0,out.width,out.height);
+ const rd=new T.WebGLRenderer({canvas:document.getElementById('gl'),antialias:true,preserveDrawingBuffer:true});rd.setSize(W,H,false);
+ const sc=new T.Scene();sc.background=new T.Color(0x56705a);sc.add(new T.HemisphereLight(0xffffff,0x556655,1.6));const dl=new T.DirectionalLight(0xffffff,2.2);dl.position.set(3,6,4);sc.add(dl);
+ const cam=new T.PerspectiveCamera(35,1,.01,500);const ld=new EKGLTF.GLTFLoader();
+ for(let i=0;i<list.length;i++){
+  const p=list[i];let g;try{g=await ld.loadAsync(p)}catch(e){c.fillStyle='#f55';c.fillText('ERR',(i%cols)*W+5,Math.floor(i/cols)*H+20);continue}
+  const m=g.scene;if(g.animations.length){const mx=new T.AnimationMixer(m);const a=g.animations.find(a=>/idle/i.test(a.name))||g.animations[0];mx.clipAction(a).play();mx.update(.1)}
+  m.updateMatrixWorld(true);const b=new T.Box3();m.traverse(o=>{if(o.isMesh){const bb=new T.Box3();if(o.isSkinnedMesh){o.skeleton.update();bb.copy(o.geometry.boundingBox||(o.geometry.computeBoundingBox(),o.geometry.boundingBox)).applyMatrix4(o.matrixWorld)}else bb.setFromObject(o);b.union(bb)}});
+  const s=b.getSize(new T.Vector3()),ctr=b.getCenter(new T.Vector3()),r=Math.max(s.x,s.y,s.z)||1;
+  sc.add(m);cam.position.set(ctr.x+r*1.1,ctr.y+r*.9,ctr.z+r*1.5);cam.lookAt(ctr);cam.near=r/100;cam.far=r*20;cam.updateProjectionMatrix();rd.render(sc,cam);
+  c.drawImage(document.getElementById('gl'),(i%cols)*W,Math.floor(i/cols)*H);sc.remove(m);
+  const nm=decodeURIComponent(p.split('/').pop().replace('.glb',''));c.font='13px sans-serif';c.fillStyle='rgba(0,0,0,.65)';c.fillRect((i%cols)*W,Math.floor(i/cols)*H+H-18,W,18);c.fillStyle='#fff';c.fillText((i+1)+' '+nm.slice(0,26),(i%cols)*W+4,Math.floor(i/cols)*H+H-5);
+ }
+ return out.toDataURL('image/png');
+};
+</script>
