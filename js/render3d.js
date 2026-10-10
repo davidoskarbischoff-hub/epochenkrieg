@@ -238,7 +238,8 @@ function r3Unit(o,e,h,dt,t){
   let y=h;
   if(rig.ship){y=-.42+Math.sin(t*2+e.id)*.06;obj.rotation.z=Math.sin(t*1.7+e.id)*.035;obj.rotation.x=0;if(rig.sail)rig.sail.rotation.y=Math.sin(t*1.3+e.id)*.1}
   else{
-    if(moving)y+=Math.abs(s)*.07*(rig.horse?1.6:1);
+    if(rig.props){y=h+5+Math.sin(t*1.5+e.id)*.25;rig.props.forEach(pr=>pr.rotation.x+=dt*40);obj.rotation.z=moving?-.12:0}
+    else if(moving)y+=Math.abs(s)*.07*(rig.horse?1.6:1);
     if(rig.horse){rig.legs.forEach((l,i)=>l.rotation.z=(i%2?s:-s)*.7);const rd=rig.rider;rd.arms[1].rotation.z=.2+sw*.6}
     else if(rig.wheels){if(moving)rig.wheels.forEach(w=>w.rotation[w.userData.axis||'y']+=dt*3.2*(d.spd/40));if(rig.log)rig.log.position.x=sw*.9;if(rig.arm)rig.arm.rotation.z=-sw*1.8;if(rig.barrel)rig.barrel.position.x=.1-sw*.35}
     else if(rig.up){r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t)}
@@ -285,7 +286,7 @@ function r3Frame(list,rings,dt){
 }
 /* Höhe einer Figur/eines Gebäudes über dem Boden in Spielpixeln (für Lebensbalken, Marker) */
 function entH(e){
-  if(e.kind==='unit'){const t=e.type,d=UNITS[t];return d.naval?(t==='galleon'?55:40):t==='knight'?46:d.siege?(t==='ram'?30:34):e.r/7*25}
+  if(e.kind==='unit'){const t=e.type,d=UNITS[t];return d.air?60:d.naval?(t==='galleon'?55:40):t==='knight'?46:d.siege?(t==='ram'?30:34):e.r/7*25}
   if(e.kind==='bld'){const o=R3.reg.get(entKey(e,false));return o&&o.obj.userData.h?o.obj.userData.h*R3.S:e.r*2.4}
   if(e.kind==='animal')return ANIMALS[e.type].h||26;
   return e.r*({tree:3.6,bush:1.5,stone:1.1,iron:1.1,gold:1.1}[e.type]||1)}

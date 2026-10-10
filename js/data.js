@@ -26,12 +26,32 @@ const UNITS={
   ironclad:{cls:'ship',tech:'ironclads',name:'Panzerschiff',naval:true,ranged:true,sight:280,hp:620,spd:58,atk:44,rng:240,cd:2.4,r:17,cost:{gold:90,wood:260,iron:240},time:40,ep:5,from:'harbor'},
   healer:{cls:'med',passive:true,heal:2.2,name:'Heiler',sight:150,hp:80,spd:56,atk:0,rng:4,cd:1.2,r:7,cost:{food:60,wood:20},time:14,ep:0,from:'barracks'},
   engineer:{cls:'inf',builds:true,name:'Ingenieur',sight:160,hp:95,spd:54,atk:7,rng:5,cd:1.2,r:7,cost:{food:70,wood:50,iron:20},time:16,ep:3,from:'barracks'},
+  /* ---- Weltkriegszeit (Zeitalter VII): gemeinsame Truppen für alle Nationen ---- */
+  assault:{cls:'inf',name:'Sturmsoldat',sight:170,hp:200,spd:62,atk:34,rng:6,cd:1.0,r:8,cost:{food:90,iron:40,gold:20},time:16,ep:6,from:'barracks'},
+  mg:{cls:'rng',name:'Maschinengewehr',sight:200,hp:120,spd:36,atk:14,rng:190,cd:.35,r:8,cost:{food:80,wood:40,iron:110,gold:40},time:22,ep:6,from:'barracks',ranged:true,gun:true},
+  plane:{cls:'air',air:true,name:'Jagdflugzeug',sight:280,hp:150,spd:160,atk:16,rng:110,cd:.45,r:10,cost:{wood:150,iron:200,gold:90,oil:80},time:26,ep:6,from:'airfield',ranged:true,gun:true},
+  /* ---- Nationen-Spezialeinheiten (je zwei pro Nation) ---- */
+  skoda:{cls:'siege',nation:'at',name:'Škoda-Mörser „Emma“',sight:230,hp:190,spd:22,atk:150,rng:330,cd:6.2,r:13,cost:{wood:320,iron:420,gold:200,oil:50},time:44,ep:6,from:'barracks',ranged:true,siege:true},
+  alpini:{cls:'rng',nation:'at',name:'Kaiserjäger',sight:210,hp:175,spd:54,atk:52,rng:215,cd:1.7,r:7,cost:{food:110,wood:40,iron:90,gold:30},time:22,ep:6,from:'barracks',ranged:true,gun:true},
+  sturm:{cls:'inf',nation:'de',name:'Sturmtruppe',sight:180,hp:250,spd:64,atk:42,rng:6,cd:1.0,r:8,cost:{food:110,iron:70,gold:50},time:20,ep:6,from:'barracks'},
+  bertha:{cls:'siege',nation:'de',name:'Dicke Bertha',sight:240,hp:220,spd:18,atk:175,rng:380,cd:8,r:14,cost:{wood:400,iron:500,gold:260,oil:70},time:50,ep:6,from:'barracks',ranged:true,siege:true},
+  rekrut:{cls:'rng',nation:'ru',name:'Rekrut',sight:150,hp:80,spd:56,atk:12,rng:140,cd:1.8,r:7,cost:{food:28,wood:10},time:5,ep:6,from:'barracks',ranged:true,gun:true},
+  kosak:{cls:'cav',nation:'ru',name:'Kosak',sight:200,hp:210,spd:92,atk:30,rng:6,cd:1.0,r:11,cost:{food:120,gold:30},time:18,ep:6,from:'barracks'},
+  kamel:{cls:'cav',nation:'ot',name:'Kamelreiter',sight:210,hp:190,spd:84,atk:26,rng:6,cd:1.0,r:12,cost:{food:100,gold:20},time:17,ep:6,from:'barracks'},
+  janit:{cls:'rng',nation:'ot',name:'Janitschar',sight:190,hp:170,spd:54,atk:38,rng:150,cd:1.5,r:7,cost:{food:100,wood:30,iron:60,gold:40},time:20,ep:6,from:'barracks',ranged:true,gun:true},
+  mark1:{cls:'siege',nation:'uk',name:'Mark I',sight:200,hp:560,spd:30,atk:40,rng:150,cd:3,r:15,cost:{wood:230,iron:380,gold:120,oil:70},time:40,ep:6,from:'barracks',ranged:true,siege:true},
+  bomber:{cls:'air',air:true,nation:'uk',name:'Bomber',sight:260,hp:240,spd:110,atk:120,rng:26,cd:3.5,r:13,cost:{wood:220,iron:260,gold:150,oil:110},time:36,ep:6,from:'airfield',bomber:true},
+  renault:{cls:'siege',nation:'fr',name:'Renault FT',sight:190,hp:260,spd:60,atk:30,rng:170,cd:1.8,r:11,cost:{wood:120,iron:180,gold:70,oil:30},time:24,ep:6,from:'barracks',ranged:true,siege:true},
+  kurass:{cls:'cav',nation:'fr',name:'Kürassier',sight:200,hp:260,spd:80,atk:36,rng:6,cd:1.0,r:11,cost:{food:130,iron:60,gold:40},time:20,ep:6,from:'barracks'},
+  doughboy:{cls:'rng',nation:'us',name:'Doughboy',sight:200,hp:210,spd:56,atk:30,rng:170,cd:1.5,r:7,cost:{food:100,wood:30,iron:70,gold:20},time:18,ep:6,from:'barracks',ranged:true,gun:true},
+  fighter:{cls:'air',air:true,nation:'us',name:'Jagdflieger',sight:290,hp:190,spd:175,atk:22,rng:120,cd:.4,r:10,cost:{wood:160,iron:210,gold:110,oil:90},time:30,ep:6,from:'airfield',ranged:true,gun:true},
   sword:{cls:'inf',tech:'smithy',name:'Schwertkämpfer',sight:150,hp:150,spd:52,atk:15,rng:5,cd:1.1,r:9,cost:{food:80,iron:40},time:18,ep:2,from:'barracks'}
 };
 const BLDS={
   hq:{name:'Hauptlager',sight:280,claim:260,hp:1400,r:36,pop:10,drop:true,shoot:{rng:150,atk:6,cd:1.8}},
   house:{name:'Hütte',sight:150,claim:100,hp:250,r:16,pop:5,cost:{wood:50},time:14,ep:0,sub:'+5 Bevölkerung'},
   store:{name:'Lager',sight:170,claim:120,hp:350,r:18,drop:true,cost:{wood:80},time:16,ep:0,sub:'Abgabestelle'},
+  airfield:{name:'Flugplatz',sight:200,claim:120,hp:800,r:30,cost:{wood:300,iron:200,gold:100},time:40,ep:6,sub:'Bildet Flugzeuge aus'},
   barracks:{name:'Kaserne',sight:190,claim:130,hp:700,r:27,cost:{wood:150},time:24,ep:0,sub:'Bildet Krieger aus'},
   harbor:{name:'Hafen',sight:190,claim:140,hp:600,r:24,drop:true,cost:{wood:120},time:20,ep:0,sub:'Boote und Fischfang'},
   castle:{name:'Burg',sight:340,claim:250,hp:1600,r:40,cost:{wood:200,stone:260,iron:80},time:45,ep:3,shoot:{rng:205,atk:15,cd:1.3},sub:'Starke Festung, erobert Land'},
@@ -50,7 +70,7 @@ const NODES={tree:{cap:3,rt:'wood',amt:420,r:11,name:'Baum'},bush:{cap:3,rt:'foo
   fish:{cap:2,sea:true,rt:'food',amt:160,r:8,name:'Fischschwarm',gm:1,regen:.55},
   dolphin:{cap:3,sea:true,rt:'food',amt:420,r:11,name:'Delfine',gm:1.3,lvl:1,regen:.45},
   whale:{cap:4,sea:true,rt:'food',amt:1100,r:16,name:'Wal',gm:1.7,lvl:2,regen:.5}};
-const EPOCHS=[{name:'Steinzeit',cost:{food:350,wood:200},time:30},{name:'Bronzezeit',cost:{food:500,wood:250,stone:200},time:40},{name:'Eisenzeit',cost:{food:700,wood:350,stone:300,iron:150},time:50},{name:'Mittelalter',cost:{food:900,wood:450,stone:450,iron:350,gold:200},time:60},{name:'Renaissance',cost:{food:1100,wood:600,stone:500,iron:450,gold:350},time:70},{name:'Industriezeit'}];
+const EPOCHS=[{name:'Steinzeit',cost:{food:350,wood:200},time:30},{name:'Bronzezeit',cost:{food:500,wood:250,stone:200},time:40},{name:'Eisenzeit',cost:{food:700,wood:350,stone:300,iron:150},time:50},{name:'Mittelalter',cost:{food:900,wood:450,stone:450,iron:350,gold:200},time:60},{name:'Renaissance',cost:{food:1100,wood:600,stone:500,iron:450,gold:350},time:70},{name:'Industriezeit',cost:{food:1300,wood:700,stone:600,iron:550,gold:450,oil:150},time:80},{name:'Weltkriegszeit'}];
 /* Wilde Tiere: agg = Aggro-Reichweite (greift an, wenn jemand näher kommt), leash = so weit folgt es seinem Revier-Mittelpunkt, roam = Streifgebiet,
    flee = friedliche Tiere fliehen ab dieser Nähe, food = Nahrung für den, der es erlegt, h = Höhe fürs Anzeigen */
 const ANIMALS={
@@ -66,6 +86,19 @@ const CTR={spear:{cav:1.8},cav:{rng:1.4,siege:1.4,med:1.4},rng:{inf:1.2,spear:1.
 const RAGE={dur:6,cd:35,dmg:1.35,spd:1.25}; /* Fähigkeit Kampfrausch (Taste F) */
 /* Einheiten ändern ihren Namen mit dem Zeitalter (Sanitäter-Reihe) */
 const UNAMES={healer:['Schamane','Heiler','Priester','Feldscher','Sanitäter','Medizintechniker']};
+/* Nationen (ab der Industriezeit wählbar): Gruppe, Region, Farbe, Bonus (fx), Spezialeinheiten. fx: art = Artillerie-Schaden, gather = Sammeltempo, oilgold = Öl und Gold, tankCost = Panzerkosten, foodCost = Nahrungskosten der Truppen, prod = Ausbildungstempo, hp = Leben der Truppen, navhp = Leben der Schiffe, pop = Bevölkerung, air = Flugzeug-Leben */
+const NATIONS={
+  at:{name:'Österreich-Ungarn',short:'k.u.k.',grp:'Kaiserreiche',reg:'Europa',col:'#d8c24a',desc:'Donaumonarchie mit gewaltiger Festungsartillerie.',bonus:'Belagerungswaffen +15 % Schaden, Gebäude +10 % Leben',fx:{art:.15,bhp:.1},sp:['skoda','alpini']},
+  de:{name:'Deutsches Kaiserreich',short:'Kaiserreich',grp:'Kaiserreiche',reg:'Europa',col:'#8a8e96',desc:'Starke Industrie, Artillerie und Sturmtruppen.',bonus:'Artillerie +25 % Schaden, Truppen +5 % Leben',fx:{art:.25,hp:.05},sp:['sturm','bertha']},
+  ru:{name:'Russisches Zarenreich',short:'Zarenreich',grp:'Kaiserreiche',reg:'Europa / Asien',col:'#3f7a4a',desc:'Unerschöpfliche Menschenmassen, aber schlechter ausgerüstet.',bonus:'Truppen kosten 25 % weniger Nahrung, +30 Bevölkerung, Truppen −8 % Leben',fx:{foodCost:.25,pop:30,hp:-.08},sp:['rekrut','kosak']},
+  ot:{name:'Osmanisches Reich',short:'Osmanen',grp:'Kaiserreiche',reg:'Asien',col:'#b8362e',desc:'Herr über Wüste und Ölvorkommen.',bonus:'Öl und Gold +40 % Ertrag, Reiter +10 % Tempo',fx:{oilgold:.4},sp:['kamel','janit']},
+  uk:{name:'Britisches Empire',short:'Empire',grp:'Demokratien',reg:'Europa',col:'#2d4a8a',desc:'Seemacht mit Panzern der ersten Stunde und Bomberflotte.',bonus:'Schiffe +25 % Leben, Flugzeuge +15 % Leben',fx:{navhp:.25,air:.15},sp:['mark1','bomber']},
+  fr:{name:'Frankreich',short:'Republik',grp:'Demokratien',reg:'Europa',col:'#3a64b0',desc:'Erbe Napoleons: Reiterei und leichte Panzer in Massen.',bonus:'Panzer kosten 25 % weniger, Reiter +15 % Leben',fx:{tankCost:.25,cavhp:.15},sp:['renault','kurass']},
+  us:{name:'Vereinigte Staaten',short:'USA',grp:'Demokratien',reg:'Amerika',col:'#4a6ca8',desc:'Frische Truppen, starke Wirtschaft, überlegene Jäger.',bonus:'Sammeln +20 %, Ausbildung +20 % schneller',fx:{gather:.2,prod:.2},sp:['doughboy','fighter']}
+};
+const NFX0={art:0,gather:0,oilgold:0,tankCost:0,foodCost:0,prod:0,hp:0,navhp:0,pop:0,air:0,bhp:0,cavhp:0};
+const nationFx=k=>Object.assign({},NFX0,k&&NATIONS[k]?NATIONS[k].fx:{});
+const TANKS=new Set(['tank','mark1','renault']);
 const POPMAX=100;
 const RES=['food','wood','stone','iron','gold','oil'],RN={food:'Nahrung',wood:'Holz',stone:'Stein',iron:'Eisen',gold:'Gold',oil:'Öl'};
 const RES_EP={stone:1,iron:2,gold:3,oil:5},MINE_RT={iron:'mine',gold:'mine',oil:'derrick'}; /* ab welcher Epoche eine Ressource erscheint; Erz und Gold brauchen eine Mine in der Nähe */
@@ -81,17 +114,17 @@ const AI_STYLES={
   eco:{name:'Wirtschaft',desc:'Viele Arbeiter, große Vorräte, späte Armee',wk:1.3,pace:.95,army:.7,first:1.5,wave:1.3,tow:0,bar:0,def:260},
   boom:{name:'Aufstieg',desc:'Steigt so schnell wie möglich auf',wk:1.1,pace:.7,army:.6,first:1.4,wave:1.2,tow:0,bar:0,def:260}
 };
-const AI_MINT=[230,520,900,1320,1800]; /* früheste Zeit (s), zu der die KI in die nächste Epoche steigen darf (normal) */
+const AI_MINT=[230,520,900,1320,1800,2300]; /* früheste Zeit (s), zu der die KI in die nächste Epoche steigen darf (normal) */
 const TC=['#3d72b8','#b9442f'],TCD=['#1f3f6b','#6e2215'],TCL=['#8fb4e6','#ef9b86'];
-const MAT=[{wall:'#7d5f3b',roof:'#a8834f',line:'#4f3a22'},{wall:'#b48a5a',roof:'#cfa66e',line:'#6f5131'},{wall:'#86837c',roof:'#aaa69d',line:'#55524c'},{wall:'#a29d94',roof:'#9a4a38',line:'#4a443d'},{wall:'#c0b4a0',roof:'#58708a',line:'#3a3d46'},{wall:'#a8503f',roof:'#3e444d',line:'#2d2926'}];
+const MAT=[{wall:'#7d5f3b',roof:'#a8834f',line:'#4f3a22'},{wall:'#b48a5a',roof:'#cfa66e',line:'#6f5131'},{wall:'#86837c',roof:'#aaa69d',line:'#55524c'},{wall:'#a29d94',roof:'#9a4a38',line:'#4a443d'},{wall:'#c0b4a0',roof:'#58708a',line:'#3a3d46'},{wall:'#a8503f',roof:'#3e444d',line:'#2d2926'},{wall:'#8a8f86',roof:'#4a4f4a',line:'#2a2d2a'}];
 const STATE={idle:'Wartet',move:'Unterwegs',amove:'Angriffsmarsch',attack:'Kämpft',build:'Baut',explore:'Erkundet'};
 
 // Stufen (Level) von Einheiten und Gebäuden: Stufe 0 = Steinzeit, 1 = Bronzezeit, 2 = Eisenzeit.
 // Neue Einheiten/Gebäude starten auf der Stufe der aktuellen Epoche; ältere müssen per Upgrade nachgezogen werden.
-const LVL={hp:[1,1.25,1.55,1.9,2.3,2.7],atk:[1,1.2,1.45,1.75,2.1,2.45],gather:[1,1.25,1.5,1.75,2,2.25],bhp:[1,1.3,1.7,2.2,2.8,3.4]};
-const LVLN=['I','II','III','IV','V','VI'],LVLC=['#a39a88','#6fc46a','#eab94b','#ec8a5c','#8fd3f2','#d6a6f0'];
+const LVL={hp:[1,1.25,1.55,1.9,2.3,2.7,3.1],atk:[1,1.2,1.45,1.75,2.1,2.45,2.8],gather:[1,1.25,1.5,1.75,2,2.25,2.5],bhp:[1,1.3,1.7,2.2,2.8,3.4,4]};
+const LVLN=['I','II','III','IV','V','VI','VII'],LVLC=['#a39a88','#6fc46a','#eab94b','#ec8a5c','#8fd3f2','#d6a6f0','#f2e07a'];
 const NEED_LVL={stone:1,iron:2,gold:3,oil:5}; // ab welcher Stufe ein Arbeiter diese Ressource abbauen kann
-const UPG={unit:[null,{food:20},{food:30,stone:15},{food:45,iron:20},{food:60,iron:35},{food:75,iron:50}],bld:[null,{wood:25},{wood:40,stone:25},{wood:60,stone:40},{wood:80,iron:40},{wood:100,iron:55}]}; // Kosten pro Stück für die Zielstufe
+const UPG={unit:[null,{food:20},{food:30,stone:15},{food:45,iron:20},{food:60,iron:35},{food:75,iron:50},{food:90,iron:60,oil:10}],bld:[null,{wood:25},{wood:40,stone:25},{wood:60,stone:40},{wood:80,iron:40},{wood:100,iron:55},{wood:120,iron:70,stone:40}]}; // Kosten pro Stück für die Zielstufe
 const UPG_TIME={base:5,each:.7,max:40}; // Dauer in Sekunden
 
 /* Technologien: gehören zu einem Gebäudetyp, werden mit Ressourcen und Zeit erforscht und gelten für das ganze Team.

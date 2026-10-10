@@ -5,7 +5,7 @@
 let mapSeed=0,mapFresh=false,mapKey='',curMap='coast';
 function newGame(d,reuse,opts){
   opts=opts||{};diff=d;if(opts.aiStyle)aiStyle=opts.aiStyle;if(opts.map)curMap=opts.map;else if(typeof window.__map==='string')curMap=window.__map;
-  G={late:[],t:0,ents:[],byId:new Map(),nid:1,res:[{food:200,wood:200,stone:100,iron:0,gold:0,oil:0},{food:200,wood:200,stone:100,iron:0,gold:0,oil:0}],epoch:[0,0],adv:[null,null],jobs:[[],[]],tech:[new Set(),new Set()],rs:[[],[]],tfx:[techFx(new Set()),techFx(new Set())],pop:[0,0],cap:[0,0],speed:1,paused:false,running:false,over:null,overShown:false,proj:[],fx:[],aiT:1,alertT:-99,ping:null,ev:[],alertT1:-99,mem:new Map(),ai:{style:opts.aiStyle||aiStyle,next:DIFF[d].first*AI_STYLES[opts.aiStyle||aiStyle].first,wave:DIFF[d].wave*AI_STYLES[opts.aiStyle||aiStyle].wave,ex:new Uint8Array(FW*FH),seen:new Map(),attack:false,towT:0,shipNext:200,exPt:null},stats:{lost:[0,0],trained:[0,0]}};
+  G={late:[],nation:[null,null],nfx:[nationFx(),nationFx()],t:0,ents:[],byId:new Map(),nid:1,res:[{food:200,wood:200,stone:100,iron:0,gold:0,oil:0},{food:200,wood:200,stone:100,iron:0,gold:0,oil:0}],epoch:[0,0],adv:[null,null],jobs:[[],[]],tech:[new Set(),new Set()],rs:[[],[]],tfx:[techFx(new Set()),techFx(new Set())],pop:[0,0],cap:[0,0],speed:1,paused:false,running:false,over:null,overShown:false,proj:[],fx:[],aiT:1,alertT:-99,ping:null,ev:[],alertT1:-99,mem:new Map(),ai:{style:opts.aiStyle||aiStyle,next:DIFF[d].first*AI_STYLES[opts.aiStyle||aiStyle].first,wave:DIFF[d].wave*AI_STYLES[opts.aiStyle||aiStyle].wave,ex:new Uint8Array(FW*FH),seen:new Map(),attack:false,towT:0,shipNext:200,exPt:null},stats:{lost:[0,0],trained:[0,0]}};
   sel.clear();placing=null;armed=false;panelSig='';advisor.cur=null;advisor.ignore={};advisor.next=8;advisor.last=-9;if(typeof SND!=='undefined')SND.setEpoch(0);
   const want=opts.seed!==undefined?opts.seed:(typeof window.__seed==='number'?window.__seed:undefined),keep=reuse&&mapFresh&&bg&&mapKey===curMap&&want===undefined,seed=keep?mapSeed:(want!==undefined?want:(Math.random()*1e9)|0);mapSeed=seed;mapFresh=true;mapKey=curMap;genTerrain(seed,curMap);navInit();genMap(seed);if(!keep)renderBg(seed);
   if(opts.flip)flipTeams();G.mp=!!opts.mp;if(G.mp)G.speed=1;
@@ -13,7 +13,7 @@ function newGame(d,reuse,opts){
   const hq=G.ents.find(e=>e.type==='hq'&&e.team===0);centerOn(hq.x+120,hq.y-80);
   $('pauseBtn').textContent=tr('Pause');$('speedBtn').textContent=tr('Tempo {0}×',1);
 }
-function recount(){G.pop=[0,0];G.cap=[0,0];for(const e of G.ents){if(e.dead)continue;if(e.kind==='unit')G.pop[e.team]++;else if(e.kind==='bld'&&e.built&&BLDS[e.type].pop)G.cap[e.team]+=BLDS[e.type].pop}G.cap=G.cap.map((c,t)=>Math.min(POPMAX,c+(G.tfx?G.tfx[t].pop:0)))}
+function recount(){G.pop=[0,0];G.cap=[0,0];for(const e of G.ents){if(e.dead)continue;if(e.kind==='unit')G.pop[e.team]++;else if(e.kind==='bld'&&e.built&&BLDS[e.type].pop)G.cap[e.team]+=BLDS[e.type].pop}G.cap=G.cap.map((c,t)=>Math.min(POPMAX+(G.nfx?G.nfx[t].pop:0),c+(G.tfx?G.tfx[t].pop:0)+(G.nfx?G.nfx[t].pop:0)))}
 function afford(t,c){return RES.every(r=>(G.res[t][r]||0)>=(c[r]||0))}
 function pay(t,c){if(!afford(t,c))return false;RES.forEach(r=>G.res[t][r]-=c[r]||0);return true}
 function refund(t,c){RES.forEach(r=>G.res[t][r]+=c[r]||0)}
@@ -92,6 +92,7 @@ function step(dt){
 function moveToward(u,tx,ty,dt,ignore){
   const ud=UNITS[u.type],naval=!!ud.naval;
   let dx=tx-u.x,dy=ty-u.y;const d=Math.hypot(dx,dy);if(d<1.5)return true;
+  if(ud.air){const st=Math.min(d,ud.spd*dt);u.x+=dx/d*st;u.y+=dy/d*st;u.fa=Math.atan2(dy,dx);u.mvT=G.t;return d-st<1.5}
   const fxt=G.tfx[u.team],spd=ud.spd*dt*(1+(ud.naval?fxt.bspeed:ud.gather?fxt.wspeed:0))*(u.rage>G.t?RAGE.spd:1),step=Math.min(d,spd);
   // Festhängen erkennen: kaum Bewegung über längere Zeit -> kurz seitlich ausweichen und einen anderen Weg suchen
   const mv=u.lx===undefined?99:Math.hypot(u.x-u.lx,u.y-u.ly);u.lx=u.x;u.ly=u.y;
@@ -121,7 +122,7 @@ function moveToward(u,tx,ty,dt,ignore){
 function minedBy(team,n){if(!MINE_RT[n.rt]||team<0)return true;for(const b of G.ents)if(b.kind==='bld'&&b.type===MINE_RT[n.rt]&&b.built&&!b.dead&&b.team===team&&Math.hypot(b.x-n.x,b.y-n.y)<MINE_RNG)return true;return false}
 function nearestNode(rt,x,y,max,u,free){const naval=!!(u&&UNITS[u.type].naval);let best=null,bd=max;for(const e of G.solids){if(e.kind!=='node'||e.dead||(rt&&e.rt!==rt)||!!e.sea!==naval||(e.regen&&e.amount<30))continue;if(u&&!minedBy(u.team,e))continue;if(u&&u.team===0&&!G.mp&&!nodeKnown(e))continue;if(u&&u.bad&&u.bad[e.id]&&G.t-u.bad[e.id]<40)continue;if(free&&(G.load[e.id]||0)>=NODES[e.type].cap)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
 function nearestDrop(t,x,y,naval,rt){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='bld'||e.team!==t||!e.built||e.dead)continue;if(rt==='oil'?!BLDS[e.type].dropOil:!BLDS[e.type].drop)continue;if(naval&&e.type!=='harbor')continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
-function findEnemy(s,rad,unitsOnly){let best=null,bd=1e9;for(const e of G.ents){if(e.dead||e.team===s.team)continue;if(e.team<0&&!(e.kind==='animal'&&e.state==='chase'))continue;if(unitsOnly&&e.kind!=='unit'&&e.kind!=='animal')continue;const d=Math.hypot(e.x-s.x,e.y-s.y)-e.r-s.r;if(d>rad)continue;const sc=d+(e.kind==='bld'?80:0);if(sc<bd){bd=sc;best=e}}return best}
+function findEnemy(s,rad,unitsOnly){let best=null,bd=1e9;for(const e of G.ents){if(e.dead||e.team===s.team)continue;if(e.team<0&&!(e.kind==='animal'&&e.state==='chase'))continue;if(unitsOnly&&e.kind!=='unit'&&e.kind!=='animal')continue;if(UNITS[e.type]&&UNITS[e.type].air&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;const d=Math.hypot(e.x-s.x,e.y-s.y)-e.r-s.r;if(d>rad)continue;const sc=d+(e.kind==='bld'?80:0);if(sc<bd){bd=sc;best=e}}return best}
 const reach=(u,t)=>dist(u,t)<=u.r+t.r+5;
 
 /* Erkunden: ein freies, unerkundetes Gebiet in der Nähe aussuchen und hinlaufen (Späher; auch für die KI) */
@@ -154,7 +155,7 @@ function updUnit(u,dt){
     if(!canGather(u,n)){u.state='idle';u.tid=null;u.rtype=null;if(u.team===0&&G.t-(G.lvlWarn||-9)>4){G.lvlWarn=G.t;toast(tr('Arbeiter brauchen Stufe {0}, um {1} abzubauen.',LVLN[NODES[n.type].lvl!==undefined?NODES[n.type].lvl:NEED_LVL[n.rt]],tr(NODES[n.type].name)));sfx('error')}break}
     const cap=gc.carry*(1+G.tfx[u.team].carry+(d.naval?G.tfx[u.team].bcarry:0));
     if(u.carry>=cap){u.state='return';break}
-    if(reach(u,n)){u.fa=Math.atan2(n.y-u.y,n.x-u.x);u.gat=G.t;if((u.gt=(u.gt||0)-dt)<=0){u.gt=.75+Math.random()*.2;sfx(n.rt==='wood'?'chop':n.rt==='stone'||n.rt==='iron'||n.rt==='gold'?'mine':'pick',u);if(Math.random()<.22)sfx('grunt',u)}const rate=.85*gc.rate*(1+G.tfx[u.team].gather+(d.naval?G.tfx[u.team].bgather:0))*(NODES[n.type].gm||1)*LVL.gather[u.lvl]*(u.team===1?DIFF[diff].gather:1);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;if(n.amount<=0.001){if(n.regen)n.amount=0;else kill(n)}if(u.carry>=cap)u.state='return'}
+    if(reach(u,n)){u.fa=Math.atan2(n.y-u.y,n.x-u.x);u.gat=G.t;if((u.gt=(u.gt||0)-dt)<=0){u.gt=.75+Math.random()*.2;sfx(n.rt==='wood'?'chop':n.rt==='stone'||n.rt==='iron'||n.rt==='gold'?'mine':'pick',u);if(Math.random()<.22)sfx('grunt',u)}const rate=.85*gc.rate*(1+G.tfx[u.team].gather+G.nfx[u.team].gather+((n.rt==='gold'||n.rt==='oil')?G.nfx[u.team].oilgold:0)+(d.naval?G.tfx[u.team].bgather:0))*(NODES[n.type].gm||1)*LVL.gather[u.lvl]*(u.team===1?DIFF[diff].gather:1);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;if(n.amount<=0.001){if(n.regen)n.amount=0;else kill(n)}if(u.carry>=cap)u.state='return'}
     else{
       // Absprache: ist der Baum/Busch schon voll besetzt, ein freies Vorkommen in der Nähe suchen
       if((G.load[n.id]||0)>NODES[n.type].cap&&G.t-(u.rs||0)>1.5){u.rs=G.t;const alt=nearestNode(u.rtype||n.rt,u.x,u.y,350,u,true);if(alt&&alt.id!==n.id){G.load[n.id]--;G.load[alt.id]=(G.load[alt.id]||0)+1;u.tid=alt.id;u.pf=null;n=alt}}
@@ -172,7 +173,7 @@ function updUnit(u,dt){
     else moveToward(u,b.x,b.y,dt,b.id);break}
   }
 }
-function hit(u,t){const d=UNITS[u.type];if(!u.yl||G.t-u.yl>25){u.yl=G.t;if(Math.random()<.5)sfx('yell',u)}sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);const mult=(t.kind==='bld'?(d.siege?1.8:d.ranged?.3:1):(d.siege&&!d.ranged?.35:1))*(1+(d.ranged?G.tfx[u.team].ratk:G.tfx[u.team].matk))*(t.kind==='unit'?((CTR[d.cls]||{})[UNITS[t.type].cls]||1)*(d.gun&&UNITS[t.type].cls==='cav'?1.3:1):1)*(u.rage>G.t?RAGE.dmg:1);
+function hit(u,t){const d=UNITS[u.type];if(!u.yl||G.t-u.yl>25){u.yl=G.t;if(Math.random()<.5)sfx('yell',u)}sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);const mult=(t.kind==='bld'?(d.siege?1.8:d.ranged?.3:1):(d.siege&&!d.ranged?.35:1))*(1+(d.ranged?G.tfx[u.team].ratk:G.tfx[u.team].matk))*(d.cls==='siege'?1+G.nfx[u.team].art:1)*(t.kind==='unit'?((CTR[d.cls]||{})[UNITS[t.type].cls]||1)*(d.gun&&UNITS[t.type].cls==='cav'?1.3:1):1)*(u.rage>G.t?RAGE.dmg:1);
   if(d.ranged)G.proj.push({x:u.x,y:u.y,tid:t.id,dmg:d.atk*mult*LVL.atk[u.lvl],src:u.id,a:0,big:!!d.siege,gun:!!d.gun});else damage(t,d.atk*mult*LVL.atk[u.lvl],u)}
 function damage(t,amt,src){
   if(t.kind==='unit'&&G.ents.some(b=>b.kind==='bld'&&b.type==='trench'&&b.built&&!b.dead&&b.team===t.team&&Math.hypot(b.x-t.x,b.y-t.y)<30))amt*=.65;
@@ -193,7 +194,7 @@ function updBld(b,dt){
   if(!b.built)return;const d=BLDS[b.type];
   if(b.type==='harbor'&&G.tfx[b.team].statfish)G.res[b.team].food+=G.tfx[b.team].statfish*dt*(1+.2*b.lvl);
   if(d.shoot){b.cd=Math.max(0,b.cd-dt);if(b.cd<=0){const t=findEnemy(b,d.shoot.rng,true);if(t){b.cd=d.shoot.cd;sfx('arrow',b);G.proj.push({x:b.x,y:b.y-8,tid:t.id,dmg:d.shoot.atk*LVL.atk[b.lvl]*(1+G.tfx[b.team].tower),src:b.id,a:0})}}}
-  if(b.queue.length){const q=b.queue[0];if(G.pop[b.team]>=G.cap[b.team]){q.blocked=true}else{q.blocked=false;q.t+=dt;if(q.t>=UNITS[q.type].time){b.queue.shift();spawn(b,q.type)}}}
+  if(b.queue.length){const q=b.queue[0];if(G.pop[b.team]>=G.cap[b.team]){q.blocked=true}else{q.blocked=false;q.t+=dt*(1+(G.nfx?G.nfx[b.team].prod:0));if(q.t>=UNITS[q.type].time){b.queue.shift();spawn(b,q.type)}}}
 }
 function spawn(b,type){
   const rp=b.rally;let ang=rp?Math.atan2(rp.y-b.y,rp.x-b.x):(b.team===0?-1.57:1.57);ang+=(Math.random()-.5)*.8;
@@ -212,14 +213,17 @@ function enqueue(b,type,team){
   if(d.ep>G.epoch[team]){if(team===0){toast(tr('Erst ab der {0} verfügbar.',tr(EPOCHS[d.ep].name)));sfx('error')}return false}
   if(d.tech&&!G.tech[team].has(d.tech)){if(team===0){toast(tr('Technologie nötig: {0}',tr(TECH[d.tech].name)));sfx('error')}return false}
   if(b.queue.length>=5){if(team===0){toast(tr('Die Warteschlange ist voll (max. 5).'));sfx('error')}return false}
-  if(!pay(team,d.cost)){if(team===0){toast(missing(team,d.cost)+'.');sfx('error')}return false}
+  if(d.nation&&G.nation[team]!==d.nation){if(team===0){toast(tr('Diese Einheit gehört zu einer anderen Nation.'));sfx('error')}return false}
+  const uc=ucost(team,type);if(!pay(team,uc)){if(team===0){toast(missing(team,uc)+'.');sfx('error')}return false}
   b.queue.push({type,t:0});if(team===0)panelSig='';return true;
 }
 /* ---------- Stufen und Upgrades ---------- */
 /* ---------- Technologien ---------- */
 function techFx(set){const f={claim:0,carry:0,gather:0,wspeed:0,pop:0,bcarry:0,bgather:0,bspeed:0,statfish:0,shiphp:0,hp:0,matk:0,ratk:0,tower:0};for(const id of set){const t=TECH[id];if(t)for(const k in t.fx)f[k]+=t.fx[k]}return f}
 const techsFor=type=>TECHS.filter(t=>t.bld===type||(t.blds&&t.blds.includes(type)));
-const unitHp=(team,type,lvl)=>{const d=UNITS[type],f=G.tfx[team];const b=d.naval?f.shiphp:(d.gather||d.passive?0:f.hp);return Math.round(d.hp*LVL.hp[lvl]*(1+b))};
+const unitHp=(team,type,lvl)=>{const d=UNITS[type],f=G.tfx[team],n=G.nfx?G.nfx[team]:NFX0;let b=d.naval?f.shiphp+n.navhp:(d.gather||d.passive?0:f.hp+n.hp);if(d.cls==='cav')b+=n.cavhp;if(d.air)b+=n.air;return Math.round(d.hp*LVL.hp[lvl]*(1+b))};
+/* Kosten mit Nationenbonus (Panzer billiger, Nahrung billiger) */
+function ucost(team,type){const d=UNITS[type],n=G.nfx?G.nfx[team]:NFX0,c={...d.cost};if(n.tankCost&&TANKS.has(type))for(const k in c)c[k]=Math.round(c[k]*(1-n.tankCost));if(n.foodCost&&c.food&&!d.gather)c.food=Math.round(c.food*(1-n.foodCost));return c}
 function techRefresh(team){G.tfx[team]=techFx(G.tech[team]);for(const e of G.ents){if(e.dead||e.team!==team||e.kind!=='unit')continue;const nm=unitHp(team,e.type,e.lvl);e.hp=e.hp/e.maxHp*nm;e.maxHp=nm}}
 function startResearch(team,id){if(NET.client&&team===0){NET.send({c:'tech',id});return true}const t=TECH[id];if(!t||G.tech[team].has(id)||G.rs[team].some(r=>r.id===id)||t.ep>G.epoch[team])return false;
   if(!G.ents.some(e=>!e.dead&&e.team===team&&e.kind==='bld'&&e.built&&(e.type===t.bld||(t.blds&&t.blds.includes(e.type))))){if(team===0){toast(tr('Dafür fehlt das passende Gebäude.'));sfx('error')}return false}
@@ -227,7 +231,7 @@ function startResearch(team,id){if(NET.client&&team===0){NET.send({c:'tech',id})
   G.rs[team].push({id,t:0,time:t.time});if(team===0){panelSig='';infoCache='';sfx('click');toast(tr('Forschung gestartet: {0}',tr(t.name)))}return true}
 function grantAiTechs(team){for(const t of TECHS)if(t.ep<=G.epoch[team]&&t.id!=='statfish')G.tech[team].add(t.id);techRefresh(team)}
 function levelUp(e,to){if(e.dead||e.kind==='node'||e.lvl>=to)return;
-  const nm=e.kind==='unit'?unitHp(e.team,e.type,to):Math.round(BLDS[e.type].hp*LVL.bhp[to]);e.hp=e.hp/e.maxHp*nm;e.maxHp=nm;e.lvl=to}
+  const nm=e.kind==='unit'?unitHp(e.team,e.type,to):Math.round(BLDS[e.type].hp*LVL.bhp[to]*(1+G.nfx[e.team].bhp));e.hp=e.hp/e.maxHp*nm;e.maxHp=nm;e.lvl=to}
 function applyLevels(team){const to=G.epoch[team];for(const e of G.ents)if(e.team===team)levelUp(e,to)}
 const upgCost=(e,to)=>{const c={};for(let l=e.lvl+1;l<=to;l++){const k=UPG[e.kind==='unit'?'unit':'bld'][l];for(const r in k)c[r]=(c[r]||0)+k[r]}return c};
 const upgTime=n=>Math.min(UPG_TIME.max,UPG_TIME.base+n*UPG_TIME.each);
@@ -250,16 +254,20 @@ function startUpgrade(team,key){key=key||'all';if(NET.client&&team===0){NET.send
   G.jobs[team].push(job);
   if(team===0){panelSig='';infoCache='';sfx('click');toast(tr('Upgrade gestartet: {0} ruhen, bis es fertig ist.',job.label))}return true}
 function canGather(u,x){const need=typeof x==='string'?(NEED_LVL[x]||0):(NODES[x.type].lvl!==undefined?NODES[x.type].lvl:(NEED_LVL[x.rt]||0));return u.lvl>=need}
-const wkNeed=ep=>[5,10,20,30,40][Math.min(4,ep)]; /* Arbeiter, die für den Aufstieg aus Epoche ep nötig sind */
+const wkNeed=ep=>[5,10,20,30,40,45][Math.min(5,ep)]; /* Arbeiter, die für den Aufstieg aus Epoche ep nötig sind */
 const wkCount=t=>G.ents.reduce((n,e)=>n+(!e.dead&&e.team===t&&e.kind==='unit'&&e.type==='worker'?1:0),0);
-function advance(team){
-  if(NET.client&&team===0){NET.send({c:'adv'});return true}
+function advance(team,nat){
+  const ep0=G.epoch[team];
+  /* Beim Schritt aus der Industriezeit in die Weltkriegszeit wählt man eine Nation (Verzweigung im Zeitalter-Baum) */
+  if(ep0===5&&!G.nation[team]&&!nat){if(team===1)nat=Object.keys(NATIONS)[Math.floor(Math.random()*Object.keys(NATIONS).length)];else{if(typeof showNationPick==='function')showNationPick();return false}}
+  if(NET.client&&team===0){NET.send({c:'adv',nation:nat});return true}
   const ep=G.epoch[team];if(ep>=EPOCHS.length-1||G.adv[team])return false;
   if(team===0&&G.jobs[0].length){toast(tr('Erst die laufenden Upgrades abwarten.'));sfx('error');return false}
   if(team===0&&pending(0).n){toast(tr('Erst alle Gebäude und Truppen auf Stufe {0} bringen.',LVLN[ep]));sfx('error');return false}
   if(team===0&&wkCount(0)<wkNeed(ep)){toast(tr('Für den Aufstieg brauchst du {0} Arbeiter.',wkNeed(ep)));sfx('error');return false}
   const c=EPOCHS[ep].cost;
   if(!pay(team,c)){if(team===0)toast(missing(team,c)+'.');return false}
+  if(ep===5&&nat&&NATIONS[nat]){G.nation[team]=nat;G.nfx[team]=nationFx(nat);recount()}
   G.adv[team]={t:0,time:EPOCHS[ep].time};if(team===0){panelSig='';toast(tr('Aufstieg in die {0} begonnen.',tr(EPOCHS[ep+1].name)))}return true;
 }
 function validSpot(x,y,r,anyTerrain){if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)return false;if(!anyTerrain&&(!onLand(x,y)||!onLand(x+r,y)||!onLand(x-r,y)||!onLand(x,y+r)||!onLand(x,y-r)))return false;if(!anyTerrain&&slopeNear(x,y,r)>.9)return false;for(const e of G.ents){if(e.dead||e.kind==='unit')continue;if(Math.hypot(e.x-x,e.y-y)<e.r+r+5)return false}return true}

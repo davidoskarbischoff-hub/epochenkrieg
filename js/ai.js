@@ -38,7 +38,7 @@ function aiTick(){
   const army=mine.filter(e=>e.kind==='unit'&&!UNITS[e.type].passive&&!UNITS[e.type].naval),boats=mine.filter(e=>e.type==='boat'),ships=mine.filter(e=>e.kind==='unit'&&UNITS[e.type].naval&&UNITS[e.type].ranged),scouts=mine.filter(e=>e.type==='scout');
   const unbuilt=blds.filter(b=>!b.built);
   aiLook(mine);
-  const targetW=Math.round([6,12,20,30,36,36][ep]*ST.wk),minT=ep<EPOCHS.length-1?AI_MINT[ep]*DIFF[diff].pace*ST.pace:0;
+  const targetW=Math.round([6,12,20,30,36,38,40][ep]*ST.wk),minT=ep<EPOCHS.length-1?AI_MINT[ep]*DIFF[diff].pace*ST.pace:0;
   const saving=ep<EPOCHS.length-1&&!G.adv[1]&&workers.length>=targetW-2&&G.t>=minT-60;
   const adv=ep<EPOCHS.length-1?EPOCHS[ep].cost:null;
   if(workers.length+hq.queue.filter(q=>q.type==='worker').length<targetW&&hq.queue.length<2&&!(saving&&r.food<adv.food+50))enqueue(hq,'worker',1);
@@ -46,8 +46,8 @@ function aiTick(){
   if(G.t>60&&r.food>=130&&!scouts.length&&!hq.queue.some(q=>q.type==='scout')&&hq.queue.length<2&&G.pop[1]<G.cap[1])enqueue(hq,'scout',1);
   for(const sc of scouts)if(sc.state==='idle')sc.state='explore';
   // Sammeln verteilen
-  const w8=[{food:.6,wood:.4,stone:0,iron:0},{food:.4,wood:.32,stone:.28,iron:0},{food:.4,wood:.24,stone:.16,iron:.2},{food:.36,wood:.22,stone:.18,iron:.24},{food:.34,wood:.2,stone:.18,iron:.28},{food:.32,wood:.2,stone:.16,iron:.32}][ep];
-  w8.gold=[0,0,0,.1,.14,.16][ep];w8.oil=blds.some(b=>b.type==='refinery'&&b.built)?[0,0,0,0,0,.12][ep]:0;
+  const w8=[{food:.6,wood:.4,stone:0,iron:0},{food:.4,wood:.32,stone:.28,iron:0},{food:.4,wood:.24,stone:.16,iron:.2},{food:.36,wood:.22,stone:.18,iron:.24},{food:.34,wood:.2,stone:.18,iron:.28},{food:.32,wood:.2,stone:.16,iron:.32},{food:.3,wood:.18,stone:.14,iron:.3}][ep];
+  w8.gold=[0,0,0,.1,.14,.16,.18][ep];w8.oil=blds.some(b=>b.type==='refinery'&&b.built)?[0,0,0,0,0,.12,.14][ep]:0;
   for(const k of RES){if(w8[k]){const f=r[k]>700?.3:r[k]>350?.65:r[k]<120?1.7:1;w8[k]*=f}} // Vorrat steuert die Verteilung: Überfluss -> weniger Arbeiter dort
   const cnt={food:0,wood:0,stone:0,iron:0,gold:0,oil:0};workers.forEach(w=>{if(w.state!=='idle'&&w.rtype)cnt[w.rtype]++});
   for(const w of workers){if(w.state!=='idle')continue;
@@ -101,7 +101,7 @@ function aiTick(){
   const MIX={balanced:{front:.38,rng:.3,shock:.1,siege:.12,med:.1},turtle:{front:.5,rng:.3,siege:.1,med:.1},rush:{front:.45,shock:.25,rng:.25,med:.05},eco:{front:.4,rng:.35,siege:.1,med:.15},boom:{front:.35,rng:.3,siege:.2,med:.15}}[ai.style]||{front:.4,rng:.3,siege:.1,med:.1,shock:.1};
   const have=u=>UNITS[u].ep<=ep&&(!UNITS[u].tech||G.tech[1].has(UNITS[u].tech))&&u!=='scout'&&UNITS[u].from==='barracks';
   const pool=Object.keys(UNITS).filter(have),healers=mine.filter(e=>e.type==='healer'),all=army.concat(healers),tot=Math.max(1,all.length);
-  const armyCap=Math.round([8,13,20,28,36,44][ep]*DIFF[diff].army*ST.army),queued=blds.reduce((n,b)=>n+(b.type==='barracks'?b.queue.length:0),0);
+  const armyCap=Math.round([8,13,20,28,36,44,52][ep]*DIFF[diff].army*ST.army),queued=blds.reduce((n,b)=>n+(b.type==='barracks'?b.queue.length:0),0);
   for(const b of blds){if(b.type!=='barracks'||!b.built||b.queue.length>=2||army.length+queued>=armyCap)continue;
     if(saving&&!(r.food>adv.food+90&&r.wood>(adv.wood||0)+90))continue;
     const share={};for(const u of all)share[ROLE(u.type)]=(share[ROLE(u.type)]||0)+1;for(const q of blds.flatMap(x=>x.queue||[]))if(UNITS[q.type])share[ROLE(q.type)]=(share[ROLE(q.type)]||0)+1;

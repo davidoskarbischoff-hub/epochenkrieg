@@ -88,7 +88,7 @@ const costHTML=c=>RES.filter(r=>c[r]).map(r=>`<span class="c ${(G&&G.res[0][r]||
 function actionsFor(s){
   if(!s.length||s[0].team!==0)return[];const f=s[0],acts=[],ep=G.epoch[0];
   if(f.kind==='unit'){
-    if(s.some(u=>UNITS[u.type].builds))for(const k of ['house','store','barracks','farm','mine','derrick','refinery','market','harbor','tower','castle','wall','gate','trench'].filter(k=>BLDS[k].ep<=ep)){const d=BLDS[k];acts.push({key:'b'+k,nm:tr(d.name),cost:d.cost,sub:tr(d.sub),lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>startPlace(k)})}
+    if(s.some(u=>UNITS[u.type].builds))for(const k of ['house','store','barracks','airfield','farm','mine','derrick','refinery','market','harbor','tower','castle','wall','gate','trench'].filter(k=>BLDS[k].ep<=ep)){const d=BLDS[k];acts.push({key:'b'+k,nm:tr(d.name),cost:d.cost,sub:tr(d.sub),lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>startPlace(k)})}
     if(s.some(u=>u.kind==='unit'&&!UNITS[u.type].passive))acts.push({key:'am',nm:tr('Angriffsmarsch'),sub:tr('Taste Q, dann Ziel'),run:()=>{armed=true;placing=null}});
     if(s.filter(u=>u.kind==='unit'&&!UNITS[u.type].gather).length>1)acts.push({key:'form',nm:tr('Formation: {0}',tr(FORMS[curForm])),sub:tr('Taste G wechselt: Linie, Keil, Kolonne, Karree, Kreis'),run:()=>{curForm=(curForm+1)%FORMS.length;panelSig='';toast(tr('Formation: {0}',tr(FORMS[curForm])),'good')}});
     if(s.some(u=>u.kind==='unit'&&!UNITS[u.type].passive&&!UNITS[u.type].naval))acts.push({key:'rage',nm:tr('Kampfrausch'),sub:tr('Taste F: mehr Schaden und Tempo für {0} s',RAGE.dur),run:()=>{const ids=s.filter(u=>u.kind==='unit').map(u=>u.id);if(NET.client)NET.send({c:'rage',ids});else if(!useRage(0,ids))toast(tr('Kampfrausch lädt noch.'),'warn')}});
@@ -97,7 +97,7 @@ function actionsFor(s){
     return acts;
   }
   if(f.kind==='bld'&&f.built){
-    for(const [k,d] of Object.entries(UNITS))if(d.from===f.type&&d.ep<=ep){const nt=d.tech&&!G.tech[0].has(d.tech);acts.push({key:'t'+k,nm:tr(d.name),cost:d.cost,need:nt?tr('Technologie nötig: {0}',tr(TECH[d.tech].name)):null,sub:nt?tr('Technologie nötig'):null,run:()=>enqueue(f,k,0),unit:k})}
+    for(const [k,d] of Object.entries(UNITS))if(d.from===f.type&&d.ep<=ep&&(!d.nation||d.nation===G.nation[0])){const nt=d.tech&&!G.tech[0].has(d.tech);acts.push({key:'t'+k,nm:tr(UNAMES[k]?UNAMES[k][Math.min(5,G.epoch[0])]:d.name),cost:ucost(0,k),need:nt?tr('Technologie nötig: {0}',tr(TECH[d.tech].name)):null,sub:nt?tr('Technologie nötig'):null,run:()=>enqueue(f,k,0),unit:k})}
     if(f.type==='market')for(const rt of['food','wood','stone','iron'])for(const dir of['sell','buy']){const lot=TRADE.lot,g=Math.round(lot*TRADE.sell),c=Math.round(lot*TRADE.buy);
       acts.push({key:'tr'+dir+rt,nm:dir==='sell'?tr('{0} → Gold',lot+' '+rn(rt)):tr('Gold → {0}',lot+' '+rn(rt)),cost:dir==='sell'?{[rt]:lot}:{gold:c},sub:dir==='sell'?tr('Du erhältst {0} Gold',g):tr('Du erhältst {0}',lot+' '+rn(rt)),run:()=>{if(NET.client)NET.send({c:'trade',rt,dir});else if(!trade(0,rt,dir))toast(tr('Nicht genug Rohstoffe.'),'warn')}})}
     if(f.type==='hq'&&f.team===0){const pd=pending(0);
@@ -213,3 +213,25 @@ const TIPS={'Nahrung':'Wird für Arbeiter und Truppen gebraucht. Beeren, Felder,
     timer=setTimeout(()=>{if(!OPT.tips)return;const c=content(el);if(!c||!document.body.contains(el)){return}tip.innerHTML=`<b>${c.h}</b>${c.t?`<p>${c.t}</p>`:''}${c.c?`<div class="tc">${c.c}</div>`:''}`;tip.hidden=false;
       const r=el.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let x=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2)),y=r.bottom+8;if(y+h>innerHeight-8)y=r.top-h-8;tip.style.left=x+'px';tip.style.top=Math.max(8,y)+'px'},650)});
   document.addEventListener('mousedown',hide);document.addEventListener('mouseout',e=>{if(!e.relatedTarget)hide()});}
+
+/* ---------- Zeitalter-Baum: alle Zeitalter in einer Reihe, nach der Industriezeit verzweigt er sich in Nationen (Kaiserreiche | Demokratien) ---------- */
+let treeOpen=false,treeMode='view',treePaused=false;
+function showNationPick(){openTree('pick')}
+function openTree(mode){
+  if(!G)return;treeOpen=true;treeMode=mode;const el=$('tree')||(()=>{const d=document.createElement('div');d.id='tree';document.getElementById('app').appendChild(d);return d})();
+  if(G.running&&!G.paused&&!G.mp){G.paused=true;treePaused=true}else treePaused=false;
+  const ep=G.epoch[0],my=G.nation[0],groups={};for(const [k,n] of Object.entries(NATIONS))(groups[n.grp]=groups[n.grp]||[]).push(k);
+  const eras=EPOCHS.slice(0,6).map((e,i)=>`<div class="era ${i<ep?'done':i===ep?'cur':''}" style="--c:${LVLC[i]}"><b>${tr(e.name)}</b><small>${LVLN[i]}</small></div>`).join('<span class="arr">▸</span>');
+  const card=k=>{const n=NATIONS[k],sel=my===k,pick=mode==='pick';return `<button class="nat ${sel?'sel':''} ${my&&!sel?'dim':''}" data-n="${k}" ${pick?'':'tabindex="-1"'} style="--fc:${n.col}"><span class="flag"></span><b>${tr(n.name)}</b><small class="reg">${tr(n.reg)}</small><span class="bon">${tr(n.bonus)}</span><span class="spc">${n.sp.map(u=>tr(UNITS[u].name)).join(' · ')}</span></button>`};
+  el.innerHTML=`<div class="gm"><div class="gm-frame wide tree"><h1 class="gm-title sm">${tr(mode==='pick'?'Wähle deine Nation':'Zeitalter-Baum')}</h1><div class="gm-rule"></div>
+   <div class="eras2">${eras}<span class="arr fork">⑂</span><div class="era ${ep>=6?'cur':''}" style="--c:${LVLC[6]}"><b>${tr('Weltkriegszeit')}</b><small>${LVLN[6]}</small></div></div>
+   <p class="thint">${tr(mode==='pick'?'Mit dem Aufstieg in die Weltkriegszeit entscheidest du dich für eine Nation. Sie bestimmt Bonus und Spezialeinheiten. Alle Nationen haben gleich starke Grundtruppen (Sturmsoldat, Maschinengewehr, Panzer, Jagdflugzeug).':'Dein Weg durch die Zeitalter. Nach der Industriezeit verzweigt sich der Baum in Nationen.')}</p>
+   <div class="natgrid">${Object.entries(groups).map(([g,ks])=>`<div class="natgrp"><h3>${tr(g)}</h3>${ks.map(card).join('')}</div>`).join('')}</div>
+   <div class="btnrow"><button class="btn2" id="treeClose">${tr(mode==='pick'?'Abbrechen':'Schließen')}</button></div></div></div>`;
+  el.hidden=false;
+  el.querySelector('#treeClose').onclick=closeTree;
+  if(mode==='pick')el.querySelectorAll('.nat').forEach(b=>b.onclick=()=>{const k=b.dataset.n;closeTree();advance(0,k)});
+}
+function closeTree(){treeOpen=false;const el=$('tree');if(el)el.hidden=true;if(treePaused&&G){G.paused=false;treePaused=false}}
+$('treeBtn').onclick=()=>{SND.init();treeOpen?closeTree():openTree('view')};
+addEventListener('keydown',e=>{if(e.key==='t'||e.key==='T'){if(!G||!G.running||menuOpen)return;treeOpen?closeTree():openTree('view')}else if(e.key==='Escape'&&treeOpen){closeTree();e.stopPropagation()}},true);

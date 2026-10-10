@@ -59,7 +59,7 @@ function setShadows(o){o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveSh
 
 /* ---------- Gebäude ----------
    Stil je Epoche: Wand-/Dachmuster; Farben kommen aus MAT[ep] (data.js). */
-const STY=[{w:'planks',r:'thatch'},{w:'planks',r:'thatch'},{w:'stone',r:'shingle'},{w:'stone',r:'tiles'},{w:'brick',r:'tiles'},{w:'brick',r:'tiles'}];
+const STY=[{w:'planks',r:'thatch'},{w:'planks',r:'thatch'},{w:'stone',r:'shingle'},{w:'stone',r:'tiles'},{w:'brick',r:'tiles'},{w:'brick',r:'tiles'},{w:'stone',r:'tiles'}];
 function bStyle(ep){const m=MAT[ep],s=STY[ep];return{wall:m3Mat(s.w,m.wall),roof:m3Mat(s.r,m.roof),base:m3Mat('stone',0x8d8a80),line:m3Plain(m.line,.9),ep,flat:ep>=3,wk:s.w}}
 function windows(g,st,xs,y,z,w=.5,h=.7){for(const x of xs){const f=put(g,new THREE.BoxGeometry(w+.2,h+.2,.1),woodD(),x,y,z,false);put(g,new THREE.BoxGeometry(w,h,.12),m3Plain(st.ep>=3?0xbad4e6:0x1d1812,.2,{metalness:.2}),x,y,z+.02,false)}}
 function door(g,x,z,w,h){put(g,new THREE.BoxGeometry(w+.2,h+.1,.14),woodD(),x,h/2,z,false);const d=put(g,new THREE.BoxGeometry(w,h,.18),m3Mat('planks',0x4a3220),x,h/2-.02,z+.02,false);return d}
@@ -652,3 +652,40 @@ function rockGeoC(kind,v){
   const gg=kind==='oil'?null:g;
   const pa=[...(gg?[g.attributes.position.array]:[]),extra.attributes.position.array],na=[...(gg?[g.attributes.normal.array]:[]),extra.attributes.normal.array],ca=[...(gg?[g.attributes.color.array]:[]),extra.attributes.color.array];
   all.setAttribute('position',new THREE.BufferAttribute(cat(pa),3));all.setAttribute('normal',new THREE.BufferAttribute(cat(na),3));all.setAttribute('color',new THREE.BufferAttribute(cat(ca),3));return all}
+
+/* ===== 20. Jahrhundert: Nationen-Einheiten, Flugzeuge, Flugplatz ===== */
+BLD3.airfield=(R,st,team)=>{const g=new THREE.Group(),conc=m3Plain(0x9a9a94,.9),dk=m3Plain(0x55575a,.9),tm=m3Team(team);
+  put(g,new THREE.BoxGeometry(R*2.6,.12,R*1.4),dk,0,.06,0);
+  for(let i=0;i<6;i++)put(g,new THREE.BoxGeometry(R*.25,.02,.14),m3Plain(0xeeeeee,.8),-R*1.0+i*R*.4,.13,0,false);
+  put(g,new THREE.BoxGeometry(R*1.2,R*.5,R*.7),conc,-R*.5,R*.25+.12,-R*.95);
+  put(g,new THREE.CylinderGeometry(R*.62,R*.62,R*1.2,10,1,false,0,Math.PI).rotateZ(Math.PI/2),m3Plain(0x8a8f8a,.7,{metalness:.4}),-R*.5,R*.3+.12,-R*.95);
+  put(g,cyl(.12,.14,R*.9,8),conc,R*1.0,R*.45+.1,-R*.8);put(g,new THREE.BoxGeometry(R*.45,R*.25,R*.45),conc,R*1.0,R*.95+.1,-R*.8);
+  const f=put(g,new THREE.BoxGeometry(.06,.6,.9),tm,R*1.0,R*1.25,-R*.8);f.userData.flag=true;
+  return g};
+function jetBody(u,tm,k){/* Flugzeug: Rumpf, Flügel (Doppeldecker), Leitwerk, Propeller */
+  const g=new THREE.Group(),rig={g,legs:[],arms:[],wheels:[],props:[]},sk=k.big?1.5:1,body=m3Plain(k.col||0x6b7a56,.6,{metalness:.3}),wing=m3Plain(k.wcol||0x8a9272,.65),tc=m3Team(u.team);
+  const fu=put(g,cyl(.28*sk,.2*sk,2.6*sk,10),body,0,0,0);fu.rotation.z=Math.PI/2;
+  put(g,new THREE.SphereGeometry(.28*sk,10,8),body,1.3*sk,0,0);
+  put(g,new THREE.BoxGeometry(.9*sk,.06,3.4*sk),wing,.1*sk,-.05,0);
+  if(k.bi)put(g,new THREE.BoxGeometry(.8*sk,.05,3.0*sk),wing,.1*sk,.55*sk,0);
+  if(k.bi)for(const z of[-1,1])put(g,cyl(.03,.03,.6*sk,4),dk3(),.3*sk,.28*sk,z*1.1*sk);
+  put(g,new THREE.BoxGeometry(.6*sk,.05,1.2*sk),wing,-1.25*sk,.05,0);
+  put(g,new THREE.BoxGeometry(.5*sk,.6*sk,.05),tc,-1.25*sk,.35*sk,0);
+  if(k.twin)for(const z of[-1,1]){put(g,cyl(.14,.14,.7,8),body,.1*sk,-.05,z*.9*sk).rotation.z=Math.PI/2;const pr=put(g,new THREE.BoxGeometry(.03,1.1,.1),dk3(),.5*sk,-.05,z*.9*sk);rig.props.push(pr)}
+  else{const pr=put(g,new THREE.BoxGeometry(.03,1.3*sk,.12),dk3(),1.62*sk,0,0);rig.props.push(pr)}
+  g.scale.setScalar(1.15);return rig}
+function dk3(){return m3Plain(0x2c2c2c,.7)}
+UNIT3.plane=(u,tm)=>jetBody(u,tm,{col:0x6b7a56,bi:true});
+UNIT3.fighter=(u,tm)=>jetBody(u,tm,{col:0x9aa2aa,wcol:0xb4bcc4});
+UNIT3.bomber=(u,tm)=>jetBody(u,tm,{col:0x5a6650,twin:true,big:true});
+/* Infanterie der Nationen: Grundfigur Gewehrschütze mit Erkennungszeichen */
+const natInf=(col,extra)=>(u,tm)=>{const r=UNIT3._rifle(u,tm),g=r.g;const c=m3Plain(col,.8);put(g,new THREE.SphereGeometry(.34,10,6,0,6.283,0,1.5),c,0,2.42,0);if(extra)extra(g,c);return r};
+UNIT3.assault=natInf(0x3d4a32);UNIT3.mg=natInf(0x4a5238,(g)=>{put(g,cyl(.04,.04,.9,6),m3Plain(0x222,.5,{metalness:.7}),.3,1.35,.5).rotation.x=Math.PI/2});
+UNIT3.sturm=natInf(0x555a5e);UNIT3.alpini=natInf(0x5a6a4a,(g)=>{put(g,cyl(.02,.02,.5,4),m3Plain(0xf1ead6,.7),.1,2.75,0)});
+UNIT3.rekrut=natInf(0x6e6a48);UNIT3.janit=natInf(0xb04030,(g)=>{put(g,cone(.18,.5,8),m3Plain(0xf1ead6,.7),0,2.8,0)});
+UNIT3.doughboy=natInf(0x7a7a58);
+const viaKnight=sc=>(u,tm)=>{const r=UNIT3.knight(u,tm);r.g.scale.multiplyScalar(sc);return r};
+UNIT3.kosak=viaKnight(1);UNIT3.kurass=viaKnight(1.05);UNIT3.kamel=viaKnight(1.15);
+const viaGun=(base,sc)=>(u,tm)=>{const r=UNIT3[base](u,tm);r.g.scale.multiplyScalar(sc);return r};
+UNIT3.skoda=viaGun('howitzer',1);UNIT3.bertha=viaGun('howitzer',1.35);
+UNIT3.mark1=viaGun('tank',1.1);UNIT3.renault=viaGun('tank',.75);
