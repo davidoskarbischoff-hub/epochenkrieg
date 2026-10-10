@@ -15,7 +15,7 @@ function r3Init(){
   const scene=new THREE.Scene(),SKY=0x16384f;scene.background=new THREE.Color(SKY);scene.fog=new THREE.Fog(0x9db8c4,260,620);
   const camera=new THREE.PerspectiveCamera(R3.FOV,1,2,1400);
   const sun=new THREE.DirectionalLight(0xffe2b8,3.1);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-.0004;sun.shadow.normalBias=.35;scene.add(sun,sun.target);
-  const hemi=new THREE.HemisphereLight(0xbcd2ee,0x4a5230,1.2);scene.add(hemi);
+  const hemi=new THREE.HemisphereLight(0xbcd2ee,0x4a5230,1.0);scene.add(hemi);
   const fill=new THREE.DirectionalLight(0x9db8ff,.38);fill.position.set(60,40,70);scene.add(fill); /* kühles Gegenlicht: Schattenseiten bekommen Farbe statt Grau */
   const sea=new THREE.Mesh(new THREE.PlaneGeometry(3600,3600).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0x17405c,fog:false}));sea.position.set(W/R3.S/2,-.8,H/R3.S/2);scene.add(sea);
   /* Umgebungslicht für Metall: ein kleiner gemalter Himmel (blau oben, warm am Horizont, dunkler Boden, helle Sonne) wird zur Spiegelung für Helme, Panzer, Waffen */
@@ -23,7 +23,7 @@ function r3Init(){
     for(let i=0;i<pa.count;i++){const y=pa.getY(i)/50;if(y>0)c.setRGB(.55-.25*y,.7-.2*y,.95-.1*y).multiplyScalar(1.6);else c.setRGB(.34,.3,.22).multiplyScalar(.6+y*.3);ec.push(c.r,c.g,c.b)}
     eg.setAttribute('color',new THREE.Float32BufferAttribute(ec,3));es.add(new THREE.Mesh(eg,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide})));
     const sd=new THREE.Mesh(new THREE.SphereGeometry(6,12,8),new THREE.MeshBasicMaterial({color:0xfff3d6}));sd.material.color.multiplyScalar(14);sd.position.set(-25,32,-20);es.add(sd);
-    const pm=new THREE.PMREMGenerator(rd);M3.env=pm.fromScene(es,.04).texture;pm.dispose()}catch(err){console.warn('env',err)}
+    const pm=new THREE.PMREMGenerator(rd);M3.env=pm.fromScene(es,.04).texture;pm.dispose();scene.environment=M3.env}catch(err){console.warn('env',err)}
   const gEnt=new THREE.Group();scene.add(gEnt);
   r3={rd,scene,camera,sun,hemi,sea,gEnt,vec:_v(),ray:new THREE.Raycaster(),maxTex:rd.capabilities.maxTextureSize};
   R3.ok=true;R3.t0=performance.now();setGfx(gfxQ);if(typeof optApply==='function')optApply();
@@ -64,10 +64,24 @@ function r3Map(){
     const wc=document.createElement('canvas');wc.width=wc.height=256;const wx=wc.getContext('2d');wx.clearRect(0,0,256,256);wx.strokeStyle='rgba(255,255,255,.9)';wx.lineCap='round';
     for(let i=0;i<70;i++){const px=Math.random()*256,py=Math.random()*256,l=8+Math.random()*22;wx.lineWidth=1+Math.random()*1.5;wx.globalAlpha=.25+Math.random()*.5;for(const[ox,oy]of[[0,0],[256,0],[-256,0],[0,256],[0,-256]]){wx.beginPath();wx.moveTo(px-l+ox,py+oy);wx.quadraticCurveTo(px+ox,py-4+oy,px+l+ox,py+oy);wx.stroke()}}
     r3.waveTex=wc}
-  const mesh=new THREE.Mesh(g,new THREE.MeshStandardMaterial({map:tex,vertexColors:true,roughness:1,metalness:0,bumpMap:r3.detail,bumpScale:.45}));mesh.receiveShadow=true;scene.add(mesh);r3.terrain=mesh;
+  const tm=new THREE.MeshStandardMaterial({map:tex,vertexColors:true,roughness:1,metalness:0,bumpMap:r3.detail,bumpScale:.45});
+  /* großflächige Helligkeits-/Farbschwankung im Boden (bricht die gleichförmigen Flächen auf), per Shader-Zusatz */
+  tm.onBeforeCompile=sh=>{sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vWp;').replace('#include <begin_vertex>','#include <begin_vertex>\nvWp=(modelMatrix*vec4(position,1.0)).xyz;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vWp;\nfloat h21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\nfloat vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}')
+      .replace('#include <map_fragment>','#include <map_fragment>\n{float n=vn(vWp.xz*0.035)*0.55+vn(vWp.xz*0.11)*0.3+vn(vWp.xz*0.4)*0.15;float k=0.86+0.3*n;diffuseColor.rgb*=vec3(k*1.02,k,k*0.97);}')};
+  const mesh=new THREE.Mesh(g,tm);mesh.receiveShadow=true;scene.add(mesh);r3.terrain=mesh;
   if(r3.waves)for(const w of r3.waves)scene.remove(w);r3.waves=[];
   for(const[sp,rep,op]of[[1,SX/9,.32],[-1,SX/5.3,.22]]){const wt=new THREE.CanvasTexture(r3.waveTex);wt.wrapS=wt.wrapT=THREE.RepeatWrapping;wt.repeat.set(rep,rep*SZ/SX);const wm=new THREE.Mesh(new THREE.PlaneGeometry(SX,SZ).rotateX(-Math.PI/2).translate(SX/2,0,SZ/2),new THREE.MeshBasicMaterial({map:wt,transparent:true,opacity:op,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));wm.position.y=-.34;wm.renderOrder=1;wm.userData.sp=sp;scene.add(wm);r3.waves.push(wm)}
   const ovMat=(cv,order,op)=>{const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,fog:false}));m.renderOrder=order;m.material.opacity=op;scene.add(m);return m};
+  /* Küstenschaum: helle, weich verlaufende Linie im flachen Wasser am Ufer; pulsiert wie anlaufende Wellen */
+  if(r3.foam){scene.remove(r3.foam);r3.foam.material.map.dispose()}
+  {const K=4,fc=document.createElement('canvas');fc.width=TW*K;fc.height=TH*K;const fx=fc.getContext('2d');
+    const land=(x,y)=>x>=0&&y>=0&&x<TW&&y<TH&&TERR[y*TW+x]>=2;
+    for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){if(TERR[y*TW+x]!==1)continue;let n1=0,n2=0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){if(!land(x+dx,y+dy))continue;if(Math.abs(dx)<=1&&Math.abs(dy)<=1)n1++;else n2++}
+      const a=n1?.95:n2?.4:0;if(a){fx.fillStyle='rgba(255,255,255,'+a+')';fx.fillRect(x*K,y*K,K,K)}}
+    const f2=document.createElement('canvas');f2.width=fc.width;f2.height=fc.height;const x2=f2.getContext('2d');x2.filter='blur(5px)';x2.drawImage(fc,0,0);
+    const t=new THREE.CanvasTexture(f2);t.colorSpace=THREE.SRGBColorSpace;
+    const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,opacity:.5,fog:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));m.renderOrder=1;scene.add(m);r3.foam=m}
   r3.terrOv=ovMat(terrCv,2,.75);r3.fogOv=ovMat(fogCv,3,1);
   r3NodesInit();R3.bgRef=bg;R3.gRef=G;
 }
@@ -92,12 +106,21 @@ function toWorld(sx,sy){
   for(let i=0;i<4;i++){const t=(h-o.y)/(d.y<-1e-4?d.y:-1e-4);x=o.x+d.x*t;z=o.z+d.z*t;h=hAt(x*S,z*S)}
   return{x:Math.max(0,Math.min(W,x*S)),y:Math.max(0,Math.min(H,z*S))}}
 
+/* Wind: Bäume, Büsche und Gras wiegen sich (Vertex-Shader-Zusatz; Ausschlag wächst mit der Höhe, jede Instanz hat eine andere Phase) */
+const WIND={value:0};
+function windify(mat,amp){mat.onBeforeCompile=sh=>{sh.uniforms.uWind=WIND;
+  sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform float uWind;').replace('#include <begin_vertex>',`#include <begin_vertex>
+  #ifdef USE_INSTANCING
+  float hw=max(position.y,0.0);float pw=instanceMatrix[3].x*0.55+instanceMatrix[3].z*0.43;
+  transformed.x+=(sin(uWind*1.7+pw)+0.4*sin(uWind*3.3+pw*1.7))*${amp.toFixed(3)}*hw*hw;
+  transformed.z+=cos(uWind*1.3+pw*0.8)*${(amp*.6).toFixed(3)}*hw*hw;
+  #endif`)};return mat}
 /* ---------- Instanzen für Bäume, Büsche, Felsen ---------- */
 function r3NodesInit(){
   const{scene}=r3;for(const k of['pine','broad','bush'])if(r3['i_'+k]){scene.remove(r3['i_'+k]);r3['i_'+k].dispose()}if(r3.rocks)for(const m of Object.values(r3.rocks)){scene.remove(m);m.dispose()}r3.rocks={}
   const cnt={tree:0,bush:0,stone:0,iron:0,gold:0,oil:0};for(const e of G.ents)if(e.kind==='node'&&cnt[e.type]!==undefined)cnt[e.type]++;
-  const mk=(geo,n,flat)=>{const m=new THREE.InstancedMesh(geo,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.92,flatShading:!!flat}),Math.max(1,n));m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(m);return m};
-  r3.i_pine=mk(treeGeo(true),cnt.tree,false);r3.i_broad=mk(treeGeo(false),cnt.tree,false);r3.i_bush=mk(bushGeoC(),cnt.bush,false);for(const kd of['stone','iron','gold','oil'])for(let v=0;v<3;v++)r3.rocks[kd+v]=mk(rockGeoC(kd,v),(cnt[kd]||0)*6+6,true);
+  const mk=(geo,n,flat,wind)=>{const mt=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.92,flatShading:!!flat});if(wind)windify(mt,wind);const m=new THREE.InstancedMesh(geo,mt,Math.max(1,n));m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(m);return m};
+  r3.i_pine=mk(treeGeo(true),cnt.tree,false,.022);r3.i_broad=mk(treeGeo(false),cnt.tree,false,.03);r3.i_bush=mk(bushGeoC(),cnt.bush,false,.05);for(const kd of['stone','iron','gold','oil'])for(let v=0;v<3;v++)r3.rocks[kd+v]=mk(rockGeoC(kd,v),(cnt[kd]||0)*6+6,true);
   r3Grass();R3.nodeT=0;
 }
 /* Grasbüschel und Blumen: viele winzige Instanzen auf dem Land, damit der Boden aus der Nähe lebendig wirkt */
@@ -109,7 +132,7 @@ function r3Grass(){
   for(let i=0;i<Math.round(9000*AREA)&&fl.length<Math.round(1800*AREA);i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;const cx=Math.cos(x*.02)*Math.sin(y*.017);if(cx<.35)continue;fl.push({x,y,r:R()*6.28,s:.7+R()*.6,k:(R()*5)|0})}
   const blade=(r,h,ax,az,col)=>{const g=new THREE.ConeGeometry(r,h,3);g.translate(0,h/2,0);g.rotateZ(az);g.rotateX(ax);return[g,col]};
   const tg=mergeColored([blade(.05,.5,.18,.2,0x5f8a3a),blade(.05,.62,-.15,-.1,0x6f9a44),blade(.045,.42,.1,-.3,0x4f7a32),blade(.045,.55,-.2,.25,0x7aa24b)]);
-  r3.i_tuft=new THREE.InstancedMesh(tg,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide}),pts.length);
+  r3.i_tuft=new THREE.InstancedMesh(tg,windify(new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide}),.55),pts.length);
   r3.grassPts=pts;
   const fg=mergeColored([[tr3(cyl(.012,.012,.38,4),0,.19,0),0x4f7a32],[tr3(new THREE.IcosahedronGeometry(.085,0),0,.4,0),0xffffff]]);
   r3.i_flower=new THREE.InstancedMesh(fg,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.8}),fl.length);r3.flowerPts=fl;
@@ -165,7 +188,8 @@ function r3Sync(list,dt,t){
   const S=R3.S,seen=new Set();
   for(const[e,ghost]of list){
     const key=entKey(e,ghost);seen.add(key);
-    const ep=e.kind==='bld'?G.epoch[e.team]:0,sig=e.kind==='unit'?e.type+e.team+':'+(e.lvl||0)+(e.type==='worker'?':'+wkTier(e)+(G.tech[e.team].has('baskets')?'b':'')+(G.tech[e.team].has('carts')?'c':'')+(G.tech[e.team].has('shoes')?'s':''):''):e.kind==='bld'?e.type+':'+ep+':'+e.team+(e.spec||'')+(e.pc||''):e.kind==='animal'?e.type:e.type;
+    let sig;const ep=e.kind==='bld'?G.epoch[e.team]:0;sig=e.kind==='unit'?e.type+e.team+':'+(e.lvl||0)+(e.type==='worker'?':'+wkTier(e)+(G.tech[e.team].has('baskets')?'b':'')+(G.tech[e.team].has('carts')?'c':'')+(G.tech[e.team].has('shoes')?'s':''):''):e.kind==='bld'?e.type+':'+ep+':'+e.team+(e.spec||'')+(e.pc||''):e.kind==='animal'?e.type:e.type;
+    sig+=EKMODELS.tag(e);
     let o=R3.reg.get(key);
     if(!o||o.sig!==sig){if(o)r3.gEnt.remove(o.obj);o=r3Make(e,sig);R3.reg.set(key,o);r3.gEnt.add(o.obj)}
     const h=hAt(e.x,e.y),obj=o.obj;
@@ -248,8 +272,9 @@ function r3Unit(o,e,h,dt,t){
   else{
     if(e.gar){const gb=G.byId.get(e.gar);y=h+(gb&&gb.type==='tower'?4.2:2.1)}
     if(rig.props){y=h+5+Math.sin(t*1.5+e.id)*.25;rig.props.forEach(pr=>pr.rotation.x+=dt*40);obj.rotation.z=moving?-.12:0}
-    else if(moving)y+=Math.abs(s)*.07*(rig.horse?1.6:1);
-    if(rig.horse){rig.legs.forEach((l,i)=>l.rotation.z=(i%2?s:-s)*.7);const rd=rig.rider;rd.arms[1].rotation.z=.2+sw*.6}
+    else if(moving&&!rig.gltf)y+=Math.abs(s)*.07*(rig.horse?1.6:1);
+    if(rig.gltf)EKMODELS.animate(rig,e.state==='attack'&&G.t-(e.swing||-9)<1?'attack':(work||build)?'work':moving?'walk':'idle',dt,moving?Math.max(.6,d.spd/60):1);
+    else if(rig.horse){rig.legs.forEach((l,i)=>l.rotation.z=(i%2?s:-s)*.7);const rd=rig.rider;rd.arms[1].rotation.z=.2+sw*.6}
     else if(rig.wheels){if(moving)rig.wheels.forEach(w=>w.rotation[w.userData.axis||'y']+=dt*3.2*(d.spd/40));if(rig.log)rig.log.position.x=sw*.9;if(rig.arm)rig.arm.rotation.z=-sw*1.8;if(rig.barrel)rig.barrel.position.x=.1-sw*.35}
     else if(rig.up){r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t)}
     else{
@@ -282,16 +307,17 @@ function r3Ghost(type,x,y,ok){
 
 /* ---------- Ein Bild zeichnen ---------- */
 function r3Frame(list,rings,dt){
-  const t=(performance.now()-R3.t0)/1000;
+  const t=(performance.now()-R3.t0)/1000;WIND.value=t;
   if(R3.bgRef!==bg||R3.gRef!==G)r3Map();
   camUpdate();
+  if(r3.foam)r3.foam.material.opacity=.42+.3*Math.sin(t*1.4)+.1*Math.sin(t*3.1);
   for(const w of r3.waves){const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}
-  r3Sync(list,dt,t);
+  r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;
-  r3.rd.render(r3.scene,r3.camera);R3.ghostOn=false;
+  r3.rd.render(r3.scene,r3.camera);R3.ghostOn=false;r3Bloom();
 }
 /* Höhe einer Figur/eines Gebäudes über dem Boden in Spielpixeln (für Lebensbalken, Marker) */
 function entH(e){
@@ -321,3 +347,30 @@ function r3Bones(){
 /* Sparmodus (Mehrspieler): wenn das Bild zu langsam wird, Grafik vorübergehend vereinfachen (niedrige Auflösung, keine Schatten); wird nicht gespeichert */
 function r3Saver(on){if(!R3.ok)return;if(on&&!R3.saverOn){R3.saverOn=true;R3.savedQ=gfxQ;setGfx(0,true);r3.sun.castShadow=false;r3Resize()}
   else if(!on&&R3.saverOn){R3.saverOn=false;setGfx(R3.savedQ,true);r3.sun.castShadow=true;r3Resize()}}
+
+
+/* ---------- Rauch: steigt aus Schornsteinen, Schmieden und Feuerstellen auf (weiche Punktwolken, driften mit dem Wind) ---------- */
+const SMOKE_SRC={house:{ep:2,o:[.42,.95,-.25],rate:.9},hq:{ep:1,o:[.3,.9,-.3],rate:.45},barracks:{ep:1,o:[-.5,.8,-.2],rate:.7},store:{ep:5,o:[-.4,.9,0],rate:1.2},harbor:{ep:5,o:[-.2,.9,0],rate:1.1},refinery:{ep:5,o:[.1,1,0],rate:.35},castle:{ep:3,o:[.3,.9,0],rate:1.4},market:{ep:5,o:[.3,.9,0],rate:1.6},mine:{ep:4,o:[-.5,.8,-.6],rate:1.3}};
+function r3SmokeInit(){
+  const MAX=140,c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),gr=x.createRadialGradient(32,32,2,32,32,32);gr.addColorStop(0,'rgba(255,255,255,.95)');gr.addColorStop(.5,'rgba(255,255,255,.4)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,64,64);
+  const tex=new THREE.CanvasTexture(c),pool=[];
+  for(let i=0;i<MAX;i++){const m=new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,fog:false,color:0xd9d6d0,opacity:0});const sp=new THREE.Sprite(m);sp.visible=false;sp.renderOrder=5;r3.scene.add(sp);pool.push({sp,m,on:false,age:0,life:1,vx:0,vy:0,vz:0,s0:.6,s1:2,a0:.4})}
+  r3.smoke={pool,max:MAX,n:0}}
+function r3Smoke(dt,t){
+  if(!R3.ok)return;if(!r3.smoke)r3SmokeInit();const S=r3.smoke,Sc=R3.S;
+  if(G&&G.ents&&!R3.saverOn){for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const d=SMOKE_SRC[e.type];if(!d||G.epoch[e.team]<d.ep||!shown(e))continue;
+    e._sm=(e._sm||Math.random())-dt;if(e._sm>0)continue;e._sm=d.rate*(.7+Math.random()*.6);const q=S.pool.find(p=>!p.on);if(!q)break;
+    const o=R3.reg.get(e.id),R=e.r/Sc*1.05,top=(o&&o.obj.userData.h)||R*2;
+    q.on=true;q.age=0;q.life=3.6+Math.random()*2.0;q.vx=.5+Math.random()*.3;q.vy=.9+Math.random()*.5;q.vz=(Math.random()-.5)*.25;q.s0=1.1;q.s1=4.2+Math.random()*1.6;q.a0=.8;q.m.color.setHex(G.epoch[e.team]>=5?0x8f8c88:0xe2dfd8);
+    q.sp.position.set(e.x/Sc+d.o[0]*R,hAt(e.x,e.y)+top*d.o[1],e.y/Sc+d.o[2]*R);q.sp.visible=true}}
+  for(const q of S.pool){if(!q.on)continue;q.age+=dt;if(q.age>=q.life){q.on=false;q.sp.visible=false;continue}
+    const u=q.age/q.life,p=q.sp.position;p.x+=(q.vx+Math.sin(t*.7+p.z)*.1)*dt;p.y+=q.vy*(1-u*.5)*dt;p.z+=q.vz*dt;const s=q.s0+(q.s1-q.s0)*u;q.sp.scale.set(s,s,1);q.m.opacity=q.a0*Math.min(1,u*8)*(1-u)}}
+
+
+/* Leuchten (Bloom): verkleinerte Kopie des Bildes liegt weichgezeichnet und aufgehellt per „Bildschirm“-Überblendung über der Welt – helle Stellen (Sonnenlicht auf Wasser, Fenster, Feuer) strahlen sanft nach.
+   Billiger Ersatz für eine echte Nachbearbeitung; abschaltbar im Menü (Grafik). */
+function r3Bloom(){
+  if(!OPT.bloom||R3.saverOn)return;const c=document.getElementById('bloom');if(!c||c.hidden)return;
+  R3.bloomN=(R3.bloomN||0)+1;if(R3.bloomN%2)return;
+  const w=Math.max(160,Math.round(r3.rd.domElement.width/5)),h=Math.max(90,Math.round(r3.rd.domElement.height/5));if(c.width!==w||c.height!==h){c.width=w;c.height=h}
+  const x=c.getContext('2d');x.globalCompositeOperation='copy';x.drawImage(r3.rd.domElement,0,0,w,h)}

@@ -2,6 +2,8 @@
    Maßstab: 1 Einheit = 10 Spielpixel. Figuren schauen in +x, ca. 2,3 Einheiten hoch. Gebäude werden aus ihrem Radius R (Einheiten) berechnet.
    Später lassen sich diese Funktionen durch geladene glTF-Modelle ersetzen, ohne das Spiel anzufassen. */
 'use strict';
+/* Alle Standard-Materialien bekommen eine schwache Umgebungsspiegelung (Himmel) – Farben wirken satter und Oberflächen „glänzen“ leicht; Metall überschreibt das mit eigenem Wert. */
+(()=>{const Base=THREE.MeshStandardMaterial;if(Base.__ek)return;class MSM extends Base{constructor(p){super(p);if(!p||p.envMapIntensity===undefined)this.envMapIntensity=.3}}MSM.__ek=true;THREE.MeshStandardMaterial=MSM})();
 const M3={tex:{},mat:{}};
 
 /* ---------- Mustertexturen (hell, grau – die Farbe kommt vom Material) ---------- */

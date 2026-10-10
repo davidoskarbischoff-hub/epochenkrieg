@@ -166,10 +166,18 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Windows-Installer signieren (kostenpflichtig, entfernt die SmartScreen-Warnung), Mac-Signatur/Notarisierung
 - [ ] Einladungslink direkt in der App öffnen (eigenes `epochenkrieg://`-Protokoll), Steam-Anbindung später prüfen
 
-## Grafik (Schritt für Schritt)
+## Grafik (Schritt für Schritt) – bisher nur auf dem Branch, noch nicht veröffentlicht
 - [x] 1 Licht & Stimmung: wärmeres Licht, kühles Gegenlicht, Kontaktschatten, Vignette, Farbkorrektur
-- [ ] 2 Gelände & Wasser: Bodentexturen, Küstenschaum, Wasserspiegelung
-- [ ] 3 Vegetation: Windbewegung, vielfältigere Bäume und Gras
-- [ ] 4 Materialien: Detailtexturen für Gebäude und Einheiten
-- [ ] 5 Effekte: Rauch, Feuer, Staub, Treffer, Wetter
-- [ ] 6 Nachbearbeitung: Bloom, Umgebungsverdeckung (SSAO)
+- [x] 2 Gelände & Wasser: Küstenschaum, grossflächige Bodenvariation
+- [x] 3 Vegetation: Wind in Bäumen, Büschen und Gras
+- [x] 4 Materialien: Umgebungsspiegelung für alle Materialien
+- [x] 5 Effekte: Rauch aus Schornsteinen/Schmieden
+- [x] 6 Leuchten (Bloom, abschaltbar)
+- [ ] Später: Wasserspiegelung, Tag/Nacht und Wetter, Feuer und Staub in 3D, echte Nachbearbeitung (SSAO)
+- [x] Wirtschaft: mehr Stein und Eisen in mittlerer/grosser Entfernung
+
+## Neue Modelle / Engine
+- [x] glTF-Pipeline (Manifest, Rückfall, Team-Farbe, Animationen, Vorschau-Werkzeug, Anleitung `MODELLE.md`)
+- [ ] Modelle beschaffen (CC0-Pakete, KI-Generator oder Auftrag) und erste Einheit/Gebäude je Zeitalter austauschen
+- [ ] glTF für Tiere, Bäume und Felsen (Instanzen), Mauern/Tore, Sterbe-Animation
+- [ ] Spätere Entscheidung: Engine-Wechsel (Godot) nur bei Steam-/Konsolenplänen oder sehr vielen animierten Einheiten
