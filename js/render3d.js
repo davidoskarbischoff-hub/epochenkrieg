@@ -106,12 +106,21 @@ function toWorld(sx,sy){
   for(let i=0;i<4;i++){const t=(h-o.y)/(d.y<-1e-4?d.y:-1e-4);x=o.x+d.x*t;z=o.z+d.z*t;h=hAt(x*S,z*S)}
   return{x:Math.max(0,Math.min(W,x*S)),y:Math.max(0,Math.min(H,z*S))}}
 
+/* Wind: Bäume, Büsche und Gras wiegen sich (Vertex-Shader-Zusatz; Ausschlag wächst mit der Höhe, jede Instanz hat eine andere Phase) */
+const WIND={value:0};
+function windify(mat,amp){mat.onBeforeCompile=sh=>{sh.uniforms.uWind=WIND;
+  sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform float uWind;').replace('#include <begin_vertex>',`#include <begin_vertex>
+  #ifdef USE_INSTANCING
+  float hw=max(position.y,0.0);float pw=instanceMatrix[3].x*0.55+instanceMatrix[3].z*0.43;
+  transformed.x+=(sin(uWind*1.7+pw)+0.4*sin(uWind*3.3+pw*1.7))*${amp.toFixed(3)}*hw*hw;
+  transformed.z+=cos(uWind*1.3+pw*0.8)*${(amp*.6).toFixed(3)}*hw*hw;
+  #endif`)};return mat}
 /* ---------- Instanzen für Bäume, Büsche, Felsen ---------- */
 function r3NodesInit(){
   const{scene}=r3;for(const k of['pine','broad','bush'])if(r3['i_'+k]){scene.remove(r3['i_'+k]);r3['i_'+k].dispose()}if(r3.rocks)for(const m of Object.values(r3.rocks)){scene.remove(m);m.dispose()}r3.rocks={}
   const cnt={tree:0,bush:0,stone:0,iron:0,gold:0,oil:0};for(const e of G.ents)if(e.kind==='node'&&cnt[e.type]!==undefined)cnt[e.type]++;
-  const mk=(geo,n,flat)=>{const m=new THREE.InstancedMesh(geo,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.92,flatShading:!!flat}),Math.max(1,n));m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(m);return m};
-  r3.i_pine=mk(treeGeo(true),cnt.tree,false);r3.i_broad=mk(treeGeo(false),cnt.tree,false);r3.i_bush=mk(bushGeoC(),cnt.bush,false);for(const kd of['stone','iron','gold','oil'])for(let v=0;v<3;v++)r3.rocks[kd+v]=mk(rockGeoC(kd,v),(cnt[kd]||0)*6+6,true);
+  const mk=(geo,n,flat,wind)=>{const mt=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.92,flatShading:!!flat});if(wind)windify(mt,wind);const m=new THREE.InstancedMesh(geo,mt,Math.max(1,n));m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(m);return m};
+  r3.i_pine=mk(treeGeo(true),cnt.tree,false,.022);r3.i_broad=mk(treeGeo(false),cnt.tree,false,.03);r3.i_bush=mk(bushGeoC(),cnt.bush,false,.05);for(const kd of['stone','iron','gold','oil'])for(let v=0;v<3;v++)r3.rocks[kd+v]=mk(rockGeoC(kd,v),(cnt[kd]||0)*6+6,true);
   r3Grass();R3.nodeT=0;
 }
 /* Grasbüschel und Blumen: viele winzige Instanzen auf dem Land, damit der Boden aus der Nähe lebendig wirkt */
@@ -123,7 +132,7 @@ function r3Grass(){
   for(let i=0;i<Math.round(9000*AREA)&&fl.length<Math.round(1800*AREA);i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;const cx=Math.cos(x*.02)*Math.sin(y*.017);if(cx<.35)continue;fl.push({x,y,r:R()*6.28,s:.7+R()*.6,k:(R()*5)|0})}
   const blade=(r,h,ax,az,col)=>{const g=new THREE.ConeGeometry(r,h,3);g.translate(0,h/2,0);g.rotateZ(az);g.rotateX(ax);return[g,col]};
   const tg=mergeColored([blade(.05,.5,.18,.2,0x5f8a3a),blade(.05,.62,-.15,-.1,0x6f9a44),blade(.045,.42,.1,-.3,0x4f7a32),blade(.045,.55,-.2,.25,0x7aa24b)]);
-  r3.i_tuft=new THREE.InstancedMesh(tg,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide}),pts.length);
+  r3.i_tuft=new THREE.InstancedMesh(tg,windify(new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide}),.55),pts.length);
   r3.grassPts=pts;
   const fg=mergeColored([[tr3(cyl(.012,.012,.38,4),0,.19,0),0x4f7a32],[tr3(new THREE.IcosahedronGeometry(.085,0),0,.4,0),0xffffff]]);
   r3.i_flower=new THREE.InstancedMesh(fg,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.8}),fl.length);r3.flowerPts=fl;
@@ -296,7 +305,7 @@ function r3Ghost(type,x,y,ok){
 
 /* ---------- Ein Bild zeichnen ---------- */
 function r3Frame(list,rings,dt){
-  const t=(performance.now()-R3.t0)/1000;
+  const t=(performance.now()-R3.t0)/1000;WIND.value=t;
   if(R3.bgRef!==bg||R3.gRef!==G)r3Map();
   camUpdate();
   if(r3.foam)r3.foam.material.opacity=.42+.3*Math.sin(t*1.4)+.1*Math.sin(t*3.1);
