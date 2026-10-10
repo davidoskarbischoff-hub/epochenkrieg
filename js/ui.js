@@ -98,7 +98,7 @@ function actionsFor(s){
   }
   if(f.kind==='bld'&&f.built){
     for(const [k,d] of Object.entries(UNITS))if(d.from===f.type&&d.ep<=ep&&(!d.nation||d.nation===G.nation[0])){const nt=d.tech&&!G.tech[0].has(d.tech);acts.push({key:'t'+k,nm:tr(UNAMES[k]?UNAMES[k][Math.min(5,G.epoch[0])]:d.name),cost:ucost(0,k),need:nt?tr('Technologie nötig: {0}',tr(TECH[d.tech].name)):null,sub:nt?tr('Technologie nötig'):null,run:()=>enqueue(f,k,0),unit:k})}
-    if(BSPEC[f.type]&&f.team===0&&!f.spec)for(const [k,sp] of Object.entries(BSPEC[f.type])){acts.push({key:'ts'+k,nm:tr(sp.name),cost:sp.cost,sub:tr(sp.sub),adv:true,run:()=>{if(!buildSpec(0,f.id,k))toast(tr('Nicht genug Rohstoffe.'),'warn')}})}
+    if(BSPEC[f.type]&&f.team===0&&!f.spec)for(const [k,sp] of Object.entries(BSPEC[f.type]).filter(([k,sp])=>(sp.ep||0)<=G.epoch[0])){acts.push({key:'ts'+k,nm:tr(sp.name),cost:sp.cost,sub:tr(sp.sub),adv:true,run:()=>{if(!buildSpec(0,f.id,k))toast(tr('Nicht genug Rohstoffe.'),'warn')}})}
     if(f.type==='market')for(const rt of['food','wood','stone','iron'])for(const dir of['sell','buy']){const lot=TRADE.lot,g=Math.round(lot*TRADE.sell),c=Math.round(lot*TRADE.buy);
       acts.push({key:'tr'+dir+rt,nm:dir==='sell'?tr('{0} → Gold',lot+' '+rn(rt)):tr('Gold → {0}',lot+' '+rn(rt)),cost:dir==='sell'?{[rt]:lot}:{gold:c},sub:dir==='sell'?tr('Du erhältst {0} Gold',g):tr('Du erhältst {0}',lot+' '+rn(rt)),run:()=>{if(NET.client)NET.send({c:'trade',rt,dir});else if(!trade(0,rt,dir))toast(tr('Nicht genug Rohstoffe.'),'warn')}})}
     if(f.type==='hq'&&f.team===0){const pd=pending(0);
@@ -154,13 +154,14 @@ function updateUI(){
   {const w=wkCount(0),nd=wkNeed(G.epoch[0]),last=G.epoch[0]>=EPOCHS.length-1;$('v-wk').textContent=w+(last?'':'/'+nd);$('v-wk').style.color=!last&&w<nd?'':'#a9e283';let tr_=0;for(const e of G.ents)if(!e.dead&&e.team===0&&e.kind==='unit'&&e.type!=='worker')tr_++;$('v-troop').textContent=tr_}
   if(document.body.dataset.ep!==String(G.epoch[0]))document.body.dataset.ep=G.epoch[0];
   const pe=$('v-pop');pe.textContent=G.pop[0]+'/'+G.cap[0];pe.style.color=G.pop[0]>=G.cap[0]?'var(--warn)':'';
+  if(document.body.dataset.ep!==String(G.epoch[0]))document.body.dataset.ep=G.epoch[0];
   $('epoch').innerHTML=tr(EPOCHS[G.epoch[0]].name)+(G.adv[0]?`<span class="prog">→ ${tr(EPOCHS[G.epoch[0]+1].name)} ${Math.floor(G.adv[0].t/G.adv[0].time*100)} %</span>`:'');
   const ub=$('upgbar'),js=G.jobs[0],rs0=G.rs[0];ub.hidden=true;if(false){const h=js.map(j=>{const pc=Math.floor(j.t/j.time*100);return `<div class="uj"><span>${tr('Upgrade')}: ${j.label} → ${tr('Stufe {0}',LVLN[j.to])} · ${pc} %</span><div><i style="width:${pc}%"></i></div></div>`}).join('')+rs0.map(r=>{const pc=Math.floor(r.t/r.time*100);return `<div class="uj tech"><span>${tr('Forschung')}: ${tr(TECH[r.id].name)} · ${pc} %</span><div><i style="width:${pc}%"></i></div></div>`}).join('');if(h!==ub._h){ub._h=h;ub.innerHTML=h}}
   const idle=G.ents.filter(e=>!e.dead&&e.team===0&&e.kind==='unit'&&UNITS[e.type].gather&&e.state==='idle').length;const ib=$('idleBtn');ib.textContent=idle===0?tr('Alle Arbeiter beschäftigt'):idle===1?tr('1 untätiger Arbeiter'):tr('{0} untätige Arbeiter',idle);ib.classList.toggle('alert',idle>0);ib.classList.toggle('ok',idle===0);
   advisorTick();advisorUI();$('pauseBtn').hidden=!!G.mp;$('speedBtn').hidden=!!G.mp;
   const s=selection();
   const sig=s.map(e=>e.id+(e.built?'b':'')).join(',')+'|'+G.epoch[0]+'|'+(G.adv[0]?1:0)+G.jobs[0].length+'|'+pending(0).n+'|'+G.tech[0].size+'|'+G.rs[0].length;
-  if(sig!==panelSig){panelSig=sig;curActs=actionsFor(s);$('acts').innerHTML=curActs.map((a,i)=>`<button class="act" data-i="${i}">${({am:'Q',exp:'E'})[a.key]?`<kbd>${({am:'Q',exp:'E'})[a.key]}</kbd>`:''}<span class="nm">${a.nm}</span>${a.cost?`<span class="cost">${costHTML(a.cost)}</span>`:''}${a.lock?`<span class="sub">${tr('ab {0}',a.lock)}</span>`:a.sub?`<span class="sub">${a.sub}</span>`:''}</button>`).join('')}
+  if(sig!==panelSig){panelSig=sig;curActs=actionsFor(s);$('acts').innerHTML=curActs.map((a,i)=>`<button class="act" data-i="${i}">${actIcon(a)}${({am:'Q',exp:'E'})[a.key]?`<kbd>${({am:'Q',exp:'E'})[a.key]}</kbd>`:''}<span class="nm">${a.nm}</span>${a.cost?`<span class="cost">${costHTML(a.cost)}</span>`:''}${a.lock?`<span class="sub">${tr('ab {0}',a.lock)}</span>`:a.sub?`<span class="sub">${a.sub}</span>`:''}</button>`).join('')}
   $('acts').querySelectorAll('.act').forEach(b=>{const a=curActs[+b.dataset.i];if(!a)return;b.classList.toggle('locked',!!a.lock||!!a.need||!!(a.adv&&G.adv[0])||!!(a.key==='adv'&&G.jobs[0].length));b.classList.toggle('poor',!!a.cost&&!afford(0,a.cost));b.querySelectorAll('.c').forEach(ch=>{const ok=(G.res[0][ch.dataset.r]||0)>=+ch.dataset.n;ch.classList.toggle('ok',ok);ch.classList.toggle('bad',!ok)})});
   const ih=infoHTML(s);if(ih!==infoCache){infoCache=ih;$('info').innerHTML=ih}
   const hint=$('hint');
@@ -236,3 +237,7 @@ function openTree(mode){
 function closeTree(){treeOpen=false;const el=$('tree');if(el)el.hidden=true;if(treePaused&&G){G.paused=false;treePaused=false}}
 $('treeBtn').onclick=()=>{SND.init();treeOpen?closeTree():openTree('view')};
 addEventListener('keydown',e=>{if(e.key==='t'||e.key==='T'){if(!G||!G.running||menuOpen)return;treeOpen?closeTree():openTree('view')}else if(e.key==='Escape'&&treeOpen){closeTree();e.stopPropagation()}},true);
+
+/* Vorschaubild für Ausbildungs- und Baukacheln */
+function actIcon(a){const k=a.key||'';let kind=null,type=null;if(k[0]==='t'&&UNITS[k.slice(1)]){kind='unit';type=k.slice(1)}else if(k[0]==='b'&&BLDS[k.slice(1)]){kind='bld';type=k.slice(1)}
+  if(!kind||typeof ICON3==='undefined')return'';const u=ICON3.thing(kind,type);return u?`<img class="aic" src="${u}" alt="">`:''}

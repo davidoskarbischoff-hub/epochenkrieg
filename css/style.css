@@ -366,3 +366,36 @@ kbd{min-width:7.5em;text-align:center;font-family:var(--f-ui);font-size:12.5px;p
 .diff button.prop,.maps button.prop{outline:2px dashed var(--bronze)}
 .propbox{background:#4a3822;border:1px solid var(--bronze);border-radius:4px;padding:8px 10px;margin:0 0 12px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .propbox span{display:flex;gap:6px}
+
+/* Symbole als 3D-Bilder */
+img.ic{width:1.35em;height:1.35em;object-fit:contain;vertical-align:-.3em;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+.res .icn img.ic{width:26px;height:26px}
+.act{position:relative}
+.act .aic{width:44px;height:44px;object-fit:contain;align-self:center;margin:-2px 0 0;filter:drop-shadow(0 2px 2px rgba(0,0,0,.55))}
+
+/* ===== Rahmen: durchscheinend, goldene Schwünge, Farbe nach Zeitalter ===== */
+body{--fr:#e3b66a;--tint:rgba(36,26,18,.62);--topH:54px}
+body[data-ep="0"]{--fr:#c2a574;--tint:rgba(52,38,24,.6)}
+body[data-ep="1"]{--fr:#d38f3e;--tint:rgba(56,34,16,.6)}
+body[data-ep="2"]{--fr:#a9b3be;--tint:rgba(26,30,38,.62)}
+body[data-ep="3"]{--fr:#e3b66a;--tint:rgba(44,18,20,.6)}
+body[data-ep="4"]{--fr:#ecca7a;--tint:rgba(22,26,54,.6)}
+body[data-ep="5"]{--fr:#cf9f55;--tint:rgba(38,30,26,.64)}
+body[data-ep="6"]{--fr:#aeb78c;--tint:rgba(26,32,24,.66)}
+#app{position:relative}
+#view{position:absolute;inset:0;flex:none}
+#top,#panel{position:absolute;left:0;right:0;z-index:20;backdrop-filter:blur(5px) saturate(1.1);-webkit-backdrop-filter:blur(5px) saturate(1.1);border:0;box-shadow:none}
+#top{top:0;background:linear-gradient(var(--tint),rgba(0,0,0,.28))}
+#panel{bottom:0;background:linear-gradient(rgba(0,0,0,.34),var(--tint))}
+#top::after,#panel::before{content:"";position:absolute;left:0;right:0;height:14px;pointer-events:none;
+  background:
+   radial-gradient(circle at 12px 0,transparent 8px,var(--fr) 8.5px,var(--fr) 10px,transparent 10.5px) 0 0/auto 100% no-repeat,
+   radial-gradient(circle at calc(100% - 12px) 0,transparent 8px,var(--fr) 8.5px,var(--fr) 10px,transparent 10.5px) 0 0/auto 100% no-repeat,
+   linear-gradient(90deg,transparent,var(--fr) 8%,var(--fr) 92%,transparent) 0 0/100% 2px no-repeat}
+#top::after{bottom:-2px;transform:none;background-position:0 0,0 0,0 100%}
+#panel::before{top:-2px;transform:scaleY(-1);background-position:0 0,0 0,0 100%}
+#top::before,#panel::after{content:"";position:absolute;left:50%;width:46px;height:9px;margin-left:-23px;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,var(--fr) 0 3px,transparent 3.5px),linear-gradient(90deg,transparent,var(--fr) 30%,var(--fr) 70%,transparent) 50% 50%/100% 1.5px no-repeat}
+#top::before{bottom:-6px}#panel::after{top:-6px}
+#advisor,#toasts,#hint,#upgbar,#fps{margin-top:var(--topH)}
+.act .cost{flex-wrap:wrap}
+.act .aic{width:52px;height:52px;background:radial-gradient(circle,rgba(255,255,255,.2),transparent 70%)}

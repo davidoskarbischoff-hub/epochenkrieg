@@ -22,14 +22,14 @@ function encodeSnap(){
   return{t:r1(G.t),over:G.over,res:G.res.map(r=>({food:Math.floor(r.food),wood:Math.floor(r.wood),stone:Math.floor(r.stone),iron:Math.floor(r.iron),gold:Math.floor(r.gold||0),oil:Math.floor(r.oil||0)})),epoch:G.epoch.slice(),nat:G.nation.slice(),
     adv:G.adv.map(a=>a?{t:r1(a.t),time:a.time}:null),tech:G.tech.map(t=>[...t]),rs:G.rs.map(a=>a.map(r=>({id:r.id,t:r1(r.t),time:r.time}))),
     jobs:G.jobs.map(a=>a.map(j=>({label:j.label,t:r1(j.t),time:j.time,to:j.to,n:j.n,team:j.team}))),stats:{lost:G.stats.lost.slice(),trained:G.stats.trained.slice()},
-    U,B,N,A,P:G.proj.map(p=>[Math.round(p.x),Math.round(p.y),Math.round(p.a*100)/100,p.big?1:0,p.gun?1:0])}}
+    U,B,N,A,bn:G.bones||[],P:G.proj.map(p=>[Math.round(p.x),Math.round(p.y),Math.round(p.a*100)/100,p.big?1:0,p.gun?1:0])}}
 function sendSnap(){if(!NET.send)return;flipTeams();let snap;try{snap=encodeSnap()}finally{flipTeams()}snap.ev=G.ev;G.ev=[];NET.send({t:'snap',s:snap})}
 function removeEnt(e){if(e.dead)return;e.dead=true;if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea))navStamp(e,-1);sel.delete(e.id)}
 function applySnap(s){
   if(!G||!NET.client)return;
   NET.lastSnap=performance.now();
   G.t=s.t;G.over=s.over;G.res=s.res;G.epoch=s.epoch;if(s.nat){G.nation=s.nat;G.nfx=s.nat.map(nationFx)}G.adv=s.adv;G.tech=s.tech.map(a=>new Set(a));G.tfx=G.tech.map(techFx);G.rs=s.rs;
-  G.jobs=s.jobs.map(a=>a.map(j=>({...j,ids:[],done:false})));G.stats=s.stats;
+  G.jobs=s.jobs.map(a=>a.map(j=>({...j,ids:[],done:false})));G.stats=s.stats;G.bones=s.bn||[];
   const seen=new Set();
   for(const r of s.U){seen.add(r.i);let e=G.byId.get(r.i);if(!e||e.dead){e=addUnit(r.ty,r.m,r.x,r.y,r.i)}
     e.team=r.m;e.tx=r.x;e.ty=r.y;e.fa=r.a;e.hp=r.h;e.maxHp=r.H;e.lvl=r.l;e.state=r.s;e.carry=r.c;e.ctype=r.ct||null;e.rtype=r.rt||null;e.tid=r.td||null;

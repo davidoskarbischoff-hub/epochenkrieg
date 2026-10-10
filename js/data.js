@@ -5,7 +5,7 @@ const AREA=W*H/(3600*2400); /* Kartengrösse im Vergleich zur ersten Version (f�
 // Sammeln je Ressource: Tempo-Faktor und Tragekapazität (Beeren bringen mehr, weil Nahrung sonst knapp ist)
 const GATHER={food:{rate:1.5,carry:15},wood:{rate:1.2,carry:12},stone:{rate:.9,carry:10},iron:{rate:.8,carry:8},gold:{rate:.7,carry:8},oil:{rate:.75,carry:10}};
 const UNITS={
-  worker:{cls:'wk',gather:true,builds:true,passive:true,name:'Arbeiter',sight:130,hp:40,spd:58,atk:3,rng:4,cd:1.2,r:7,cost:{food:50},time:9,ep:0,from:'hq'},
+  worker:{cls:'wk',gather:true,builds:true,passive:true,name:'Arbeiter',sight:130,hp:40,spd:58,atk:3,rng:4,cd:1.2,r:4,vr:7,cost:{food:50},time:9,ep:0,from:'hq'},
   scout:{cls:'wk',name:'Späher',passive:true,sight:300,hp:40,spd:105,atk:0,rng:4,cd:1.2,r:6,cost:{food:60,wood:20},time:10,ep:0,from:'hq'},
   boat:{cls:'ship',name:'Fischerboot',naval:true,gather:true,passive:true,sight:200,hp:90,spd:72,atk:0,rng:4,cd:1.2,r:11,cost:{wood:80},time:14,ep:0,from:'harbor'},
   warship:{cls:'ship',tech:'shipbuild',name:'Kriegsschiff',naval:true,ranged:true,sight:240,hp:230,spd:62,atk:15,rng:175,cd:1.8,r:13,cost:{wood:140,stone:60},time:24,ep:1,from:'harbor'},
@@ -29,18 +29,18 @@ const UNITS={
   /* ---- Weltkriegszeit (Zeitalter VII): gemeinsame Truppen für alle Nationen ---- */
   assault:{cls:'inf',name:'Sturmsoldat',sight:170,hp:200,spd:62,atk:32,rng:6,cd:1.0,r:8,cost:{food:110,iron:50,gold:30},time:16,ep:6,from:'barracks'},
   mg:{cls:'rng',name:'Maschinengewehr',sight:200,hp:150,spd:36,atk:20,rng:190,cd:.35,r:8,cost:{food:80,wood:40,iron:110,gold:40},time:22,ep:6,from:'barracks',ranged:true,gun:true},
-  plane:{cls:'air',air:true,name:'Jagdflugzeug',sight:280,hp:150,spd:160,atk:16,rng:110,cd:.45,r:10,cost:{wood:150,iron:200,gold:90,oil:80},time:26,ep:6,from:'airfield',ranged:true,gun:true},
+  plane:{cls:'air',air:true,name:'Jagdflugzeug',sight:280,hp:190,spd:160,atk:16,rng:110,cd:.45,r:10,cost:{wood:150,iron:200,gold:90,oil:80},time:26,ep:6,from:'airfield',ranged:true,gun:true},
   /* ---- Nationen-Spezialeinheiten (je zwei pro Nation) ---- */
-  skoda:{cls:'siege',nation:'at',name:'Škoda-Mörser „Emma“',sight:230,hp:190,spd:22,atk:150,rng:330,cd:6.2,r:13,cost:{wood:320,iron:420,gold:200,oil:50},time:44,ep:6,from:'barracks',splash:50,ranged:true,siege:true},
+  skoda:{cls:'siege',nation:'at',name:'Škoda-Mörser „Emma“',sight:230,hp:240,spd:22,atk:150,rng:330,cd:6.2,r:13,cost:{wood:320,iron:420,gold:200,oil:50},time:44,ep:6,from:'barracks',splash:50,ranged:true,siege:true},
   alpini:{cls:'rng',nation:'at',name:'Kaiserjäger',sight:210,hp:195,spd:54,atk:64,rng:215,cd:1.7,r:7,cost:{food:110,wood:40,iron:90,gold:30},time:22,ep:6,from:'barracks',ranged:true,gun:true},
   sturm:{cls:'inf',nation:'de',name:'Sturmtruppe',sight:180,hp:270,spd:64,atk:42,rng:6,cd:1.0,r:8,cost:{food:115,iron:70,gold:50},time:20,ep:6,from:'barracks'},
-  bertha:{cls:'siege',nation:'de',name:'Dicke Bertha',sight:240,hp:220,spd:18,atk:175,rng:380,cd:8,r:14,cost:{wood:400,iron:500,gold:260,oil:70},time:50,ep:6,from:'barracks',splash:60,ranged:true,siege:true},
+  bertha:{cls:'siege',nation:'de',name:'Dicke Bertha',sight:240,hp:280,spd:18,atk:175,rng:380,cd:8,r:14,cost:{wood:400,iron:500,gold:260,oil:70},time:50,ep:6,from:'barracks',splash:60,ranged:true,siege:true},
   rekrut:{cls:'rng',nation:'ru',name:'Rekrut',sight:150,hp:70,spd:56,atk:9,rng:130,cd:1.8,r:7,cost:{food:40,wood:20},time:6,ep:6,from:'barracks',ranged:true,gun:true},
   kosak:{cls:'cav',nation:'ru',name:'Kosak',sight:200,hp:220,spd:92,atk:30,rng:6,cd:1.0,r:11,cost:{food:150,gold:50},time:18,ep:6,from:'barracks'},
   kamel:{cls:'cav',nation:'ot',name:'Kamelreiter',sight:210,hp:200,spd:84,atk:26,rng:6,cd:1.0,r:12,cost:{food:130,gold:30},time:17,ep:6,from:'barracks'},
   janit:{cls:'rng',nation:'ot',name:'Janitschar',sight:190,hp:170,spd:54,atk:50,rng:150,cd:1.5,r:7,cost:{food:100,wood:30,iron:60,gold:40},time:20,ep:6,from:'barracks',ranged:true,gun:true},
   mark1:{cls:'siege',nation:'uk',name:'Mark I',sight:200,hp:780,spd:30,atk:100,rng:150,cd:3,r:15,cost:{wood:230,iron:380,gold:120,oil:70},time:40,ep:6,from:'barracks',splash:26,ranged:true,siege:true},
-  bomber:{cls:'air',air:true,nation:'uk',name:'Bomber',sight:260,hp:240,spd:110,atk:120,rng:26,cd:3.5,r:13,cost:{wood:220,iron:260,gold:150,oil:110},time:36,ep:6,from:'airfield',bomber:true},
+  bomber:{cls:'air',air:true,nation:'uk',name:'Bomber',sight:260,hp:320,spd:110,atk:120,rng:26,cd:3.5,r:13,cost:{wood:220,iron:260,gold:150,oil:110},time:36,ep:6,from:'airfield',bomber:true},
   renault:{cls:'siege',nation:'fr',name:'Renault FT',sight:190,hp:320,spd:60,atk:55,rng:170,cd:1.8,r:11,cost:{wood:120,iron:180,gold:70,oil:30},time:24,ep:6,from:'barracks',ranged:true,siege:true},
   kurass:{cls:'cav',nation:'fr',name:'Kürassier',sight:200,hp:270,spd:80,atk:36,rng:6,cd:1.0,r:11,cost:{food:140,iron:60,gold:40},time:20,ep:6,from:'barracks'},
   bersag:{cls:'rng',nation:'it',name:'Bersagliere',sight:200,hp:150,spd:78,atk:32,rng:150,cd:1.3,r:7,cost:{food:90,wood:30,iron:50,gold:20},time:16,ep:6,from:'barracks',ranged:true,gun:true},
@@ -53,9 +53,9 @@ const UNITS={
 };
 /* Turm-Ausbau: Verteidigung (stärker schiessen, mehr Leben) oder Aussicht (Sicht und Gebiet) */
 const BSPEC={
-  tower:{def:{name:'Wehrturm',cost:{wood:120,stone:140,iron:60},sub:'Schiesst stärker und weiter, hält mehr aus'},obs:{name:'Aussichtsturm',cost:{wood:100,stone:80},sub:'Doppelte Sicht, grösseres Gebiet'}},
-  hq:{eco:{name:'Handelshof',cost:{wood:250,stone:200,gold:60},sub:'Arbeiter sammeln 20 % schneller, +10 Bevölkerung'},mil:{name:'Kommandozentrale',cost:{wood:250,stone:200,iron:100},sub:'Ausbildung 25 % schneller, neue Truppen +10 % Leben'}},
-  barracks:{drill:{name:'Drillplatz',cost:{wood:150,iron:80},sub:'Nahkämpfer und Reiter dieser Kaserne +25 % Leben'},range:{name:'Schiessstand',cost:{wood:150,iron:80},sub:'Fernkämpfer dieser Kaserne +25 % Schaden'}}
+  tower:{def:{name:'Wehrturm',ep:1,cost:{wood:120,stone:140,iron:60},sub:'Schiesst stärker und weiter, hält mehr aus'},obs:{name:'Aussichtsturm',ep:4,cost:{wood:100,stone:80},sub:'Doppelte Sicht, grösseres Gebiet'}},
+  hq:{eco:{name:'Handelshof',ep:2,cost:{wood:250,stone:200,gold:60},sub:'Arbeiter sammeln 20 % schneller, +10 Bevölkerung'},mil:{name:'Kommandozentrale',ep:2,cost:{wood:250,stone:200,iron:100},sub:'Ausbildung 25 % schneller, neue Truppen +10 % Leben'}},
+  barracks:{drill:{name:'Drillplatz',ep:1,cost:{wood:150,iron:80},sub:'Nahkämpfer und Reiter dieser Kaserne +25 % Leben'},range:{name:'Schiessstand',ep:2,cost:{wood:150,iron:80},sub:'Fernkämpfer dieser Kaserne +25 % Schaden'}}
 };
 const TSPEC=BSPEC.tower;
 const BLDS={
@@ -76,7 +76,7 @@ const BLDS={
   market:{name:'Markt',sight:170,claim:110,hp:520,r:22,cost:{wood:150,stone:80},time:24,ep:3,sub:'Rohstoffe gegen Gold tauschen'},
   tower:{name:'Wachturm',sight:300,claim:320,hp:550,r:14,cost:{wood:70,stone:60},time:26,ep:0,shoot:{rng:170,atk:9,cd:1.5},sub:'Schiesst auf Gegner'}
 };
-const NODES={tree:{cap:3,rt:'wood',amt:420,r:11,name:'Baum'},bush:{cap:3,rt:'food',amt:340,r:8,name:'Beerenstrauch',regen:1.4},stone:{cap:6,rt:'stone',amt:2600,r:28,name:'Steinvorkommen'},iron:{cap:5,rt:'iron',amt:3200,r:26,name:'Eisenvorkommen'},gold:{cap:4,rt:'gold',amt:2200,r:23,name:'Goldvorkommen'},oil:{cap:3,rt:'oil',amt:3500,r:26,name:'Ölfeld'},field:{cap:5,rt:'food',amt:700,r:25,name:'Feld',regen:3.2,hidden:true},
+const NODES={tree:{cap:3,rt:'wood',amt:420,r:11,name:'Baum'},bush:{cap:3,rt:'food',amt:340,r:8,name:'Beerenstrauch',regen:1.4},stone:{cap:6,rt:'stone',amt:1800,r:28,name:'Steinvorkommen'},iron:{cap:5,rt:'iron',amt:2200,r:26,name:'Eisenvorkommen'},gold:{cap:4,rt:'gold',amt:1600,r:23,name:'Goldvorkommen'},oil:{cap:3,rt:'oil',amt:2600,r:26,name:'Ölfeld'},field:{cap:5,rt:'food',amt:700,r:25,name:'Feld',regen:3.2,hidden:true},
   // Wasser: nur Boote können hier sammeln (Delfine ab Stufe II, Wale ab Stufe III)
   fish:{cap:2,sea:true,rt:'food',amt:160,r:8,name:'Fischschwarm',gm:1,regen:.55},
   dolphin:{cap:3,sea:true,rt:'food',amt:420,r:11,name:'Delfine',gm:1.3,lvl:1,regen:.45},
@@ -88,8 +88,9 @@ const ANIMALS={
   deer:{name:'Reh',hp:45,spd:82,r:7,sight:170,flee:140,roam:120,food:120,h:24,info:'Friedlich und scheu – jagbar, gibt Nahrung'},
   wolf:{name:'Wolf',from:1,hp:75,spd:86,atk:9,rng:5,cd:1,r:7,sight:170,agg:140,leash:380,roam:90,food:70,h:20,pack:true,info:'Rudeltier – greift an, wenn man zu nah kommt'},
   bear:{name:'Bär',from:1,hp:280,spd:60,atk:24,rng:7,cd:1.3,r:11,sight:150,agg:120,leash:300,roam:80,food:220,h:34,info:'Sehr stark – verteidigt sein Revier'},
-  mammoth:{name:'Mammut',hp:520,spd:46,atk:30,rng:10,cd:1.6,r:16,sight:150,agg:75,leash:260,roam:70,food:700,h:46,ext:2,info:'Riesig und friedlich, wehrt sich aber – viel Nahrung. Stirbt nach der Steinzeit aus'},
-  sabertooth:{name:'Säbelzahntiger',hp:240,spd:100,atk:26,rng:7,cd:1,r:10,sight:200,agg:190,leash:450,roam:150,food:200,h:28,ext:2,info:'Schnell und tödlich. Stirbt nach der Steinzeit aus'},
+  mammoth:{name:'Mammut',hp:520,spd:46,atk:30,rng:10,cd:1.6,r:16,sight:150,agg:75,leash:260,roam:70,food:700,h:46,ext:1,info:'Riesig und friedlich, wehrt sich aber – viel Nahrung. Stirbt nach der Steinzeit aus'},
+  sabertooth:{name:'Säbelzahntiger',hp:240,spd:100,atk:26,rng:7,cd:1,r:10,sight:200,agg:190,leash:450,roam:150,food:200,h:28,ext:1,info:'Schnell und tödlich. Stirbt nach der Steinzeit aus'},
+  croc:{name:'Krokodil',from:1,hp:210,spd:75,atk:24,rng:9,cd:1.2,r:10,sight:170,agg:105,leash:210,roam:60,food:160,h:10,water:true,info:'Lauert im seichten Wasser – gefährlich für alles am Ufer'},
   tiger:{name:'Tiger',from:2,hp:180,spd:98,atk:18,rng:6,cd:.9,r:9,sight:190,agg:170,leash:420,roam:140,food:160,h:26,info:'Schnell und gefährlich'}
 };
 /* Gegenstücke: Schadensfaktor Angreifer-Klasse -> Ziel-Klasse (Speer schlägt Reiter, Reiter jagen Fernkämpfer, Fernkämpfer schwächen Nahkämpfer, Nahkämpfer erreichen Fernkämpfer und Belagerung) */
