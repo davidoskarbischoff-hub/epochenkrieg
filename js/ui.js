@@ -139,7 +139,7 @@ function showStart(){
   ov.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>applyLang(b.dataset.l));
   ov.querySelectorAll('[data-as]').forEach(b=>b.onclick=()=>{aiStyle=b.dataset.as;ov.querySelectorAll('[data-as]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
   ov.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{diff=b.dataset.d;ov.querySelectorAll('[data-d]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
-  $('goBtn').onclick=()=>{if(typeof SND!=='undefined')SND.init();newGame(diff,!!(G&&!G.started),{map:curMap,aiStyle});G.running=true;G.started=true;ov.hidden=true;toast(tr('Tipp: Wähle deine Arbeiter aus und schick sie per Rechtsklick zu Beeren oder Bäumen.'))};
+  $('goBtn').onclick=()=>{if(typeof SND!=='undefined')SND.init();$('goBtn').disabled=true;$('goBtn').textContent=tr('Karte wird erzeugt …');requestAnimationFrame(()=>setTimeout(()=>{newGame(diff,!!(G&&!G.started),{map:curMap,aiStyle});G.running=true;G.started=true;ov.hidden=true;toast(tr('Tipp: Wähle deine Arbeiter aus und schick sie per Rechtsklick zu Beeren oder Bäumen.'))},20))};
 }
 function showEnd(){
   G.overShown=true;G.running=false;const win=G.over==='win';sfx(win?'win':'lose');const m=Math.floor(G.t/60),s=Math.floor(G.t%60);

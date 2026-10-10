@@ -13,6 +13,8 @@ const MAPS={
   land:{name:'Festland',desc:'Nur Land mit Hügeln und Plateaus, kein Meer',full:1,amp:1,plat:.65,bank:.6,mount:0,cliff:0},
   lakes:{name:'Seenplatte',desc:'Viele Seen und Teiche, Fische im Binnenland',full:1,amp:1,plat:.4,bank:.6,mount:0,cliff:0,lakes:1.7},
   mountains:{name:'Bergland',desc:'Hohe Berge und Klippen, Häfen nur an Zugängen',mid:440,ends:930,amp:1.15,wind:.7,plat:.3,bank:.6,mount:1,cliff:1,lakes:.9},
+  river:{name:'Flusstal',desc:'Ein Fluss trennt die Basen, nur wenige Furten führen hinüber',full:1,amp:1,plat:.5,bank:.6,mount:0,cliff:0,river:1},
+  pass:{name:'Gebirgspass',desc:'Bergmassiv mit engen Pässen als Engstellen',full:1,amp:1,plat:.2,bank:.6,mount:1,cliff:0,mthr0:.4},
   bay:{name:'Große Bucht',desc:'Viel Wasser, breite Landbrücke',mid:320,ends:840,amp:1,wind:1,plat:.45,bank:.5,mount:0,cliff:0,lakes:.8}
 };
 /* Höhenfeld (HL, in Einheiten à 10 px, pro Gelände-Feld), Abstand zur Küste (DSEA), Startpunkt des Hauptlandes (MAINPT) */
@@ -41,14 +43,17 @@ function genTerrain(seed,mapId){
   const sym=(f,x,y)=>(f(x,y)+f(W-x,H-y))/2;
   const L=Math.hypot(W,H);
   TERR=new Uint8Array(TW*TH);
-  const land=new Uint8Array(TW*TH);
+  const land=new Uint8Array(TW*TH),riverM=new Uint8Array(TW*TH);
   for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){
     const px=(x+.5)*TG,py=(y+.5)*TG;
     const pp0=(H*px+W*py-W*H)/L,t=(px*W+(H-py)*H)/(L*L),pp=pp0-(cfg.wind||0)*(Math.sin((t-.5)*9.42)*430+Math.sin((t-.5)*22)*150);
     const w=cfg.full?3000:cfg.mid+(cfg.ends-cfg.mid)*Math.pow(Math.abs(t-.5)*2,1.4);
     const noise=((sym(n1,px,py)-.5)*400+(sym(n2,px,py)-.5)*140)*cfg.amp;
     const edge=Math.min(px,py,W-px,H-py),fall=Math.max(0,320-edge)*4.5; // Wasserrand rundum
-    land[y*TW+x]=w+noise-Math.abs(pp)-fall>0?1:0}
+    land[y*TW+x]=w+noise-Math.abs(pp)-fall>0?1:0;
+    if(cfg.river&&land[y*TW+x]){ /* Fluss quer zur Verbindungslinie der Basen, punktsymmetrisch, mit Furten (Land) in der Mitte und bei ±820 */
+      const u=(t-.5)*L,v=pp0,s=Math.sin(v*.0042)*170+Math.sin(v*.011+1.3)*55;
+      if(Math.abs(u-s)<80&&Math.abs(v)>95&&Math.abs(Math.abs(v)-820)>95){land[y*TW+x]=0;riverM[y*TW+x]=1}}}
   // Seen und Teiche im Landesinneren (punktsymmetrisch, Basen und Landverbindung bleiben frei)
   if(cfg.lakes){
     const A={x:W*.17,y:H*.83},B={x:W-A.x,y:H-A.y},base=land.slice();let thr=.66-.08*cfg.lakes;
@@ -67,16 +72,20 @@ function genTerrain(seed,mapId){
   for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const i=y*TW+x,px=(x+.5)*TG,py=(y+.5)*TG;
     if(land[i]){TERR[i]=2;continue}
     const bank=sym(n3,px,py)>cfg.bank&&dist[i]>=0&&dist[i]<=9;
-    TERR[i]=(dist[i]>=0&&dist[i]<=3)||bank?1:0}
+    TERR[i]=(dist[i]>=0&&dist[i]<=3)||bank?1:0;if(riverM[i])TERR[i]=1}
   // Berge (unpassierbar) und Klippen an der Küste (Zugang zum Wasser nur an Lücken, dort können Häfen stehen)
   const cliffMask=new Uint8Array(TW*TH);let mthr=9;
   if(cfg.mount||cfg.cliff){
     const a0={x:W*.17,y:H*.83},b0={x:W-a0.x,y:H-a0.y},cliffs=cliffMask;
     if(cfg.cliff)for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const i=y*TW+x;if(TERR[i]!==2)continue;let near=false;for(let dy=-2;dy<=2&&!near;dy++)for(let dx=-2;dx<=2;dx++){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=TW||ny>=TH)continue;if(TERR[ny*TW+nx]<2){near=true;break}}
       if(near&&sym(n5,(x+.5)*TG,(y+.5)*TG)<.58)cliffs[i]=1}
-    const passable=a=>{const seen=new Uint8Array(TW*TH),st=[walkNear(a0.x,a0.y)];seen[st[0]]=1;const tgt=walkNear(b0.x,b0.y);
-      while(st.length){const i=st.pop();if(i===tgt)return true;const x=i%TW,y=(i/TW)|0;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=TW||ny>=TH)continue;const j=ny*TW+nx;if(!seen[j]&&(a[j]===2||a[j]===1)){seen[j]=1;st.push(j)}}}return false};
-    let thr=.54,ok=false;const base=TERR.slice();
+    const passable=a=>{const seen=new Uint8Array(TW*TH),st=[walkNear(a0.x,a0.y)];
+      /* Engstellen müssen auch für Einheiten breit genug sein: Felder bis 2 Felder neben Fels zählen nicht als frei */
+      const hz=new Uint8Array(TW*TH),er=new Uint8Array(TW*TH);
+      for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){let v=0;for(let d=-2;d<=2&&!v;d++){const nx=x+d;if(nx>=0&&nx<TW&&a[y*TW+nx]===3)v=1}hz[y*TW+x]=v}
+      for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){let v=0;for(let d=-2;d<=2&&!v;d++){const ny=y+d;if(ny>=0&&ny<TH&&hz[ny*TW+x])v=1}er[y*TW+x]=!v&&(a[y*TW+x]===2||a[y*TW+x]===1)?1:0}seen[st[0]]=1;const tgt=walkNear(b0.x,b0.y);
+      while(st.length){const i=st.pop();if(i===tgt)return true;const x=i%TW,y=(i/TW)|0;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=TW||ny>=TH)continue;const j=ny*TW+nx;if(!seen[j]&&er[j]){seen[j]=1;st.push(j)}}}return false};
+    let thr=cfg.mthr0||.54,ok=false;const base=TERR.slice();
     for(let k=0;k<8&&!ok;k++,thr+=.04){const T=base.slice();
       for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const i=y*TW+x;if(T[i]!==2)continue;const px=(x+.5)*TG,py=(y+.5)*TG;
         if(cfg.cliff&&cliffs[i]){T[i]=3;continue}
@@ -166,6 +175,7 @@ function navLos(x0,y0,x1,y1,naval,len){
   return true}
 /* A*: Weg von (sx,sy) bis auf 'goalR' Abstand an (tx,ty). Gibt eine Liste von Wegpunkten zurück, oder null.
    'seed' != 0 würfelt die Kosten leicht, damit festgefahrene Einheiten einen anderen Weg nehmen. */
+let navCl=null;
 function navPath(sx,sy,tx,ty,goalR,naval,seed){
   const s=navCell(sx,sy);navGen++;
   const gx=tx/NS,gy=ty/NS,gr=goalR/NS;
@@ -173,10 +183,12 @@ function navPath(sx,sy,tx,ty,goalR,naval,seed){
   const heap=[],hf=[];
   const push=(i,f)=>{heap.push(i);hf.push(f);let k=heap.length-1;while(k>0){const p=(k-1)>>1;if(hf[p]<=hf[k])break;[heap[p],heap[k]]=[heap[k],heap[p]];[hf[p],hf[k]]=[hf[k],hf[p]];k=p}};
   const pop=()=>{const r=heap[0],lh=heap.pop(),lf=hf.pop();if(heap.length){heap[0]=lh;hf[0]=lf;let k=0;for(;;){let l=2*k+1,rr=l+1,m=k;if(l<heap.length&&hf[l]<hf[m])m=l;if(rr<heap.length&&hf[rr]<hf[m])m=rr;if(m===k)break;[heap[m],heap[k]]=[heap[k],heap[m]];[hf[m],hf[k]]=[hf[k],hf[m]];k=m}}return r};
+  if(!navCl||navCl.length!==NW*NH)navCl=new Uint32Array(NW*NH);
   navSeen[s]=navGen;navG[s]=0;navPar[s]=-1;push(s,hx(s));
   let goal=-1,n=0,best=s,bestH=hx(s);
-  while(heap.length&&n++<90000){
-    const i=pop(),x=i%NW,y=(i/NW)|0,h=hx(i);
+  while(heap.length&&n++<NW*NH){
+    const i=pop();if(navCl[i]===navGen)continue;navCl[i]=navGen; // schon abgearbeitet (veralteter Eintrag)
+    const x=i%NW,y=(i/NW)|0,h=hx(i);
     if(h<bestH){bestH=h;best=i}
     if(h<=0.5&&(i===s||navOpen(i,naval))){goal=i;break}
     for(let k=0;k<8;k++){const dx=k<4?[1,-1,0,0][k]:[1,1,-1,-1][k-4],dy=k<4?[0,0,1,-1][k]:[1,-1,1,-1][k-4];
