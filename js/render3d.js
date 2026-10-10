@@ -164,15 +164,53 @@ function r3Sync(list,dt,t){
     else if(e.kind==='node'){obj.position.set(e.x/S,-.38+Math.sin(t*1.6+e.seed*20)*.05,e.y/S);obj.rotation.y=e.seed*6.28+Math.sin(t*.5+e.seed*9)*.15;
       obj.children.forEach(f=>{if(f.userData.ring){const k=(t*.45+e.seed*3)%1;f.scale.setScalar(1.2+k*2.8);f.material.opacity=(1-k)*.55;f.position.y=.05;return}const p=f.userData.ph||0;f.position.y=-.1+Math.sin(t*2+p*2+e.seed*9)*.06;if(e.type==='fish')f.rotation.y=Math.sin(t*1.5+p)*.4})}
     else if(e.kind==='animal')r3Animal(o,e,h,dt,t);
-    o.seen=true}
-  for(const[k,o]of R3.reg)if(!seen.has(k)){r3.gEnt.remove(o.obj);R3.reg.delete(k)}
+    o.seen=true;o.e=e}
+  if(R3.corpG!==G){for(const c of R3.corpses||[])r3.gEnt.remove(c.obj);R3.corpses=[];R3.corpG=G}
+  for(const[k,o]of R3.reg)if(!seen.has(k)){
+    if(o.e&&o.e.dead&&o.rig&&!o.rig.ship&&(o.e.kind==='animal'||o.rig.up)&&R3.corpses.length<40){R3.corpses.push({obj:o.obj,rig:o.rig,t:0,animal:o.e.kind==='animal',big:o.e.kind==='animal'&&(ANIMALS[o.e.type].r>10)})}
+    else r3.gEnt.remove(o.obj);R3.reg.delete(k)}
+  for(let i=R3.corpses.length-1;i>=0;i--){const c=R3.corpses[i];c.t+=dt;const f=Math.min(1,c.t/.4);
+    if(c.animal)c.rig.g.rotation.x=f*1.45;else{c.rig.g.rotation.z=-f*1.5;if(c.rig.up){c.rig.up.rotation.z=0;for(const l of c.rig.legs)l.rotation.z=0;for(const a of c.rig.arms)a.rotation.z=1.6*f}}
+    c.obj.position.y=c.t>2.4?-(c.t-2.4)*.9:c.obj.position.y;
+    if(c.t>3.2){r3.gEnt.remove(c.obj);R3.corpses.splice(i,1)}}
 }
 function r3Make(e,sig){
   const S=R3.S;
-  if(e.kind==='unit'){const rig=buildUnit(e),sc=e.r/7*1.25*(UNITS[e.type].naval?.46:UNITS[e.type].siege?.7:1);rig.g.scale.setScalar(sc);const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
+  if(e.kind==='unit'){const rig=buildUnit(e),sc=e.r/7*1.25*(UNITS[e.type].naval?.46:UNITS[e.type].siege?.7:1);rig.g.scale.setScalar(sc*(.94+((e.id*37)%13)/13*.12));const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
   if(e.kind==='bld'){const g=buildBld(e.type,e.r/S*1.05,G.epoch[e.team],e.team);return{obj:g,sig,flags:g.userData.flags||[]}}
   if(e.kind==='animal'){const rig=buildAnimal(e);const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
   const g=seaModel(e);return{obj:g,sig,flags:[]}}
+/* Gliederbewegung der Menschen: Gehen (Gegenschwung, Neigen, Wippen), Atmen im Stand, Arbeiten je Werkzeug, Kampf mit Ausholen/Schlag/Rückstoß, Zucken bei Treffern */
+function r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t){
+  const up=rig.up,L=rig.legs,A=rig.arms,id=e.id,k=Math.max(0,Math.min(1,(G.t-(e.swing||-9))/.5)),fresh=G.t-(e.swing||-9)<.5;
+  const heavy=d.siege||e.type==='musket'||e.type==='rifle',carry=e.carry>0&&(e.state==='return'||e.state==='gather');
+  if(o.hp===undefined)o.hp=e.hp;if(e.hp<o.hp-.5)o.fl=.28;o.hp=e.hp;o.fl=Math.max(0,(o.fl||0)-dt);
+  const fl=o.fl/.28;
+  const run=moving?Math.min(1.25,.75+d.spd/110):0,sa=Math.sin(o.ph)*.85*run;
+  L[0].rotation.z=-sa;L[1].rotation.z=sa;
+  let lean=moving?-.07-.07*run-(carry?.1:0):0,twist=moving?Math.sin(o.ph)*.14*run:0,bob=moving?Math.abs(Math.cos(o.ph))*.06*run:Math.sin(t*1.8+id)*.012;
+  let a0=moving?-sa*.7:Math.sin(t*1.3+id)*.04,a1=.12+(moving?sa*.7:Math.sin(t*1.3+id+1.4)*.04);
+  if(rig.bow)a0=1.5;
+  const atk=e.state==='attack';
+  if(atk&&!moving){
+    const ranged=d.ranged;
+    if(rig.bow){const pull=e.cd<.45?1-e.cd/.45:0;a1=1.5+(fresh?-.3*(1-k):0);a0=1.5;lean=-.05+(pull?.1*pull:0)+(fresh?.12*(1-k):0);twist=-.25}
+    else if(ranged){a1=1.25+(fresh?-.5*(1-k):0);a0=.5;lean=fresh?.16*(1-k):-.05;twist=.2}
+    else{const wind=e.cd<.4?1-e.cd/.4:0;a1=fresh?.3+1.9*(1-k):-1.5*wind+.15;lean=fresh?-.28*(1-k):.14*wind;twist=fresh?.3*(1-k):-.3*wind;if(!heavy)a0=fresh?-.4*(1-k):-.2*wind}}
+  else if((work||build)&&!moving){
+    const kind=build?'build':e.rtype,c=(t*(kind==='wood'?6.5:kind==='build'?9:5.2)+id*1.7),ph=.5+.5*Math.sin(c),pow=ph*ph;
+    if(kind==='wood'){a1=-2.1+2.8*pow;a0=a1*.85;lean=-.05-.32*pow;twist=-.2+.3*pow;bob=-.04*pow}
+    else if(kind==='stone'||kind==='iron'||kind==='gold'){a1=-1.8+2.5*pow;a0=a1*.9;lean=-.12-.3*pow;twist=.15-.2*pow;bob=-.05*pow}
+    else if(kind==='build'){a1=-.9+1.6*pow;a0=.3+.4*Math.sin(c*.5);lean=-.18-.1*pow;twist=0}
+    else{lean=-.55-.1*ph;a1=.9+.5*Math.sin(c);a0=.9-.5*Math.sin(c);bob=-.1}}
+  else if(e.state==='gather'&&!moving&&rig.tool){a1=.12}
+  if(o.fl>0){lean+=.45*fl;a0+=.5*fl;a1+=.7*fl}
+  A[0].rotation.z+=(a0-A[0].rotation.z)*Math.min(1,dt*16);A[1].rotation.z+=(a1-A[1].rotation.z)*Math.min(1,dt*18);
+  up.rotation.z+=(lean-up.rotation.z)*Math.min(1,dt*14);up.rotation.y+=(twist-up.rotation.y)*Math.min(1,dt*14);
+  up.position.y=.88+bob;up.position.x=(fresh&&atk&&!rig.bow?.18*(1-k):0)-(o.fl>0?.12*fl:0);
+  if(rig.head)rig.head.rotation.y=moving||atk?0:Math.sin(t*.6+id*3)*.45;
+  if(rig.tool){const kk=build?'build':(e.state==='gather'||e.state==='return'||work)?e.rtype:null;rig.tool(kk==='food'&&e.carry>0&&e.state==='return'?null:kk);if(rig.sack){rig.sack.visible=e.carry>0&&e.state!=='gather'||e.carry>4;rig.sack.scale.setScalar(.6+Math.min(1,e.carry/CARRY)*.6)}}
+}
 function r3Unit(o,e,h,dt,t){
   const S=R3.S,d=UNITS[e.type],rig=o.rig,moving=G.t-(e.mvT||-9)<.2,obj=o.obj;
   let want=-e.fa,dy=want-o.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));o.yaw+=dy*Math.min(1,dt*14);
@@ -184,6 +222,7 @@ function r3Unit(o,e,h,dt,t){
     if(moving)y+=Math.abs(s)*.07*(rig.horse?1.6:1);
     if(rig.horse){rig.legs.forEach((l,i)=>l.rotation.z=(i%2?s:-s)*.7);const rd=rig.rider;rd.arms[1].rotation.z=.2+sw*.6}
     else if(rig.wheels){if(moving)rig.wheels.forEach(w=>w.rotation.y+=dt*3.2*(d.spd/40));if(rig.log)rig.log.position.x=sw*.9;if(rig.arm)rig.arm.rotation.z=-sw*1.8;if(rig.barrel)rig.barrel.position.x=.1-sw*.35}
+    else if(rig.up){r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t)}
     else{
       const sa=moving?s*.7:0;rig.legs[0].rotation.z=-sa;rig.legs[1].rotation.z=sa;
       rig.arms[0].rotation.z=rig.bow?1.5:moving?sa*.7:0;

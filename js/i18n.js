@@ -210,7 +210,8 @@ const EN={
   'Angriff! {0} Feinde bei deiner Siedlung – alle Truppen zur Verteidigung schicken':'Attack! {0} enemies at your settlement – send all troops to defend','{0} ist knapp ({1}) – 3 Arbeiter von {2} auf {0} umstellen':'{0} is running low ({1}) – move 3 workers from {2} to {0}',
   'Mammut':'Mammoth','Säbelzahntiger':'Saber-toothed tiger','Riesig und friedlich, wehrt sich aber – viel Nahrung. Stirbt nach der Steinzeit aus':'Huge and peaceful, but fights back – lots of food. Dies out after the Stone Age','Schnell und tödlich. Stirbt nach der Steinzeit aus':'Fast and deadly. Dies out after the Stone Age',
   'Gold':'Gold','Goldvorkommen':'Gold Deposit','Mine':'Mine','Markt':'Market','Nötig für Eisen und Gold':'Needed for iron and gold','Rohstoffe gegen Gold tauschen':'Trade resources for gold','Für {0} brauchst du eine fertige Mine in der Nähe.':'You need a finished mine nearby for {0}.','Eine Mine muss in der Nähe von Eisen oder Gold stehen.':'A mine must stand near iron or gold.','{0} → Gold':'{0} → Gold','Gold → {0}':'Gold → {0}','Du erhältst {0} Gold':'You get {0} gold','Du erhältst {0}':'You get {0}','Nicht genug Rohstoffe.':'Not enough resources.',
-  'Ton an':'Sound on','Ton aus':'Sound off'
+  'Ton an':'Sound on','Ton aus':'Sound off',
+  'Karte wird erzeugt …':'Generating map …','Flusstal':'River Valley','Ein Fluss trennt die Basen, nur wenige Furten führen hinüber':'A river separates the bases, only a few fords lead across','Gebirgspass':'Mountain Pass','Bergmassiv mit engen Pässen als Engstellen':'Mountain massif with narrow passes as chokepoints'
 };
 let LANG='de';try{LANG=localStorage.getItem('ek-lang')==='en'?'en':'de'}catch(_){}
 function tr(de,...a){let s=LANG==='en'&&EN[de]!==undefined?EN[de]:de;a.forEach((v,i)=>{s=s.split('{'+i+'}').join(v)});return s}
