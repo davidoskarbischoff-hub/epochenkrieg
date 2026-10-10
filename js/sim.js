@@ -20,11 +20,50 @@ function refund(t,c){RES.forEach(r=>G.res[t][r]+=c[r]||0)}
 function missing(t,c){const m=RES.filter(r=>(G.res[t][r]||0)<(c[r]||0)).map(r=>rn(r));return tr('Nicht genug {0}',m.join(tr(' und ')))}
 
 /* Tiere je Zeitalter: Mammut und Säbelzahntiger sterben aus, sobald jemand die Eisenzeit erreicht; Wölfe, Bären und Tiger kommen erst später ins Land */
+/* Arbeiter helfen von selbst: beschädigte (vor allem brennende) Gebäude werden repariert, solange kein Feind in der Nähe ist */
+function autoRepair(){
+  for(const b of G.ents){if(b.dead||b.kind!=='bld'||!b.built||b.hp>=b.maxHp*.8)continue;
+    if(G.ents.some(e=>!e.dead&&e.kind==='unit'&&e.team!==b.team&&e.team>=0&&Math.hypot(e.x-b.x,e.y-b.y)<170))continue;
+    const have=G.ents.filter(w=>!w.dead&&w.team===b.team&&w.state==='build'&&w.tid===b.id&&w.rep).length;if(have>=(b.hp<b.maxHp*.5?3:1))continue;
+    let bw=null,bd=330;for(const w of G.ents){if(w.dead||w.team!==b.team||w.type!=='worker'||w.upj||w.state==='build'||w.state==='attack')continue;const d=Math.hypot(w.x-b.x,w.y-b.y);if(d<bd&&(w.state==='idle'||b.hp<b.maxHp*.5||w.carry<=0)){bd=d;bw=w}}
+    if(bw){if(bw.state==='gather'&&bw.tid)bw.prev={tid:bw.tid,rtype:bw.rtype};bw.state='build';bw.tid=b.id;bw.rep=true;bw.pf=null}}}
+/* Truppen im Leerlauf stehen vorn: eine Linie vor dem am weitesten vorgeschobenen Arbeiter, Richtung Gegner. Befehle des Spielers (u.manual) bleiben unangetastet. */
+function frontLine(){
+  if(G.mp)return;const hq=G.ents.find(e=>e.type==='hq'&&e.team===0&&!e.dead);if(!hq)return;
+  const ang=Math.atan2(H/2-hq.y,W/2-hq.x),dx=Math.cos(ang),dy=Math.sin(ang);let D=150;
+  for(const e of G.ents){if(e.dead||e.team!==0||!(e.type==='worker'||(e.kind==='bld'&&e.built)))continue;D=Math.max(D,(e.x-hq.x)*dx+(e.y-hq.y)*dy+(e.kind==='bld'?90:70))}
+  D=Math.min(D,760);const us=G.ents.filter(u=>!u.dead&&u.team===0&&u.kind==='unit'&&u.state==='idle'&&!u.manual&&!u.upj&&!(u.q&&u.q.length)&&!UNITS[u.type].gather&&!UNITS[u.type].passive&&!UNITS[u.type].naval&&u.type!=='scout');
+  us.forEach((u,i)=>{const row=Math.floor(i/8),col=i%8-3.5,sx=hq.x+dx*(D-row*26)-dy*col*30,sy=hq.y+dy*(D-row*26)+dx*col*30;
+    if(Math.hypot(u.x-sx,u.y-sy)>70&&validSpot(sx,sy,u.r)){u.state='move';u.dest={x:sx,y:sy};u.amove=null;u.pf=null}})}
+/* Arbeiter denken mit: bauen selbst ein Lager, wenn Sammler weit vom nächsten Abgabegebäude arbeiten, und einen Wachturm neben weit vorgeschobene Lager/Minen (nur mit Vorrat in der Kasse, abschaltbar im Menü) */
+let autoBuildOn=true;try{autoBuildOn=localStorage.getItem('ek-autobuild')!=='0'}catch(_){}
+function autoExpand(){
+  if(G.mp||!autoBuildOn||G.t<45)return;const R=G.res[0],mine=G.ents.filter(e=>!e.dead&&e.team===0);
+  const hq=mine.find(e=>e.type==='hq');if(!hq||mine.some(b=>b.kind==='bld'&&!b.built&&(b.type==='store'||b.type==='tower')))return;
+  const spot=(type,cx,cy,d0,d1)=>{for(let d=d0;d<=d1;d+=12)for(let k=0;k<16;k++){const a=k*.3927+d*.07,x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d;if(!placeBlock(type,x,y))return{x,y}}return null};
+  const put=(type,sp,helpers)=>{if(!pay(0,BLDS[type].cost))return false;const b=addBld(type,0,sp.x,sp.y,false);helpers.forEach(w=>{if(w.state==='gather'&&w.tid)w.prev={tid:w.tid,rtype:w.rtype};w.state='build';w.tid=b.id;w.rep=false;w.pf=null});return true};
+  const drops=mine.filter(b=>b.kind==='bld'&&b.built&&BLDS[b.type].drop);
+  if(G.t>(G.autoStoreT||0)&&R.wood>=BLDS.store.cost.wood+70){
+    const far=mine.filter(w=>w.type==='worker'&&w.state==='gather'&&w.tid&&!w.upj).map(w=>({w,n:get(w.tid)})).filter(o=>o.n&&!o.n.sea&&drops.length&&Math.min(...drops.map(d=>Math.hypot(d.x-o.n.x,d.y-o.n.y)))>200);
+    if(far.length>=3){const cx=far.reduce((s,o)=>s+o.n.x,0)/far.length,cy=far.reduce((s,o)=>s+o.n.y,0)/far.length,sp=spot('store',cx,cy,28,120);
+      G.autoStoreT=G.t+40;if(sp&&put('store',sp,far.slice(0,2).map(o=>o.w)))toast(tr('Deine Arbeiter bauen ein Lager bei den weit entfernten Vorkommen.'),'good')}}
+  if(G.t>(G.autoTowerT||0)&&R.wood>=BLDS.tower.cost.wood+80&&R.stone>=BLDS.tower.cost.stone+60){
+    const ang=Math.atan2(H/2-hq.y,W/2-hq.x),dx=Math.cos(ang),dy=Math.sin(ang);
+    const out=mine.filter(b=>b.kind==='bld'&&b.built&&(b.type==='store'||b.type==='mine'||b.type==='harbor')&&(b.x-hq.x)*dx+(b.y-hq.y)*dy>320&&!mine.some(t=>t.kind==='bld'&&(t.type==='tower'||t.type==='castle')&&Math.hypot(t.x-b.x,t.y-b.y)<230));
+    if(out.length){const b=out[0],sp=spot('tower',b.x+dx*40,b.y+dy*40,30,110);G.autoTowerT=G.t+60;
+      if(sp){let w=null,bd=1e9;for(const u of mine)if(u.type==='worker'&&!u.upj&&u.state!=='build'){const d=Math.hypot(u.x-b.x,u.y-b.y);if(d<bd){bd=d;w=u}}
+        if(w&&put('tower',sp,[w]))toast(tr('Ein Arbeiter baut einen Wachturm zur Sicherung des vorgeschobenen Lagers.'),'good')}}}}
+/* Heiler heilen verbündete Truppen in der Nähe */
+function healAura(){for(const h of G.ents){if(h.dead||h.kind!=='unit'||h.type!=='healer'||h.upj)continue;const hv=UNITS.healer.heal*.5*(h.rage>G.t?RAGE.dmg:1);
+  for(const u of G.ents){if(u.dead||u.team!==h.team||u.kind!=='unit'||u.hp>=u.maxHp||Math.hypot(u.x-h.x,u.y-h.y)>95)continue;u.hp=Math.min(u.maxHp,u.hp+hv*(u.type==='healer'?.5:1)*(1+u.maxHp/200))}}}
+/* Kampfrausch: kurzzeitig mehr Schaden und Tempo für alle gewählten Truppen */
+function useRage(team,ids){let n=0;for(const id of ids){const u=G.byId.get(id);if(!u||u.dead||u.team!==team||u.kind!=='unit'||UNITS[u.type].passive||UNITS[u.type].naval||u.upj)continue;if((u.rageCd||0)>G.t)continue;u.rage=G.t+RAGE.dur;u.rageCd=G.t+RAGE.cd;n++}if(n&&team===0)sfx('yell');return n}
 function eraAnimals(){const me=Math.max(G.epoch[0],G.epoch[1]);
   if(me>=2)for(const e of G.ents)if(e.kind==='animal'&&!e.dead&&ANIMALS[e.type].ext&&me>=ANIMALS[e.type].ext)removeEnt(e);
   if(G.late.length)G.late=G.late.filter(p=>{if(me<ANIMALS[p.type].from)return true;addAnimal(p.type,p.x,p.y);return false})}
 function step(dt){
-  if(!G.mp||!NET.client){G.eraT=(G.eraT||0)-dt;if(G.eraT<=0){G.eraT=2;eraAnimals()}}
+  if(!G.mp||!NET.client){G.healT=(G.healT||0)-dt;if(G.healT<=0){G.healT=.5;healAura()}}
+  if(!G.mp||!NET.client){G.eraT=(G.eraT||0)-dt;if(G.eraT<=0){G.eraT=2;eraAnimals();autoRepair();frontLine();autoExpand()}}
   G.t+=dt;G.pfBudget=12;G.load={};
   for(const e of G.ents)if(e.kind==='unit'&&!e.dead&&e.state==='gather'&&e.tid)G.load[e.tid]=(G.load[e.tid]||0)+1;
   for(const e of G.ents)if(e.regen&&e.amount<e.maxAmt&&!e.dead)e.amount=Math.min(e.maxAmt,e.amount+e.regen*dt);
@@ -46,7 +85,7 @@ function step(dt){
 function moveToward(u,tx,ty,dt,ignore){
   const ud=UNITS[u.type],naval=!!ud.naval;
   let dx=tx-u.x,dy=ty-u.y;const d=Math.hypot(dx,dy);if(d<1.5)return true;
-  const fxt=G.tfx[u.team],spd=ud.spd*dt*(1+(ud.naval?fxt.bspeed:ud.gather?fxt.wspeed:0)),step=Math.min(d,spd);
+  const fxt=G.tfx[u.team],spd=ud.spd*dt*(1+(ud.naval?fxt.bspeed:ud.gather?fxt.wspeed:0))*(u.rage>G.t?RAGE.spd:1),step=Math.min(d,spd);
   // Festhängen erkennen: kaum Bewegung über längere Zeit -> kurz seitlich ausweichen und einen anderen Weg suchen
   const mv=u.lx===undefined?99:Math.hypot(u.x-u.lx,u.y-u.ly);u.lx=u.x;u.ly=u.y;
   if(mv<spd*.25)u.stk=(u.stk||0)+dt;else u.stk=Math.max(0,(u.stk||0)-dt*1.5);
@@ -118,13 +157,15 @@ function updUnit(u,dt){
   case 'return':{const dp=nearestDrop(u.team,u.x,u.y,!!d.naval);if(!dp||!u.ctype){u.state='idle';break}
     if(reach(u,dp)){G.res[u.team][u.ctype]+=u.carry;if(u.team===0)sfx('drop',u);u.carry=0;if(!(u.q&&u.q.length&&nextOrder(u)))u.state='gather'}else moveToward(u,dp.x,dp.y,dt,dp.id);break}
   case 'build':{const b=get(u.tid);
-    if(!b||b.built){u.state='idle';if(b&&b.built&&BLDS[b.type].drop&&!(u.q&&u.q.length)){const n=nearestNode(null,b.x,b.y,260);if(n){u.tid=n.id;u.rtype=n.rt;u.state='gather'}}break}
+    if(b&&b.built&&u.rep&&b.hp<b.maxHp-1){ /* Reparatur: kostenlos, etwas langsamer als Bauen */
+      if(reach(u,b)){u.fa=Math.atan2(b.y-u.y,b.x-u.x);u.gat=G.t;if((u.bt=(u.bt||0)-dt)<=0){u.bt=.6;sfx('hammer',u)}b.hp=Math.min(b.maxHp,b.hp+dt*b.maxHp/(BLDS[b.type].time*2.2))}else moveToward(u,b.x,b.y,dt,b.id);break}
+    if(!b||b.built){u.rep=false;u.state='idle';if(u.prev&&get(u.prev.tid)){u.tid=u.prev.tid;u.rtype=u.prev.rtype;u.state='gather';u.prev=null;break}u.prev=null;if(b&&b.built&&BLDS[b.type].drop&&!(u.q&&u.q.length)){const n=nearestNode(null,b.x,b.y,260);if(n){u.tid=n.id;u.rtype=n.rt;u.state='gather'}}break}
     if(reach(u,b)){u.fa=Math.atan2(b.y-u.y,b.x-u.x);u.gat=G.t;if((u.bt=(u.bt||0)-dt)<=0){u.bt=.6;sfx('hammer',u);if(Math.random()<.2)sfx('grunt',u)}const inc=dt/BLDS[b.type].time;b.prog=Math.min(1,b.prog+inc);b.hp=Math.min(b.maxHp,b.hp+inc*b.maxHp);
-      if(b.prog>=1){b.built=true;panelSig='';if(b.team===0){toast(tr('{0} fertiggestellt.',tr(BLDS[b.type].name)));sfx('built');if(BLDS[b.type].claim>150){fogT=1;toast(tr('Neues Gebiet erobert!'),'good')}}}}
+      if(b.prog>=1){b.built=true;panelSig='';if(b.type==='farm'){const f=addNode('field',b.x,b.y);f.farm=b.id}if(b.team===0){toast(tr('{0} fertiggestellt.',tr(BLDS[b.type].name)));sfx('built');if(BLDS[b.type].claim>150){fogT=1;toast(tr('Neues Gebiet erobert!'),'good')}}}}
     else moveToward(u,b.x,b.y,dt,b.id);break}
   }
 }
-function hit(u,t){const d=UNITS[u.type];if(!u.yl||G.t-u.yl>25){u.yl=G.t;if(Math.random()<.5)sfx('yell',u)}sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);const mult=(t.kind==='bld'?(d.siege?1.8:d.ranged?.3:1):(d.siege&&!d.ranged?.35:1))*(1+(d.ranged?G.tfx[u.team].ratk:G.tfx[u.team].matk));
+function hit(u,t){const d=UNITS[u.type];if(!u.yl||G.t-u.yl>25){u.yl=G.t;if(Math.random()<.5)sfx('yell',u)}sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);const mult=(t.kind==='bld'?(d.siege?1.8:d.ranged?.3:1):(d.siege&&!d.ranged?.35:1))*(1+(d.ranged?G.tfx[u.team].ratk:G.tfx[u.team].matk))*(t.kind==='unit'?((CTR[d.cls]||{})[UNITS[t.type].cls]||1)*(d.gun&&UNITS[t.type].cls==='cav'?1.3:1):1)*(u.rage>G.t?RAGE.dmg:1);
   if(d.ranged)G.proj.push({x:u.x,y:u.y,tid:t.id,dmg:d.atk*mult*LVL.atk[u.lvl],src:u.id,a:0,big:!!d.siege,gun:!!d.gun});else damage(t,d.atk*mult*LVL.atk[u.lvl],u)}
 function damage(t,amt,src){
   t.hp-=amt;
@@ -138,7 +179,7 @@ function damage(t,amt,src){
   if(t.team===1&&G.mp&&G.t-G.alertT1>12){G.alertT1=G.t;G.ev.push({t:'alert',x:Math.round(t.x),y:Math.round(t.y)})}
   if(t.hp<=0){kill(t);if(t.kind==='animal'&&src&&src.team>=0){const f=ANIMALS[t.type].food;if(f){G.res[src.team][ 'food']+=f;if(src.team===0&&!NET.cap)toast(tr('Beute erlegt: +{0} Nahrung',f),'good')}}}
 }
-function kill(e){if(e.dead)return;e.dead=true;if(e.kind==='bld'||(e.kind==='node'&&!e.sea))navStamp(e,-1);if(e.kind==='unit'||e.kind==='animal')sfx('die',e);else if(e.kind==='bld')sfx('crumble',e);sel.delete(e.id);if(e.kind==='unit')G.stats.lost[e.team]++;
+function kill(e){if(e.dead)return;e.dead=true;if(e.type==='farm')for(const n of G.ents)if(n.type==='field'&&n.farm===e.id)n.dead=true;if(e.kind==='bld'||(e.kind==='node'&&!e.sea))navStamp(e,-1);if(e.kind==='unit'||e.kind==='animal')sfx('die',e);else if(e.kind==='bld')sfx('crumble',e);sel.delete(e.id);if(e.kind==='unit')G.stats.lost[e.team]++;
   if(e.type==='hq'&&!G.over)G.over=e.team===0?'lose':'win';}
 function updBld(b,dt){
   if(!b.built)return;const d=BLDS[b.type];
@@ -201,7 +242,7 @@ function startUpgrade(team,key){key=key||'all';if(NET.client&&team===0){NET.send
   G.jobs[team].push(job);
   if(team===0){panelSig='';infoCache='';sfx('click');toast(tr('Upgrade gestartet: {0} ruhen, bis es fertig ist.',job.label))}return true}
 function canGather(u,x){const need=typeof x==='string'?(NEED_LVL[x]||0):(NODES[x.type].lvl!==undefined?NODES[x.type].lvl:(NEED_LVL[x.rt]||0));return u.lvl>=need}
-const wkNeed=ep=>[10,20,30,40,45][Math.min(4,ep)]; /* Arbeiter, die für den Aufstieg aus Epoche ep nötig sind */
+const wkNeed=ep=>[5,10,20,30,40][Math.min(4,ep)]; /* Arbeiter, die für den Aufstieg aus Epoche ep nötig sind */
 const wkCount=t=>G.ents.reduce((n,e)=>n+(!e.dead&&e.team===t&&e.kind==='unit'&&e.type==='worker'?1:0),0);
 function advance(team){
   if(NET.client&&team===0){NET.send({c:'adv'});return true}

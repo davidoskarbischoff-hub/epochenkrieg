@@ -6,11 +6,11 @@ let advOn=true;try{advOn=localStorage.getItem('ek-advisor')!=='0'}catch(_){}
 const advisor={cur:null,ignore:{},next:0,last:-9,shown:'',strat:'balanced',intel:null,open:true,auto:false,autoAt:0};
 /* Taktiken des Beraters: wk = Arbeiterziel je Epoche, mil = Truppenziel, atk = ab so vielen Truppen Angriff, tow = Türme, barW = ab so vielen Arbeitern Kaserne, w = Reihenfolge der Vorschläge (kleiner = früher) */
 const STRATS={
-  balanced:{name:'Ausgewogen',desc:'Von allem etwas',wk:[10,20,30,40,45,45],mil:ep=>9+ep*4,atk:ep=>14+ep*4,tow:()=>1,barW:6,bar2:99,hs:1,w:{}},
-  turtle:{name:'Verteidigung',desc:'Türme, solide Armee, spät angreifen',wk:[10,20,30,40,45,45],mil:ep=>8+ep*3,atk:ep=>16+ep*4,tow:ep=>2+ep,barW:6,bar2:99,hs:1,w:{tower:1,upg:2,army:2,barracks:2,tech:3,attack:9}},
-  boom:{name:'Aufstieg',desc:'So schnell wie möglich in die höchste Epoche',wk:[12,22,32,42,47,47],mil:ep=>3+ep*2,atk:ep=>14+ep*3,tow:()=>1,barW:9,bar2:99,hs:2,w:{adv:1,upg:1,tech:2,worker:2,house:2,balance:2,barracks:8,army:8,attack:9}},
-  rush:{name:'Angriff',desc:'Früh viele Truppen, schnell zuschlagen',wk:[8,10,12,14,14,14],mil:ep=>12+ep*5,atk:ep=>5+ep,tow:()=>1,barW:4,bar2:8,hs:1,w:{barracks:1,army:1,attack:2,worker:4,adv:7,tech:7,upg:6}},
-  eco:{name:'Wirtschaft',desc:'Viele Arbeiter, große Vorräte',wk:[14,26,36,46,50,50],mil:ep=>4+ep*2,atk:ep=>12+ep*3,tow:()=>1,barW:10,bar2:99,hs:3,w:{worker:1,house:1,balance:1,harbor:2,tech:2,shift:2,adv:3,upg:3,barracks:7,army:7,attack:9}}
+  balanced:{name:'Ausgewogen',desc:'Von allem etwas',wk:[6,12,22,32,40,40],mil:ep=>9+ep*4,atk:ep=>14+ep*4,tow:()=>1,barW:6,bar2:99,hs:1,w:{}},
+  turtle:{name:'Verteidigung',desc:'Türme, solide Armee, spät angreifen',wk:[6,12,22,32,40,40],mil:ep=>8+ep*3,atk:ep=>16+ep*4,tow:ep=>2+ep,barW:6,bar2:99,hs:1,w:{tower:1,upg:2,army:2,barracks:2,tech:3,attack:9}},
+  boom:{name:'Aufstieg',desc:'So schnell wie möglich in die höchste Epoche',wk:[7,13,23,33,41,41],mil:ep=>3+ep*2,atk:ep=>14+ep*3,tow:()=>1,barW:9,bar2:99,hs:2,w:{adv:1,upg:1,tech:2,worker:2,house:2,balance:2,barracks:8,army:8,attack:9}},
+  rush:{name:'Angriff',desc:'Früh viele Truppen, schnell zuschlagen',wk:[5,8,10,12,12,12],mil:ep=>12+ep*5,atk:ep=>5+ep,tow:()=>1,barW:4,bar2:8,hs:1,w:{barracks:1,army:1,attack:2,worker:4,adv:7,tech:7,upg:6}},
+  eco:{name:'Wirtschaft',desc:'Viele Arbeiter, große Vorräte',wk:[8,14,26,36,44,44],mil:ep=>4+ep*2,atk:ep=>12+ep*3,tow:()=>1,barW:10,bar2:99,hs:3,w:{worker:1,house:1,balance:1,harbor:2,tech:2,shift:2,adv:3,upg:3,barracks:7,army:7,attack:9}}
 };
 /* Lagebild: was der Spieler vom Gegner weiß (gemerkte Gebäude, sichtbare Truppen) */
 function advIntel(){
@@ -62,6 +62,8 @@ function advRules(){
   // Gefahr: Feinde in der Nähe der Siedlung
   const blds0=mine.filter(e=>e.kind==='bld');
   const foes=G.ents.filter(e=>!e.dead&&e.team===1&&e.kind==='unit'&&shown(e)&&blds0.some(b=>dist(b,e)<320));
+  if(foes.length){advisor.calmT=G.t;if(advisor.strat!=='turtle'&&!advisor.reacted){advisor.reacted=advisor.strat;advisor.strat='turtle';toast(tr('Berater: Wegen des Angriffs wechselt die Taktik auf Verteidigung.'),'warn')}}
+  else if(advisor.reacted&&G.t-(advisor.calmT||0)>90){advisor.strat=advisor.reacted;advisor.reacted=null;toast(tr('Berater: Die Lage ist ruhig, Taktik zurück auf {0}.',tr(STRATS[advisor.strat].name)),'good')}
   if(foes.length){const c=foes.reduce((a,e)=>({x:a.x+e.x/foes.length,y:a.y+e.y/foes.length}),{x:0,y:0});if(mil>0)push({id:'defend',txt:'Angriff! {0} Feinde bei deiner Siedlung – alle Truppen zur Verteidigung schicken',args:[foes.length],go:()=>{sendArmy(c.x,c.y);cam.x=c.x;cam.y=c.y}})}
   if(G.pop[0]>=G.cap[0]-S.hs&&G.cap[0]<POPMAX&&!mine.some(e=>e.type==='house'&&!e.built)&&afford(0,BLDS.house.cost)&&advFindSpot('house'))
     push({id:'house',txt:'eine Hütte bauen (die Bevölkerungsgrenze ist fast erreicht)',cost:BLDS.house.cost,go:()=>advBuild('house')});
@@ -77,13 +79,14 @@ function advRules(){
   if(!bars.length&&workers.length>=S.barW&&afford(0,BLDS.barracks.cost)&&advFindSpot('barracks'))push({id:'barracks',txt:'eine Kaserne bauen, um Truppen auszubilden',cost:BLDS.barracks.cost,go:()=>advBuild('barracks')});
   if(ep>=(advisor.strat==='turtle'?0:1)&&has('tower').length<S.tow(ep)&&workers.length>=8&&afford(0,BLDS.tower.cost)&&advFindSpot('tower'))push({id:'tower',txt:'einen Wachturm bauen, um Land zu erobern und zu überblicken',cost:BLDS.tower.cost,go:()=>advBuild('tower')});
   if(!has('harbor').length&&workers.length>=9&&afford(0,BLDS.harbor.cost)&&advFindSpot('harbor'))push({id:'harbor',txt:'einen Hafen bauen, um Fische zu fangen',cost:BLDS.harbor.cost,go:()=>advBuild('harbor')});
+  if(ep>=1&&workers.length>=8&&has('farm').length<Math.min(2+ep,5)&&R.food<420&&afford(0,BLDS.farm.cost)&&advFindSpot('farm')&&!mine.some(e=>e.type==='farm'&&!e.built))push({id:'farm',txt:'ein Feld anlegen (Nahrung, die nie ausgeht)',cost:BLDS.farm.cost,go:()=>advBuild('farm')});
   // Minen: Eisen ab der Eisenzeit, Gold ab dem Mittelalter; Markt zum Tauschen
   if(ep>=2&&workers.length>=8&&afford(0,BLDS.mine.cost)&&!mine.some(e=>e.type==='mine'&&!e.built))for(const rt of['iron','gold']){if(ep<RES_EP[rt])continue;const sp=advMineSpot(rt,hq);
     if(sp){push({id:'mine:'+rt,txt:'eine Mine für {0} bauen (ohne Mine kann man {0} nicht abbauen)',args:[rn(rt)],cost:BLDS.mine.cost,go:()=>advBuild('mine',sp)});break}}
   if(ep>=3&&!has('market').length&&workers.length>=14&&R.gold<250&&afford(0,BLDS.market.cost)&&advFindSpot('market'))push({id:'market',txt:'einen Markt bauen, um Rohstoffe gegen Gold zu tauschen',cost:BLDS.market.cost,go:()=>advBuild('market')});
   if(has('market').some(b=>b.built)&&R.gold<200){const rt=['food','wood','stone'].find(x=>R[x]>(x==='stone'?450:800));if(rt)push({id:'trade:'+rt,txt:'100 {0} auf dem Markt gegen Gold tauschen (Vorrat ist groß)',args:[rn(rt)],go:()=>{trade(0,rt,'sell');sfx('click')}})}
   const ub=bars.find(b=>b.built&&b.queue.length<(R.food>350&&R.wood>250?2:1));
-  if(ub&&mil<S.mil(ep)){const t=Object.keys(UNITS).filter(k=>UNITS[k].from==='barracks'&&UNITS[k].ep<=ep&&!UNITS[k].siege&&(!UNITS[k].tech||G.tech[0].has(UNITS[k].tech))).sort((a,b)=>UNITS[b].ep-UNITS[a].ep).find(k=>afford(0,UNITS[k].cost));if(t)push({id:'army',txt:'{0} ausbilden',args:[tr(UNITS[t].name)],cost:UNITS[t].cost,go:()=>enqueue(ub,t,0)&&(panelSig='')})}
+  if(ub&&mil<S.mil(ep)){const t=Object.keys(UNITS).filter(k=>UNITS[k].from==='barracks'&&UNITS[k].ep<=ep&&!UNITS[k].siege&&!UNITS[k].passive&&(!UNITS[k].tech||G.tech[0].has(UNITS[k].tech))).sort((a,b)=>UNITS[b].ep-UNITS[a].ep).find(k=>afford(0,UNITS[k].cost));if(t)push({id:'army',txt:'{0} ausbilden',args:[tr(UNITS[t].name)],cost:UNITS[t].cost,go:()=>enqueue(ub,t,0)&&(panelSig='')})}
   {const have=new Set([...G.tech[0],...G.rs[0].map(r=>r.id)]);const cand=TECHS.filter(t=>t.ep<=ep&&!have.has(t.id)&&afford(0,t.cost)&&mine.some(e=>e.kind==='bld'&&e.built&&(e.type===t.bld||(t.blds&&t.blds.includes(e.type)))));
     const prefer=cand.find(t=>t.bld==='barracks'&&bars.length&&!t.fx.ratk&&!t.fx.matk&&!t.fx.hp)||cand.find(t=>t.bld==='hq')||cand[0];
     if(prefer&&!G.rs[0].length&&workers.length>=6)push({id:'tech:'+prefer.id,txt:'die Technologie {0} erforschen',args:[tr(prefer.name)],cost:prefer.cost,go:()=>startResearch(0,prefer.id)})}

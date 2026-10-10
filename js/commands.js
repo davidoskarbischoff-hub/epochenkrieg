@@ -28,11 +28,12 @@ function applyOrder(u,o){u.pf=null;
     case'move':u.state='move';u.dest={x:o.x,y:o.y};u.amove=null;break;
     case'amove':u.state='amove';u.amove={x:o.x,y:o.y};break;
     case'gather':u.state='gather';u.tid=o.tid;u.rtype=o.rt;u.amove=null;break;
-    case'build':u.state='build';u.tid=o.tid;break;
+    case'build':u.state='build';u.tid=o.tid;u.rep=!!o.rep;u.prev=null;break;
     case'attack':u.state='attack';u.tid=o.tid;u.amove=null;break;
     case'return':u.state='return';break}}
-function orderValid(o){if(o.t==='build'){const b=get(o.tid);return !!b&&!b.built}if(o.t==='gather'||o.t==='attack')return !!get(o.tid);return true}
+function orderValid(o){if(o.t==='build'){const b=get(o.tid);return !!b&&(!b.built||(o.rep&&b.hp<b.maxHp-1))}if(o.t==='gather'||o.t==='attack')return !!get(o.tid);return true}
 function giveOrder(u,o,append){
+  if(u.team===0)u.manual=true;
   if(!append)u.loop=null;
   if(!append||(u.state==='idle'&&!(u.q&&u.q.length))){u.q=[];applyOrder(u,o);return}
   (u.q||(u.q=[])).push(o)}
@@ -49,6 +50,7 @@ function command(wx,wy,append,sp){
     else if(t&&t.kind==='node'&&UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval){giveOrder(u,{t:'gather',tid:t.id,rt:t.rt},append)}
     else if(t&&(t.team===1||t.kind==='animal')&&u.type!=='scout'){giveOrder(u,{t:'attack',tid:t.id},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&!t.built&&u.type==='worker'){giveOrder(u,{t:'build',tid:t.id},append)}
+    else if(t&&t.team===0&&t.kind==='bld'&&t.built&&t.hp<t.maxHp-1&&u.type==='worker'){giveOrder(u,{t:'build',tid:t.id,rep:true},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&BLDS[t.type].drop&&UNITS[u.type].gather&&u.carry>0&&(!UNITS[u.type].naval||t.type==='harbor')){giveOrder(u,{t:'return'},append)}
     else{const ox=(i%cols-(cols-1)/2)*18,oy=(Math.floor(i/cols)-(cols-1)/2)*18;giveOrder(u,{t:'move',x:wx+ox,y:wy+oy},append);i++}
   }

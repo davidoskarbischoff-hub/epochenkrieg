@@ -50,7 +50,7 @@ function tap(p){
   if(armed){attackMove(w.x,w.y);return}
   const e=entityAt(0,0,p),s=ownSel();
   if(s.length){const workers=s.some(u=>UNITS[u.type].gather);
-    const cmd=!e||e.team===1||(e.kind==='node'&&workers)||(e.kind==='node'&&s[0].kind==='bld')||(e.team===0&&e.kind==='bld'&&s[0].kind==='unit'&&workers&&(!e.built||(BLDS[e.type].drop&&s.some(u=>u.carry>0))));
+    const cmd=!e||e.team===1||(e.kind==='node'&&workers)||(e.kind==='node'&&s[0].kind==='bld')||(e.team===0&&e.kind==='bld'&&s[0].kind==='unit'&&workers&&(!e.built||e.hp<e.maxHp-1||(BLDS[e.type].drop&&s.some(u=>u.carry>0))));
     if(cmd){command(w.x,w.y,false,p);return}}
   clickSelect(p,false);
 }
@@ -68,6 +68,7 @@ addEventListener('keydown',e=>{
   if(menuOpen||!G||!G.running)return;
   if(e.key===' '){e.preventDefault();togglePause()}
   else if(e.key==='Escape'){if(placing||armed){placing=null;armed=false}else toggleMenu()}
+  else if(e.key==='f'||e.key==='F'){const ids=ownSel().filter(u=>u.kind==='unit').map(u=>u.id);if(ids.length){if(NET.client)NET.send({c:'rage',ids});else if(!useRage(0,ids))toast(tr('Kampfrausch lädt noch.'),'warn')}}
   else if(e.key==='m'||e.key==='M'){SND.setMute(!SND.muted);toast(SND.muted?tr('Ton aus'):tr('Ton an'))}
   else if(e.key==='q'||e.key==='Q'){if(ownSel().some(u=>u.kind==='unit'&&!UNITS[u.type].passive)){armed=true;placing=null}}
   else if(e.key==='h'||e.key==='H'){const hq=G.ents.find(o=>o.type==='hq'&&o.team===0&&!o.dead);if(hq){sel.clear();sel.add(hq.id);centerOn(hq.x,hq.y);panelSig=''}}

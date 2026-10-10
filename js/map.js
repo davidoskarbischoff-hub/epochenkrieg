@@ -36,7 +36,7 @@ function genMap(seed){
   bases.forEach((b,i)=>{for(let k=0;k<4;k++)addUnit('worker',i,b.x+b.s*(k*18-27),b.y+b.s*58)});
   // Startvorkommen rund um Basis A (zufällige Richtung, gültiges Land), danach gespiegelt auf Basis B
   const near=(type,n,spread,dmin,dmax,okFn)=>{for(let k=0;k<60;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!okFn(x,y,spread*.5))continue;const n0=G.ents.length;cluster(type,x,y,n,spread,okFn);if(G.ents.length-n0>=Math.min(n,3)){mirror(n0);return}}};
-  near('tree',28,92,175,265,landOk);near('tree',24,88,285,400,landOk);near('bush',8,52,110,200,landOk);near('bush',6,44,290,430,landOk);near('stone',2,52,170,270,landOk);near('iron',2,50,210,330,landOk);near('gold',1,40,380,560,landOk);
+  near('tree',28,92,175,265,landOk);near('tree',24,88,285,400,landOk);near('bush',8,52,110,200,landOk);near('bush',6,44,290,430,landOk);near('stone',2,52,170,270,landOk);near('iron',3,52,210,330,landOk);near('iron',2,50,430,640,landOk);near('gold',1,40,380,560,landOk);
   // Fische in Küstennähe von Basis A
   const nearWater=(type,n,spread,dmin,dmax)=>{for(let k=0;k<200;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!waterOk[type](x,y,spread*.4))continue;const n0=G.ents.length;cluster(type,x,y,n,spread,waterOk[type]);if(G.ents.length>n0){mirror(n0);return}}};
   nearWater('fish',5,55,180,520);nearWater('fish',4,50,250,650);nearWater('dolphin',3,50,350,900);
@@ -46,7 +46,7 @@ function genMap(seed){
   for(let i=0;i<cnt(8);i++)feats.push(['tree',22+Math.floor(R()*12),98,landOk]);
   for(let i=0;i<cnt(3);i++)feats.push(['stone',2,52,landOk]);
   for(let i=0;i<cnt(3);i++)feats.push(['bush',5,44,landOk]);
-  for(let i=0;i<cnt(3);i++)feats.push(['iron',2,50,landOk]);
+  for(let i=0;i<cnt(4);i++)feats.push(['iron',2,50,landOk]);
   for(let i=0;i<cnt(2);i++)feats.push(['gold',1+Math.floor(R()*2),42,landOk]);
   for(let i=0;i<cnt(10);i++)feats.push(['fish',4+Math.floor(R()*2),55,waterOk.fish]);
   for(let i=0;i<cnt(6);i++)feats.push(['dolphin',2+Math.floor(R()*2),50,waterOk.dolphin]);
@@ -106,6 +106,8 @@ function renderBg(seed){
   // 4) Gras auf dem Land
   t.clearRect(0,0,W,H);t.fillStyle='#6c8544';t.fillRect(0,0,W,H);
   for(let i=0;i<Math.round(1700*AREA);i++){const x=R()*W,y=R()*H,r=30+R()*110,g=t.createRadialGradient(x,y,0,x,y,r),c=R()<.55?'82,110,52':R()<.5?'128,146,76':'140,128,78';g.addColorStop(0,`rgba(${c},${.18+R()*.28})`);g.addColorStop(1,`rgba(${c},0)`);t.fillStyle=g;t.fillRect(x-r,y-r,2*r,2*r)}
+  // Biome: große, punktsymmetrische Flecken (trockene Steppe, saftiger Wald-Boden, karge Tundra)
+  {const bi=[['190,172,86',.3],['96,150,62',.26],['150,156,130',.22]];const rb=mulberry(seed+555);for(let i=0;i<Math.round(14*AREA);i++){const x=rb()*W,y=rb()*H,r=320+rb()*420,[c,al]=bi[i%3];for(const[px,py]of[[x,y],[W-x,H-y]]){const g=t.createRadialGradient(px,py,r*.1,px,py,r);g.addColorStop(0,`rgba(${c},${al})`);g.addColorStop(1,`rgba(${c},0)`);t.fillStyle=g;t.fillRect(px-r,py-r,2*r,2*r)}}}
   // Erdflecken und dunklere Wiesenstücke
   for(let i=0;i<Math.round(160*AREA);i++){const x=R()*W,y=R()*H,r=14+R()*40,g=t.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(120,92,58,.38)');g.addColorStop(1,'rgba(120,92,58,0)');t.fillStyle=g;t.beginPath();t.ellipse(x,y,r*1.4,r,R()*3,0,6.283);t.fill()}
   for(const e of G.ents)if(e.type==='hq'){const g=t.createRadialGradient(e.x,e.y,30,e.x,e.y,210);g.addColorStop(0,'rgba(150,118,76,.7)');g.addColorStop(.6,'rgba(150,118,76,.35)');g.addColorStop(1,'rgba(150,118,76,0)');t.fillStyle=g;t.fillRect(e.x-210,e.y-210,420,420)}
@@ -127,7 +129,12 @@ function renderBg(seed){
     for(let i=0;i<Math.round(1800*AREA);i++){const x=R()*W,y=R()*H,r=14+R()*60,g=t.createRadialGradient(x,y,0,x,y,r),c=R()<.5?'60,52,44':'196,186,168';g.addColorStop(0,`rgba(${c},${.12+R()*.2})`);g.addColorStop(1,`rgba(${c},0)`);t.fillStyle=g;t.fillRect(x-r,y-r,2*r,2*r)}
     t.lineWidth=1.4;t.strokeStyle='rgba(50,44,38,.28)';t.beginPath();for(let i=0;i<Math.round(2600*AREA);i++){const x=R()*W,y=R()*H,l=18+R()*60;t.moveTo(x,y);t.lineTo(x+l,y+(R()-.5)*8)}t.stroke();
     t.strokeStyle='rgba(235,226,205,.2)';t.beginPath();for(let i=0;i<Math.round(1200*AREA);i++){const x=R()*W,y=R()*H,l=10+R()*40;t.moveTo(x,y);t.lineTo(x+l,y-2-R()*5)}t.stroke();
-    cut(rockM,[[0,0]]);b.drawImage(tmp,0,0,W,H)}
+    cut(rockM,[[0,0]]);b.drawImage(tmp,0,0,W,H);
+    // Schnee auf den höchsten Gipfeln (Höhe aus dem Relief), weich verlaufend
+    let mx=0;for(let i=0;i<TW*TH;i++)if(TERR[i]===3&&HL[i]>mx)mx=HL[i];
+    if(mx>2.2){const sn=mx*.5,rs=mulberry(seed+31);t.clearRect(0,0,W,H);
+      for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const i=y*TW+x;if(TERR[i]!==3)continue;const a=(HL[i]-sn+(rs()-.5)*mx*.06)/(mx*.16);if(a<=0)continue;t.fillStyle=`rgba(255,255,255,${Math.min(1,a*1.4)})`;t.fillRect(x*TG-2,y*TG-2,TG+4,TG+4)}
+      b.save();b.filter='blur(4px)';b.drawImage(tmp,0,0,W,H);b.restore()}}
   b.strokeStyle='rgba(30,22,14,.5)';b.lineWidth=6;b.strokeRect(3,3,W-6,H-6);
   bgSmall=document.createElement('canvas');bgSmall.width=240;bgSmall.height=160;bgSmall.getContext('2d').drawImage(bg,0,0,240,160);
 }
