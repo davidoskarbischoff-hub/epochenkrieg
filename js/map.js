@@ -63,16 +63,19 @@ function spawnAnimals(R,bases,A){
   const treesNear=(x,y,r)=>{let n=0;for(const e of G.ents)if(e.kind==='node'&&e.type==='tree'&&Math.hypot(e.x-x,e.y-y)<r)n++;return n};
   const good=(x,y)=>{if(x<90||y<90||x>W-90||y>H-90)return false;for(let k=0;k<8;k++){const a=k*.785;if(terrAt(x+Math.cos(a)*22,y+Math.sin(a)*22)!==2)return false}return navDyn[navCell(x,y)]===0&&MAINLAND[Math.max(0,Math.min(TH-1,(y/TG)|0))*TW+Math.max(0,Math.min(TW-1,(x/TG)|0))]===1};
   const farBase=(x,y,d)=>bases.every(b=>Math.hypot(b.x-x,b.y-y)>d);
-  const place=(type,n,org,dmin,dmax,need)=>{
+  const place=(type,n,org,dmin,dmax,need)=>{const late=ANIMALS[type].from;
     for(let k=0;k<160;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=org.x+Math.cos(a)*d,y=org.y+Math.sin(a)*d;
       if(!good(x,y)||!need(x,y))continue;const pts=[];
       for(let i=0;i<n;i++){const px=x+(i?(R()-.5)*70:0),py=y+(i?(R()-.5)*70:0);if(good(px,py)&&!pts.some(q=>Math.hypot(q.x-px,q.y-py)<16)&&!G.ents.some(e=>e.kind==='animal'&&Math.hypot(e.x-px,e.y-py)<50))pts.push({x:px,y:py})}
       if(pts.length<Math.min(n,2))continue;
-      for(const q of pts){addAnimal(type,q.x,q.y);if(good(W-q.x,H-q.y))addAnimal(type,W-q.x,H-q.y)}return true}
+      for(const q of pts){const sp=late?(x,y)=>G.late.push({type,x,y}):(x,y)=>addAnimal(type,x,y);sp(q.x,q.y);if(good(W-q.x,H-q.y))sp(W-q.x,H-q.y)}return true}
     return false};
   for(let i=0;i<5;i++)place('deer',2+Math.floor(R()*3),A,380,950,(x,y)=>farBase(x,y,360));
   for(let i=0;i<4;i++)place('wolf',3,A,850,2200,(x,y)=>farBase(x,y,750)&&treesNear(x,y,170)>=4);
   for(let i=0;i<3;i++)place('bear',1,A,1100,2800,(x,y)=>farBase(x,y,950)&&treesNear(x,y,170)>=2);
+  for(let i=0;i<3;i++)place('mammoth',1+Math.floor(R()*2),A,700,2200,(x,y)=>farBase(x,y,650));
+  place('sabertooth',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
+  for(let i=0;i<2;i++)place('sabertooth',1,A,1000,2600,(x,y)=>farBase(x,y,900)&&treesNear(x,y,170)>=2);
   place('tiger',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
 }
 function renderBg(seed){

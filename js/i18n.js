@@ -207,7 +207,8 @@ const EN={
   'Neues Gebiet erobert!':'New territory claimed!',
   'Nur im eigenen Gebiet. Ein Wachturm erobert neues Land.':'Only inside your territory. A watchtower claims new land.',
   'Gegner':'Opponent','Turtle':'Turtle','Rush':'Rush','Baut viele Türme, verteidigt, greift spät an':'Builds many towers, defends, attacks late','Früh viele Truppen und frühe Angriffe, kaum Wirtschaft':'Many troops and early attacks, weak economy','Viele Arbeiter, große Vorräte, späte Armee':'Many workers, big stockpiles, late army','Steigt so schnell wie möglich auf':'Advances as fast as possible',
-  'Angriff! {0} Feinde bei deiner Siedlung – alle Truppen zur Verteidigung schicken':'Attack! {0} enemies at your settlement – send all troops to defend','{0} ist knapp ({1}) – 3 Arbeiter von {2} auf {0} umstellen':'{0} is running low ({1}) – move 3 workers from {2} to {0}'
+  'Angriff! {0} Feinde bei deiner Siedlung – alle Truppen zur Verteidigung schicken':'Attack! {0} enemies at your settlement – send all troops to defend','{0} ist knapp ({1}) – 3 Arbeiter von {2} auf {0} umstellen':'{0} is running low ({1}) – move 3 workers from {2} to {0}',
+  'Mammut':'Mammoth','Säbelzahntiger':'Saber-toothed tiger','Riesig und friedlich, wehrt sich aber – viel Nahrung. Stirbt nach der Steinzeit aus':'Huge and peaceful, but fights back – lots of food. Dies out after the Stone Age','Schnell und tödlich. Stirbt nach der Steinzeit aus':'Fast and deadly. Dies out after the Stone Age'
 };
 let LANG='de';try{LANG=localStorage.getItem('ek-lang')==='en'?'en':'de'}catch(_){}
 function tr(de,...a){let s=LANG==='en'&&EN[de]!==undefined?EN[de]:de;a.forEach((v,i)=>{s=s.split('{'+i+'}').join(v)});return s}

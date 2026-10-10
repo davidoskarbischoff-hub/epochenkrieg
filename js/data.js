@@ -45,9 +45,11 @@ const EPOCHS=[{name:'Steinzeit',cost:{food:350,wood:200},time:30},{name:'Bronzez
    flee = friedliche Tiere fliehen ab dieser Nähe, food = Nahrung für den, der es erlegt, h = Höhe fürs Anzeigen */
 const ANIMALS={
   deer:{name:'Reh',hp:45,spd:82,r:7,sight:170,flee:140,roam:120,food:120,h:24,info:'Friedlich und scheu – jagbar, gibt Nahrung'},
-  wolf:{name:'Wolf',hp:75,spd:86,atk:9,rng:5,cd:1,r:7,sight:170,agg:140,leash:380,roam:90,food:70,h:20,pack:true,info:'Rudeltier – greift an, wenn man zu nah kommt'},
-  bear:{name:'Bär',hp:280,spd:60,atk:24,rng:7,cd:1.3,r:11,sight:150,agg:120,leash:300,roam:80,food:220,h:34,info:'Sehr stark – verteidigt sein Revier'},
-  tiger:{name:'Tiger',hp:180,spd:98,atk:18,rng:6,cd:.9,r:9,sight:190,agg:170,leash:420,roam:140,food:160,h:26,info:'Schnell und gefährlich'}
+  wolf:{name:'Wolf',from:1,hp:75,spd:86,atk:9,rng:5,cd:1,r:7,sight:170,agg:140,leash:380,roam:90,food:70,h:20,pack:true,info:'Rudeltier – greift an, wenn man zu nah kommt'},
+  bear:{name:'Bär',from:1,hp:280,spd:60,atk:24,rng:7,cd:1.3,r:11,sight:150,agg:120,leash:300,roam:80,food:220,h:34,info:'Sehr stark – verteidigt sein Revier'},
+  mammoth:{name:'Mammut',hp:520,spd:46,atk:30,rng:10,cd:1.6,r:16,sight:150,agg:75,leash:260,roam:70,food:700,h:46,ext:2,info:'Riesig und friedlich, wehrt sich aber – viel Nahrung. Stirbt nach der Steinzeit aus'},
+  sabertooth:{name:'Säbelzahntiger',hp:240,spd:100,atk:26,rng:7,cd:1,r:10,sight:200,agg:190,leash:450,roam:150,food:200,h:28,ext:2,info:'Schnell und tödlich. Stirbt nach der Steinzeit aus'},
+  tiger:{name:'Tiger',from:2,hp:180,spd:98,atk:18,rng:6,cd:.9,r:9,sight:190,agg:170,leash:420,roam:140,food:160,h:26,info:'Schnell und gefährlich'}
 };
 const POPMAX=100;
 const RES=['food','wood','stone','iron'],RN={food:'Nahrung',wood:'Holz',stone:'Stein',iron:'Eisen'};

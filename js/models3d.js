@@ -350,6 +350,10 @@ function quad(o){
   const sn=put(head,new THREE.BoxGeometry(o.hr*1.5*(o.snout||1),o.hr*.7,o.hr*.8),o.snoutCol?m3Plain(o.snoutCol):m,o.hr*1.0*(o.snout||1),-o.hr*.2,0);put(head,new THREE.SphereGeometry(o.hr*.2,6,6),dk,o.hr*1.7*(o.snout||1),-o.hr*.15,0);
   for(const z of[-1,1]){put(head,new THREE.SphereGeometry(o.hr*.11,6,6),m3Plain(0x15110c),o.hr*.7,o.hr*.25,z*o.hr*.45,false);put(head,cone(o.hr*.35,o.hr*(o.earLen||.9),5),o.earCol?m3Plain(o.earCol):m,-o.hr*.2,o.hr*.95,z*o.hr*.55).rotation.x=z*.2}
   if(o.antlers)for(const z of[-1,1]){const base=put(head,cyl(.03,.04,o.hr*1.8,5),m3Plain(0xc9b690),-o.hr*.1,o.hr*1.9,z*o.hr*.5);base.rotation.x=z*.35;for(const k of[.4,.8]){const br=put(head,cyl(.025,.03,o.hr*1.1,5),m3Plain(0xc9b690),o.hr*(k*.2),o.hr*(1.3+k),z*o.hr*(.6+k*.5));br.rotation.z=-.7;br.rotation.x=z*.5}}
+  if(o.trunk){const tk=put(head,cyl(o.hr*.38,o.hr*.22,o.hr*3.2,8),m,o.hr*1.2,-o.hr*1.2,0);tk.rotation.z=.25;put(head,cyl(o.hr*.22,o.hr*.16,o.hr*1.2,8),m,o.hr*1.65,-o.hr*2.6,0).rotation.z=-.5}
+  if(o.tusks)for(const z of[-1,1]){const t=put(head,new THREE.TorusGeometry(o.hr*1.1,o.hr*.09,6,12,2.3),m3Plain(0xf1ead2,.6),o.hr*1.0,-o.hr*.9,z*o.hr*.55);t.rotation.set(0,0,-1.3)}
+  if(o.fangs)for(const z of[-1,1])put(head,cone(o.hr*.12,o.hr*1.0,5),m3Plain(0xf1ead2,.6),o.hr*1.5,-o.hr*.95,z*o.hr*.25).rotation.x=Math.PI;
+  if(o.shaggy)put(g,new THREE.SphereGeometry(o.br*1.05,10,8),m3Mat('fur',0x5a3c28),0,o.legH+o.br*.7,0).scale.set(1.5,.55,1);
   const tl=put(g,cone(o.br*.35,o.bl*(o.tail||.5),6),o.tailCol?m3Plain(o.tailCol):m,-o.bl/2-o.br*.7,by+o.br*.15,0);tl.rotation.z=Math.PI/2+.5;
   if(o.stripes)for(let i=0;i<7;i++){const x=-o.bl*.45+i*(o.bl*.9/6);put(g,new THREE.BoxGeometry(o.br*.28,o.br*1.5,o.br*2.1),dk,x,by+o.br*.05,0,false).rotation.z=(i%2?.12:-.12)}
   if(o.spots)for(let i=0;i<8;i++){put(g,new THREE.SphereGeometry(o.br*.16,6,5),m3Plain(0xe8dcc0),-o.bl*.4+(i%4)*o.bl*.27,by+o.br*.7,(i<4?-1:1)*o.br*.3,false)}
@@ -358,13 +362,15 @@ const ANI3={
   deer:{col:0xa87a4b,belly:0xd8c19a,dark:0x3a2a1a,br:.34,bl:.85,legH:.85,lw:.075,hr:.2,neck:[.45,.85],snout:1.2,earLen:.8,antlers:true,spots:true,tail:.18,tailCol:0xf3ead6,earCol:0xc39b6a},
   wolf:{col:0x7d7f84,belly:0xc9c9c6,dark:0x222428,br:.29,bl:.75,legH:.52,lw:.07,hr:.2,neck:[.35,.3],snout:1.3,earLen:.7,tail:.8,tailCol:0x6a6c70},
   bear:{col:0x5b3f2a,belly:0x4a3322,dark:0x1c130c,br:.55,bl:1.0,legH:.5,lw:.14,hr:.31,neck:[.5,.3],snout:.8,earLen:.4,hump:true,tail:.15,snoutCol:0x8a6a4a},
+  mammoth:{col:0x6b4a30,belly:0x5a3c28,dark:0x2a1c12,br:.95,bl:1.7,legH:.95,lw:.26,hr:.5,neck:[.75,.25],snout:.5,earLen:.5,hump:true,tail:.2,trunk:true,tusks:true,shaggy:true},
+  sabertooth:{col:0xc99a5a,belly:0xe8d4a8,dark:0x2a1c10,br:.4,bl:1.2,legH:.55,lw:.13,hr:.28,neck:[.5,.28],snout:.8,earLen:.45,tail:.25,tailCol:0xc99a5a,fangs:true,spots:true},
   tiger:{col:0xd9822b,belly:0xf1dcb5,dark:0x1d1510,br:.34,bl:1.1,legH:.58,lw:.1,hr:.25,neck:[.45,.28],snout:.9,earLen:.5,stripes:true,tail:.9,tailCol:0xd9822b}
 };
 /* Stromlinienkörper für Wale und Delfine: Drehkörper mit dickem Kopf und dünnem Schwanz, oben dunkel, unten hell. Nase zeigt nach +x. */
 function swimBody(L,R,topC,botC){const N=20,pts=[];for(let i=N;i>=0;i--){const u=i/N,y=L/2-u*L;pts.push(new THREE.Vector2(R*Math.pow(Math.sin(Math.PI*Math.pow(u,.7)),.75)*(1-.45*u)+.002,y))}
   const g=new THREE.LatheGeometry(pts,16);g.rotateZ(-Math.PI/2);const n=g.attributes.normal,col=new Float32Array(n.count*3),a=new THREE.Color(topC),b=new THREE.Color(botC),c=new THREE.Color();
   for(let i=0;i<n.count;i++){c.copy(a).lerp(b,Math.max(0,Math.min(1,.35-n.getY(i)*1.4)));col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b}g.setAttribute('color',new THREE.BufferAttribute(col,3));return g}
-function buildAnimal(e){const rig=quad(ANI3[e.type]||ANI3.deer);setShadows(rig.g);rig.g.scale.setScalar(e.type==='bear'?1.15:1.1);return rig}
+function buildAnimal(e){const rig=quad(ANI3[e.type]||ANI3.deer);setShadows(rig.g);rig.g.scale.setScalar(e.type==='bear'?1.15:e.type==='mammoth'?1.25:1.1);return rig}
 function buildUnit(u){const f=UNIT3[u.type]||UNIT3.worker,tm=m3Team(u.team),rig=f(u,tm);setShadows(rig.g);return rig}
 
 /* ---------- Ressourcen ---------- */
