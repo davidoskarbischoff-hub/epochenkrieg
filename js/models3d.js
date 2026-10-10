@@ -188,7 +188,16 @@ function epExtras(g,type,R,st){
     if(type==='harbor'){smoke(R*.3,R*.8,-R*.3,R*1.4)}
     if(type==='castle'){smoke(0,R*1.8,0,R*1.2)}
   }}
-function buildBld(type,R,ep,team){const st=bStyle(ep),g=(ep===0&&PRIM[type]||BLD3[type]||BLD3.house)(R,st,team);if(ep>=4)epExtras(g,type,R,st);setShadows(g);g.userData.flags=[];g.traverse(o=>{if(o.userData.flag)g.userData.flags.push(o)});return g}
+/* Gemeinsame Details für Wohn- und Zweckbauten: Sockel, Eckpfosten bzw. Eckquader, Türstufen, Laterne ab der Eisenzeit */
+function bldDetail(g,type,R,st){
+  if(!['house','store','barracks','hq'].includes(type))return;
+  const bb=new THREE.Box3().setFromObject(g),w=bb.max.x-bb.min.x,d=bb.max.z-bb.min.z,cx=(bb.max.x+bb.min.x)/2,wh=(g.userData.h||R*2)*(type==='hq'?.38:.5),ww=Math.min(w,type==='hq'?R*2.5:w)*.5,dd=Math.min(d,R*1.9)*.5;
+  const post=st.ep>=3?m3Mat('stone',0xb8b2a4):woodD();
+  for(const sx of[-1,1])for(const sz of[-1,1])put(g,new THREE.BoxGeometry(.2,wh*1.02,.2),post,cx+sx*ww*(type==='hq'?.98:.96)*.99,wh*.5+.1,sz*dd*.9);
+  put(g,new THREE.BoxGeometry(ww*2.06,.2,dd*1.9),st.base,cx,.1,0,false);
+  put(g,new THREE.BoxGeometry(.5,.12,R*.9),st.base,cx,.06,dd*.9+.45,false);put(g,new THREE.BoxGeometry(.35,.12,R*.8),st.base,cx,.12,dd*.9+.15,false);
+  if(st.ep>=2){put(g,cyl(.03,.03,.5,5),woodD(),cx+R*.5,.75,dd*.95,false);put(g,new THREE.SphereGeometry(.09,6,5),m3Plain(0xffe9a8,.3,{emissive:0xffcc66,emissiveIntensity:.9}),cx+R*.5,1.05,dd*.95,false)}}
+function buildBld(type,R,ep,team){const st=bStyle(ep),g=(ep===0&&PRIM[type]||BLD3[type]||BLD3.house)(R,st,team);if(ep>0)bldDetail(g,type,R,st);if(ep>=4)epExtras(g,type,R,st);setShadows(g);g.userData.flags=[];g.traverse(o=>{if(o.userData.flag)g.userData.flags.push(o)});return g}
 
 /* ---------- Figuren ---------- */
 function limbPivot(parent,x,y,z){const p=new THREE.Group();p.position.set(x,y,z);parent.add(p);return p}
@@ -410,11 +419,14 @@ UNIT3.boat=(u,tm)=>ship(u,tm,false,false);UNIT3.warship=(u,tm)=>ship(u,tm,true,f
 /* Vierbeiner: o = {col,belly,dark,br (Rumpfradius),bl (Rumpflänge),legH,lw (Beinbreite),hr (Kopfradius),neck:[x,y],snout,ears,tail}. Blickt in +x. */
 function quad(o){
   const g=new THREE.Group(),rig={g,legs:[]},m=m3Plain(o.col,.9),mb=m3Plain(o.belly||o.col,.9),dk=m3Plain(o.dark||0x2a2119,.9),by=o.legH+o.br*.85;
-  put(g,new THREE.CapsuleGeometry(o.br,o.bl,4,10),m,0,by,0).rotation.z=Math.PI/2;
-  put(g,new THREE.CapsuleGeometry(o.br*.78,o.bl*.9,4,8),mb,0,by-o.br*.3,0).rotation.z=Math.PI/2;
+  put(g,new THREE.CapsuleGeometry(o.br,o.bl*.62,4,10),m,o.bl*.2,by+o.br*.06,0).rotation.z=Math.PI/2; /* Brust und Schulter */
+  put(g,new THREE.CapsuleGeometry(o.br*.92,o.bl*.55,4,10),m,-o.bl*.24,by,0).rotation.z=Math.PI/2; /* Hinterteil */
+  put(g,new THREE.CapsuleGeometry(o.br*.74,o.bl*.95,4,8),mb,0,by-o.br*.34,0).rotation.z=Math.PI/2; /* Bauch */
+  for(const z of[-1,1])put(g,new THREE.SphereGeometry(o.br*.62,8,6),m,-o.bl*.42,by+o.br*.05,z*o.br*.5).scale.set(1,1.1,.8); /* Keulen */
   if(o.hump)put(g,new THREE.SphereGeometry(o.br*.95,10,8),m,o.bl*.28,by+o.br*.45,0);
   const hipY=o.legH+o.br*.35;
-  for(const[x,z]of[[-o.bl*.5,-o.br*.6],[-o.bl*.5,o.br*.6],[o.bl*.5,-o.br*.6],[o.bl*.5,o.br*.6]]){const p=limbPivot(g,x,hipY,z);put(p,cyl(o.lw,o.lw*.75,hipY,6),m,0,-hipY/2,0);put(p,new THREE.SphereGeometry(o.lw*1.05,6,5),dk,.02,-hipY+o.lw*.4,0);rig.legs.push(p)}
+  rig.knees=[];for(const[x,z]of[[-o.bl*.5,-o.br*.6],[-o.bl*.5,o.br*.6],[o.bl*.5,-o.br*.6],[o.bl*.5,o.br*.6]]){const p=limbPivot(g,x,hipY,z);put(p,cyl(o.lw*1.3,o.lw*.95,hipY*.55,7),m,0,-hipY*.27,0);
+    const kn=limbPivot(p,0,-hipY*.55,0);put(kn,new THREE.SphereGeometry(o.lw*.95,6,5),m,0,0,0);put(kn,cyl(o.lw*.8,o.lw*.6,hipY*.47,7),m,0,-hipY*.23,0);put(kn,new THREE.SphereGeometry(o.lw*1.05,6,5),dk,.03,-hipY*.46,0).scale.set(1.3,.8,1);rig.legs.push(p);rig.knees.push(kn)}
   const nx=o.bl/2+o.br*.5,hx=nx+o.neck[0],hy=by+o.neck[1];
   const neck=put(g,cyl(o.br*.5,o.br*.62,Math.hypot(o.neck[0],o.neck[1])+o.br*.4,8),m,nx+o.neck[0]/2,by+o.neck[1]/2,0);neck.rotation.z=-Math.atan2(o.neck[0],o.neck[1]);
   const head=new THREE.Group();head.position.set(hx,hy,0);g.add(head);rig.head=head;

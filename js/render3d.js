@@ -248,7 +248,7 @@ function r3Unit(o,e,h,dt,t){
   obj.position.set(e.x/S,y,e.y/S);obj.rotation.y=o.yaw;
 }
 function r3Animal(o,e,h,dt,t){const S=R3.S,rig=o.rig,moving=G.t-(e.mvT||-9)<.2;let dy=-e.fa-o.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));o.yaw+=dy*Math.min(1,dt*10);if(moving)o.ph+=dt*(6+UNITS_A(e).spd*.05);const s=Math.sin(o.ph);
-  rig.legs.forEach((l,i)=>l.rotation.z=moving?(i%2?s:-s)*.7:0);const sw=e.swing&&G.t-e.swing<.3?1-(G.t-e.swing)/.3:0;if(rig.head)rig.head.rotation.z=-sw*.5+(e.state==='graze'?-.6:0);
+  rig.legs.forEach((l,i)=>{const ph=(i===0||i===3?s:-s);l.rotation.z=moving?ph*.7:0;if(rig.knees&&rig.knees[i])rig.knees[i].rotation.z=moving?Math.max(0,-ph)*.9:0});rig.g.scale.y=rig.g.userData.sy=1+(moving?0:Math.sin(t*1.6+e.id)*.012);const sw=e.swing&&G.t-e.swing<.3?1-(G.t-e.swing)/.3:0;if(rig.head)rig.head.rotation.z=-sw*.5+(e.state==='graze'?-.6:0);
   o.obj.position.set(e.x/S,h+(moving?Math.abs(s)*.06:0),e.y/S);o.obj.rotation.y=o.yaw}
 const UNITS_A=e=>ANIMALS[e.type];
 
