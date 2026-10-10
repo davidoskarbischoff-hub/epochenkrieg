@@ -13,7 +13,16 @@
 <body>
 <div id="app">
   <header id="top">
+  <div class="tz tl">
     <div class="brand">Epochenkrieg</div>
+    <button class="tbtn idle ok" id="idleBtn" data-tt="Untätigen Arbeiter auswählen (.)" title="Untätigen Arbeiter auswählen (.)">Alle Arbeiter beschäftigt</button>
+    <button class="tbtn" id="pauseBtn">Pause</button>
+    <button class="tbtn" id="treeBtn" data-tt="Zeitalter-Baum (T)" title="Zeitalter-Baum (T)">Baum</button>
+    <button class="tbtn" id="speedBtn" data-tt="Spieltempo" title="Spieltempo">Tempo 1×</button>
+    <button class="tbtn" id="menuBtn" data-tt="Menü (Esc)" title="Menü (Esc)"><span data-t="Menü">Menü</span> ☰</button>
+  </div>
+    <div id="epoch">Steinzeit</div>
+  <div class="tz tr">
     <div class="res" data-tt="Nahrung" title="Nahrung"><span class="icn" data-ic="food"></span><b id="v-food">0</b><small data-t="Nahrung">Nahrung</small></div>
     <div class="res" data-tt="Holz" title="Holz"><span class="icn" data-ic="wood"></span><b id="v-wood">0</b><small data-t="Holz">Holz</small></div>
     <div class="res" data-tt="Stein" title="Stein"><span class="icn" data-ic="stone"></span><b id="v-stone">0</b><small data-t="Stein">Stein</small></div>
@@ -21,16 +30,10 @@
     <div class="res" id="res-gold" data-tt="Gold" title="Gold" hidden><span class="icn" data-ic="gold"></span><b id="v-gold">0</b><small data-t="Gold">Gold</small></div>
     <div class="res" id="res-iron" data-tt="Eisen" title="Eisen" hidden><span class="icn" data-ic="iron"></span><b id="v-iron">0</b><small data-t="Eisen">Eisen</small></div>
     <div class="res" data-tt="Bevölkerung" title="Bevölkerung"><span class="icn" data-ic="pop"></span><b id="v-pop">0</b><small data-t="Bevölkerung">Bevölkerung</small></div>
-    <div class="res" id="res-wk" data-tt="Arbeiter (F1) – für den Aufstieg nötig" title="Arbeiter (F1) – für den Aufstieg nötig"><span class="icn">⛏</span><b id="v-wk">0</b></div>
-    <div class="res" data-tt="Truppen (F2 Land, F4 Wasser)" title="Truppen (F2 Land, F4 Wasser)"><span class="icn">⚔</span><b id="v-troop">0</b></div>
-    <div id="epoch">Steinzeit</div>
-    <div class="spacer"></div>
-    <button class="tbtn idle ok" id="idleBtn" data-tt="Untätigen Arbeiter auswählen (.)" title="Untätigen Arbeiter auswählen (.)">Alle Arbeiter beschäftigt</button>
-    <button class="tbtn" id="pauseBtn">Pause</button>
-    <button class="tbtn" id="treeBtn" data-tt="Zeitalter-Baum (T)" title="Zeitalter-Baum (T)">Baum</button>
-    <button class="tbtn" id="speedBtn" data-tt="Spieltempo" title="Spieltempo">Tempo 1×</button>
-    <button class="tbtn" id="menuBtn" data-tt="Menü (Esc)" title="Menü (Esc)"><span data-t="Menü">Menü</span> ☰</button>
-  </header>
+    <div class="res" id="res-wk" data-tt="Arbeiter (F1) – für den Aufstieg nötig" title="Arbeiter (F1) – für den Aufstieg nötig"><span class="icn" data-ic="wk"></span><b id="v-wk">0</b></div>
+    <div class="res" data-tt="Truppen (F2 Land, F4 Wasser)" title="Truppen (F2 Land, F4 Wasser)"><span class="icn" data-ic="troop"></span><b id="v-troop">0</b></div>
+  </div>
+</header>
   <main id="view">
     <canvas id="gl"></canvas>
     <canvas id="bloom" width="320" height="180"></canvas>
@@ -76,6 +79,7 @@
 <script src="js/advisor.js"></script>
 <script src="js/render.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/skin.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

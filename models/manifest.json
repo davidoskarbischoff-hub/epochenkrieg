@@ -970,5 +970,51 @@
    "tint": "#5a7a9a",
    "roll": 90
   }
+ },
+ "icons": {
+  "food": {
+   "file": "neu/Steak.glb",
+   "rot": [
+    0,
+    0,
+    0
+   ]
+  },
+  "wood": {
+   "file": "neu/Logs.glb"
+  },
+  "stone": {
+   "file": "neu/Rock Medium.glb"
+  },
+  "iron": {
+   "file": "neu/Gold Ingots.glb",
+   "tint": "#c8d2de",
+   "metal": 0.9,
+   "rough": 0.35
+  },
+  "gold": {
+   "file": "neu/Gold Ingots.glb"
+  },
+  "oil": {
+   "file": "neu/Barrel.glb",
+   "tint": "#26262a",
+   "metal": 0.5,
+   "rough": 0.4
+  },
+  "pop": {
+   "file": "neu/Farmer.glb",
+   "focus": 0.28
+  },
+  "wk": {
+   "file": "neu/Backpack.glb"
+  },
+  "troop": {
+   "file": "neu/Shield Heater.glb",
+   "rot": [
+    0,
+    0,
+    0
+   ]
+  }
  }
 }

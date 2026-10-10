@@ -34,7 +34,7 @@ function renderOptions(){
     +row('Hinweise beim Verweilen',tog('oTips',OPT.tips),'Text erscheint, wenn die Maus kurz auf einem Symbol liegt')
     +row('Meldungen',tog('oToasts',OPT.toasts),'Kleine Texte am Rand (Warnungen bleiben immer)')
     +row('Sprache',seg('oLang',[['de','Deutsch'],['en','English']],LANG));
-  if(optTab==='gfx')body=row('Qualität',seg('oGfx',[[0,'normal'],[1,'hoch'],[2,'sehr hoch']],gfxQ),'Auflösung und Schattenschärfe – „sehr hoch“ braucht eine gute Grafikkarte')
+  if(optTab==='gfx')body=row('Qualität',seg('oGfx',[[0,'Niedrig'],[1,'Mittel'],[2,'Hoch'],[3,'Ultra']],gfxQ),'Schärfe, Schatten, Gras, Leuchten und Rauch – „Ultra“ braucht eine gute Grafikkarte')
     +row('Schatten',tog('oShadow',OPT.shadows),'Aus macht das Spiel auf schwachen Geräten schneller')
     +row('Gras und Blumen',tog('oGrass',OPT.grass))
     +row('Farbfilter',tog('oGrade',OPT.grade),'Etwas kräftigerer Kontrast und kräftigere Farben')
@@ -46,7 +46,8 @@ function renderOptions(){
     +row('Kampfmusik',tog('oWar',OPT.combatMusic),'Trommeln und Bläser bei Gefechten')
     +row('Stimmen',tog('oVoice',OPT.voices),'Brummen der Arbeiter, Kampfschreie, Kriegshorn');
   if(optTab==='ctl'){const K=[['WASD / Pfeile','Karte bewegen'],['Mausrad','Zoom'],['Linksklick / Rahmen','Auswählen'],['Doppelklick','Alle gleichen im Bild'],['Rechtsklick','Bewegen, sammeln, bauen, angreifen, reparieren'],['Q','Angriffsmarsch'],['F','Kampfrausch'],['G','Formation wechseln (Linie, Keil, Kolonne, Karree, Kreis)'],['H','Zum Hauptlager'],['E','Späher erkunden'],['.','Untätigen Arbeiter wählen'],['Y / X','Berater: annehmen / ablehnen'],['Leertaste','Pause'],['M','Ton an/aus'],['Esc','Menü']];
-    body='<div class="keys">'+K.map(([k,d])=>`<div><kbd>${k}</kbd><span>${tr(d)}</span></div>`).join('')+'</div>'}
+    const fixed=K.filter(([k])=>!['Q','F','G','H','E','.','Y / X','Leertaste','M'].includes(k));
+    body='<h3 class="ktitle">'+tr('Tastenkürzel (zum Ändern anklicken)')+'</h3><div class="keymap">'+KEYDEF.map(([a,d,lab])=>`<div class="kmrow"><span>${tr(lab)}</span><button class="kmbtn" data-a="${a}">${keyLabel(OPT.keys[a]||'')||'–'}</button></div>`).join('')+'</div><div class="kmnote">'+tr('Esc bricht ab. Eine Taste, die schon vergeben ist, wird der alten Aktion weggenommen.')+' <button class="kmreset" id="kmReset">'+tr('Standard')+'</button></div><h3 class="ktitle">'+tr('Maus und Karte')+'</h3><div class="keys">'+fixed.map(([k,d])=>`<div><kbd>${k}</kbd><span>${tr(d)}</span></div>`).join('')+'</div>'}
   if(optTab==='ai')body=row('Berater',tog('advChk',advOn),'Schlägt Aktionen vor (Annehmen: Y, Ablehnen: X)')
     +row('Berater im Auto-Modus',tog('oAuto',advisor.auto),'Der Berater führt seine Vorschläge selbst aus')
     +row('Taktik des Beraters',seg('oStrat',Object.entries(STRATS).map(([k,v])=>[k,v.name]),advisor.strat),'Ändert, was er zuerst vorschlägt')
@@ -65,6 +66,9 @@ function renderOptions(){
   bind('oZoom',e=>e.oninput=()=>{optSet('zoomSpeed',+e.value);q('oZoomo').textContent=(+e.value).toFixed(1)+'×'});
   segB('oHp',v=>optSet('hpBars',v));bind('oTips',e=>e.onchange=()=>optSet('tips',e.checked));bind('oToasts',e=>e.onchange=()=>optSet('toasts',e.checked));
   segB('oLang',v=>{applyLang(v);renderOptions()});
+  document.querySelectorAll('.kmbtn').forEach(b=>b.onclick=()=>{b.textContent=tr('Taste drücken …');b.classList.add('wait');
+    const h=ev=>{ev.preventDefault();ev.stopPropagation();removeEventListener('keydown',h,true);if(ev.key!=='Escape'&&ev.key!=='Shift'&&ev.key!=='Control'&&ev.key!=='Alt'&&ev.key!=='Meta'){keySet(b.dataset.a,ev.key.length===1?ev.key.toLowerCase():ev.key)}renderOptions()};addEventListener('keydown',h,true)});
+  bind('kmReset',e=>e.onclick=()=>{keysReset();renderOptions()});
   segB('oGfx',v=>setGfx(+v));bind('oShadow',e=>e.onchange=()=>optSet('shadows',e.checked));bind('oGrass',e=>e.onchange=()=>optSet('grass',e.checked));bind('oBloom',e=>e.onchange=()=>optSet('bloom',e.checked));bind('oGrade',e=>e.onchange=()=>optSet('grade',e.checked));bind('oFps',e=>e.onchange=()=>optSet('fps',e.checked));
   bind('oMute',e=>e.onchange=()=>SND.setMute(!e.checked));
   bind('mv',e=>e.oninput=()=>{SND.init();SND.setMusic(e.value/100);q('mvo').textContent=pc(SND.music)});
@@ -238,7 +242,7 @@ function openTree(mode){
 }
 function closeTree(){treeOpen=false;const el=$('tree');if(el)el.hidden=true;if(treePaused&&G){G.paused=false;treePaused=false}}
 $('treeBtn').onclick=()=>{SND.init();treeOpen?closeTree():openTree('view')};
-addEventListener('keydown',e=>{if(e.key==='t'||e.key==='T'){if(!G||!G.running||menuOpen)return;treeOpen?closeTree():openTree('view')}else if(e.key==='Escape'&&treeOpen){closeTree();e.stopPropagation()}},true);
+addEventListener('keydown',e=>{if(kA(e)==='tree'){if(!G||!G.running||menuOpen)return;treeOpen?closeTree():openTree('view')}else if(e.key==='Escape'&&treeOpen){closeTree();e.stopPropagation()}},true);
 
 /* Vorschaubild für Ausbildungs- und Baukacheln */
 function actIcon(a){const k=a.key||'';let kind=null,type=null;if(k[0]==='t'&&UNITS[k.slice(1)]){kind='unit';type=k.slice(1)}else if(k[0]==='b'&&BLDS[k.slice(1)]){kind='bld';type=k.slice(1)}
