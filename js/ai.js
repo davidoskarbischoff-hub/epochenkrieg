@@ -3,7 +3,21 @@
 'use strict';
 /* ---------- AI ---------- */
 function findSpot(team,cx,cy,r,minD,maxD){for(let k=0;k<80;k++){const a=Math.random()*6.283,d=minD+Math.random()*(maxD-minD);const x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d;if(validSpot(x,y,r))return{x,y}}return null}
-function aiPlace(type,hq,minD,maxD){const d=BLDS[type];if(!afford(1,d.cost))return null;const s=findSpot(1,hq.x,hq.y,d.r,minD,maxD);if(!s)return null;pay(1,d.cost);return addBld(type,1,s.x,s.y,false)}
+/* Platzwahl mit Abstand: viele Kandidaten, nur gültige mit Mindestlücke zu eigenen Gebäuden, der mit der größten Lücke gewinnt (so entsteht keine Klumpenbildung) */
+const AI_GAP={house:46,barracks:90,store:80,farm:55,market:90,mine:30,harbor:60,castle:160,tower:300};
+function aiBestSpot(type,hq,minD,maxD,wantAng,tol){
+  const d=BLDS[type],gap=AI_GAP[type]||50,own=G.ents.filter(e=>!e.dead&&e.team===1&&e.kind==='bld'),towers=own.filter(e=>e.type==='tower'||e.type==='castle');
+  let best=null,bs=-1e9;
+  for(let k=0;k<160;k++){const a=wantAng===undefined?Math.random()*6.283:wantAng+(Math.random()-.5)*2*tol,dd=minD+Math.random()*(maxD-minD),x=hq.x+Math.cos(a)*dd,y=hq.y+Math.sin(a)*dd;
+    if(!validSpot(x,y,d.r))continue;let g=1e9;for(const e of own)g=Math.min(g,Math.hypot(e.x-x,e.y-y)-e.r-d.r);if(g<gap)continue;
+    let sc=Math.min(g,260)+Math.random()*30;if(type==='tower'){let tg=1e9;for(const t of towers)tg=Math.min(tg,Math.hypot(t.x-x,t.y-y));if(tg<AI_GAP.tower)continue;sc+=Math.min(tg,500)*.3}
+    if(sc>bs){bs=sc;best={x,y}}}
+  return best}
+function aiPlaceSpread(type,hq,minD,maxD,wantAng,tol){const d=BLDS[type];if(!afford(1,d.cost))return null;const s=aiBestSpot(type,hq,minD,maxD,wantAng,tol);if(!s)return null;pay(1,d.cost);return addBld(type,1,s.x,s.y,false)}
+/* Türme bilden einen weiten Ring: der erste zeigt zur Kartenmitte (Gegner), weitere versetzt links/rechts und dann hinten */
+function aiPlaceTower(hq,n){const base=Math.atan2(H/2-hq.y,W/2-hq.x),offs=[0,.95,-.95,1.9,-1.9,3.1];return aiPlaceSpread('tower',hq,250+Math.min(n,4)*35,430+Math.min(n,4)*45,base+offs[n%offs.length],.5)||aiPlaceSpread('tower',hq,220,520)}
+function aiPlace(type,hq,minD,maxD){return aiPlaceSpread(type,hq,minD,maxD)||(()=>{const d=BLDS[type];if(!afford(1,d.cost))return null;const s=findSpot(1,hq.x,hq.y,d.r,minD,maxD);if(!s)return null;pay(1,d.cost);return addBld(type,1,s.x,s.y,false)})()}
+function aiPlaceOld(type,hq,minD,maxD){const d=BLDS[type];if(!afford(1,d.cost))return null;const s=findSpot(1,hq.x,hq.y,d.r,minD,maxD);if(!s)return null;pay(1,d.cost);return addBld(type,1,s.x,s.y,false)}
 /* Turm in Richtung Kartenmitte: so wächst das Gebiet der KI nach vorn */
 function aiPlaceToward(type,hq,minD,maxD){const d=BLDS[type];if(!afford(1,d.cost))return null;const base=Math.atan2(H/2-hq.y,W/2-hq.x);
   for(let k=0;k<80;k++){const a=base+(Math.random()-.5)*2,dd=minD+Math.random()*(maxD-minD),x=hq.x+Math.cos(a)*dd,y=hq.y+Math.sin(a)*dd;if(validSpot(x,y,d.r)){pay(1,d.cost);return addBld(type,1,x,y,false)}}return null}
@@ -62,10 +76,10 @@ function aiTick(){
   if(G.cap[1]-G.pop[1]<=3&&G.cap[1]<POPMAX&&!unbuilt.some(b=>b.type==='house'))(aiPlace('house',hq,90,200)||aiPlace('house',hq,150,330));
   const nBar=blds.filter(b=>b.type==='barracks').length,wantBar=(ep>=2&&diff!=='leicht'?2:1)+ST.bar;
   if(nBar<wantBar&&workers.length>=6&&!unbuilt.some(b=>b.type==='barracks')){const b=aiPlace('barracks',hq,110,210);if(b){const a=Math.atan2(H/2-hq.y,W/2-hq.x);b.rally={x:hq.x+Math.cos(a)*170,y:hq.y+Math.sin(a)*170}}}
-  if(diff!=='leicht'&&!saving&&!blds.some(b=>b.type==='tower')&&(ep>=1||(G.t>170&&workers.length>=10))&&ST.tow>=0)aiPlace('tower',hq,70,140);
+  if(diff!=='leicht'&&!saving&&!blds.some(b=>b.type==='tower')&&(ep>=1||(G.t>170&&workers.length>=10))&&ST.tow>=0)aiPlaceTower(hq,0);
   // Expansion: weitere Türme Richtung Kartenmitte erobern Land
   const nTow=blds.filter(b=>b.type==='tower').length;
-  if(ep>=1&&diff!=='leicht'&&!saving&&nTow<Math.min(4,1+ep)+ST.tow&&ST.tow>=0&&G.t>ai.towT&&!unbuilt.some(b=>b.type==='tower')&&afford(1,BLDS.tower.cost)&&aiPlaceToward('tower',hq,190,320))ai.towT=G.t+75;
+  if(ep>=1&&diff!=='leicht'&&!saving&&nTow<Math.min(4,1+ep)+ST.tow&&ST.tow>=0&&G.t>ai.towT&&!unbuilt.some(b=>b.type==='tower')&&afford(1,BLDS.tower.cost)&&aiPlaceTower(hq,nTow))ai.towT=G.t+80;
   if(saving&&G.t>=minT&&workers.length>=targetW-1&&afford(1,adv))advance(1);
   // Marine: Hafen, Fischerboote, Kriegsschiffe
   if(diff!=='leicht'){

@@ -23,7 +23,7 @@ function genMap(seed){
   const bases=[{x:A.x,y:A.y,s:1},{x:W-A.x,y:H-A.y,s:-1}];
   genRelief(A,bases[1],seed,curMap);navInit(); // Hügel, Plateaus, Klippen
   if(MAPS[curMap]&&MAPS[curMap].cliff){carveCoast(A.x,A.y,380);carveCoast(W-A.x,H-A.y,380);navInit()}
-  const GAP={tree:15,bush:12,stone:12,iron:12,gold:12,fish:10,dolphin:14,whale:20};
+  const GAP={tree:15,bush:12,stone:14,iron:14,gold:14,oil:16,fish:10,dolphin:14,whale:20};
   const free=(x,y,r,type)=>!G.ents.some(e=>Math.hypot(e.x-x,e.y-y)<e.r+r+GAP[type]);
   const cluster=(type,cx,cy,n,spread,okFn)=>{for(let i=0;i<n;i++){for(let k=0;k<20;k++){const a=R()*6.283,d=Math.sqrt(R())*spread;const x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d,r=NODES[type].r;if(!okFn(x,y,r))continue;if(!free(x,y,r,type))continue;addNode(type,x,y);break}}};
   const landOk=(x,y,r)=>okSpot(x,y,r+4);
@@ -44,10 +44,10 @@ function genMap(seed){
   const feats=[];
   const cnt=n=>Math.round(n*Math.sqrt(AREA)*1.1);
   for(let i=0;i<cnt(8);i++)feats.push(['tree',22+Math.floor(R()*12),98,landOk]);
-  for(let i=0;i<cnt(3);i++)feats.push(['stone',2,52,landOk]);
+  for(let i=0;i<cnt(5);i++)feats.push(['stone',2,56,landOk]);
   for(let i=0;i<cnt(3);i++)feats.push(['bush',5,44,landOk]);
-  for(let i=0;i<cnt(4);i++)feats.push(['iron',2,50,landOk]);
-  for(let i=0;i<cnt(2);i++)feats.push(['gold',1+Math.floor(R()*2),42,landOk]);
+  for(let i=0;i<cnt(5);i++)feats.push(['iron',2,54,landOk]);
+  for(let i=0;i<cnt(3);i++)feats.push(['gold',1+Math.floor(R()*2),46,landOk]);
   for(let i=0;i<cnt(10);i++)feats.push(['fish',4+Math.floor(R()*2),55,waterOk.fish]);
   for(let i=0;i<cnt(6);i++)feats.push(['dolphin',2+Math.floor(R()*2),50,waterOk.dolphin]);
   for(let i=0;i<cnt(4);i++)feats.push(['whale',1+Math.floor(R()*2),70,waterOk.whale]);

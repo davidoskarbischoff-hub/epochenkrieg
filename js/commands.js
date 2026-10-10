@@ -39,15 +39,23 @@ function giveOrder(u,o,append){
   (u.q||(u.q=[])).push(o)}
 function nextOrder(u){while(u.q&&u.q.length){const o=u.q.shift();if(orderValid(o)){applyOrder(u,o);return true}}return false}
 const ordPos=o=>{if(o.x!==undefined)return{x:o.x,y:o.y};const e=o.tid?get(o.tid):null;return e?{x:e.x,y:e.y}:null};
+/* Sammelbefehl auf ein Vorkommen: jeder Arbeiter bekommt ein eigenes (erst eines pro Baum/Busch, dann zwei), die nächsten zur Klickstelle */
+function spreadGather(units,t){
+  const same=G.solids.filter(n=>n.kind==='node'&&!n.dead&&n.rt===t.rt&&!!n.sea===!!t.sea&&Math.hypot(n.x-t.x,n.y-t.y)<260&&!(MINE_RT[n.rt]&&!minedBy(0,n))&&!(n.regen&&n.amount<30)).sort((a,b)=>Math.hypot(a.x-t.x,a.y-t.y)-Math.hypot(b.x-t.x,b.y-t.y));
+  const cnt={},out=new Map();
+  for(const lim of[1,2,3,99])for(const u of units){if(out.has(u.id))continue;let best=null,bd=1e9;
+    for(const n of same){const c=(G.load[n.id]||0)+(cnt[n.id]||0);if(c>=Math.min(lim,NODES[n.type].cap))continue;const d=Math.hypot(n.x-u.x,n.y-u.y)+c*60;if(d<bd){bd=d;best=n}}
+    if(best){out.set(u.id,best);cnt[best.id]=(cnt[best.id]||0)+1}}
+  return out}
 function command(wx,wy,append,sp){
   const s=ownSel();if(!s.length)return;
   const t=NET.tgtSet?NET.tgt:entityAt(wx,wy,sp);
   if(NET.client){NET.send({c:'cmd',ids:s.map(e=>e.id),x:wx,y:wy,tid:t?t.id:0,append:!!append});fxMark(wx,wy,t&&t.team===1?'attack':'move');return}
   if(s[0].kind==='bld'){s.forEach(b=>{if(b.kind==='bld')b.rally={x:wx,y:wy,id:t&&t.kind==='node'?t.id:null,nodeType:t&&t.kind==='node'?t.rt:null}});fxMark(wx,wy,'rally');return}
-  const units=s.filter(e=>e.kind==='unit');const cols=Math.ceil(Math.sqrt(units.length));let i=0;
+  const units=s.filter(e=>e.kind==='unit');const spread=t&&t.kind==='node'?spreadGather(units.filter(u=>UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval),t):null;const cols=Math.ceil(Math.sqrt(units.length));let i=0;
   for(const u of units){
     if(t&&t.kind==='node'&&UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval&&!minedBy(0,t)){if(!u.mineMsg||G.t-u.mineMsg>4){u.mineMsg=G.t;toast(tr('Für {0} brauchst du eine fertige Mine in der Nähe.',rn(t.rt)));sfx('error')}}
-    else if(t&&t.kind==='node'&&UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval){giveOrder(u,{t:'gather',tid:t.id,rt:t.rt},append)}
+    else if(t&&t.kind==='node'&&UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval){const tg=(spread&&spread.get(u.id))||t;giveOrder(u,{t:'gather',tid:tg.id,rt:tg.rt},append)}
     else if(t&&(t.team===1||t.kind==='animal')&&u.type!=='scout'){giveOrder(u,{t:'attack',tid:t.id},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&!t.built&&u.type==='worker'){giveOrder(u,{t:'build',tid:t.id},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&t.built&&t.hp<t.maxHp-1&&u.type==='worker'){giveOrder(u,{t:'build',tid:t.id,rep:true},append)}

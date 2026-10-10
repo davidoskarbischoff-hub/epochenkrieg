@@ -11,6 +11,9 @@ const FC=20,FW=W/FC,FH=H/FC;
 let visF=null,exF=null,terrK=null,terrT=null,fogEx=null,fogVis=null,fogCv=null,fogCtx=null,fogImg=null,fogT=0,terr=null,terrCv=null,terrCtx=null,terrImg=null;
 function fogReset(){fogEx=new Uint8Array(FW*FH);fogVis=new Uint8Array(FW*FH);visF=new Float32Array(FW*FH);exF=new Float32Array(FW*FH);terrK=new Float32Array(FW*FH);terrT=new Int8Array(FW*FH);fogCv=document.createElement('canvas');fogCv.width=FW;fogCv.height=FH;fogCtx=fogCv.getContext('2d');fogImg=fogCtx.createImageData(FW,FH);terr=new Int8Array(FW*FH);terrCv=document.createElement('canvas');terrCv.width=FW;terrCv.height=FH;terrCtx=terrCv.getContext('2d');terrImg=terrCtx.createImageData(FW,FH);fogT=0;fogUpdate()}
 const fogIdx=(x,y)=>Math.max(0,Math.min(FH-1,y/FC|0))*FW+Math.max(0,Math.min(FW-1,x/FC|0));
+/* Erze, Gold und Öl sieht man erst, wenn das Gebiet erkundet wurde (Nebel des Krieges); Bäume und Büsche sieht man immer */
+const HIDDEN_NODES=new Set(['stone','iron','gold','oil']);
+function nodeKnown(e){return !HIDDEN_NODES.has(e.type)||!fogEx||fogEx[fogIdx(e.x,e.y)]===1}
 function sightOf(e){return e.kind==='unit'?UNITS[e.type].sight:e.built?BLDS[e.type].sight:50}
 /* Gebiet: jedes fertige Gebäude beansprucht einen Kreis; bei Überschneidung gewinnt das nähere Gebäude */
 const ss=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t)};
@@ -51,7 +54,7 @@ function fogUpdate(){
   terrCtx.putImageData(terrImg,0,0);
 }
 /* Die Karte ist überall zu sehen (grau abgedunkelt). Gegnerische Einheiten nur im hellen Bereich, gegnerische Gebäude erst nach dem Erkunden */
-const shown=e=>{if(e.kind==='animal')return fogVis[fogIdx(e.x,e.y)]===1;if(e.team!==1)return true;const i=fogIdx(e.x,e.y);return e.kind==='unit'?fogVis[i]===1:fogEx[i]===1};
+const shown=e=>{if(e.kind==='node')return nodeKnown(e);if(e.kind==='animal')return fogVis[fogIdx(e.x,e.y)]===1;if(e.team!==1)return true;const i=fogIdx(e.x,e.y);return e.kind==='unit'?fogVis[i]===1:fogEx[i]===1};
 function sfx(name,e){if(NET.cap)return;if(NET.host&&e&&G&&G.ev&&G.ev.length<14&&SFXNET.has(name))G.ev.push({t:'s',n:name,x:Math.round(e.x),y:Math.round(e.y)});if(typeof SND==='undefined')return;if(e&&!shown(e))return;let pan=0,vol=1;if(e&&R3.ok){const q=scr(e.x,e.y,0);if(!q.front||q.x<-40||q.y<-40||q.x>VW+40||q.y>VH+40)return;const dx=q.x/VW-.5,dy=q.y/VH-.5;pan=dx*1.7;vol=Math.max(.35,1.15-Math.hypot(dx,dy)*.9)*Math.min(1,.55+R3.k*.45)}SND.play(name,pan,vol)}
 let G=null,bg=null,bgSmall=null,diff='normal',aiStyle='balanced';
 /* Mehrspieler: host = rechnet das Spiel, client = zeigt den Stand und schickt Befehle. send = Funktion zum anderen Spieler. */
