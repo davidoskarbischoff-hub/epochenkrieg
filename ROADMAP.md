@@ -156,4 +156,5 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Balance Weltkriegseinheiten (Duell-Test kostengleicher Gruppen)
 - [x] Leistung: Gitter für Kollisionen, gedrosselte Feindsuche/Zählung
 - [x] Mehrspieler-Lobby: Grösse, Karte, Tempo, Farbe, Vorschläge
-- [ ] Echte Kartengrössen (Spielfeld wirklich kleiner/grösser), Ausbaubäume für Hafen/Markt/Flugplatz, Fliegerabwehr, Diktaturen-Zweig ausbauen
+- [x] Echte Kartengrössen (Randgebirge), Ausbau Hafen/Markt/Flugplatz
+- [ ] Kartengrösse auch im Einzelspieler-Startmenü, Fliegerabwehr, Diktaturen-Zweig ausbauen

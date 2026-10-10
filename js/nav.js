@@ -106,6 +106,14 @@ function genTerrain(seed,mapId){
       HL[i]=h}}
   computeMainland();
 }
+/* Kleinere Spielfelder: ausserhalb eines mittigen Rechtecks (Anteil f der Karte) steigt ein Randgebirge auf (TERR 3, hoch, unpassierbar) */
+let playF=1;
+function applyPlayRect(f){
+  if(f>=.999)return;const hx=W*f/2,hy=H*f/2,cx=W/2,cy=H/2,SOFT=200;
+  for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const i=y*TW+x,px=(x+.5)*TG,py=(y+.5)*TG,o=Math.max(Math.abs(px-cx)-hx,Math.abs(py-cy)-hy);
+    if(o>-TG*.5){TERR[i]=3;const k=sm3(0,SOFT,o+TG*.5);HL[i]=Math.max(HL[i],.9+5.8*k+.35*Math.sin(px*.021+py*.017))}
+    else if(o>-SOFT&&TERR[i]===2){HL[i]+=2.2*sm3(-SOFT,0,o)}}
+  computeMainland()}
 /* Relief nach der Wahl der Startplätze: abgerundete Hügel unter den Basen, Plateaus mit steilen Klippen (TERR 3) und Rampen dazwischen */
 function genRelief(A,B,seed,mapId){
   const cfg=MAPS[mapId]||MAPS.coast,R=mulberry(seed+4141),nP=vnoise(R,8,5),nR=vnoise(R,26,17),sym=(f,x,y)=>(f(x,y)+f(W-x,H-y))/2;
