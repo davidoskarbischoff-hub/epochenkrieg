@@ -95,11 +95,21 @@ function aiTick(){
     }
   }
   // Armee
-  const types=[['club'],['spear','archer','spear'],['sword','archer','sword','spear'],['knight','crossbow','sword','catapult','knight'],['musket','cannon','knight','musket','crossbow'],['rifle','howitzer','rifle','tank','musket','rifle']][ep];
+  /* Armeemischung nach Rollen: Front (hält die Linie), Fernkampf, Reiter, Belagerung, Sanitäter. Gebaut wird, was gemessen am Ziel-Anteil fehlt. */
+  const ROLE=u=>({club:'front',spear:'front',sword:'front',engineer:'front',knight:'shock',sling:'rng',archer:'rng',crossbow:'rng',musket:'rng',rifle:'rng',catapult:'siege',cannon:'siege',howitzer:'siege',ram:'siege',tank:'siege',healer:'med'})[u];
+  const MIX={balanced:{front:.38,rng:.3,shock:.1,siege:.12,med:.1},turtle:{front:.5,rng:.3,siege:.1,med:.1},rush:{front:.45,shock:.25,rng:.25,med:.05},eco:{front:.4,rng:.35,siege:.1,med:.15},boom:{front:.35,rng:.3,siege:.2,med:.15}}[ai.style]||{front:.4,rng:.3,siege:.1,med:.1,shock:.1};
+  const have=u=>UNITS[u].ep<=ep&&(!UNITS[u].tech||G.tech[1].has(UNITS[u].tech))&&u!=='scout'&&UNITS[u].from==='barracks';
+  const pool=Object.keys(UNITS).filter(have),healers=mine.filter(e=>e.type==='healer'),all=army.concat(healers),tot=Math.max(1,all.length);
   const armyCap=Math.round([8,13,20,28,36,44][ep]*DIFF[diff].army*ST.army),queued=blds.reduce((n,b)=>n+(b.type==='barracks'?b.queue.length:0),0);
   for(const b of blds){if(b.type!=='barracks'||!b.built||b.queue.length>=2||army.length+queued>=armyCap)continue;
     if(saving&&!(r.food>adv.food+90&&r.wood>(adv.wood||0)+90))continue;
-    const pick=types.map((_,i)=>types[(G.stats.trained[1]+b.id+i)%types.length]).find(t=>afford(1,UNITS[t].cost)&&(!UNITS[t].tech||G.tech[1].has(UNITS[t].tech)));if(pick)enqueue(b,pick,1)}
+    const share={};for(const u of all)share[ROLE(u.type)]=(share[ROLE(u.type)]||0)+1;for(const q of blds.flatMap(x=>x.queue||[]))if(UNITS[q.type])share[ROLE(q.type)]=(share[ROLE(q.type)]||0)+1;
+    const roles=Object.keys(MIX).sort((x,y)=>((share[x]||0)/tot/MIX[x])-((share[y]||0)/tot/MIX[y]));
+    let pick=null;for(const role of roles){const cand=pool.filter(u=>ROLE(u)===role&&afford(1,UNITS[u].cost)).sort((x,y)=>UNITS[y].ep-UNITS[x].ep||(Math.random()<.5?1:-1));if(cand.length){pick=cand[Math.random()<.3&&cand.length>1?1:0];break}}
+    if(!pick)pick=pool.filter(u=>afford(1,UNITS[u].cost)&&ROLE(u)==='front')[0];
+    if(pick)enqueue(b,pick,1)}
+  // Sanitäter laufen hinter der Armee her
+  if(healers.length&&army.length){const c=army.reduce((p,m)=>({x:p.x+m.x/army.length,y:p.y+m.y/army.length}),{x:0,y:0});for(const h of healers){if(h.state==='idle'||h.state==='move'){const d=Math.hypot(h.x-c.x,h.y-c.y);if(d>110&&(!h.dest||Math.hypot(h.dest.x-c.x,h.dest.y-c.y)>90)){h.state='move';h.dest={x:c.x-(c.x-hq.x)*.08,y:c.y};h.pf=null}}}}
   // Kampfrausch, sobald eine größere Gruppe im Gefecht ist
   {const fighting=army.filter(m=>m.state==='attack');if(fighting.length>=5&&G.t>(ai.rageT||0)){ai.rageT=G.t+30;useRage(1,fighting.map(m=>m.id))}}
   // Verteidigung

@@ -52,22 +52,36 @@ function command(wx,wy,append,sp){
   const t=NET.tgtSet?NET.tgt:entityAt(wx,wy,sp);
   if(NET.client){NET.send({c:'cmd',ids:s.map(e=>e.id),x:wx,y:wy,tid:t?t.id:0,append:!!append});fxMark(wx,wy,t&&t.team===1?'attack':'move');return}
   if(s[0].kind==='bld'){s.forEach(b=>{if(b.kind==='bld')b.rally={x:wx,y:wy,id:t&&t.kind==='node'?t.id:null,nodeType:t&&t.kind==='node'?t.rt:null}});fxMark(wx,wy,'rally');return}
-  const units=s.filter(e=>e.kind==='unit');const spread=t&&t.kind==='node'?spreadGather(units.filter(u=>UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval),t):null;const cols=Math.ceil(Math.sqrt(units.length));let i=0;
+  const units=s.filter(e=>e.kind==='unit');const mv=units.filter(u=>!UNITS[u.type].gather&&!UNITS[u.type].naval),movers=new Map();if(!t&&mv.length>1){const sp3=formationSpots(mv,wx,wy,curForm);mv.forEach((u,k)=>movers.set(u.id,sp3[k]))}const spread=t&&t.kind==='node'?spreadGather(units.filter(u=>UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval),t):null;const cols=Math.ceil(Math.sqrt(units.length));let i=0;
   for(const u of units){
     if(t&&t.kind==='node'&&UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval&&!minedBy(0,t)){if(!u.mineMsg||G.t-u.mineMsg>4){u.mineMsg=G.t;toast(tr('Für {0} brauchst du eine fertige Mine in der Nähe.',rn(t.rt)));sfx('error')}}
     else if(t&&t.kind==='node'&&UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval){const tg=(spread&&spread.get(u.id))||t;giveOrder(u,{t:'gather',tid:tg.id,rt:tg.rt},append)}
     else if(t&&(t.team===1||t.kind==='animal')&&u.type!=='scout'){giveOrder(u,{t:'attack',tid:t.id},append)}
-    else if(t&&t.team===0&&t.kind==='bld'&&!t.built&&u.type==='worker'){giveOrder(u,{t:'build',tid:t.id},append)}
-    else if(t&&t.team===0&&t.kind==='bld'&&t.built&&t.hp<t.maxHp-1&&u.type==='worker'){giveOrder(u,{t:'build',tid:t.id,rep:true},append)}
+    else if(t&&t.team===0&&t.kind==='bld'&&!t.built&&UNITS[u.type].builds){giveOrder(u,{t:'build',tid:t.id},append)}
+    else if(t&&t.team===0&&t.kind==='bld'&&t.built&&t.hp<t.maxHp-1&&UNITS[u.type].builds){giveOrder(u,{t:'build',tid:t.id,rep:true},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&BLDS[t.type].drop&&UNITS[u.type].gather&&u.carry>0&&(!UNITS[u.type].naval||t.type==='harbor')){giveOrder(u,{t:'return'},append)}
-    else{const ox=(i%cols-(cols-1)/2)*18,oy=(Math.floor(i/cols)-(cols-1)/2)*18;giveOrder(u,{t:'move',x:wx+ox,y:wy+oy},append);i++}
+    else{const sp2=movers.get(u.id);const ox=sp2?sp2.x-wx:(i%cols-(cols-1)/2)*18,oy=sp2?sp2.y-wy:(Math.floor(i/cols)-(cols-1)/2)*18;giveOrder(u,{t:'move',x:wx+ox,y:wy+oy},append);i++}
   }
   fxMark(wx,wy,t&&t.team===1?'attack':'move');
 }
+/* Formationen: Linie, Keil, Kolonne, Karree, Kreis. Vorn stehen die Frontkämpfer, hinten Fernkämpfer, Belagerung und Sanitäter. */
+let curForm=0;const FORMS=['Linie','Keil','Kolonne','Karree','Kreis'];
+const FROLE={inf:0,spear:0,cav:1,rng:2,siege:3,med:3,wk:3};
+function formationSpots(units,tx,ty,form){
+  const n=units.length;if(n<2)return units.map(()=>({x:tx,y:ty}));
+  let cx=0,cy=0;units.forEach(u=>{cx+=u.x;cy+=u.y});cx/=n;cy/=n;const th=Math.atan2(ty-cy,tx-cx),co=Math.cos(th),si=Math.sin(th),sp=21,loc=[];
+  if(form===0){const per=Math.min(10,Math.ceil(Math.sqrt(n*2.2)));for(let i=0;i<n;i++){const r=Math.floor(i/per),c=i%per,cnt=Math.min(per,n-r*per);loc.push([-r*sp,(c-(cnt-1)/2)*sp])}}
+  else if(form===1){let r=0,k=0;while(loc.length<n){const w=2*r+1;for(let c=0;c<w&&loc.length<n;c++)loc.push([-r*sp,(c-(w-1)/2)*sp]);r++}}
+  else if(form===2){for(let i=0;i<n;i++)loc.push([-Math.floor(i/2)*sp,(i%2?1:-1)*sp*.5])}
+  else if(form===3){const side=Math.max(2,Math.ceil(n/4)+1),pts=[];for(let i=0;i<side;i++){pts.push([i,0]);pts.push([side-1,i]);pts.push([side-1-i,side-1]);pts.push([0,side-1-i])}const m=(side-1)/2;for(let i=0;i<n;i++){const p=pts[i%pts.length];loc.push([-(p[0]-m)*sp,(p[1]-m)*sp])}}
+  else{const R=Math.max(26,n*5.2);for(let i=0;i<n;i++){const a=i/n*6.283;loc.push([Math.cos(a)*R*.8,Math.sin(a)*R])}}
+  /* zuordnen: Frontkämpfer auf die vorderen Plätze */
+  const order=units.map((u,i)=>i).sort((a,b)=>(FROLE[UNITS[units[a].type].cls]??1)-(FROLE[UNITS[units[b].type].cls]??1)),slots=loc.map((l,i)=>i).sort((a,b)=>loc[b][0]-loc[a][0]),res=[];
+  order.forEach((ui,k)=>{const l=loc[slots[k]];res[ui]={x:tx+co*l[0]-si*l[1],y:ty+si*l[0]+co*l[1]}});return res}
 function attackMove(wx,wy,append){
   if(NET.client){const us=ownSel().filter(e=>e.kind==='unit'&&!UNITS[e.type].passive);NET.send({c:'amove',ids:us.map(e=>e.id),x:wx,y:wy,append:!!append});armed=false;fxMark(wx,wy,'attack');return}
   const units=ownSel().filter(e=>e.kind==='unit'&&!UNITS[e.type].passive);const cols=Math.ceil(Math.sqrt(units.length));
-  units.forEach((u,i)=>{giveOrder(u,{t:'amove',x:wx+(i%cols-(cols-1)/2)*18,y:wy+(Math.floor(i/cols)-(cols-1)/2)*18},append)});
+  const spots=formationSpots(units,wx,wy,curForm);units.forEach((u,i)=>{giveOrder(u,{t:'amove',x:spots[i].x,y:spots[i].y},append)});
   armed=false;fxMark(wx,wy,'attack');
 }
 /* Markt: 100 Rohstoff gegen Gold verkaufen (dir='sell') oder 100 Rohstoff für Gold kaufen (dir='buy') */
@@ -78,10 +92,10 @@ function trade(team,rt,dir){const R=G.res[team],lot=TRADE.lot,g=Math.round(lot*T
 function startPlace(type){const d=BLDS[type];if(d.ep>G.epoch[0]){toast(tr('Erst ab der {0} verfügbar.',tr(EPOCHS[d.ep].name)));sfx('error');return}if(!afford(0,d.cost)){toast(missing(0,d.cost)+'.');sfx('error');return}placing=type;armed=false}
 function tryPlace(wx,wy,keep){
   const d=BLDS[placing],blk=placeBlock(placing,wx,wy);if(blk){toast(blk);sfx('error');return}
-  if(NET.client){if(!afford(0,d.cost)){toast(missing(0,d.cost)+'.');placing=null;return}NET.send({c:'place',type:placing,x:wx,y:wy,keep:!!keep,ids:ownSel().filter(u=>u.type==='worker').map(u=>u.id)});sfx('click');if(!keep)placing=null;return}
+  if(NET.client){if(!afford(0,d.cost)){toast(missing(0,d.cost)+'.');placing=null;return}NET.send({c:'place',type:placing,x:wx,y:wy,keep:!!keep,ids:ownSel().filter(u=>UNITS[u.type].builds).map(u=>u.id)});sfx('click');if(!keep)placing=null;return}
   if(!pay(0,d.cost)){toast(missing(0,d.cost)+'.');placing=null;return}
   const b=addBld(placing,0,wx,wy,false);if(b.type==='harbor'){let best=0,bs=-1;for(let k=0;k<24;k++){const a=k*.2618;let sc=0;for(const dd of[40,70,100])sc+=terrAt(wx+Math.cos(a)*dd,wy+Math.sin(a)*dd)===0?2:terrAt(wx+Math.cos(a)*dd,wy+Math.sin(a)*dd)===1?1:-2;if(sc>bs){bs=sc;best=a}}b.ang=best}
-  ownSel().filter(u=>u.type==='worker').forEach(u=>giveOrder(u,{t:'build',tid:b.id},keep));
+  ownSel().filter(u=>UNITS[u.type].builds).forEach(u=>giveOrder(u,{t:'build',tid:b.id},keep));
   if(!(keep&&afford(0,d.cost)))placing=null;
 }
 function cancelQueue(b,i){if(NET.client){NET.send({c:'cq',b:b.id,i});return}const q=b.queue[i];if(!q)return;refund(0,UNITS[q.type].cost);b.queue.splice(i,1);panelSig=''}

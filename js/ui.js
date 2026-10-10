@@ -43,7 +43,7 @@ function renderOptions(){
     +row('Effekte',rng('sv',0,100,1,Math.round(SND.sfx*100),pc(SND.sfx)))
     +row('Kampfmusik',tog('oWar',OPT.combatMusic),'Trommeln und Bläser bei Gefechten')
     +row('Stimmen',tog('oVoice',OPT.voices),'Brummen der Arbeiter, Kampfschreie, Kriegshorn');
-  if(optTab==='ctl'){const K=[['WASD / Pfeile','Karte bewegen'],['Mausrad','Zoom'],['Linksklick / Rahmen','Auswählen'],['Doppelklick','Alle gleichen im Bild'],['Rechtsklick','Bewegen, sammeln, bauen, angreifen, reparieren'],['Q','Angriffsmarsch'],['F','Kampfrausch'],['H','Zum Hauptlager'],['E','Späher erkunden'],['.','Untätigen Arbeiter wählen'],['Y / X','Berater: annehmen / ablehnen'],['Leertaste','Pause'],['M','Ton an/aus'],['Esc','Menü']];
+  if(optTab==='ctl'){const K=[['WASD / Pfeile','Karte bewegen'],['Mausrad','Zoom'],['Linksklick / Rahmen','Auswählen'],['Doppelklick','Alle gleichen im Bild'],['Rechtsklick','Bewegen, sammeln, bauen, angreifen, reparieren'],['Q','Angriffsmarsch'],['F','Kampfrausch'],['G','Formation wechseln (Linie, Keil, Kolonne, Karree, Kreis)'],['H','Zum Hauptlager'],['E','Späher erkunden'],['.','Untätigen Arbeiter wählen'],['Y / X','Berater: annehmen / ablehnen'],['Leertaste','Pause'],['M','Ton an/aus'],['Esc','Menü']];
     body='<div class="keys">'+K.map(([k,d])=>`<div><kbd>${k}</kbd><span>${tr(d)}</span></div>`).join('')+'</div>'}
   if(optTab==='ai')body=row('Berater',tog('advChk',advOn),'Schlägt Aktionen vor (Annehmen: Y, Ablehnen: X)')
     +row('Berater im Auto-Modus',tog('oAuto',advisor.auto),'Der Berater führt seine Vorschläge selbst aus')
@@ -88,8 +88,9 @@ const costHTML=c=>RES.filter(r=>c[r]).map(r=>`<span class="c ${(G&&G.res[0][r]||
 function actionsFor(s){
   if(!s.length||s[0].team!==0)return[];const f=s[0],acts=[],ep=G.epoch[0];
   if(f.kind==='unit'){
-    if(s.some(u=>u.type==='worker'))for(const k of ['house','store','barracks','farm','mine','market','harbor','tower','castle','wall','gate'].filter(k=>BLDS[k].ep<=ep)){const d=BLDS[k];acts.push({key:'b'+k,nm:tr(d.name),cost:d.cost,sub:tr(d.sub),lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>startPlace(k)})}
+    if(s.some(u=>UNITS[u.type].builds))for(const k of ['house','store','barracks','farm','mine','market','harbor','tower','castle','wall','gate','trench'].filter(k=>BLDS[k].ep<=ep)){const d=BLDS[k];acts.push({key:'b'+k,nm:tr(d.name),cost:d.cost,sub:tr(d.sub),lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>startPlace(k)})}
     if(s.some(u=>u.kind==='unit'&&!UNITS[u.type].passive))acts.push({key:'am',nm:tr('Angriffsmarsch'),sub:tr('Taste Q, dann Ziel'),run:()=>{armed=true;placing=null}});
+    if(s.filter(u=>u.kind==='unit'&&!UNITS[u.type].gather).length>1)acts.push({key:'form',nm:tr('Formation: {0}',tr(FORMS[curForm])),sub:tr('Taste G wechselt: Linie, Keil, Kolonne, Karree, Kreis'),run:()=>{curForm=(curForm+1)%FORMS.length;panelSig='';toast(tr('Formation: {0}',tr(FORMS[curForm])),'good')}});
     if(s.some(u=>u.kind==='unit'&&!UNITS[u.type].passive&&!UNITS[u.type].naval))acts.push({key:'rage',nm:tr('Kampfrausch'),sub:tr('Taste F: mehr Schaden und Tempo für {0} s',RAGE.dur),run:()=>{const ids=s.filter(u=>u.kind==='unit').map(u=>u.id);if(NET.client)NET.send({c:'rage',ids});else if(!useRage(0,ids))toast(tr('Kampfrausch lädt noch.'),'warn')}});
     if(s.some(u=>u.type==='scout'))acts.push({key:'exp',nm:tr('Erkunden'),sub:tr('Taste E: automatisch'),run:()=>{if(NET.client)NET.send({c:'explore',ids:s.map(u=>u.id)});else doExplore()}});
     acts.push({key:'stop',nm:tr('Halt'),sub:tr('Befehle abbrechen'),run:()=>{if(NET.client){NET.send({c:'halt',ids:s.map(u=>u.id)});return}s.forEach(u=>{if(u.kind==='unit'){u.state='idle';u.amove=null;u.q=[];u.loop=null;u.manual=true}})}});

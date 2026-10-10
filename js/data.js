@@ -5,7 +5,7 @@ const AREA=W*H/(3600*2400); /* Kartengrösse im Vergleich zur ersten Version (f�
 // Sammeln je Ressource: Tempo-Faktor und Tragekapazität (Beeren bringen mehr, weil Nahrung sonst knapp ist)
 const GATHER={food:{rate:1.5,carry:15},wood:{rate:1.2,carry:12},stone:{rate:.9,carry:10},iron:{rate:.8,carry:8},gold:{rate:.7,carry:8}};
 const UNITS={
-  worker:{cls:'wk',gather:true,passive:true,name:'Arbeiter',sight:130,hp:40,spd:58,atk:3,rng:4,cd:1.2,r:7,cost:{food:50},time:9,ep:0,from:'hq'},
+  worker:{cls:'wk',gather:true,builds:true,passive:true,name:'Arbeiter',sight:130,hp:40,spd:58,atk:3,rng:4,cd:1.2,r:7,cost:{food:50},time:9,ep:0,from:'hq'},
   scout:{cls:'wk',name:'Späher',passive:true,sight:300,hp:40,spd:105,atk:0,rng:4,cd:1.2,r:6,cost:{food:60,wood:20},time:10,ep:0,from:'hq'},
   boat:{cls:'ship',name:'Fischerboot',naval:true,gather:true,passive:true,sight:200,hp:90,spd:72,atk:0,rng:4,cd:1.2,r:11,cost:{wood:80},time:14,ep:0,from:'harbor'},
   warship:{cls:'ship',tech:'shipbuild',name:'Kriegsschiff',naval:true,ranged:true,sight:240,hp:230,spd:62,atk:15,rng:175,cd:1.8,r:13,cost:{wood:140,stone:60},time:24,ep:1,from:'harbor'},
@@ -24,7 +24,8 @@ const UNITS={
   tank:{cls:'siege',tech:'armor',name:'Panzer',sight:230,hp:420,spd:48,atk:46,rng:210,cd:2.6,r:14,cost:{wood:200,iron:320,gold:140},time:38,ep:5,from:'barracks',ranged:true,siege:true},
   howitzer:{cls:'siege',tech:'artillery',name:'Haubitze',sight:230,hp:200,spd:34,atk:90,rng:300,cd:4.8,r:12,cost:{gold:110,wood:260,iron:260},time:34,ep:5,from:'barracks',ranged:true,siege:true},
   ironclad:{cls:'ship',tech:'ironclads',name:'Panzerschiff',naval:true,ranged:true,sight:280,hp:620,spd:58,atk:44,rng:240,cd:2.4,r:17,cost:{gold:90,wood:260,iron:240},time:40,ep:5,from:'harbor'},
-  healer:{cls:'med',passive:true,heal:2.2,name:'Heiler',sight:150,hp:80,spd:56,atk:0,rng:4,cd:1.2,r:7,cost:{food:70,wood:30},time:14,ep:1,from:'barracks'},
+  healer:{cls:'med',passive:true,heal:2.2,name:'Heiler',sight:150,hp:80,spd:56,atk:0,rng:4,cd:1.2,r:7,cost:{food:60,wood:20},time:14,ep:0,from:'barracks'},
+  engineer:{cls:'inf',builds:true,name:'Ingenieur',sight:160,hp:95,spd:54,atk:7,rng:5,cd:1.2,r:7,cost:{food:70,wood:50,iron:20},time:16,ep:3,from:'barracks'},
   sword:{cls:'inf',tech:'smithy',name:'Schwertkämpfer',sight:150,hp:150,spd:52,atk:15,rng:5,cd:1.1,r:9,cost:{food:80,iron:40},time:18,ep:2,from:'barracks'}
 };
 const BLDS={
@@ -37,6 +38,7 @@ const BLDS={
   wall:{name:'Mauer',sight:60,hp:520,r:11,cost:{wood:8,stone:3},time:5,ep:1,sub:'Palisade, später Stein und Sperren – Ziehen mit gedrückter Maustaste'},
   gate:{name:'Tor',sight:80,hp:480,r:13,cost:{wood:30,stone:8},time:10,ep:1,passable:true,sub:'Einheiten kommen hindurch'},
   farm:{name:'Feld',sight:120,claim:60,hp:200,r:20,cost:{wood:70},time:16,ep:1,sub:'Nahrung, die immer nachwächst'},
+  trench:{name:'Stellung',sight:110,hp:260,r:15,cost:{wood:25,stone:10},time:8,ep:1,passable:true,cover:true,sub:'Truppen darin erleiden 35 % weniger Schaden'},
   mine:{name:'Mine',sight:150,claim:90,hp:420,r:16,drop:true,cost:{wood:100,stone:40},time:20,ep:2,sub:'Nötig für Eisen und Gold'},
   market:{name:'Markt',sight:170,claim:110,hp:520,r:22,cost:{wood:150,stone:80},time:24,ep:3,sub:'Rohstoffe gegen Gold tauschen'},
   tower:{name:'Wachturm',sight:300,claim:320,hp:550,r:14,cost:{wood:70,stone:60},time:26,ep:0,shoot:{rng:170,atk:9,cd:1.5},sub:'Schiesst auf Gegner'}
@@ -60,6 +62,8 @@ const ANIMALS={
 /* Gegenstücke: Schadensfaktor Angreifer-Klasse -> Ziel-Klasse (Speer schlägt Reiter, Reiter jagen Fernkämpfer, Fernkämpfer schwächen Nahkämpfer, Nahkämpfer erreichen Fernkämpfer und Belagerung) */
 const CTR={spear:{cav:1.8},cav:{rng:1.4,siege:1.4,med:1.4},rng:{inf:1.2,spear:1.15},inf:{rng:1.25,siege:1.3,med:1.3},spear_:{}};
 const RAGE={dur:6,cd:35,dmg:1.35,spd:1.25}; /* Fähigkeit Kampfrausch (Taste F) */
+/* Einheiten ändern ihren Namen mit dem Zeitalter (Sanitäter-Reihe) */
+const UNAMES={healer:['Schamane','Heiler','Priester','Feldscher','Sanitäter','Medizintechniker']};
 const POPMAX=100;
 const RES=['food','wood','stone','iron','gold'],RN={food:'Nahrung',wood:'Holz',stone:'Stein',iron:'Eisen',gold:'Gold'};
 const RES_EP={stone:1,iron:2,gold:3},MINE_RT={iron:1,gold:1}; /* ab welcher Epoche eine Ressource erscheint; Erz und Gold brauchen eine Mine in der Nähe */

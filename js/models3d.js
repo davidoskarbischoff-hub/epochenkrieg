@@ -148,6 +148,11 @@ const BLD3={
     for(let i=0;i<2;i++)put(g,cyl(R*.2,R*.2,R*.4,10),m3Mat('planks',0x8d6a3e),-R*1.0+i*.2,R*.2,R*.6);
     put(g,cyl(.18,.18,.12,10),goldM(),R*1.0,R*.35,R*.6);put(g,cyl(.18,.18,.12,10),goldM(),R*1.0,R*.47,R*.6);put(g,cyl(.18,.18,.12,10),goldM(),R*1.0,R*.59,R*.6);
     flagPole(g,0,R*.9,R*.5,R*1.2,team);g.userData.h=R*1.8;return g},
+  trench(R,st,team){const g=new THREE.Group(),sand=m3Plain(0xb8a578,.95),earth=m3Mat('dirt',0x5a4a32);
+    put(g,cyl(R*1.05,R*1.1,.1,18),earth,0,.05,0,false);put(g,cyl(R*.7,R*.7,.12,16),m3Plain(0x2a2018,1),0,.08,0,false);
+    for(let i=0;i<14;i++){const a=i/14*Math.PI*1.55-Math.PI*.78+Math.PI,x=Math.cos(a)*R*.95,z=Math.sin(a)*R*.95;const b=put(g,new THREE.SphereGeometry(.26,8,6),sand,x,.2+((i%2)*.18),z);b.scale.set(1.25,.62,.8);b.rotation.y=-a}
+    for(const z of[-1,1])put(g,cyl(.03,.03,.7,5),woodD(),R*.1,.35,z*R*1.1).rotation.z=.3;if(st.ep>=3)put(g,new THREE.TorusGeometry(R*.9,.012,5,18,Math.PI),m3Plain(0x3a3b3a,.5,{metalness:.8}),0,.5,0).rotation.x=Math.PI/2;
+    g.userData.h=1.2;return g},
   wall(R,st,team){const g=new THREE.Group(),L=R*2.3,ep=st.ep;
     if(ep<=2){ /* Holzpalisade: angespitzte Stämme mit Querbalken und Schnüren */
       const H=R*1.7,n=6,lg=m3Mat('planks',ep===1?0x8a6a42:0x7a5a3a);for(let i=0;i<n;i++){const x=-L/2+L*(i+.5)/n,h=H*(.9+.18*((i*7)%3)/2);put(g,cyl(.15,.17,h,7),lg,x,h/2,0);put(g,cone(.15,.34,7),lg,x,h+.15,0)}
@@ -531,11 +536,27 @@ UNIT3.tank=(u,tm)=>{const g=new THREE.Group(),rig={g,legs:[],arms:[],wheels:[]};
   put(g,new THREE.BoxGeometry(.04,.4,.62),canvas,.0,1.45,0,false).scale.set(.1,1,1);
   rig.knees.forEach(k=>{put(k,cyl(.1,.11,.26,8),canvas,0,-.3,0,false)});return rig}}
 UNIT3.rifle=(u,tm)=>UNIT3._rifle(u,tm);
-UNIT3.healer=(u,tm)=>{const t=Math.min(5,u.lvl||0),rig=human({body:m3Plain([0xd9cdb0,0xe8dfc8,0xf1ead6,0xf1ead6,0xf3efe4,0xe9edf2][t],.9),legs:cloth(0xe8e0cc),belt:tm}),R=armHand(rig,1);
-  put(rig.g,new THREE.BoxGeometry(.5,.12,.64),tm,0,1.78,0,false);put(rig.g,cyl(.34,.42,.9,12),m3Plain([0xd9cdb0,0xe8dfc8,0xf1ead6,0xf1ead6,0xf3efe4,0xe9edf2][t],.9),0,1.0,0);
-  put(rig.g,new THREE.BoxGeometry(.04,.34,.1),m3Plain(0x3aa05a),.3,1.4,0,false);put(rig.g,new THREE.BoxGeometry(.04,.1,.34),m3Plain(0x3aa05a),.3,1.4,0,false);
-  put(rig.g,new THREE.SphereGeometry(.29,10,8,0,6.283,0,2.1),m3Plain(0xe8dfc8,.9),-.03,2.04,0);
-  put(R,cyl(.04,.04,1.9,6),wood(),0,.3,0);put(R,new THREE.SphereGeometry(.14,8,8),m3Plain(0x3aa05a,.4,{emissive:0x2a8a4a,emissiveIntensity:.5}),0,1.28,0);return rig};
+/* Sanitäter-Reihe: Schamane (Fell, Federn, Knochenstab), Heiler (Kapuze, Kräuterbeutel), Priester (Kutte, Kreuzstab), Feldscher, Sanitäter (Tasche, rotes Kreuz), Medizintechniker (Helm, Armbinde) */
+UNIT3.healer=(u,tm)=>{const t=Math.min(5,u.lvl||0),robe=[0x7a5a38,0xd9cdb0,0xe8dfc8,0xf1ead6,0xf3efe4,0xe9edf2][t],rig=human({body:t===0?skinM():m3Mat('cloth',robe,{roughness:.9}),legs:t===0?furM(0x5a4028):m3Mat('cloth',t>=4?0x3a3f48:robe),belt:tm,noBeard:false}),R=armHand(rig,1),g=rig.g,red=m3Plain(0xc43a2a,.6);
+  if(t===0){put(g,cyl(.34,.42,.5,10),furM(0x6a4a2a),0,1.15,0);put(g,new THREE.SphereGeometry(.36,10,8,0,6.283,0,1.4),furM(0x8a6a45),-.1,1.68,0).scale.set(1.1,.8,1.3);
+    for(let i=0;i<7;i++){const a=-.9+i*.3;put(g,cone(.035,.4,4),m3Plain([0xc84b3a,0xf1ead6,0x3d72b8][i%3],.7),-.02,2.3,Math.sin(a)*.32,false).rotation.x=Math.sin(a)*1.1}
+    put(R,cyl(.04,.04,1.9,6),wood(),0,.3,0);const sk=put(R,new THREE.SphereGeometry(.15,8,6),m3Plain(0xece4cf,.7),0,1.3,0);sk.scale.set(1,1.1,.9);for(const z of[-1,1])put(R,new THREE.SphereGeometry(.035,5,4),m3Plain(0x1c140c),.1,1.33,z*.06,false);for(let i=0;i<3;i++)put(R,cone(.03,.2,4),m3Plain(0xece4cf,.7),0,1.12-i*.12,.12*(i-1)).rotation.x=Math.PI}
+  else{put(g,cyl(.34,.44,.95,12),m3Mat('cloth',robe,{roughness:.9}),0,1.0,0);
+    if(t<=3){put(g,new THREE.SphereGeometry(.31,10,8,0,6.283,0,2.1),m3Mat('cloth',t===3?0x3a3028:robe,{roughness:.9}),-.03,2.03,0);put(g,cone(.14,.34,6),m3Mat('cloth',t===3?0x3a3028:robe),-.24,2.15,0).rotation.z=.9}
+    if(t===1){put(g,new THREE.SphereGeometry(.17,8,6),m3Plain(0x6a8a4a,.9),.32,1.0,.28);put(g,cyl(.02,.02,.5,4),wood(),.34,1.3,.28).rotation.z=.2}
+    if(t===2||t===3){put(g,cyl(.04,.04,2.0,6),wood(),0,.3,0).position.set(0,0,0);R.add(new THREE.Group());const cx=put(R,cyl(.04,.04,1.9,6),wood(),0,.3,0);put(R,new THREE.BoxGeometry(.5,.08,.08),m3Plain(0xd9b44a,.3,{metalness:.7}),0,1.35,0);put(R,new THREE.BoxGeometry(.08,.4,.08),m3Plain(0xd9b44a,.3,{metalness:.7}),0,1.35,0)}
+    if(t>=3){put(g,rbox(.05,.5,.46,.02),m3Plain(0xf3efe4,.8),.32,1.5,0,false);put(g,new THREE.BoxGeometry(.04,.34,.1),red,.35,1.52,0,false);put(g,new THREE.BoxGeometry(.04,.1,.34),red,.35,1.52,0,false)}
+    if(t>=4){put(g,rbox(.3,.34,.46,.05),m3Mat('leather',0x6a4a2c),-.36,1.1,.3);put(g,new THREE.BoxGeometry(.05,.2,.05),red,-.4,1.1,.54,false);put(g,new THREE.BoxGeometry(.05,.05,.2),red,-.4,1.1,.54,false);
+      put(g,new THREE.SphereGeometry(.29,12,10,0,6.283,0,1.7),t===5?m3Mat('scratch',0x7a8a6a,{roughness:.5,metalness:.4}):m3Plain(0xf3efe4,.8),.02,2.08,0);put(g,new THREE.BoxGeometry(.06,.2,.06),red,.3,2.12,0,false);put(g,new THREE.BoxGeometry(.06,.06,.2),red,.3,2.12,0,false);
+      put(R,rbox(.5,.1,.3,.03),m3Plain(0xd9d5c8,.8),0,.25,0)}}
+  return rig};
+/* Ingenieur: Schutzhelm bzw. Lederkappe mit Schutzbrille, Werkzeuggürtel, Tornister mit Werkzeug, große Zange/Schaufel */
+UNIT3.engineer=(u,tm)=>{const t=Math.max(3,Math.min(5,u.lvl||3)),rig=human({body:m3Mat('cloth',[0x8a6f4a,0x6e5a46,0x5a5f6a][t-3],{roughness:.9}),legs:m3Mat('cloth',0x3a3028),belt:m3Mat('leather',0x3a2a1a)}),R=armHand(rig,1),g=rig.g,steel=m3Mat('scratch',0x8a8d90,{roughness:.4,metalness:.8});
+  put(g,new THREE.SphereGeometry(.29,12,10,0,6.283,0,1.7),m3Mat('leather',t===3?0x6a4a2c:0xc9a24a),.02,2.08,0);put(g,cyl(.4,.4,.04,14),m3Mat('leather',0x6a4a2c),.0,2.1,0,false);
+  for(const z of[-1,1])put(g,cyl(.09,.09,.06,10),m3Plain(0x9ad0e0,.2,{metalness:.5}),.24,2.1,z*.1,false).rotation.z=Math.PI/2;put(g,new THREE.BoxGeometry(.03,.05,.3),m3Plain(0x2a2018,.8),.21,2.1,0,false);
+  put(g,rbox(.3,.5,.46,.05),m3Mat('leather',0x5a4028),-.38,1.52,0);for(let i=0;i<3;i++)put(g,cyl(.03,.03,.5+i*.1,5),wood(),-.5,1.9+i*.03,(i-1)*.12).rotation.z=.2+i*.05;
+  for(const z of[-.22,.22])put(g,new THREE.BoxGeometry(.1,.16,.1),steel,.3,1.07,z,false);
+  put(R,cyl(.04,.04,1.0,6),wood(),0,.1,0);put(R,rbox(.5,.1,.14,.03),steel,0,-.45,0).rotation.z=.2;put(R,rbox(.4,.12,.14,.03),steel,-.1,-.5,0);return rig};
 UNIT3.boat=(u,tm)=>ship(u,tm,false,false);UNIT3.warship=(u,tm)=>ship(u,tm,true,false);UNIT3.galleon=(u,tm)=>ship(u,tm,true,true);
 
 /* Vierbeiner: o = {col,belly,dark,br (Rumpfradius),bl (Rumpflänge),legH,lw (Beinbreite),hr (Kopfradius),neck:[x,y],snout,ears,tail}. Blickt in +x. */

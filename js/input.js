@@ -70,6 +70,7 @@ addEventListener('keydown',e=>{
   if(menuOpen||!G||!G.running)return;
   if(e.key===' '){e.preventDefault();togglePause()}
   else if(e.key==='Escape'){if(placing||armed){placing=null;armed=false}else toggleMenu()}
+  else if(e.key==='g'||e.key==='G'){curForm=(curForm+1)%FORMS.length;panelSig='';toast(tr('Formation: {0}',tr(FORMS[curForm])),'good')}
   else if(e.key==='f'||e.key==='F'){const ids=ownSel().filter(u=>u.kind==='unit').map(u=>u.id);if(ids.length){if(NET.client)NET.send({c:'rage',ids});else if(!useRage(0,ids))toast(tr('Kampfrausch lädt noch.'),'warn')}}
   else if(e.key==='m'||e.key==='M'){SND.setMute(!SND.muted);toast(SND.muted?tr('Ton aus'):tr('Ton an'))}
   else if(e.key==='q'||e.key==='Q'){if(ownSel().some(u=>u.kind==='unit'&&!UNITS[u.type].passive)){armed=true;placing=null}}

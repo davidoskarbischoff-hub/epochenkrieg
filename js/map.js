@@ -10,7 +10,7 @@ function addAnimal(type,x,y,fid){const d=ANIMALS[type];return reg({id:fid!==unde
 function addNode(type,x,y){const d=NODES[type];return reg({id:G.nid++,kind:'node',type,team:-1,x,y,r:d.r,rt:d.rt,sea:!!d.sea,amount:d.amt,maxAmt:d.amt,regen:d.regen||0,seed:Math.random()})}
 const rn=r=>tr(RN[r]);
 function get(id){const e=G.byId.get(id);return e&&!e.dead?e:null}
-function nameOf(e){return e.kind==='animal'?tr(ANIMALS[e.type].name):e.kind==='unit'?tr(UNITS[e.type].name):e.kind==='bld'?tr(BLDS[e.type].name):tr(NODES[e.type].name)}
+function nameOf(e){return e.kind==='animal'?tr(ANIMALS[e.type].name):e.kind==='unit'?tr(UNAMES[e.type]?UNAMES[e.type][Math.min(5,e.lvl||0)]:UNITS[e.type].name):e.kind==='bld'?tr(BLDS[e.type].name):tr(NODES[e.type].name)}
 
 /* ---------- map ---------- */
 function genMap(seed){
