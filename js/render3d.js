@@ -312,7 +312,7 @@ function r3Frame(list,rings,dt){
   for(const w of r3.waves){const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}
-  r3Sync(list,dt,t);
+  r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;
   r3.rd.render(r3.scene,r3.camera);R3.ghostOn=false;
@@ -345,3 +345,21 @@ function r3Bones(){
 /* Sparmodus (Mehrspieler): wenn das Bild zu langsam wird, Grafik vorübergehend vereinfachen (niedrige Auflösung, keine Schatten); wird nicht gespeichert */
 function r3Saver(on){if(!R3.ok)return;if(on&&!R3.saverOn){R3.saverOn=true;R3.savedQ=gfxQ;setGfx(0,true);r3.sun.castShadow=false;r3Resize()}
   else if(!on&&R3.saverOn){R3.saverOn=false;setGfx(R3.savedQ,true);r3.sun.castShadow=true;r3Resize()}}
+
+
+/* ---------- Rauch: steigt aus Schornsteinen, Schmieden und Feuerstellen auf (weiche Punktwolken, driften mit dem Wind) ---------- */
+const SMOKE_SRC={house:{ep:2,o:[.42,.95,-.25],rate:.9},hq:{ep:1,o:[.3,.9,-.3],rate:.45},barracks:{ep:1,o:[-.5,.8,-.2],rate:.7},store:{ep:5,o:[-.4,.9,0],rate:1.2},harbor:{ep:5,o:[-.2,.9,0],rate:1.1},refinery:{ep:5,o:[.1,1,0],rate:.35},castle:{ep:3,o:[.3,.9,0],rate:1.4},market:{ep:5,o:[.3,.9,0],rate:1.6},mine:{ep:4,o:[-.5,.8,-.6],rate:1.3}};
+function r3SmokeInit(){
+  const MAX=140,c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),gr=x.createRadialGradient(32,32,2,32,32,32);gr.addColorStop(0,'rgba(255,255,255,.95)');gr.addColorStop(.5,'rgba(255,255,255,.4)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,64,64);
+  const tex=new THREE.CanvasTexture(c),pool=[];
+  for(let i=0;i<MAX;i++){const m=new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,fog:false,color:0xd9d6d0,opacity:0});const sp=new THREE.Sprite(m);sp.visible=false;sp.renderOrder=5;r3.scene.add(sp);pool.push({sp,m,on:false,age:0,life:1,vx:0,vy:0,vz:0,s0:.6,s1:2,a0:.4})}
+  r3.smoke={pool,max:MAX,n:0}}
+function r3Smoke(dt,t){
+  if(!R3.ok)return;if(!r3.smoke)r3SmokeInit();const S=r3.smoke,Sc=R3.S;
+  if(G&&G.ents&&!R3.saverOn){for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const d=SMOKE_SRC[e.type];if(!d||G.epoch[e.team]<d.ep||!shown(e))continue;
+    e._sm=(e._sm||Math.random())-dt;if(e._sm>0)continue;e._sm=d.rate*(.7+Math.random()*.6);const q=S.pool.find(p=>!p.on);if(!q)break;
+    const o=R3.reg.get(e.id),R=e.r/Sc*1.05,top=(o&&o.obj.userData.h)||R*2;
+    q.on=true;q.age=0;q.life=3.6+Math.random()*2.0;q.vx=.5+Math.random()*.3;q.vy=.9+Math.random()*.5;q.vz=(Math.random()-.5)*.25;q.s0=1.1;q.s1=4.2+Math.random()*1.6;q.a0=.8;q.m.color.setHex(G.epoch[e.team]>=5?0x8f8c88:0xe2dfd8);
+    q.sp.position.set(e.x/Sc+d.o[0]*R,hAt(e.x,e.y)+top*d.o[1],e.y/Sc+d.o[2]*R);q.sp.visible=true}}
+  for(const q of S.pool){if(!q.on)continue;q.age+=dt;if(q.age>=q.life){q.on=false;q.sp.visible=false;continue}
+    const u=q.age/q.life,p=q.sp.position;p.x+=(q.vx+Math.sin(t*.7+p.z)*.1)*dt;p.y+=q.vy*(1-u*.5)*dt;p.z+=q.vz*dt;const s=q.s0+(q.s1-q.s0)*u;q.sp.scale.set(s,s,1);q.m.opacity=q.a0*Math.min(1,u*8)*(1-u)}}
