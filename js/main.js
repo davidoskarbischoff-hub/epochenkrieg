@@ -16,7 +16,7 @@ function frame(ts){
   requestAnimationFrame(frame); /* zuerst, damit ein Fehler im Bild die Schleife nicht beendet */
   const fd=ts-last;const raw=Math.min(.1,fd/1000||0);last=ts;bgLast=performance.now();
   try{
-    if(NET.mp&&fd>0&&fd<2000)NetLog.frameMs(fd);
+    if(NET.mp&&fd>0&&fd<2000){NetLog.frameMs(fd);NetLog.saverTick(fd)}
     simAdvance(raw);
     if(G&&G.over&&!G.overShown){updateUI();showEnd()}
     scrollCam(raw);draw();if(OPT.fps){fpsN++;fpsT+=raw;if(fpsT>=.5){const f=document.getElementById('fps');if(f)f.textContent=Math.round(fpsN/fpsT)+' FPS';fpsN=0;fpsT=0}}

@@ -49,6 +49,11 @@ const NetLog=(()=>{
     badge.hidden=false;badge.className='nb-'+v.c;
     badge.textContent='● '+tr(v.t)+(NET.client&&S.rtt?' · '+Math.round(S.rtt)+' ms':NET.host&&S.hostStepMs!=null?' · '+Math.round(S.hostFps||0)+' FPS':'');
     if(open)panel.querySelector('pre').textContent=text()}
-  function reset(){buf.length=0;Object.assign(S,{state:'',ice:'-',rtt:null,rttMax:0,hostStepMs:null,hostFrameMs:null,hostFps:null,snapKB:null,snapPerS:0,snapAge:0,backlog:0,errors:0,reconnects:0,paused:false,saver:false,drops:0});snapCnt=0}
-  return{log,err,set,S,onSnap,stepMs,frameMs,rtt,refresh,reset,text}
+  function reset(){saverReset();buf.length=0;Object.assign(S,{state:'',ice:'-',rtt:null,rttMax:0,hostStepMs:null,hostFrameMs:null,hostFps:null,snapKB:null,snapPerS:0,snapAge:0,backlog:0,errors:0,reconnects:0,paused:false,saver:false,drops:0});snapCnt=0}
+  /* Sparmodus: 6 s lang unter ~20 Bildern pro Sekunde → Grafik vereinfachen (und einmalig im Protokoll vermerken) */
+  let slowT=0;
+  function saverTick(fdMs){if(!NET.mp||typeof r3Saver!=='function')return;if(S.saver)return;
+    if(fdMs>55){slowT+=fdMs/1000;if(slowT>6){S.saver=true;log('INFO','Sparmodus: Grafik vereinfacht (Bild zu langsam: '+Math.round(1000/fdMs)+' FPS)');r3Saver(true)}}else slowT=Math.max(0,slowT-fdMs/1000*2)}
+  function saverReset(){slowT=0;if(S.saver){S.saver=false;if(typeof r3Saver==='function')r3Saver(false)}}
+  return{log,err,set,S,onSnap,saverTick,saverReset,stepMs,frameMs,rtt,refresh,reset,text}
 })();
