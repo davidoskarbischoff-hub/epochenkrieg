@@ -13,7 +13,11 @@ const Lobby=(()=>{
   const rid=()=>Math.random().toString(36).slice(2,7);
   const T=(...a)=>tr(...a);
 
-  const ICE=()=>{const l=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}];return l};
+  const ICE=()=>{const l=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}];
+    try{for(const t of (window.EK_NET&&window.EK_NET.turn)||[])l.push(t)}catch(_){}
+    try{const o=JSON.parse(localStorage.getItem('ek-turn')||'null');if(o&&o.url)l.push({urls:o.url,username:o.user||undefined,credential:o.pass||undefined})}catch(_){}
+    try{const q=new URLSearchParams(location.search).get('turn');if(q){const [u,n,c]=q.split(',');if(u)l.push({urls:u,username:n||undefined,credential:c||undefined})}}catch(_){}
+    return l};
   function mkPeer(){const p=new Peer(undefined,{config:{iceServers:ICE()}});p.on('disconnected',()=>{NetLog.log('NET','Vermittler getrennt');try{p.reconnect()}catch(_){}});return p}
   function loadPeerJS(){return new Promise((res,rej)=>{if(window.Peer)return res();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';s.onload=res;s.onerror=()=>rej(new Error('peerjs'));document.head.appendChild(s)})}
   function close(){clearTimeout(waitTimer);clearInterval(rejoinTimer);clearInterval(iceTimer);clearInterval(helloTimer);clearInterval(pingTimer);try{if(conn)conn.close()}catch(_){}try{if(peer)peer.destroy()}catch(_){}try{if(bc)bc.close()}catch(_){}conn=peer=bc=raw=null;st.connected=false}
@@ -21,7 +25,7 @@ const Lobby=(()=>{
   let iceTimer=null;
   /* ICE-Zustand der WebRTC-Verbindung mitschreiben (zeigt, ob Router/Firewall die Verbindung blockieren) */
   function watchConn(c){clearInterval(iceTimer);iceTimer=setInterval(()=>{try{const pc=c&&c.peerConnection;if(pc)NetLog.set('ice',pc.iceConnectionState)}catch(_){}},1000);
-    try{c.on('iceStateChanged',s=>NetLog.log('ICE',String(s)))}catch(_){}}
+    try{c.on('iceStateChanged',s=>{NetLog.log('ICE',String(s));if(s==='failed'&&!inGame){st.error='Direkte Verbindung nicht möglich (Router/Firewall). Ein TURN-Server hilft: Mehrspieler → „Erweitert“.';render()}})}catch(_){}}
   let waitTimer=null,rejoinTimer=null,hostId='';
   function onClosed(c){if(c&&c!==conn)return;NetLog.log('NET','Verbindung geschlossen');
     if(inGame&&G&&!G.over){
@@ -97,6 +101,7 @@ const Lobby=(()=>{
   function open(){if(!role)view='menu';render()}
   function render(){
     const ov=$('overlay');ov.hidden=false;
+    let tv={};try{tv=JSON.parse(localStorage.getItem('ek-turn')||'{}')||{}}catch(_){}
     const host_=role==='host',c=st.cfg,pr=st.prop;
     const mark=(k,cur,prop)=>cur===k?'true':'false';
     const sizes=`<div class="diff" role="group">${Object.entries(SIZES).map(([k,v])=>`<button data-z="${k}" aria-pressed="${c.size===k}" class="${!host_&&pr.size===k?'prop':''}">${T(v.n)}</button>`).join('')}</div>`;
@@ -112,6 +117,7 @@ const Lobby=(()=>{
     let h='';
     if(view==='menu')h=`<h1>${T('Mehrspieler')}</h1><p>${T('Spiele mit einem Freund: Du erstellst ein Spiel und schickst ihm den Einladungslink.')}</p>
       <div class="btnrow"><button class="go" id="lHost">${T('Spiel erstellen')}</button><button class="btn2" id="lEnter">${T('Einladungslink eingeben')}</button><button class="btn2" id="lLocal">${T('Lokal testen (zwei Tabs)')}</button><button class="btn2" id="lBack">${T('Zurück')}</button></div>
+      <details class="ladv"><summary>${T('Erweitert (TURN-Server)')}</summary><p class="lnote">${T('Ein TURN-Server hilft, wenn eine direkte Verbindung nicht klappt (z. B. Handy-Netz). Beide Spieler tragen ihn ein.')}</p><input id="tUrl" class="linput" placeholder="turn:server.example.com:3478" value="${tv.url||''}"><input id="tUser" class="linput" placeholder="${T('Benutzername')}" value="${tv.user||''}"><input id="tPass" class="linput" type="password" placeholder="${T('Passwort')}" value="${tv.pass||''}"><button class="btn2" id="tSave">${T('Speichern')}</button></details>
       <p class="lnote">${T('Hinweis: Damit dein Freund den Link öffnen kann, muss das Spiel im Internet erreichbar sein (z. B. auf GitHub Pages). Zum Ausprobieren allein: „Lokal testen“.')}</p>`;
     else if(view==='enter')h=`<h1>${T('Beitreten')}</h1><p>${T('Füge den Einladungslink oder den Code ein:')}</p><input id="lInput" class="linput" placeholder="…?join=…">${err}<div class="btnrow"><button class="go" id="lJoin">${T('Beitreten')}</button><button class="btn2" id="lBack">${T('Zurück')}</button></div>`;
     else if(view==='host')h=`<h1>${T('Lobby')}</h1>${err}
@@ -124,7 +130,7 @@ const Lobby=(()=>{
     const on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
     on('lHost',()=>host(false));on('lLocal',()=>host(true));on('lEnter',()=>{view='enter';render()});
     on('lJoin',()=>join($('lInput').value));on('lBack',()=>{leave();EKG.showStart()});
-    on('lStart',start);
+    on('lStart',start);on('tSave',()=>{try{localStorage.setItem('ek-turn',JSON.stringify({url:$('tUrl').value.trim(),user:$('tUser').value.trim(),pass:$('tPass').value}))}catch(_){}$('tSave').textContent=T('Gespeichert')});
     on('lCopy',()=>{const el=$('lLink');el.select();try{navigator.clipboard.writeText(el.value)}catch(_){document.execCommand('copy')}$('lCopy').textContent=T('Kopiert!')});
     const setCfg=(k,v)=>{if(host_){c[k]=v;if(k==='size'&&!SIZES[v].maps.includes(c.map))c.map=SIZES[v].maps[0];pushLobby();render()}else{pr[k]=v;if(k==='size'&&!SIZES[v].maps.includes(pr.map||c.map))delete pr.map;if(raw)raw({t:'prop',p:{[k]:v}});render()}};
     ov.querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>setCfg('size',b.dataset.z));

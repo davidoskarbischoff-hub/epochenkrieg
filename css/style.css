@@ -409,3 +409,4 @@ body[data-ep="6"]{--fr:#aeb78c;--tint:rgba(26,32,24,.66)}
 #netpanel pre{margin:0 0 8px;white-space:pre-wrap;font:11px/1.35 ui-monospace,Menlo,Consolas,monospace}
 #netpanel .npbtn{display:flex;gap:8px}
 #netpanel .npbtn button{padding:4px 12px;border-radius:4px;border:1px solid #7b5a2c;background:#3a2d21;color:#e8e0cc;cursor:pointer}
+.ladv{margin:10px 0;color:var(--bone-dim)}.ladv summary{cursor:pointer}.ladv .linput{display:block;margin:6px 0;width:100%}
