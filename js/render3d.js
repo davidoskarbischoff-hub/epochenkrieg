@@ -116,11 +116,21 @@ function windify(mat,amp){mat.onBeforeCompile=sh=>{sh.uniforms.uWind=WIND;
   transformed.z+=cos(uWind*1.3+pw*0.8)*${(amp*.6).toFixed(3)}*hw*hw;
   #endif`)};return mat}
 /* ---------- Instanzen für Bäume, Büsche, Felsen ---------- */
+/* Mehrteilige Instanzen (glTF-Bäume/Felsen: ein InstancedMesh je Teil), sieht von aussen wie ein einzelnes InstancedMesh aus */
+function r3Multi(parts,n,wind){
+  const ms=parts.map(p=>{const mt=p.mat;if(wind)windify(mt,wind);const m=new THREE.InstancedMesh(p.geo,mt,Math.max(1,n));m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);return m});
+  const o={isMulti:true,parts:ms,instanceMatrix:{count:Math.max(1,n),set needsUpdate(v){ms.forEach(m=>m.instanceMatrix.needsUpdate=v)}},
+    get instanceColor(){return{set needsUpdate(v){ms.forEach(m=>{if(m.instanceColor)m.instanceColor.needsUpdate=v})}}},
+    set count(v){ms.forEach(m=>m.count=v)},get count(){return ms[0].count},
+    setMatrixAt(i,mx){ms.forEach(m=>m.setMatrixAt(i,mx))},setColorAt(i,c){ms.forEach(m=>m.setColorAt(i,c))},dispose(){ms.forEach(m=>m.dispose())}};
+  return o}
+function r3DropInst(m){if(!m)return;if(m.isMulti)m.parts.forEach(p=>r3.scene.remove(p));else r3.scene.remove(m);m.dispose()}
 function r3NodesInit(){
-  const{scene}=r3;for(const k of['pine','broad','bush'])if(r3['i_'+k]){scene.remove(r3['i_'+k]);r3['i_'+k].dispose()}if(r3.rocks)for(const m of Object.values(r3.rocks)){scene.remove(m);m.dispose()}r3.rocks={}
+  const{scene}=r3;for(const k of['pine','broad','bush'])if(r3['i_'+k])r3DropInst(r3['i_'+k]);if(r3.rocks)for(const m of Object.values(r3.rocks))r3DropInst(m);r3.rocks={}
   const cnt={tree:0,bush:0,stone:0,iron:0,gold:0,oil:0};for(const e of G.ents)if(e.kind==='node'&&cnt[e.type]!==undefined)cnt[e.type]++;
   const mk=(geo,n,flat,wind)=>{const mt=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.92,flatShading:!!flat});if(wind)windify(mt,wind);const m=new THREE.InstancedMesh(geo,mt,Math.max(1,n));m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(m);return m};
-  r3.i_pine=mk(treeGeo(true),cnt.tree,false,.022);r3.i_broad=mk(treeGeo(false),cnt.tree,false,.03);r3.i_bush=mk(bushGeoC(),cnt.bush,false,.05);for(const kd of['stone','iron','gold','oil'])for(let v=0;v<3;v++)r3.rocks[kd+v]=mk(rockGeoC(kd,v),(cnt[kd]||0)*6+6,true);
+  const mk2=(key,v,geo,n,flat,wind)=>{const ps=EKMODELS.nodeParts(key,v,geo);if(!ps)return mk(geo,n,flat,wind);const m=r3Multi(ps,n,wind);m.parts.forEach(p=>scene.add(p));return m};
+  r3.i_pine=mk2('pine',0,treeGeo(true),cnt.tree,false,.022);r3.i_broad=mk2('broad',0,treeGeo(false),cnt.tree,false,.03);r3.i_bush=mk2('bush',0,bushGeoC(),cnt.bush,false,.05);for(const kd of['stone','iron','gold','oil'])for(let v=0;v<3;v++)r3.rocks[kd+v]=mk2(kd,v,rockGeoC(kd,v),(cnt[kd]||0)*6+6,true);
   r3Grass();R3.nodeT=0;
 }
 /* Grasbüschel und Blumen: viele winzige Instanzen auf dem Land, damit der Boden aus der Nähe lebendig wirkt */
@@ -292,6 +302,7 @@ function r3Unit(o,e,h,dt,t){
   obj.position.set(e.x/S,y,e.y/S);obj.rotation.y=o.yaw;
 }
 function r3Animal(o,e,h,dt,t){const S=R3.S,rig=o.rig,moving=G.t-(e.mvT||-9)<.2;let dy=-e.fa-o.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));o.yaw+=dy*Math.min(1,dt*10);if(moving)o.ph+=dt*(6+UNITS_A(e).spd*.05);const s=Math.sin(o.ph);
+  if(rig.gltf){EKMODELS.animate(rig,e.state==='graze'?'work':(e.swing&&G.t-e.swing<.8)?'attack':moving?'walk':'idle',dt,moving?1.4:1);if(!rig.mixer)rig.g.rotation.z=moving?Math.sin(o.ph)*.06:0}
   rig.legs.forEach((l,i)=>{const ph=(i===0||i===3?s:-s);l.rotation.z=moving?ph*.7:0;if(rig.knees&&rig.knees[i])rig.knees[i].rotation.z=moving?Math.max(0,-ph)*.9:0});rig.g.scale.y=rig.g.userData.sy=1+(moving?0:Math.sin(t*1.6+e.id)*.012);const sw=e.swing&&G.t-e.swing<.3?1-(G.t-e.swing)/.3:0;if(rig.head)rig.head.rotation.z=-sw*.5+(e.state==='graze'?-.6:0);
   o.obj.position.set(e.x/S,(UNITS_A(e).water?Math.max(h,-.12):h)+(moving?Math.abs(s)*.06:0),e.y/S);o.obj.rotation.y=o.yaw}
 const UNITS_A=e=>ANIMALS[e.type];

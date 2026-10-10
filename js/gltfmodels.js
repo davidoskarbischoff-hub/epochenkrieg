@@ -13,7 +13,8 @@ const EKMODELS=(()=>{
   /* Kennzeichen für die Modell-Signatur im Renderer: ändert sich, wenn ein glTF-Modell zuständig wird (dann wird die Figur neu gebaut) */
   function tag(e){if(!manifest||!files.size)return'';
     if(e.kind==='unit'){const en=entryFor('unit',e.type,e.lvl||0);return en?'|g:'+en.file:''}
-    if(e.kind==='bld'){const en=entryFor('bld',e.type,G.epoch[e.team]);return en?'|g:'+en.file:''}return''}
+    if(e.kind==='bld'){const en=entryFor('bld',e.type,G.epoch[e.team]);return en?'|g:'+en.file:''}
+    if(e.kind==='animal'){const en=entryFor('animal',e.type,0);return en?'|g:'+en.file:''}return''}
   function has(kind,type,ep){return !!entryFor(kind,type,ep)}
   /* Material mit „Team“ im Namen → Spielerfarbe (je Team ein eigenes Material); alle anderen: schwache Himmelsspiegelung wie im Rest des Spiels */
   function prepare(root,team){
@@ -25,14 +26,60 @@ const EKMODELS=(()=>{
   /* Größe des bisherigen Code-Modells als Maßstab: so passt ein neues Modell automatisch zur Spielgröße */
   function refSize(kind,type,make){const k=kind+type;if(refCache[k])return refCache[k];try{const b=box(make()),s=b.getSize(new THREE.Vector3());return refCache[k]={h:s.y||1,m:Math.max(s.x,s.y,s.z)||1,w:Math.max(s.x,s.z)||1}}catch(_){return refCache[k]={h:2.3,m:3,w:3}}}
   function pickClip(clips,names,re){for(const n of names||[]){const c=clips.find(c=>c.name===n||c.name.split('|').pop()===n);if(c)return c}return clips.find(c=>re.test(c.name))}
-  function makeUnit(u,origMake){
-    const en=entryFor('unit',u.type,u.lvl||0);if(!en)return null;const gl=files.get(en.file);
+  /* Umbauen eines Modells ohne neue Datei: Material einfärben (tint), Teile verstecken (hide), Waffen/Werkzeuge in die Hände (hand/off), Fell-Hüftrock (pelt).
+     So wird aus der nackten Basisfigur ein Steinzeit-Jäger, aus der Mittelalterfigur ein Speerträger usw. Siehe MODELLE.md. */
+  function findBone(root,re){let f=null;root.traverse(o=>{if(!f&&o.isBone&&re.test(o.name))f=o});return f}
+  function attach(root,bone,spec,k){
+    const gl=files.get(spec.file);if(!bone||!gl)return;const p=EKGLTF.SkeletonUtils.clone(gl.scene);prepare(p,0);
+    const holder=new THREE.Group();holder.add(p);bone.add(holder);root.updateMatrixWorld(true);
+    const ws=new THREE.Vector3();bone.getWorldScale(ws);const sc=k*(spec.scale||1)/(ws.x||1);holder.scale.setScalar(sc);
+    const r=spec.rot||[0,0,0];holder.rotation.set(r[0]*Math.PI/180,r[1]*Math.PI/180,r[2]*Math.PI/180);
+    const q=spec.pos||[0,0,0];holder.position.set(q[0]*k/(ws.x||1),q[1]*k/(ws.x||1),q[2]*k/(ws.x||1))}
+  function dress(root,wrap,en,k,team,u){
+    const id=(u&&u.id)||0;
+    if(en.tint||en.hide){root.traverse(o=>{if(!o.isMesh)return;
+      if(en.hide&&en.hide.some(h=>new RegExp(h,'i').test(o.name))){o.visible=false;return}
+      if(en.tint){const f=m=>{let c=en.tint[m.name];if(c&&en.skins&&/^M_(Main|Joints)$/.test(m.name))c=en.skins[id%en.skins.length];if(!c)return m;const n=m.clone();n.color.set(c);n.name=m.name;return n};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}})}
+    if(en.tintAll){root.traverse(o=>{if(!o.isMesh)return;const f=m=>{const n=m.clone();n.vertexColors=false;n.map=null;n.color.set(en.tintAll);n.needsUpdate=true;return n};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)})}
+    if(en.extras)for(const x of en.extras)attach(root,root,x,k);
+    if(en.hand)attach(root,findBone(root,/hand\.?r|wrist\.?r/i),en.hand,k);
+    if(en.left)attach(root,findBone(root,/hand\.?l|wrist\.?l/i),en.left,k);
+    if(en.pelt)cloth(root,en,k,id);}
+  /* Steinzeit-Kleidung aus Formen mit Fell-/Lederstruktur: Hüftrock mit Zipfeln, Gürtel, Fellumhang, Haare, Zahnkette */
+  function cloth(root,en,k,id){
+    root.updateMatrixWorld(true);const sc=b=>{const w=new THREE.Vector3();b.getWorldScale(w);return k/(w.x||1)};
+    const fur=(c)=>m3Mat('fur',c,{side:THREE.DoubleSide,flatShading:true}),lea=(c)=>m3Mat('leather',c,{side:THREE.DoubleSide});
+    const add=(b,mesh,x,y,z)=>{mesh.position.set(x,y,z);mesh.castShadow=true;b.add(mesh);return mesh};
+    const hips=findBone(root,/hips|pelvis/i);
+    if(hips){const g=new THREE.Group(),f=fur(en.pelt),bt=lea(en.belt||'#3b2a1a');
+      add(g,new THREE.Mesh(new THREE.CylinderGeometry(.215,.27,.2,9,1,true),f),0,-.08,0);
+      for(let i=0;i<7;i++){const a=i/7*6.283+.2,z=new THREE.Mesh(new THREE.ConeGeometry(.055,.2,4),f);z.rotation.x=Math.PI;add(g,z,Math.cos(a)*.255,-.26,Math.sin(a)*.255)}
+      add(g,new THREE.Mesh(new THREE.CylinderGeometry(.225,.225,.045,10,1,true),bt),0,.02,0);
+      add(g,new THREE.Mesh(new THREE.BoxGeometry(.05,.1,.02),bt),.22,.0,0);
+      g.scale.setScalar(sc(hips));hips.add(g)}
+    const ch=findBone(root,/spine\.?003|spine\.?002/i);
+    if(ch&&en.cape){const g=new THREE.Group();const m=new THREE.Mesh(new THREE.CylinderGeometry(.3,.34,.2,10,1,true,0,Math.PI*1.5),fur(en.cape));m.rotation.y=Math.PI*.25;add(g,m,0,.1,0);
+      const s2=new THREE.Mesh(new THREE.SphereGeometry(.13,6,5),fur(en.cape));add(g,s2,.0,.2,.2);s2.scale.set(1.4,.6,1);
+      g.scale.setScalar(sc(ch));ch.add(g)}
+    const hd=findBone(root,/^DEF-?head$|head/i);
+    if(hd&&en.hair){const hc=en.hair[id%en.hair.length],g=new THREE.Group();
+      const cap=new THREE.Mesh(new THREE.SphereGeometry(.17,10,8,0,6.283,0,Math.PI*.62),m3Plain(hc,.9));cap.scale.set(1,1,1.05);add(g,cap,0,.14,-.01);
+      if(id%3===0){const bd=new THREE.Mesh(new THREE.SphereGeometry(.12,8,6,0,6.283,Math.PI*.45,Math.PI*.4),m3Plain(hc,.9));add(g,bd,0,.1,.06)}
+      for(let i=0;i<5;i++){const a=-1.1+i*.55;const lk=new THREE.Mesh(new THREE.ConeGeometry(.04,.22,4),m3Plain(hc,.9));lk.rotation.x=Math.PI;add(g,lk,Math.sin(a)*.14,.02,-.12+Math.cos(a)*-.02)}
+      g.scale.setScalar(sc(hd));hd.add(g)}
+    const nk=findBone(root,/neck/i);
+    if(nk&&en.tooth){const g=new THREE.Group();for(let i=0;i<7;i++){const a=i/7*6.283,t=new THREE.Mesh(new THREE.ConeGeometry(.018,.06,4),m3Plain('#efe6d2',.7));t.rotation.x=Math.PI;add(g,t,Math.cos(a)*.1,0,Math.sin(a)*.1+.02)}
+      add(g,new THREE.Mesh(new THREE.TorusGeometry(.1,.008,5,14),lea('#3b2a1a')),0,.02,.02).rotation.x=Math.PI/2;g.scale.setScalar(sc(nk));nk.add(g)}
+  }
+  function makeUnit(u,origMake,kind){
+    kind=kind||'unit';const en=entryFor(kind,u.type,u.lvl||0);if(!en)return null;const gl=files.get(en.file);
     try{
       const root=EKGLTF.SkeletonUtils.clone(gl.scene),wrap=new THREE.Group();wrap.add(root);prepare(root,u.team);
       root.rotation.y=((en.yaw===undefined?90:90+en.yaw))*Math.PI/180;
-      let b=box(wrap),sz=b.getSize(new THREE.Vector3());const ref=refSize('unit',u.type,()=>origMake(u).g);
-      const k=(en.height?en.height/(sz.y||1):en.fit==='length'?ref.m/(Math.max(sz.x,sz.y,sz.z)||1):ref.h/(sz.y||1))*(en.scale||1);
+      let b=box(wrap),sz=b.getSize(new THREE.Vector3());const ref=refSize(kind,u.type,()=>origMake(u).g);
+      const k=(en.height?en.height/(sz.y||1):(en.fit==='length'||(kind==='animal'&&!en.fit))?ref.m/(Math.max(sz.x,sz.y,sz.z)||1):ref.h/(sz.y||1))*(en.scale||1);
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y+(en.lift||0),-c.z);
+      dress(root,wrap,en,k,u.team,u);
       const rig={g:wrap,gltf:true,legs:[],arms:[],tools:{},acts:{},cur:null};
       if(gl.animations&&gl.animations.length){rig.mixer=new THREE.AnimationMixer(root);const A=en.anim||{},cl=gl.animations;
         const map={idle:pickClip(cl,[A.idle],/idle|stand|rest/i),walk:pickClip(cl,[A.walk],/walk|run|move/i),attack:pickClip(cl,[A.attack],/attack|hit|strike|shoot|fire/i),work:pickClip(cl,[A.work],/work|gather|chop|mine|build|dig/i)};
@@ -47,6 +94,14 @@ const EKMODELS=(()=>{
       const k=(en.footprint?en.footprint/(Math.max(sz.x,sz.z)||1):(R_*2.5*(en.fit||1))/(Math.max(sz.x,sz.z)||1))*(en.scale||1);
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y,-c.z);
       wrap.userData.h=b.max.y-b.min.y;wrap.userData.flags=[];wrap.userData.gltf=true;return wrap}catch(err){console.warn('glTF-Gebäude',type,err);return null}}
+  /* Bäume, Felsen, Büsche als Instanzen: liefert die Einzelteile (Geometrie+Material) eines glTF-Modells, auf Höhe/Grundfläche des Code-Modells (refGeo) angepasst */
+  function nodeParts(key,v,refGeo){
+    const sec=manifest&&manifest.nodes,en0=sec&&sec[key];if(!en0)return null;const L=(Array.isArray(en0)?en0:[en0]).filter(x=>x&&x.file&&!x.off&&files.has(x.file));if(!L.length)return null;
+    const en=L[v%L.length],gl=files.get(en.file),parts=[];gl.scene.updateMatrixWorld(true);
+    gl.scene.traverse(o=>{if(o.isMesh&&!o.isSkinnedMesh){const g=o.geometry.clone();g.applyMatrix4(o.matrixWorld);parts.push({g,m:o.material})}});if(!parts.length)return null;
+    const bb=new THREE.Box3();for(const p of parts){p.g.computeBoundingBox();bb.union(p.g.boundingBox)}
+    refGeo.computeBoundingBox();const rb=refGeo.boundingBox,rh=(rb.max.y-rb.min.y)||1,sz=bb.getSize(new THREE.Vector3()),k=(en.height?en.height/(sz.y||1):rh/(sz.y||1))*(en.scale||1),c=bb.getCenter(new THREE.Vector3());
+    return parts.map(p=>{p.g.translate(-c.x,-bb.min.y,-c.z);p.g.scale(k,k,k);const m=p.m.clone();if(en.tint&&m.color)m.color.set(en.tint);if(m.isMeshStandardMaterial&&m.envMapIntensity>.5)m.envMapIntensity=.3;return{geo:p.g,mat:m}})}
   /* Animationen pro Bild: passenden Clip wählen, weich überblenden */
   function animate(rig,want,dt,speedScale){
     if(!rig.mixer)return;if(want==='idle'&&!rig.acts.idle&&rig.cur){rig.acts[rig.cur].fadeOut(.2);rig.cur=null}if(want==='idle'&&!rig.acts.idle){rig.mixer.update(dt*(speedScale||1));return}const chain={attack:['attack','idle'],work:['work','idle'],walk:['walk','idle'],idle:['idle']},w=(chain[want]||['idle']).find(n=>rig.acts[n])||null;
@@ -56,15 +111,16 @@ const EKMODELS=(()=>{
     if(typeof EKGLTF==='undefined'){return}
     try{const r=await fetch(url||'models/manifest.json',{cache:'no-cache'});if(!r.ok)return;manifest=await r.json()}catch(_){return}
     loader=new EKGLTF.GLTFLoader();try{loader.setMeshoptDecoder(EKGLTF.MeshoptDecoder)}catch(_){}
-    const want=new Set();for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off)want.add(x.file);
+    const want=new Set();for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off){want.add(x.file);if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file)}
     await Promise.all([...want].map(async f=>{try{files.set(f,await loader.loadAsync('models/'+f))}catch(err){failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}}));
-    R.ready=true;R.ver++;if(typeof R3!=='undefined'&&R3.reg){/* Anzeige neu aufbauen: Signaturen ändern sich über tag() von selbst */}}
+    R.ready=true;R.ver++;/* Einheiten/Gebäude/Tiere: Signaturen ändern sich über tag() von selbst; Bäume/Felsen: Instanzen neu aufbauen */try{if(typeof r3!=='undefined'&&r3.scene&&typeof G!=='undefined'&&G&&G.ents&&G.ents.length)r3NodesInit()}catch(_){}}
   /* für Tests/Vorschau: Modell von Hand eintragen */
   function register(kind,type,entry,gltf){if(!manifest)manifest={units:{},buildings:{}};const s=secOf(kind);(manifest[s]||(manifest[s]={}))[type]=entry;files.set(entry.file,gltf);R.ver++}
-  return Object.assign(R,{init,tag,has,makeUnit,makeBld,animate,register,files,failed})
+  return Object.assign(R,{init,tag,has,makeUnit,makeBld,nodeParts,animate,register,files,failed})
 })();
 /* Modelle in die Bau-Funktionen einhängen (Rückfall auf die Code-Modelle, wenn nichts passt) */
 (()=>{const origU=buildUnit,origB=buildBld;
   buildUnit=function(u){const r=EKMODELS.makeUnit(u,origU);if(r){M3.curId=u.id;return r}return origU(u)};
+  const origA=buildAnimal;buildAnimal=function(e){const r=EKMODELS.makeUnit(e,origA,'animal');return r||origA(e)};
   buildBld=function(type,R,ep,team){const g=EKMODELS.makeBld(type,R,ep,team,origB);return g||origB(type,R,ep,team)};
 })();

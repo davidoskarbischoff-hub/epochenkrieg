@@ -3,6 +3,52 @@
  "units": {
   "worker": [
    {
+    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
+    "epochs": [
+     0,
+     1
+    ],
+    "yaw": 0,
+    "tint": {
+     "M_Main": "#c9966e",
+     "M_Joints": "#c9966e"
+    },
+    "pelt": "#8a6338",
+    "anim": {
+     "idle": "Idle_Loop",
+     "walk": "Walk_Loop",
+     "attack": "Sword_Attack",
+     "work": "Interact"
+    },
+    "hand": {
+     "file": "neu/Axe Small.glb",
+     "scale": 0.4,
+     "rot": [
+      -90,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "skins": [
+     "#c9966e",
+     "#b57e58",
+     "#d8a883",
+     "#9c6a48"
+    ],
+    "hair": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a"
+    ],
+    "belt": "#3b2a1a"
+   },
+   {
     "file": "neu/Farmer.glb",
     "epochs": [
      0,
@@ -10,19 +56,6 @@
      2,
      3,
      4
-    ],
-    "anim": {
-     "idle": "Idle",
-     "walk": "Walk",
-     "attack": "Punch_Right",
-     "work": "Interact"
-    }
-   },
-   {
-    "file": "neu/Worker.glb",
-    "epochs": [
-     5,
-     6
     ],
     "anim": {
      "idle": "Idle",
@@ -59,45 +92,254 @@
     "work": "Interact"
    }
   },
-  "spear": {
-   "file": "neu/Medieval.glb",
-   "epochs": [
-    3,
-    4
-   ],
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Sword_Slash",
-    "work": "Interact"
+  "spear": [
+   {
+    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
+    "yaw": 0,
+    "tint": {
+     "M_Main": "#c9966e",
+     "M_Joints": "#c9966e"
+    },
+    "pelt": "#8a6338",
+    "anim": {
+     "idle": "Idle_Loop",
+     "walk": "Walk_Loop",
+     "attack": "Sword_Attack",
+     "work": "Interact"
+    },
+    "epochs": [
+     1,
+     2
+    ],
+    "hand": {
+     "file": "neu/Spear.glb",
+     "scale": 0.5,
+     "rot": [
+      -90,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "left": {
+     "file": "neu/Shield Round.glb",
+     "scale": 0.22,
+     "rot": [
+      0,
+      -90,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "skins": [
+     "#c9966e",
+     "#b57e58",
+     "#d8a883",
+     "#9c6a48"
+    ],
+    "hair": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a"
+    ],
+    "belt": "#3b2a1a",
+    "cape": "#6b4a2b",
+    "tooth": true
+   },
+   {
+    "file": "neu/Medieval.glb",
+    "epochs": [
+     3,
+     4
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
+    },
+    "hide": [
+     "^Sword$"
+    ],
+    "hand": {
+     "file": "neu/Spear.glb",
+     "scale": 0.5,
+     "rot": [
+      -90,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    }
-  },
-  "sword": {
-   "file": "neu/Medieval.glb",
-   "epochs": [
-    3,
-    4
-   ],
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Sword_Slash",
-    "work": "Interact"
+  ],
+  "sword": [
+   {
+    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
+    "yaw": 0,
+    "tint": {
+     "M_Main": "#c9966e",
+     "M_Joints": "#c9966e"
+    },
+    "pelt": "#8a6338",
+    "anim": {
+     "idle": "Idle_Loop",
+     "walk": "Walk_Loop",
+     "attack": "Sword_Attack",
+     "work": "Interact"
+    },
+    "epochs": [
+     2
+    ],
+    "hand": {
+     "file": "neu/Sword.glb",
+     "scale": 0.45,
+     "rot": [
+      -90,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "left": {
+     "file": "neu/Shield Heater.glb",
+     "scale": 0.22,
+     "rot": [
+      0,
+      -90,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "skins": [
+     "#c9966e",
+     "#b57e58",
+     "#d8a883",
+     "#9c6a48"
+    ],
+    "hair": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a"
+    ],
+    "belt": "#3b2a1a",
+    "cape": "#5a4a3a"
+   },
+   {
+    "file": "neu/Medieval.glb",
+    "epochs": [
+     3,
+     4
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
+    }
    }
-  },
-  "archer": {
-   "file": "neu/Medieval.glb",
-   "epochs": [
-    3,
-    4
-   ],
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Gun_Shoot",
-    "work": "Interact"
+  ],
+  "archer": [
+   {
+    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
+    "yaw": 0,
+    "tint": {
+     "M_Main": "#c9966e",
+     "M_Joints": "#c9966e"
+    },
+    "pelt": "#8a6338",
+    "anim": {
+     "idle": "Idle_Loop",
+     "walk": "Walk_Loop",
+     "attack": "Sword_Attack",
+     "work": "Interact"
+    },
+    "epochs": [
+     1,
+     2
+    ],
+    "left": {
+     "file": "neu/Wooden Bow.glb",
+     "scale": 0.45,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "skins": [
+     "#c9966e",
+     "#b57e58",
+     "#d8a883",
+     "#9c6a48"
+    ],
+    "hair": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a"
+    ],
+    "belt": "#3b2a1a",
+    "cape": "#8a6a40"
+   },
+   {
+    "file": "neu/Medieval.glb",
+    "epochs": [
+     3,
+     4
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact"
+    },
+    "hide": [
+     "^Sword$"
+    ],
+    "left": {
+     "file": "neu/Wooden Bow.glb",
+     "scale": 0.45,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    }
-  },
+  ],
   "crossbow": {
    "file": "neu/Medieval.glb",
    "epochs": [
@@ -109,7 +351,10 @@
     "walk": "Walk",
     "attack": "Gun_Shoot",
     "work": "Interact"
-   }
+   },
+   "hide": [
+    "^Sword$"
+   ]
   },
   "musket": {
    "file": "neu/Soldier.glb",
@@ -198,6 +443,150 @@
     "walk": "Tank_Forward"
    },
    "scale": 0.65
+  },
+  "club": {
+   "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
+   "epochs": [
+    0
+   ],
+   "yaw": 0,
+   "tint": {
+    "M_Main": "#c9966e",
+    "M_Joints": "#c9966e"
+   },
+   "pelt": "#8a6338",
+   "anim": {
+    "idle": "Idle_Loop",
+    "walk": "Walk_Loop",
+    "attack": "Sword_Attack",
+    "work": "Interact"
+   },
+   "hand": {
+    "file": "neu/Wooden Torch.glb",
+    "scale": 0.45,
+    "rot": [
+     -90,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   },
+   "skins": [
+    "#c9966e",
+    "#b57e58",
+    "#d8a883",
+    "#9c6a48"
+   ],
+   "hair": [
+    "#2a1a10",
+    "#4a2e18",
+    "#1c1410",
+    "#6b4a2a"
+   ],
+   "belt": "#3b2a1a",
+   "cape": "#7a5a38",
+   "tooth": true
+  },
+  "sling": {
+   "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
+   "epochs": [
+    0
+   ],
+   "yaw": 0,
+   "tint": {
+    "M_Main": "#c9966e",
+    "M_Joints": "#c9966e"
+   },
+   "pelt": "#8a6338",
+   "anim": {
+    "idle": "Idle_Loop",
+    "walk": "Walk_Loop",
+    "attack": "Sword_Attack",
+    "work": "Interact"
+   },
+   "hand": {
+    "file": "neu/Bone.glb",
+    "scale": 0.3,
+    "rot": [
+     -90,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   },
+   "skins": [
+    "#c9966e",
+    "#b57e58",
+    "#d8a883",
+    "#9c6a48"
+   ],
+   "hair": [
+    "#2a1a10",
+    "#4a2e18",
+    "#1c1410",
+    "#6b4a2a"
+   ],
+   "belt": "#3b2a1a"
+  },
+  "boat": [
+   {
+    "file": "neu/Rowboat by Poly by Google - adoP7kR7S17.glb",
+    "fit": "length",
+    "epochs": [
+     0,
+     1,
+     2
+    ],
+    "yaw": -90
+   },
+   {
+    "file": "neu/Boat by Poly by Google - 1ZuSXvhkRg_.glb",
+    "fit": "length",
+    "epochs": [
+     3,
+     4,
+     5,
+     6
+    ]
+   }
+  ],
+  "warship": {
+   "file": "neu/Sail Boat by Quaternius - BgSZXwmm7k.glb",
+   "fit": "length",
+   "yaw": -90
+  },
+  "galleon": {
+   "file": "neu/Sail Ship by Quaternius - cIzO4MBPqI.glb",
+   "fit": "length",
+   "yaw": -90
+  },
+  "catapult": {
+   "file": "neu/Catapult by Poly by Google - 7P_ZOjZbbMJ.glb",
+   "fit": "length"
+  },
+  "plane": {
+   "file": "neu/Aeroplane by Gilang Romadhan - 9VeIc0cybp4.glb",
+   "fit": "length"
+  },
+  "fighter": {
+   "file": "neu/Airplane by Poly by Google - 6D4MwQoxK-K.glb",
+   "fit": "length"
+  },
+  "bomber": {
+   "file": "neu/Airplane by Poly by Google - 8VysVKMXN2J.glb",
+   "fit": "length"
+  },
+  "zero": {
+   "file": "neu/Aeroplane by Gilang Romadhan - 9VeIc0cybp4.glb",
+   "fit": "length"
   }
  },
  "buildings": {
@@ -220,7 +609,7 @@
     "fit": 1.0
    },
    {
-    "file": "neu/Town Center-cuQuFJEIfH.glb",
+    "file": "neu/Large Building-ppwtREejXg.glb",
     "epochs": [
      5,
      6
@@ -253,7 +642,7 @@
     "fit": 1.0
    },
    {
-    "file": "neu/House-k6tP5nFUd2.glb",
+    "file": "neu/Small Building-gyjF60t7CG.glb",
     "epochs": [
      5,
      6
@@ -279,11 +668,17 @@
     "fit": 1.0
    },
    {
-    "file": "neu/Storage House.glb",
+    "file": "neu/Low Wide.glb",
     "epochs": [
-     4,
      5,
      6
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Storage House.glb",
+    "epochs": [
+     4
     ],
     "fit": 1.0
    }
@@ -308,7 +703,13 @@
    {
     "file": "neu/Tower House.glb",
     "epochs": [
-     4,
+     4
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Large Building-h7Jaq7bqMq.glb",
+    "epochs": [
      5,
      6
     ],
@@ -369,16 +770,24 @@
    ],
    "fit": 1.0
   },
-  "market": {
-   "file": "neu/Village Market.glb",
-   "epochs": [
-    3,
-    4,
-    5,
-    6
-   ],
-   "fit": 1.0
-  },
+  "market": [
+   {
+    "file": "neu/Large Building-JgGLJH2iXj.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Village Market.glb",
+    "epochs": [
+     3,
+     4
+    ],
+    "fit": 1.0
+   }
+  ],
   "tower": [
    {
     "file": "neu/Small Watch Tower.glb",
@@ -405,8 +814,97 @@
     ],
     "fit": 1.0
    }
+  ],
+  "airfield": [
+   {
+    "file": "neu/Low Wide-DKgknsHjmr.glb",
+    "epochs": [
+     6
+    ],
+    "fit": 1.0
+   }
   ]
  },
- "animals": {},
- "nodes": {}
+ "animals": {
+  "deer": {
+   "file": "neu/Stag.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Attack_Headbutt",
+    "work": "Eating"
+   }
+  },
+  "wolf": {
+   "file": "neu/Wolf.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Attack",
+    "work": "Eating"
+   }
+  },
+  "bear": {
+   "file": "neu/Bear.glb"
+  },
+  "mammoth": {
+   "file": "neu/Bizon.glb",
+   "scale": 1.0,
+   "yaw": 180
+  },
+  "sabertooth": {
+   "file": "neu/Cat.glb",
+   "tintAll": "#c79a5a"
+  },
+  "tiger": {
+   "file": "neu/Cat.glb",
+   "tintAll": "#d9792b"
+  },
+  "croc": {
+   "file": "neu/Lizard.glb",
+   "tintAll": "#4f6b3a"
+  }
+ },
+ "nodes": {
+  "pine": {
+   "file": "neu/Pine.glb"
+  },
+  "broad": {
+   "file": "neu/dorf/Tree-t9KbsfYdXz.glb"
+  },
+  "bush": {
+   "file": "neu/Bush.glb",
+   "tint": "#5a9a42"
+  },
+  "stone": [
+   {
+    "file": "neu/Rock Medium.glb"
+   },
+   {
+    "file": "neu/Rock Medium-s1OJ3bBzqc.glb"
+   },
+   {
+    "file": "neu/Rock Medium-JQxF95498B.glb"
+   }
+  ],
+  "iron": [
+   {
+    "file": "neu/Rock Medium.glb",
+    "tint": "#8a7a74"
+   },
+   {
+    "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
+    "tint": "#8a7a74"
+   },
+   {
+    "file": "neu/Rock Medium-JQxF95498B.glb",
+    "tint": "#8a7a74"
+   }
+  ],
+  "gold": [
+   {
+    "file": "neu/Gold Rocks.glb"
+   }
+  ]
+ }
 }
