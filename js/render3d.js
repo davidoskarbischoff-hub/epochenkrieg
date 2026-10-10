@@ -25,9 +25,12 @@ function r3Init(){
     const pm=new THREE.PMREMGenerator(rd);M3.env=pm.fromScene(es,.04).texture;pm.dispose()}catch(err){console.warn('env',err)}
   const gEnt=new THREE.Group();scene.add(gEnt);
   r3={rd,scene,camera,sun,hemi,sea,gEnt,vec:_v(),ray:new THREE.Raycaster(),maxTex:rd.capabilities.maxTextureSize};
-  R3.ok=true;R3.t0=performance.now();r3Resize();
+  R3.ok=true;R3.t0=performance.now();setGfx(gfxQ);try{const st=document.createElement('style');st.textContent='#gl{filter:contrast(1.07) saturate(1.1)}';document.head.appendChild(st)}catch(_){}
 }
-function r3Resize(){if(!R3.ok)return;r3.rd.setPixelRatio(Math.min(1.5,window.devicePixelRatio||1));r3.rd.setSize(VW,VH,false);camUpdate()}
+/* Grafikqualität (Menü): 0 normal, 1 hoch (Standard), 2 sehr hoch = schärfer durch höhere Auflösung und feinere Schatten */
+let gfxQ=1;try{const q=localStorage.getItem('ek-gfx');if(q!==null)gfxQ=Math.max(0,Math.min(2,+q||0))}catch(_){}
+function setGfx(q){gfxQ=q;try{localStorage.setItem('ek-gfx',q)}catch(_){}if(!R3.ok)return;const sz=[1024,2048,Math.min(4096,r3.maxTex)][q];if(r3.sun.shadow.mapSize.x!==sz){r3.sun.shadow.mapSize.set(sz,sz);if(r3.sun.shadow.map){r3.sun.shadow.map.dispose();r3.sun.shadow.map=null}}r3Resize()}
+function r3Resize(){if(!R3.ok)return;r3.rd.setPixelRatio(Math.min([1,1.5,2][gfxQ],(window.devicePixelRatio||1)*(gfxQ===2?1.5:1)));r3.rd.setSize(VW,VH,false);camUpdate()}
 
 /* ---------- Gelände ---------- */
 const hgrid={w:0,h:0,a:null};
@@ -237,7 +240,7 @@ function r3Unit(o,e,h,dt,t){
   else{
     if(moving)y+=Math.abs(s)*.07*(rig.horse?1.6:1);
     if(rig.horse){rig.legs.forEach((l,i)=>l.rotation.z=(i%2?s:-s)*.7);const rd=rig.rider;rd.arms[1].rotation.z=.2+sw*.6}
-    else if(rig.wheels){if(moving)rig.wheels.forEach(w=>w.rotation.y+=dt*3.2*(d.spd/40));if(rig.log)rig.log.position.x=sw*.9;if(rig.arm)rig.arm.rotation.z=-sw*1.8;if(rig.barrel)rig.barrel.position.x=.1-sw*.35}
+    else if(rig.wheels){if(moving)rig.wheels.forEach(w=>w.rotation[w.userData.axis||'y']+=dt*3.2*(d.spd/40));if(rig.log)rig.log.position.x=sw*.9;if(rig.arm)rig.arm.rotation.z=-sw*1.8;if(rig.barrel)rig.barrel.position.x=.1-sw*.35}
     else if(rig.up){r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t)}
     else{
       const sa=moving?s*.7:0;rig.legs[0].rotation.z=-sa;rig.legs[1].rotation.z=sa;

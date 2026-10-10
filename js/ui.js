@@ -13,6 +13,7 @@ function renderMenu(){
   $('menu').innerHTML=`<div class="card"><h1>${tr('Menü')}</h1>
   <div class="set"><label for="mv">${tr('Musik')}</label><input type="range" id="mv" min="0" max="100" value="${Math.round(SND.music*100)}"><output id="mvo">${pc(SND.music)}</output></div>
   <div class="set"><label for="sv">${tr('Ton')}</label><input type="range" id="sv" min="0" max="100" value="${Math.round(SND.sfx*100)}"><output id="svo">${pc(SND.sfx)}</output></div>
+  <div class="set"><label>${tr('Grafik')}</label><div class="diff" role="group" id="gfxRow">${[tr('normal'),tr('hoch'),tr('sehr hoch')].map((n,i)=>`<button data-g="${i}" aria-pressed="${i===gfxQ}">${n}</button>`).join('')}</div></div>
   <div class="set"><label for="muteChk">${tr('Ton an')}</label><input type="checkbox" id="muteChk" ${SND.muted?'':'checked'} class="chk"><output></output></div>
   <div class="set"><label for="abChk">${tr('Arbeiter denken mit')}</label><input type="checkbox" id="abChk" ${autoBuildOn?'checked':''} class="chk"><output></output></div>
   <div class="set"><label for="advChk">${tr('Berater')}</label><input type="checkbox" id="advChk" ${advOn?'checked':''} class="chk"><output></output></div>
@@ -22,6 +23,7 @@ function renderMenu(){
   $('sv').oninput=e=>{SND.init();SND.setSfx(e.target.value/100);$('svo').textContent=pc(SND.sfx)};
   $('sv').onchange=()=>SND.play('select');
   $('menu').querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{applyLang(b.dataset.l);renderMenu()});
+  $('menu').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{setGfx(+b.dataset.g);$('menu').querySelectorAll('[data-g]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
   $('muteChk').onchange=e=>SND.setMute(!e.target.checked);
   $('abChk').onchange=e=>{autoBuildOn=e.target.checked;try{localStorage.setItem('ek-autobuild',autoBuildOn?'1':'0')}catch(_){}};
   $('advChk').onchange=e=>{advOn=e.target.checked;try{localStorage.setItem('ek-advisor',advOn?'1':'0')}catch(_){}if(!advOn)advisor.cur=null};
