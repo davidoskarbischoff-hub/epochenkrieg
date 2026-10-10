@@ -52,7 +52,16 @@ const ANIMALS={
 const POPMAX=100;
 const RES=['food','wood','stone','iron'],RN={food:'Nahrung',wood:'Holz',stone:'Stein',iron:'Eisen'};
 /* army = Faktor für die Heeresgrösse der KI; pace = Tempo-Faktor für die frühesten Aufstiegszeiten der KI (kleiner = schneller) */
-const DIFF={leicht:{gather:.7,first:460,wave:4,pace:1.35,army:.55},normal:{gather:1,first:330,wave:5,pace:1,army:.8},schwer:{gather:1.35,first:240,wave:6,pace:.8,army:1.1}};
+const DIFF={leicht:{gather:.7,first:460,wave:4,pace:1.35,army:.55},normal:{gather:.9,first:420,wave:6,pace:1.2,army:.65},schwer:{gather:1.35,first:240,wave:6,pace:.8,army:1.1}};
+/* Gegner-Typen (unabhängig von der Schwierigkeit): wk = Arbeiter-Faktor, pace = Aufstiegstempo (kleiner = früher), army = Heeresgrösse, first = Zeit bis zum ersten Angriff, wave = Truppen für den Angriff,
+   tow = Zusatz-Türme, bar = Zusatz-Kasernen, def = Verteidigungsradius */
+const AI_STYLES={
+  balanced:{name:'Ausgewogen',desc:'Von allem etwas',wk:1,pace:1,army:1,first:1,wave:1,tow:0,bar:0,def:260},
+  turtle:{name:'Turtle',desc:'Baut viele Türme, verteidigt, greift spät an',wk:1,pace:1.05,army:.9,first:2,wave:1.7,tow:2,bar:0,def:380},
+  rush:{name:'Rush',desc:'Früh viele Truppen und frühe Angriffe, kaum Wirtschaft',wk:.65,pace:1.5,army:1.5,first:.55,wave:.65,tow:-1,bar:1,def:240},
+  eco:{name:'Wirtschaft',desc:'Viele Arbeiter, große Vorräte, späte Armee',wk:1.3,pace:.95,army:.7,first:1.5,wave:1.3,tow:0,bar:0,def:260},
+  boom:{name:'Aufstieg',desc:'Steigt so schnell wie möglich auf',wk:1.1,pace:.7,army:.6,first:1.4,wave:1.2,tow:0,bar:0,def:260}
+};
 const AI_MINT=[230,520,900,1320,1800]; /* früheste Zeit (s), zu der die KI in die nächste Epoche steigen darf (normal) */
 const TC=['#3d72b8','#b9442f'],TCD=['#1f3f6b','#6e2215'],TCL=['#8fb4e6','#ef9b86'];
 const MAT=[{wall:'#7d5f3b',roof:'#a8834f',line:'#4f3a22'},{wall:'#b48a5a',roof:'#cfa66e',line:'#6f5131'},{wall:'#86837c',roof:'#aaa69d',line:'#55524c'},{wall:'#a29d94',roof:'#9a4a38',line:'#4a443d'},{wall:'#c0b4a0',roof:'#58708a',line:'#3a3d46'},{wall:'#a8503f',roof:'#3e444d',line:'#2d2926'}];

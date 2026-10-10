@@ -111,7 +111,60 @@ const BLD3={
     flagPole(g,-R*.9,R*.8,-R*.3,R*1.0,team);g.userData.h=R*2;return g},
   wall(R,st,team){const g=new THREE.Group(),sm=m3Mat('stone',MAT[Math.max(2,st.ep)].wall);put(g,bx(R*2,R*1.5,R*1.2,1.4),sm,0,R*.75,0);for(let i=0;i<3;i++)put(g,new THREE.BoxGeometry(R*.5,R*.4,R*.5),sm,(i-1)*R*.7,R*1.7,0);g.userData.h=R*2;return g}
 };
-function buildBld(type,R,ep,team){const st=bStyle(ep),g=(BLD3[type]||BLD3.house)(R,st,team);setShadows(g);g.userData.flags=[];g.traverse(o=>{if(o.userData.flag)g.userData.flags.push(o)});return g}
+/* Steinzeit: ganz einfache Bauten aus Fell, Holz und Stein */
+const PRIM={
+  hq(R,st,team){const g=new THREE.Group(),hide=m3Mat('fur',0xa07a50),hide2=m3Mat('fur',0x7a5a38);
+    const t=put(g,cone(R*1.25,R*1.9,10),hide,0,R*.95,0);t.scale.set(1.2,1,.9);
+    for(let i=0;i<6;i++){const a=i/6*6.283;put(g,cyl(.06,.06,R*2.1,5),woodD(),Math.cos(a)*R*.18,R*1.9,Math.sin(a)*R*.14).rotation.set(Math.sin(a)*.12,0,-Math.cos(a)*.12)}
+    put(g,new THREE.BoxGeometry(R*.5,R*.8,.1),m3Plain(0x1c140c),0,R*.4,R*.82*.9,false);
+    for(const s of[-1,1]){const tk=put(g,new THREE.TorusGeometry(R*.4,.07,6,12,Math.PI*.9),m3Plain(0xece4cf,.7),s*R*1.1,R*.4,R*.9);tk.rotation.set(0,0,s>0?1.2:1.9)}
+    const tot=new THREE.Group();tot.position.set(-R*1.35,0,R*.6);g.add(tot);put(tot,cyl(.16,.2,R*2.2,8),m3Mat('planks',0x6a4a2a),0,R*1.1,0);
+    for(const[y,c]of[[R*.55,0xc84b3a],[R*1.0,0xe8dfc8],[R*1.45,0x3d72b8]]){put(tot,new THREE.BoxGeometry(.55,.32,.4),m3Plain(c),0,y,0);put(tot,new THREE.BoxGeometry(.9,.1,.1),m3Plain(c),0,y+.05,0)}
+    put(tot,new THREE.SphereGeometry(.22,8,6),m3Plain(0xe8dfc8),0,R*2.3,0);
+    put(g,cyl(R*.35,R*.4,.12,10),m3Plain(0x4a443d,.95),R*.9,.06,R*1.1);for(let i=0;i<7;i++){const a=i/7*6.283;put(g,new THREE.DodecahedronGeometry(.16,0),m3Plain(0x8d8a80,.95),R*.9+Math.cos(a)*R*.38,.14,R*1.1+Math.sin(a)*R*.38)}
+    put(g,cone(.18,.5,6),m3Plain(0xf08a2c,.5,{emissive:0xd45a10,emissiveIntensity:.8}),R*.9,.4,R*1.1);
+    flagPole(g,R*.3,R*1.9,0,R*1.3,team);g.userData.h=R*3.2;return g},
+  house(R,st,team){const g=new THREE.Group(),hide=m3Mat('fur',0xa98558);
+    const t=put(g,cone(R*.95,R*1.5,7),hide,0,R*.75,0);
+    for(let i=0;i<5;i++){const a=i/5*6.283+.3;put(g,cyl(.05,.05,R*.5,5),woodD(),Math.cos(a)*R*.1,R*1.6,Math.sin(a)*R*.1).rotation.set(Math.sin(a)*.2,0,-Math.cos(a)*.2)}
+    put(g,new THREE.BoxGeometry(R*.4,R*.55,.1),m3Plain(0x1c140c),0,R*.28,R*.86,false);
+    put(g,new THREE.DodecahedronGeometry(.3,0),m3Plain(0x8d8a80,.95),R*.95,.25,R*.3);g.userData.h=R*1.8;return g},
+  store(R,st,team){const g=new THREE.Group();
+    for(const x of[-1,1])for(const z of[-1,1])put(g,cyl(.07,.08,R*1.5,6),wood(),x*R*.9,R*.75,z*R*.5).rotation.z=x*.08;
+    for(const y of[R*1.2,R*.8])for(const z of[-1,1])put(g,cyl(.05,.05,R*1.9,5),woodD(),0,y,z*R*.5).rotation.z=Math.PI/2;
+    for(let i=0;i<4;i++){const h=put(g,new THREE.PlaneGeometry(R*.38,R*.7,1,1),m3Mat('fur',[0xa98558,0x7a5a38,0xc9a878,0x8f6c44][i]),-R*.7+i*R*.47,R*.8,R*.5);h.material=h.material.clone();h.material.side=THREE.DoubleSide}
+    put(g,new THREE.SphereGeometry(R*.5,8,6),m3Mat('fur',0x7a5a38),R*.3,R*.22,-R*.5).scale.set(1.3,.45,1);
+    for(const[x,z]of[[R*1.1,R*.1],[R*1.2,-R*.3]]){put(g,new THREE.SphereGeometry(.38,8,6),m3Plain(0xb88a4e),x,.3,z).scale.set(1,.9,1)}
+    for(let i=0;i<3;i++)put(g,new THREE.DodecahedronGeometry(.22,0),m3Plain(0x8d8a80,.95),-R*1.1+i*.1,.2,R*.7-i*.18);
+    g.userData.h=R*1.8;return g},
+  barracks(R,st,team){const g=new THREE.Group(),sm=m3Plain(0x8d8a80,.95);
+    const n=8;for(let i=0;i<n;i++){const a=i/n*6.283,h=R*(.9+.5*((i*37)%5)/4);const m=put(g,new THREE.BoxGeometry(.6,h,.35),sm,Math.cos(a)*R*1.15,h/2,Math.sin(a)*R*.8);m.rotation.y=-a;m.rotation.z=((i*13)%5-2)*.02}
+    put(g,new THREE.BoxGeometry(R*.9,.18,R*.4),sm,0,R*1.6,-R*.8,false).visible=false;
+    put(g,cyl(R*.3,R*.35,.1,10),m3Plain(0x4a443d,.95),0,.05,0);put(g,cone(.16,.45,6),m3Plain(0xf08a2c,.5,{emissive:0xd45a10,emissiveIntensity:.8}),0,.35,0);
+    for(let i=0;i<4;i++){const c=put(g,cyl(.05,.07,R*1.0,6),wood(),R*.3+i*.22,R*.5,-R*.2);c.rotation.z=-.25;put(g,new THREE.DodecahedronGeometry(.13,0),sm,R*.3+i*.22+R*.12,R*1.0,-R*.2)}
+    for(let i=0;i<3;i++){const sk=put(g,new THREE.SphereGeometry(.14,8,6),m3Plain(0xe8dfc8),-R*.3+i*.3,.14,R*.4)}
+    flagPole(g,0,R*1.4,0,R*1.2,team);g.userData.h=R*2.4;return g}
+};
+/* Neuzeit-Merkmale: Renaissance (Kuppel, Säulen, Kanone), Industriezeit (Schornsteine, Eisenträger, Gleis) */
+function epExtras(g,type,R,st){
+  const ep=st.ep;if(ep<4)return;const iron=m3Plain(0x3a3b42,.5,{metalness:.6}),gold=goldM(),pale=m3Plain(0xece6d6,.6);
+  if(ep===4){
+    if(type==='hq'){for(const x of[-.5,-.2,.2,.5])put(g,cyl(.14,.16,R*1.1,10),pale,x*R*1.6,R*.6,R*.95);put(g,new THREE.BoxGeometry(R*2.6,.22,.5),pale,0,R*1.2,R*.95);const d=put(g,new THREE.SphereGeometry(R*.45,14,10,0,6.283,0,1.6),gold,0,R*2.15,0);put(g,cyl(.05,.05,.5,5),gold,0,R*2.75,0)}
+    if(type==='house'){for(const x of[-.5,.5])put(g,new THREE.BoxGeometry(.16,.55,.08),m3Plain(0x4a6a52),x*R*.8,R*.5,R*.88);put(g,new THREE.BoxGeometry(R*.9,.1,.2),m3Plain(0x4a6a52),R*.5,R*.28,R*.9)}
+    if(type==='store'){const c=put(g,cyl(.06,.06,R*1.6,6),woodD(),R*1.2,R*.8,-R*.4);const a=put(g,cyl(.05,.05,R*1.1,6),woodD(),R*.7,R*1.55,-R*.4);a.rotation.z=Math.PI/2;put(g,new THREE.BoxGeometry(.4,.3,.4),m3Mat('planks',0xa9834f),R*.25,R*.95,-R*.4)}
+    if(type==='barracks'){const cg=new THREE.Group();cg.position.set(R*1.3,0,R*.5);g.add(cg);put(cg,cyl(.4,.4,.14,10),woodD(),0,.4,.4).rotation.x=Math.PI/2;put(cg,cyl(.4,.4,.14,10),woodD(),0,.4,-.4).rotation.x=Math.PI/2;put(cg,new THREE.BoxGeometry(1.4,.18,.8),woodD(),0,.7,0);put(cg,cyl(.2,.26,1.5,10),iron,.3,.95,0).rotation.z=-1.35}
+    if(type==='tower'){put(g,new THREE.SphereGeometry(R*.5,10,8,0,6.283,0,1.6),gold,0,R*3.4,0)}
+  }else{
+    const smoke=(x,y,z,h)=>{put(g,cyl(.22,.3,h,10),m3Mat('brick',0x8a4a38),x,y+h/2,z);put(g,cyl(.3,.24,.2,10),iron,x,y+h,z)};
+    if(type==='hq'){smoke(-R*.9,R*1.0,-R*.4,R*1.6);smoke(R*.9,R*1.0,-R*.4,R*1.3);for(const x of[-1.2,0,1.2])put(g,new THREE.BoxGeometry(.12,R*.6,.12),iron,x*R*.5,R*1.0,R*.95)}
+    if(type==='house'){smoke(R*.5,R*.9,-R*.2,R*.9);put(g,cyl(.04,.04,R*1.5,5),woodD(),-R*1.1,R*.75,R*.5);put(g,new THREE.BoxGeometry(.6,.05,.05),woodD(),-R*1.1,R*1.4,R*.5)}
+    if(type==='store'){for(const z of[-.5,.5])put(g,new THREE.BoxGeometry(R*3.2,.08,.1),iron,0,.1,R*.9+z*.45);for(let i=0;i<8;i++)put(g,new THREE.BoxGeometry(.08,.05,.7),woodD(),-R*1.5+i*R*.42,.06,R*.9+.0);const cart=put(g,new THREE.BoxGeometry(.9,.4,.6),iron,R*.8,.4,R*1.15)}
+    if(type==='barracks'){for(let i=0;i<5;i++)put(g,new THREE.SphereGeometry(.28,6,5),m3Plain(0xb8a578,.95),-R*1.2+i*.5,.25,R*.95).scale.set(1,.8,.8);for(let i=0;i<3;i++)put(g,cyl(.03,.03,1.2,5),iron,R*.3+i*.25,.8,R*.9)}
+    if(type==='tower'){const l=put(g,new THREE.SphereGeometry(.3,8,6),m3Plain(0xfff2b0,.2,{emissive:0xffe28a,emissiveIntensity:.9}),0,R*3.1+.4,R*.2)}
+    if(type==='harbor'){smoke(R*.3,R*.8,-R*.3,R*1.4)}
+    if(type==='castle'){smoke(0,R*1.8,0,R*1.2)}
+  }}
+function buildBld(type,R,ep,team){const st=bStyle(ep),g=(ep===0&&PRIM[type]||BLD3[type]||BLD3.house)(R,st,team);if(ep>=4)epExtras(g,type,R,st);setShadows(g);g.userData.flags=[];g.traverse(o=>{if(o.userData.flag)g.userData.flags.push(o)});return g}
 
 /* ---------- Figuren ---------- */
 function limbPivot(parent,x,y,z){const p=new THREE.Group();p.position.set(x,y,z);parent.add(p);return p}

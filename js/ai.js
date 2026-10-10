@@ -17,14 +17,14 @@ function aiLook(mine){const ai=G.ai,ex=ai.ex;
   for(const [id] of ai.seen)if(!G.byId.has(id))ai.seen.delete(id)}
 function aiWaterTarget(tx,ty){let best=null,bd=1e9;for(let r=120;r<=800;r+=40)for(let k=0;k<28;k++){const a=k*.2244,x=tx+Math.cos(a)*r,y=ty+Math.sin(a)*r;if(x<30||y<30||x>W-30||y>H-30||terrAt(x,y)>1||navDyn[navCell(x,y)])continue;const d=Math.hypot(x-tx,y-ty);if(d<bd){bd=d;best={x,y}}}return best}
 function aiTick(){
-  const ai=G.ai,r=G.res[1],ep=G.epoch[1];
+  const ai=G.ai,r=G.res[1],ep=G.epoch[1],ST=AI_STYLES[ai.style]||AI_STYLES.balanced;
   const mine=G.ents.filter(e=>!e.dead&&e.team===1);
   const hq=mine.find(e=>e.type==='hq');if(!hq)return;
   const workers=mine.filter(e=>e.type==='worker'),blds=mine.filter(e=>e.kind==='bld');
   const army=mine.filter(e=>e.kind==='unit'&&!UNITS[e.type].passive&&!UNITS[e.type].naval),boats=mine.filter(e=>e.type==='boat'),ships=mine.filter(e=>e.kind==='unit'&&UNITS[e.type].naval&&UNITS[e.type].ranged),scouts=mine.filter(e=>e.type==='scout');
   const unbuilt=blds.filter(b=>!b.built);
   aiLook(mine);
-  const targetW=[10,20,30,40,40,40][ep],minT=ep<EPOCHS.length-1?AI_MINT[ep]*DIFF[diff].pace:0;
+  const targetW=Math.round([10,20,30,40,40,40][ep]*ST.wk),minT=ep<EPOCHS.length-1?AI_MINT[ep]*DIFF[diff].pace*ST.pace:0;
   const saving=ep<EPOCHS.length-1&&!G.adv[1]&&workers.length>=targetW-2&&G.t>=minT-60;
   const adv=ep<EPOCHS.length-1?EPOCHS[ep].cost:null;
   if(workers.length+hq.queue.filter(q=>q.type==='worker').length<targetW&&hq.queue.length<2&&!(saving&&r.food<adv.food+50))enqueue(hq,'worker',1);
@@ -50,12 +50,12 @@ function aiTick(){
       for(let d=24;d<=120;d+=12){let done=false;for(let k=0;k<14;k++){const a=Math.random()*6.283,x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d;if(validSpot(x,y,BLDS.store.r)){pay(1,BLDS.store.cost);addBld('store',1,x,y,false);done=true;break}}if(done)break}}}
   // Gebäude
   if(G.cap[1]-G.pop[1]<=3&&G.cap[1]<POPMAX&&!unbuilt.some(b=>b.type==='house'))(aiPlace('house',hq,90,200)||aiPlace('house',hq,150,330));
-  const nBar=blds.filter(b=>b.type==='barracks').length,wantBar=ep>=2&&diff!=='leicht'?2:1;
+  const nBar=blds.filter(b=>b.type==='barracks').length,wantBar=(ep>=2&&diff!=='leicht'?2:1)+ST.bar;
   if(nBar<wantBar&&workers.length>=6&&!unbuilt.some(b=>b.type==='barracks')){const b=aiPlace('barracks',hq,110,210);if(b){const a=Math.atan2(H/2-hq.y,W/2-hq.x);b.rally={x:hq.x+Math.cos(a)*170,y:hq.y+Math.sin(a)*170}}}
-  if(diff!=='leicht'&&!saving&&!blds.some(b=>b.type==='tower')&&(ep>=1||(G.t>170&&workers.length>=10)))aiPlace('tower',hq,70,140);
+  if(diff!=='leicht'&&!saving&&!blds.some(b=>b.type==='tower')&&(ep>=1||(G.t>170&&workers.length>=10))&&ST.tow>=0)aiPlace('tower',hq,70,140);
   // Expansion: weitere Türme Richtung Kartenmitte erobern Land
   const nTow=blds.filter(b=>b.type==='tower').length;
-  if(ep>=1&&diff!=='leicht'&&!saving&&nTow<Math.min(4,1+ep)&&G.t>ai.towT&&!unbuilt.some(b=>b.type==='tower')&&afford(1,BLDS.tower.cost)&&aiPlaceToward('tower',hq,190,320))ai.towT=G.t+75;
+  if(ep>=1&&diff!=='leicht'&&!saving&&nTow<Math.min(4,1+ep)+ST.tow&&ST.tow>=0&&G.t>ai.towT&&!unbuilt.some(b=>b.type==='tower')&&afford(1,BLDS.tower.cost)&&aiPlaceToward('tower',hq,190,320))ai.towT=G.t+75;
   if(saving&&G.t>=minT&&workers.length>=targetW-1&&afford(1,adv))advance(1);
   // Marine: Hafen, Fischerboote, Kriegsschiffe
   if(diff!=='leicht'){
@@ -72,12 +72,12 @@ function aiTick(){
   }
   // Armee
   const types=[['club'],['spear','archer','spear'],['sword','archer','sword','spear'],['knight','crossbow','sword','catapult','knight'],['musket','cannon','knight','musket','crossbow'],['rifle','howitzer','rifle','musket','rifle']][ep];
-  const armyCap=Math.round([8,13,20,28,36,44][ep]*DIFF[diff].army),queued=blds.reduce((n,b)=>n+(b.type==='barracks'?b.queue.length:0),0);
+  const armyCap=Math.round([8,13,20,28,36,44][ep]*DIFF[diff].army*ST.army),queued=blds.reduce((n,b)=>n+(b.type==='barracks'?b.queue.length:0),0);
   for(const b of blds){if(b.type!=='barracks'||!b.built||b.queue.length>=2||army.length+queued>=armyCap)continue;
     if(saving&&!(r.food>adv.food+90&&r.wood>(adv.wood||0)+90))continue;
     enqueue(b,types[(G.stats.trained[1]+b.id)%types.length],1)}
   // Verteidigung
-  const threats=G.ents.filter(e=>!e.dead&&e.team===0&&e.kind==='unit'&&blds.some(b=>dist(e,b)<260));
+  const threats=G.ents.filter(e=>!e.dead&&e.team===0&&e.kind==='unit'&&blds.some(b=>dist(e,b)<ST.def));
   if(threats.length){for(const m of army){if(m.state==='attack'||dist(m,hq)>750)continue;let t=null,td=1e9;for(const th of threats){const d=dist(m,th);if(d<td){td=d;t=th}}m.state='attack';m.tid=t.id}}
   else{
     // Angriff: erst wenn der Gegner gefunden ist, sonst wird gesucht
