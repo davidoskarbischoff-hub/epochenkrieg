@@ -25,11 +25,11 @@ function renderMenu(){
   $('mNew').onclick=()=>{toggleMenu();showStart()};
   if($('mMulti'))$('mMulti').onclick=()=>{toggleMenu();if(window.Lobby)Lobby.open()};
 }
-function applyLang(l){setLang(l);panelSig='';infoCache='';$('speedBtn').textContent=tr('Tempo {0}×',G?G.speed:1);$('pauseBtn').textContent=G&&G.paused?tr('Weiter'):tr('Pause');if(!$('overlay').hidden&&G&&!G.running&&!G.overShown)showStart();if(G)updateUI()}
+function applyLang(l){setLang(l);panelSig='';infoCache='';$('speedBtn').textContent=tr('Tempo {0}×',G?G.speed:1);$('pauseBtn').textContent=G&&G.paused?tr('Weiter'):tr('Pause');if(!$('overlay').hidden&&$('overlay').querySelector('[data-l]'))showStart();if(G)updateUI()}
 $('menuBtn').onclick=()=>{SND.init();toggleMenu()};
 ['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>{if(typeof SND!=='undefined')SND.init()},{once:true}));
 $('pauseBtn').onclick=()=>{if(G&&G.running)togglePause()};
-$('speedBtn').onclick=()=>{if(!G||G.mp)return;G.speed=G.speed===1?2:G.speed===2?3:1;$('speedBtn').textContent=tr('Tempo {0}×',G.speed)};
+$('speedBtn').onclick=()=>{if(!G||G.mp)return;G.speed=G.speed===1?2:G.speed===2?3:G.speed===3?5:1;$('speedBtn').textContent=tr('Tempo {0}×',G.speed)};
 $('idleBtn').onclick=()=>{if(G&&G.running)selectIdle()};
 
 /* ---------- UI ---------- */
