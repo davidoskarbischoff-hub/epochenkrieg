@@ -28,10 +28,12 @@ function r3Init(){
   r3={rd,scene,camera,sun,hemi,sea,gEnt,vec:_v(),ray:new THREE.Raycaster(),maxTex:rd.capabilities.maxTextureSize};
   R3.ok=true;R3.t0=performance.now();setGfx(gfxQ);if(typeof optApply==='function')optApply();
 }
-/* Grafikqualität (Menü): 0 normal, 1 hoch (Standard), 2 sehr hoch = schärfer durch höhere Auflösung und feinere Schatten */
-let gfxQ=1;try{const q=localStorage.getItem('ek-gfx');if(q!==null)gfxQ=Math.max(0,Math.min(2,+q||0))}catch(_){}
-function setGfx(q,temp){gfxQ=q;if(!temp)try{localStorage.setItem('ek-gfx',q)}catch(_){}if(!R3.ok)return;const sz=[1024,2048,Math.min(4096,r3.maxTex)][q];if(r3.sun.shadow.mapSize.x!==sz){r3.sun.shadow.mapSize.set(sz,sz);if(r3.sun.shadow.map){r3.sun.shadow.map.dispose();r3.sun.shadow.map=null}}r3Resize()}
-function r3Resize(){if(!R3.ok)return;r3.rd.setPixelRatio(Math.min([1,1.5,2][gfxQ],(window.devicePixelRatio||1)*(gfxQ===2?1.5:1)));r3.rd.setSize(VW,VH,false);camUpdate()}
+/* Grafikqualität (Menü): 0 Niedrig, 1 Mittel, 2 Hoch (Standard), 3 Ultra – unterscheiden sich sichtbar in Schärfe, Schatten, Gras, Leuchten und Rauch */
+const GQ=[{n:'Niedrig',pr:.7,sh:1024,grass:.25,bloom:0,smoke:0,rad:1},{n:'Mittel',pr:1,sh:1024,grass:.6,bloom:0,smoke:1,rad:1.5},{n:'Hoch',pr:1.5,sh:2048,grass:1,bloom:1,smoke:1,rad:2.5},{n:'Ultra',pr:2.2,sh:4096,grass:1.7,bloom:1,smoke:1,rad:4}];
+let gfxQ=2;try{const q=localStorage.getItem('ek-gfx2');if(q!==null)gfxQ=Math.max(0,Math.min(3,+q||0));else{const o=localStorage.getItem('ek-gfx');if(o!==null)gfxQ=Math.max(0,Math.min(3,(+o||0)+1))}}catch(_){}
+function setGfx(q,temp){const old=gfxQ;gfxQ=q;if(!temp)try{localStorage.setItem('ek-gfx2',q)}catch(_){}if(!R3.ok)return;const g=GQ[q],sz=Math.min(g.sh,r3.maxTex);if(r3.sun.shadow.mapSize.x!==sz){r3.sun.shadow.mapSize.set(sz,sz);if(r3.sun.shadow.map){r3.sun.shadow.map.dispose();r3.sun.shadow.map=null}}
+  r3.sun.shadow.radius=g.rad;r3Resize();if(typeof optApply==='function')optApply();if(GQ[old].grass!==g.grass&&r3.i_tuft&&typeof W!=='undefined')r3Grass()}
+function r3Resize(){if(!R3.ok)return;r3.rd.setPixelRatio(Math.max(.5,Math.min(GQ[gfxQ].pr,Math.max(1,window.devicePixelRatio||1)*1.5)));r3.rd.setSize(VW,VH,false);camUpdate()}
 
 /* ---------- Gelände ---------- */
 const hgrid={w:0,h:0,a:null};
@@ -137,9 +139,9 @@ function r3NodesInit(){
 function r3Grass(){
   const{scene}=r3;for(const k of['i_tuft','i_flower'])if(r3[k]){scene.remove(r3[k]);r3[k].dispose();r3[k]=null}
   const R=mulberry(4242),S=R3.S,pts=[],fl=[];
-  for(let i=0;i<Math.round(52000*AREA)&&pts.length<Math.round(15000*AREA);i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;let ok=true;for(let k=0;k<4;k++)if(terrAt(x+Math.cos(k*1.57)*14,y+Math.sin(k*1.57)*14)!==2){ok=false;break}if(!ok)continue;
+  for(let i=0;i<Math.round(52000*AREA*GQ[gfxQ].grass)&&pts.length<Math.round(15000*AREA*GQ[gfxQ].grass);i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;let ok=true;for(let k=0;k<4;k++)if(terrAt(x+Math.cos(k*1.57)*14,y+Math.sin(k*1.57)*14)!==2){ok=false;break}if(!ok)continue;
     const dens=.5+.5*Math.sin(x*.013+Math.cos(y*.011)*2);if(R()>dens*1.1)continue;pts.push({x,y,r:R()*6.28,s:.6+R()*.8,c:.8+R()*.5,j:R()})}
-  for(let i=0;i<Math.round(9000*AREA)&&fl.length<Math.round(1800*AREA);i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;const cx=Math.cos(x*.02)*Math.sin(y*.017);if(cx<.35)continue;fl.push({x,y,r:R()*6.28,s:.7+R()*.6,k:(R()*5)|0})}
+  for(let i=0;i<Math.round(9000*AREA*Math.min(1.5,GQ[gfxQ].grass))&&fl.length<Math.round(1800*AREA*Math.min(1.5,GQ[gfxQ].grass));i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;const cx=Math.cos(x*.02)*Math.sin(y*.017);if(cx<.35)continue;fl.push({x,y,r:R()*6.28,s:.7+R()*.6,k:(R()*5)|0})}
   const blade=(r,h,ax,az,col)=>{const g=new THREE.ConeGeometry(r,h,3);g.translate(0,h/2,0);g.rotateZ(az);g.rotateX(ax);return[g,col]};
   const tg=mergeColored([blade(.05,.5,.18,.2,0x5f8a3a),blade(.05,.62,-.15,-.1,0x6f9a44),blade(.045,.42,.1,-.3,0x4f7a32),blade(.045,.55,-.2,.25,0x7aa24b)]);
   r3.i_tuft=new THREE.InstancedMesh(tg,windify(new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide}),.55),pts.length);
@@ -369,7 +371,7 @@ function r3SmokeInit(){
   r3.smoke={pool,max:MAX,n:0}}
 function r3Smoke(dt,t){
   if(!R3.ok)return;if(!r3.smoke)r3SmokeInit();const S=r3.smoke,Sc=R3.S;
-  if(G&&G.ents&&!R3.saverOn){for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const d=SMOKE_SRC[e.type];if(!d||G.epoch[e.team]<d.ep||!shown(e))continue;
+  if(G&&G.ents&&!R3.saverOn&&GQ[gfxQ].smoke){for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const d=SMOKE_SRC[e.type];if(!d||G.epoch[e.team]<d.ep||!shown(e))continue;
     e._sm=(e._sm||Math.random())-dt;if(e._sm>0)continue;e._sm=d.rate*(.7+Math.random()*.6);const q=S.pool.find(p=>!p.on);if(!q)break;
     const o=R3.reg.get(e.id),R=e.r/Sc*1.05,top=(o&&o.obj.userData.h)||R*2;
     q.on=true;q.age=0;q.life=3.6+Math.random()*2.0;q.vx=.5+Math.random()*.3;q.vy=.9+Math.random()*.5;q.vz=(Math.random()-.5)*.25;q.s0=1.1;q.s1=4.2+Math.random()*1.6;q.a0=.8;q.m.color.setHex(G.epoch[e.team]>=5?0x8f8c88:0xe2dfd8);
@@ -381,7 +383,7 @@ function r3Smoke(dt,t){
 /* Leuchten (Bloom): verkleinerte Kopie des Bildes liegt weichgezeichnet und aufgehellt per „Bildschirm“-Überblendung über der Welt – helle Stellen (Sonnenlicht auf Wasser, Fenster, Feuer) strahlen sanft nach.
    Billiger Ersatz für eine echte Nachbearbeitung; abschaltbar im Menü (Grafik). */
 function r3Bloom(){
-  if(!OPT.bloom||R3.saverOn)return;const c=document.getElementById('bloom');if(!c||c.hidden)return;
+  if(!OPT.bloom||!GQ[gfxQ].bloom||R3.saverOn)return;const c=document.getElementById('bloom');if(!c||c.hidden)return;
   R3.bloomN=(R3.bloomN||0)+1;if(R3.bloomN%2)return;
   const w=Math.max(160,Math.round(r3.rd.domElement.width/5)),h=Math.max(90,Math.round(r3.rd.domElement.height/5));if(c.width!==w||c.height!==h){c.width=w;c.height=h}
   const x=c.getContext('2d');x.globalCompositeOperation='copy';x.drawImage(r3.rd.domElement,0,0,w,h)}

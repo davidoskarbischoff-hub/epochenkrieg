@@ -4,12 +4,13 @@ const ICON3=(()=>{
   let rd=null,scene=null,cam=null;const cache=new Map();
   function init(){
     if(rd||typeof THREE==='undefined')return !!rd;
-    try{rd=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});rd.setSize(96,96);rd.setPixelRatio(1);rd.setClearColor(0x000000,0);
+    try{rd=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});rd.setSize(128,128);rd.setPixelRatio(1);rd.setClearColor(0x000000,0);
       scene=new THREE.Scene();scene.add(new THREE.HemisphereLight(0xffffff,0x6a5a40,1.9));const d=new THREE.DirectionalLight(0xfff2d8,2.4);d.position.set(3,6,4);scene.add(d);
       cam=new THREE.PerspectiveCamera(28,1,.1,200)}catch(e){rd=null;return false}
     return true}
-  function shot(g,dir){
-    scene.add(g);g.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(g),c=bb.getCenter(new THREE.Vector3()),sz=bb.getSize(new THREE.Vector3()),R=Math.max(sz.x,sz.y,sz.z)*.62+.01;
+  function shot(g,dir,focus){
+    scene.add(g);g.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(g),c=bb.getCenter(new THREE.Vector3()),sz=bb.getSize(new THREE.Vector3());let R=Math.max(sz.x,sz.y,sz.z)*.62+.01;
+    if(focus){c.y=bb.max.y-sz.y*focus*.5;R=sz.y*focus*.62+.01}
     const dist=R/Math.tan(cam.fov*Math.PI/360);const v=(dir||new THREE.Vector3(1,.85,1.25)).clone().normalize();cam.position.copy(c).addScaledVector(v,dist);cam.lookAt(c);cam.updateProjectionMatrix();
     rd.render(scene,cam);const url=rd.domElement.toDataURL('image/png');scene.remove(g);
     g.traverse(o=>{if(o.geometry)o.geometry.dispose&&0});return url}
@@ -26,7 +27,9 @@ const ICON3=(()=>{
     pop(){const g=new THREE.Group();M(g,new THREE.SphereGeometry(.38,18,14),mat(0xe0b48a,.6),0,1.0,0);M(g,new THREE.SphereGeometry(.4,18,10,0,6.283,0,1.3),mat(0x4a3220,.8),0,1.05,-.04);const b=M(g,new THREE.CylinderGeometry(.34,.6,.9,16),mat(0x4f82c8,.7),0,.35,0);b.scale.z=.7;return g}
   };
   const resImg={};
-  function res(n){if(resImg[n]!==undefined)return resImg[n];if(!RES[n]||!init())return null;try{return resImg[n]=shot(RES[n]())}catch(e){return resImg[n]=null}}
+  function res(n){if(resImg[n]!==undefined)return resImg[n];if(!init())return null;
+    try{const m=(typeof EKMODELS!=='undefined'&&EKMODELS.iconModel)?EKMODELS.iconModel(n):null;if(m)return resImg[n]=shot(m,new THREE.Vector3(.9,.9,1.25),m.userData.focus)}catch(e){}
+    if(!RES[n])return null;try{return resImg[n]=shot(RES[n]())}catch(e){return resImg[n]=null}}
   /* Einheit oder Gebäude: Vorschaubild (Epoche beeinflusst das Aussehen) */
   function thing(kind,type){
     const ep=(typeof G!=='undefined'&&G)?G.epoch[0]:0,key=kind+type+':'+ep+':'+(G&&G.nation?G.nation[0]:'');if(cache.has(key))return cache.get(key);
@@ -36,5 +39,5 @@ const ICON3=(()=>{
       else{const d=BLDS[type];g=buildBld(type,d.r/10*1.05,ep,0)}
       url=shot(g,kind==='unit'?new THREE.Vector3(.8,.5,1.3):new THREE.Vector3(1,.95,1.25))}catch(e){url=null}
     cache.set(key,url);return url}
-  return{res,thing,init,clear:()=>cache.clear()}
+  return{res,thing,init,clear:()=>{cache.clear();for(const k in resImg)delete resImg[k]}}
 })();
