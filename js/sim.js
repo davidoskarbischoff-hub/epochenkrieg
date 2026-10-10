@@ -79,13 +79,12 @@ function step(dt){
   G.t+=dt;G.pfBudget=12;G.load={};
   for(const e of G.ents)if(e.kind==='unit'&&!e.dead&&e.state==='gather'&&e.tid)G.load[e.tid]=(G.load[e.tid]||0)+1;
   for(const e of G.ents)if(e.regen&&e.amount<e.maxAmt&&!e.dead)e.amount=Math.min(e.maxAmt,e.amount+e.regen*dt);
-  G.solids=G.ents.filter(e=>e.kind!=='unit'&&e.kind!=='animal'&&!e.dead);
-  recount();
+  G.rcT=(G.rcT||0)-dt;if(G.rcT<=0||!G.solids){G.rcT=.2;G.solids=G.ents.filter(e=>e.kind!=='unit'&&e.kind!=='animal'&&!e.dead);recount()}
   for(const e of G.ents){if(e.dead||e.upj)continue;if(e.kind==='unit')updUnit(e,dt);else if(e.kind==='bld')updBld(e,dt);else if(e.kind==='animal')updAnimal(e,dt)}
   for(let t=0;t<2;t++){const js=G.jobs[t];if(!js.length)continue;for(const j of js){j.t+=dt;if(j.t>=j.time){j.done=true;for(const id of j.ids){const e=G.byId.get(id);if(e&&!e.dead){e.upj=null;levelUp(e,j.to)}}if(t===0){panelSig='';infoCache='';sfx('epoch');toast(tr('Upgrade fertig: {0}',j.label),'good')}}}G.jobs[t]=js.filter(j=>!j.done)}
   for(let t=0;t<2;t++){const rs=G.rs[t];if(!rs.length)continue;for(const r of rs){r.t+=dt;if(r.t>=r.time){r.done=true;G.tech[t].add(r.id);techRefresh(t);if(t===0){panelSig='';infoCache='';sfx('epoch');toast(tr('Erforscht: {0}',tr(TECH[r.id].name)),'good')}}}G.rs[t]=rs.filter(r=>!r.done)}
   for(let t=0;t<2;t++){const a=G.adv[t];if(!a)continue;a.t+=dt;if(a.t>=a.time){G.epoch[t]++;G.adv[t]=null;panelSig='';if(t===1){applyLevels(1);grantAiTechs(1)}if(t===0){sfx('epoch');if(typeof SND!=='undefined')SND.setEpoch(G.epoch[0])}if(t===0)toast(tr('{0} erreicht! Neue Einheiten und Gebäude verfügbar.',tr(EPOCHS[G.epoch[0]].name)),'good');else toast(tr('Der Gegner hat die {0} erreicht.',tr(EPOCHS[G.epoch[1]].name)),'warn')}}
-  for(const p of G.proj){const t=get(p.tid);if(!t){p.dead=true;continue}const dx=t.x-p.x,dy=t.y-p.y,d=Math.hypot(dx,dy),s=380*dt;p.a=Math.atan2(dy,dx);if(d<=s+t.r*.5){damage(t,p.dmg,get(p.src));p.dead=true}else{p.x+=dx/d*s;p.y+=dy/d*s}}
+  for(const p of G.proj){const t=get(p.tid);if(!t){p.dead=true;continue}const dx=t.x-p.x,dy=t.y-p.y,d=Math.hypot(dx,dy),s=380*dt;p.a=Math.atan2(dy,dx);if(d<=s+t.r*.5){damage(t,p.dmg,get(p.src));if(p.sp){for(const o of G.ents)if(o!==t&&!o.dead&&o.kind==='unit'&&o.team===t.team&&Math.hypot(o.x-t.x,o.y-t.y)<p.sp)damage(o,p.dmg*.5,get(p.src))}p.dead=true}else{p.x+=dx/d*s;p.y+=dy/d*s}}
   G.proj=G.proj.filter(p=>!p.dead);
   separate();
   fogT+=dt;if(fogT>=.2){fogT=0;fogUpdate()}
@@ -150,12 +149,12 @@ function updUnit(u,dt){
      const t=findEnemy(u,d.rng*1.3,false);if(t&&t.kind!=='node'){u.fa=Math.atan2(t.y-u.y,t.x-u.x);if(u.cd<=0){u.cd=d.cd;u.swing=G.t;hit(u,t)}}}
     break}
   case 'idle':
-    if(!d.passive){const t=findEnemy(u,150);if(t){u.tid=t.id;u.state='attack'}}
+    if(!d.passive&&((u.ft=(u.ft||0)-dt)<=0)){u.ft=.25+Math.random()*.1;const t=findEnemy(u,150);if(t){u.tid=t.id;u.state='attack'}}
     break;
   case 'explore':{const g=exGrid(u.team);if(!u.ex||G.t>u.ex.until||g[u.ex.i]){u.ex=pickExplore(u);if(!u.ex){u.state='idle';break}u.ex.until=G.t+45;u.pf=null}
     const done=moveToward(u,u.ex.x,u.ex.y,dt);if(u.pf&&u.pf.fail){(u.badEx||(u.badEx={}))[u.ex.i]=G.t;u.ex=null;u.pf=null}else if(done)u.ex=null;break}
   case 'move':if(moveToward(u,u.dest.x,u.dest.y,dt))u.state='idle';break;
-  case 'amove':{const t=findEnemy(u,140);if(t){u.tid=t.id;u.state='attack';break}if(moveToward(u,u.amove.x,u.amove.y,dt)){u.state='idle';u.amove=null}break}
+  case 'amove':{const t=((u.ft=(u.ft||0)-dt)<=0)?(u.ft=.2+Math.random()*.1,findEnemy(u,140)):null;if(t){u.tid=t.id;u.state='attack';break}if(moveToward(u,u.amove.x,u.amove.y,dt)){u.state='idle';u.amove=null}break}
   case 'attack':{const t=get(u.tid);if(!t||t.team===u.team||(t.team<0&&t.kind!=='animal')){u.state=u.amove?'amove':'idle';break}
     const gap=dist(u,t)-u.r-t.r;
     if(gap<=d.rng){u.fa=Math.atan2(t.y-u.y,t.x-u.x);if(u.cd<=0){u.cd=d.cd;u.swing=G.t;hit(u,t)}}
@@ -186,7 +185,7 @@ function updUnit(u,dt){
   }
 }
 function hit(u,t){const d=UNITS[u.type];if(!u.yl||G.t-u.yl>25){u.yl=G.t;if(Math.random()<.5)sfx('yell',u)}sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);const mult=(t.kind==='bld'?(d.siege?1.8:d.ranged?.3:1):(d.siege&&!d.ranged?.35:1))*(1+(d.ranged?G.tfx[u.team].ratk:G.tfx[u.team].matk))*(d.cls==='siege'?1+G.nfx[u.team].art:1)*(t.kind==='unit'?((CTR[d.cls]||{})[UNITS[t.type].cls]||1)*(d.gun&&UNITS[t.type].cls==='cav'?1.3:1):1)*(u.rage>G.t?RAGE.dmg:1)*(u.am||1);
-  if(d.ranged)G.proj.push({x:u.x,y:u.y,tid:t.id,dmg:d.atk*mult*LVL.atk[u.lvl],src:u.id,a:0,big:!!d.siege,gun:!!d.gun});else damage(t,d.atk*mult*LVL.atk[u.lvl],u)}
+  if(d.ranged)G.proj.push({x:u.x,y:u.y,tid:t.id,dmg:d.atk*mult*LVL.atk[u.lvl],src:u.id,a:0,big:!!d.siege,gun:!!d.gun,sp:d.splash||0});else damage(t,d.atk*mult*LVL.atk[u.lvl],u)}
 function damage(t,amt,src){
   if(t.kind==='unit'&&G.ents.some(b=>b.kind==='bld'&&b.type==='trench'&&b.built&&!b.dead&&b.team===t.team&&Math.hypot(b.x-t.x,b.y-t.y)<30))amt*=.65;
   if(!(t.hp>=0))t.hp=t.maxHp||1;
@@ -287,9 +286,16 @@ function advance(team,nat){
 }
 function validSpot(x,y,r,anyTerrain){if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)return false;if(!anyTerrain&&(!onLand(x,y)||!onLand(x+r,y)||!onLand(x-r,y)||!onLand(x,y+r)||!onLand(x,y-r)))return false;if(!anyTerrain&&slopeNear(x,y,r)>.9)return false;for(const e of G.ents){if(e.dead||e.kind==='unit')continue;if(Math.hypot(e.x-x,e.y-y)<e.r+r+5)return false}return true}
 function separate(){
-  const us=G.ents.filter(e=>e.kind==='unit'&&!e.dead&&!e.gar&&!UNITS[e.type].air);
-  for(let i=0;i<us.length;i++){const a=us[i];for(let j=i+1;j<us.length;j++){const b=us[j];let dx=b.x-a.x,dy=b.y-a.y;const m=a.r+b.r;if(Math.abs(dx)>m||Math.abs(dy)>m)continue;let d=Math.hypot(dx,dy);if(d>=m)continue;if(d<.01){dx=Math.random()-.5;dy=Math.random()-.5;d=Math.hypot(dx,dy)}const p=(m-d)/2*.8;a.x-=dx/d*p;a.y-=dy/d*p;b.x+=dx/d*p;b.y+=dy/d*p}}
-  for(const u of us){const nav=!!UNITS[u.type].naval;for(const o of G.solids){if(o.dead||(o.sea&&!nav)||(o.kind==='bld'&&BLDS[o.type].passable))continue;let dx=u.x-o.x,dy=u.y-o.y;const R=o.r+u.r;if(Math.abs(dx)>R||Math.abs(dy)>R)continue;let d=Math.hypot(dx,dy);if(d>=R)continue;if(d<.01){dx=1;dy=0;d=1}u.x=o.x+dx/d*R;u.y=o.y+dy/d*R}
+  const us=G.ents.filter(e=>e.kind==='unit'&&!e.dead&&!e.gar&&!UNITS[e.type].air),CU=40,ug=new Map();
+  us.forEach((u,i)=>{u._i=i;const k=((u.x/CU)|0)*4096+((u.y/CU)|0);const l=ug.get(k);if(l)l.push(u);else ug.set(k,[u])});
+  for(const a of us){const cx=(a.x/CU)|0,cy=(a.y/CU)|0;
+    for(let gx=cx-1;gx<=cx+1;gx++)for(let gy=cy-1;gy<=cy+1;gy++){const l=ug.get(gx*4096+gy);if(!l)continue;
+      for(const b of l){if(b._i<=a._i)continue;let dx=b.x-a.x,dy=b.y-a.y;const m=a.r+b.r;if(Math.abs(dx)>m||Math.abs(dy)>m)continue;let d=Math.hypot(dx,dy);if(d>=m)continue;if(d<.01){dx=Math.random()-.5;dy=Math.random()-.5;d=Math.hypot(dx,dy)}const p=(m-d)/2*.8;a.x-=dx/d*p;a.y-=dy/d*p;b.x+=dx/d*p;b.y+=dy/d*p}}}
+  const CS=64,sg=new Map();
+  for(const o of G.solids){if(o.dead||(o.kind==='bld'&&BLDS[o.type].passable))continue;const rr=o.r+24;
+    for(let gx=((o.x-rr)/CS)|0;gx<=((o.x+rr)/CS)|0;gx++)for(let gy=((o.y-rr)/CS)|0;gy<=((o.y+rr)/CS)|0;gy++){const k=gx*4096+gy,l=sg.get(k);if(l)l.push(o);else sg.set(k,[o])}}
+  for(const u of us){const nav=!!UNITS[u.type].naval,l=sg.get(((u.x/CS)|0)*4096+((u.y/CS)|0));
+    if(l)for(const o of l){if(o.dead||(o.sea&&!nav))continue;let dx=u.x-o.x,dy=u.y-o.y;const R=o.r+u.r;if(Math.abs(dx)>R||Math.abs(dy)>R)continue;let d=Math.hypot(dx,dy);if(d>=R)continue;if(d<.01){dx=1;dy=0;d=1}u.x=o.x+dx/d*R;u.y=o.y+dy/d*R}
     u.x=Math.max(u.r,Math.min(W-u.r,u.x));u.y=Math.max(u.r,Math.min(H-u.r,u.y));
     if(u.px!==undefined&&!terrOk(u.x,u.y,!!UNITS[u.type].naval)){u.x=u.px;u.y=u.py}}
 }

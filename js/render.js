@@ -1,3 +1,6 @@
+/* Welche Gebäude werden gerade gebaut? (4× pro Sekunde neu berechnet statt für jedes Gebäude jedes Bild) */
+let _busy=new Set(),_busyAt=0;
+function busyIds(){const n=performance.now();if(n-_busyAt>250){_busyAt=n;_busy=new Set();for(const w of G.ents)if(!w.dead&&w.kind==='unit'&&w.state==='build'&&w.tid)_busy.add(w.tid)}return _busy}
 /* Epochenkrieg – Zeichnen: die 3D-Welt kommt aus render3d.js, hier liegen die 2D-Anzeigen darüber (Lebensbalken, Marker, Partikel) und die Minikarte.
    (Teil des Spiels; alle game-Dateien teilen sich die globalen Namen, Ladereihenfolge siehe index.html.) */
 'use strict';
@@ -29,7 +32,7 @@ function ovBld(b){
   const r=b.r,hh=entH(b);
   if(b.type!=='wall')atGround(b.x,b.y,hh+6,()=>{const bx=0,by=0;ctx.fillStyle='rgba(20,15,10,.85)';ctx.strokeStyle=LVLC[b.lvl];ctx.lineWidth=1.5;ctx.beginPath();ctx.rect(bx-9,by-6,18,12);ctx.fill();ctx.stroke();ctx.fillStyle=LVLC[b.lvl];ctx.font='bold 9px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(LVLN[b.lvl],bx,by+.5)});
   if(!b.built)atGround(b.x,b.y+r,0,()=>{
-    const bw=Math.max(46,r*2+10),bx=-bw/2,by=8,busy=G.ents.some(w=>!w.dead&&w.team===b.team&&w.state==='build'&&w.tid===b.id),warn=b.team===0&&!busy;
+    const bw=Math.max(46,r*2+10),bx=-bw/2,by=8,busy=busyIds().has(b.id),warn=b.team===0&&!busy;
     ctx.fillStyle='rgba(20,15,10,.85)';ctx.fillRect(bx-1,by-1,bw+2,9);ctx.fillStyle=warn?'#d0432c':'#e0a24a';ctx.fillRect(bx,by,bw*b.prog,7);
     if(b.team===0){ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.lineWidth=3;ctx.strokeStyle='rgba(20,15,10,.9)';const lb=warn?tr('Kein Bauarbeiter!'):tr('Im Bau')+' '+Math.floor(b.prog*100)+' %';ctx.strokeText(lb,0,by+10);ctx.fillStyle=warn?'#ff9a85':'#f3e2b3';ctx.fillText(lb,0,by+10)}})
 }

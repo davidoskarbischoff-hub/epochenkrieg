@@ -150,3 +150,10 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 ## Runde J
 - [x] KI-Bauabstände, Arbeiter-Verteilung, verborgene Erze, Öl, Mauern/Tore, Sanitäter, Formationen, Nationen, Flugzeuge/Flugplatz
 - [ ] Diktaturen/Asien-Zweig im Zeitalter-Baum, 21. Jahrhundert, bessere Flugzeugmodelle, Luftabwehr, Mehrspieler für Nationen
+
+## Runde K
+- [x] Ausbaubäume (Turm, Hauptlager, Kaserne), KI baut sie aus
+- [x] Balance Weltkriegseinheiten (Duell-Test kostengleicher Gruppen)
+- [x] Leistung: Gitter für Kollisionen, gedrosselte Feindsuche/Zählung
+- [x] Mehrspieler-Lobby: Grösse, Karte, Tempo, Farbe, Vorschläge
+- [ ] Echte Kartengrössen (Spielfeld wirklich kleiner/grösser), Ausbaubäume für Hafen/Markt/Flugplatz, Fliegerabwehr, Diktaturen-Zweig ausbauen
