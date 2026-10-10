@@ -82,6 +82,8 @@ function spawnAnimals(R,bases,A){
   place('sabertooth',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
   for(let i=0;i<2;i++)place('sabertooth',1,A,1000,2600,(x,y)=>farBase(x,y,900)&&treesNear(x,y,170)>=2);
   place('tiger',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
+  const shallow=(x,y)=>{if(x<90||y<90||x>W-90||y>H-90)return false;for(let k=0;k<8;k++){const a=k*.785;if(terrAt(x+Math.cos(a)*26,y+Math.sin(a)*26)!==1)return false}return terrAt(x,y)===1&&navDyn[navCell(x,y)]===0};
+  for(let n=0,k=0;n<4&&k<600;k++){const a=R()*6.283,d=420+R()*1500,x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!shallow(x,y)||!farBase(x,y,380))continue;G.late.push({type:'croc',x,y});if(shallow(W-x,H-y))G.late.push({type:'croc',x:W-x,y:H-y});n++}
 }
 function renderBg(seed){
   const K=.75; /* Bodentextur in 75 % Auflösung (spart Zeit und Speicher); alle Zeichenbefehle bleiben in Spielpixeln */

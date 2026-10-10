@@ -605,6 +605,7 @@ const ANI3={
   bear:{col:0x5b3f2a,belly:0x4a3322,dark:0x1c130c,br:.55,bl:1.0,legH:.5,lw:.14,hr:.31,neck:[.5,.3],snout:.8,earLen:.4,hump:true,tail:.15,snoutCol:0x8a6a4a},
   mammoth:{col:0x6b4a30,belly:0x5a3c28,dark:0x2a1c12,br:.95,bl:1.7,legH:.95,lw:.26,hr:.5,neck:[.75,.25],snout:.5,earLen:.5,hump:true,tail:.2,trunk:true,tusks:true,shaggy:true},
   sabertooth:{col:0xc99a5a,belly:0xe8d4a8,dark:0x2a1c10,br:.4,bl:1.2,legH:.55,lw:.13,hr:.28,neck:[.5,.28],snout:.8,earLen:.45,tail:.25,tailCol:0xc99a5a,fangs:true,spots:true},
+  croc:{col:0x4a6a3a,belly:0xc8c08a,dark:0x1c2a14,br:.2,bl:1.7,legH:.14,lw:.09,hr:.16,neck:[.6,.05],snout:2.6,earLen:0,tail:1.5,tailCol:0x3d5a30},
   tiger:{col:0xd9822b,belly:0xf1dcb5,dark:0x1d1510,br:.34,bl:1.1,legH:.58,lw:.1,hr:.25,neck:[.45,.28],snout:.9,earLen:.5,stripes:true,tail:.9,tailCol:0xd9822b}
 };
 /* Stromlinienkörper für Wale und Delfine: Drehkörper mit dickem Kopf und dünnem Schwanz, oben dunkel, unten hell. Nase zeigt nach +x. */

@@ -183,6 +183,7 @@ function r3Sync(list,dt,t){
     if(c.animal)c.rig.g.rotation.x=f*1.45;else{c.rig.g.rotation.z=-f*1.5;if(c.rig.up){c.rig.up.rotation.z=0;for(const l of c.rig.legs)l.rotation.z=0;for(const a of c.rig.arms)a.rotation.z=1.6*f}}
     c.obj.position.y=c.t>2.4?-(c.t-2.4)*.9:c.obj.position.y;
     if(c.t>3.2){r3.gEnt.remove(c.obj);R3.corpses.splice(i,1)}}
+  r3Bones()
 }
 function r3Make(e,sig){
   const S=R3.S;
@@ -260,7 +261,7 @@ function r3Unit(o,e,h,dt,t){
 }
 function r3Animal(o,e,h,dt,t){const S=R3.S,rig=o.rig,moving=G.t-(e.mvT||-9)<.2;let dy=-e.fa-o.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));o.yaw+=dy*Math.min(1,dt*10);if(moving)o.ph+=dt*(6+UNITS_A(e).spd*.05);const s=Math.sin(o.ph);
   rig.legs.forEach((l,i)=>{const ph=(i===0||i===3?s:-s);l.rotation.z=moving?ph*.7:0;if(rig.knees&&rig.knees[i])rig.knees[i].rotation.z=moving?Math.max(0,-ph)*.9:0});rig.g.scale.y=rig.g.userData.sy=1+(moving?0:Math.sin(t*1.6+e.id)*.012);const sw=e.swing&&G.t-e.swing<.3?1-(G.t-e.swing)/.3:0;if(rig.head)rig.head.rotation.z=-sw*.5+(e.state==='graze'?-.6:0);
-  o.obj.position.set(e.x/S,h+(moving?Math.abs(s)*.06:0),e.y/S);o.obj.rotation.y=o.yaw}
+  o.obj.position.set(e.x/S,(UNITS_A(e).water?Math.max(h,-.12):h)+(moving?Math.abs(s)*.06:0),e.y/S);o.obj.rotation.y=o.yaw}
 const UNITS_A=e=>ANIMALS[e.type];
 
 /* ---------- Auswahlringe am Boden ---------- */
@@ -291,3 +292,21 @@ function entH(e){
   if(e.kind==='bld'){const o=R3.reg.get(entKey(e,false));return o&&o.obj.userData.h?o.obj.userData.h*R3.S:e.r*2.4}
   if(e.kind==='animal')return ANIMALS[e.type].h||26;
   return e.r*({tree:3.6,bush:1.5,stone:1.1,iron:1.1,gold:1.1}[e.type]||1)}
+
+/* Skelette ausgestorbener Tiere (Mammut, Säbelzahntiger): liegen dauerhaft am Boden, sobald das Tier umgefallen ist */
+function skeletonModel(type){
+  const g=new THREE.Group(),bone=m3Plain(0xe8e0cc,.8),big=type==='mammoth',k=big?1.5:.8;
+  const L=big?3.2:2.0;
+  put(g,cyl(.07*k,.07*k,L,6),bone,0,.2,0).rotation.z=Math.PI/2;
+  for(let i=0;i<7;i++){const x=-L*.35+i*L*.12;for(const s of[-1,1]){const rb=put(g,new THREE.TorusGeometry(.4*k*(1-Math.abs(i-3)*.12),.035*k,5,10,Math.PI),bone,x,.28,0);rb.rotation.set(0,Math.PI/2,s>0?0:Math.PI);rb.rotation.x=s>0?Math.PI/2:-Math.PI/2}}
+  const hx=L*.55;put(g,new THREE.SphereGeometry(.28*k,8,6),bone,hx,.25,0).scale.set(1.3,.8,.9);put(g,new THREE.BoxGeometry(.5*k,.1*k,.2*k),bone,hx+.3*k,.15,0);
+  if(big){for(const s of[-1,1]){const t=put(g,cone(.07,1.8,6),bone,hx+.5,.35,s*.28);t.rotation.set(s*.2,0,-1.2)}}
+  else{for(const s of[-1,1])put(g,cone(.035,.3,5),bone,hx+.45*k,.05,s*.07).rotation.z=Math.PI;}
+  for(let i=0;i<4;i++){const s=i%2?1:-1,x=i<2?-L*.3:L*.2;put(g,cyl(.04*k,.04*k,.7*k,5),bone,x,.12,s*.5*k).rotation.set(s*1.2,0,.3)}
+  for(let i=0;i<5;i++)put(g,cyl(.025*k,.015*k,.25*k,4),bone,-L*.55-i*.12,.1,0).rotation.z=Math.PI/2;
+  return g}
+function r3Bones(){
+  if(R3.boneG!==G){for(const o of R3.boneObjs||[])r3.gEnt.remove(o);R3.boneObjs=[];R3.boneDone=new Set();R3.boneG=G}
+  const L=G.bones||[];
+  for(let i=0;i<L.length;i++){if(R3.boneDone.has(i))continue;const b=L[i];if(G.t<b[4]+3.2)continue;
+    const m=skeletonModel(b[0]);m.position.set(b[1]/R3.S,hAt(b[1],b[2])+.02,b[2]/R3.S);m.rotation.y=-b[3];setShadows(m);r3.gEnt.add(m);R3.boneObjs.push(m);R3.boneDone.add(i)}}

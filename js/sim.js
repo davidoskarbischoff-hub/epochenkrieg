@@ -6,7 +6,7 @@ let mapSeed=0,mapFresh=false,mapKey='',curMap='coast';
 function newGame(d,reuse,opts){
   opts=opts||{};startK=opts.size==='S'?.6:opts.size==='M'?.8:1;if(!opts.mp)setTeamColors('#3d72b8','#b9442f');diff=d;if(opts.aiStyle)aiStyle=opts.aiStyle;if(opts.map)curMap=opts.map;else if(typeof window.__map==='string')curMap=window.__map;
   G={late:[],nation:[null,null],nfx:[nationFx(),nationFx()],t:0,ents:[],byId:new Map(),nid:1,res:[{food:200,wood:200,stone:100,iron:0,gold:0,oil:0},{food:200,wood:200,stone:100,iron:0,gold:0,oil:0}],epoch:[0,0],adv:[null,null],jobs:[[],[]],tech:[new Set(),new Set()],rs:[[],[]],tfx:[techFx(new Set()),techFx(new Set())],pop:[0,0],cap:[0,0],speed:1,paused:false,running:false,over:null,overShown:false,proj:[],fx:[],aiT:1,alertT:-99,ping:null,ev:[],alertT1:-99,mem:new Map(),ai:{style:opts.aiStyle||aiStyle,next:DIFF[d].first*AI_STYLES[opts.aiStyle||aiStyle].first,wave:DIFF[d].wave*AI_STYLES[opts.aiStyle||aiStyle].wave,ex:new Uint8Array(FW*FH),seen:new Map(),attack:false,towT:0,shipNext:200,exPt:null},stats:{lost:[0,0],trained:[0,0]}};
-  sel.clear();placing=null;armed=false;panelSig='';advisor.cur=null;advisor.ignore={};advisor.next=8;advisor.last=-9;if(typeof SND!=='undefined')SND.setEpoch(0);
+  G.bones=[];sel.clear();placing=null;armed=false;panelSig='';advisor.cur=null;advisor.ignore={};advisor.next=8;advisor.last=-9;if(typeof SND!=='undefined')SND.setEpoch(0);
   const want=opts.seed!==undefined?opts.seed:(typeof window.__seed==='number'?window.__seed:undefined),keep=reuse&&mapFresh&&bg&&mapKey===curMap&&want===undefined,seed=keep?mapSeed:(want!==undefined?want:(Math.random()*1e9)|0);mapSeed=seed;mapFresh=true;mapKey=curMap;genTerrain(seed,curMap);navInit();genMap(seed);if(!keep)renderBg(seed);
   if(opts.flip)flipTeams();G.mp=!!opts.mp;if(G.mp)G.speed=opts.speed||1;
   G.solids=G.ents.filter(e=>e.kind!=='unit');recount();fogReset();
@@ -71,7 +71,7 @@ function autoFinish(){
     let bw=null,bd=1e9;for(const w of G.ents){if(w.dead||w.team!==0||w.type!=='worker'||w.upj||w.state==='build'||w.state==='attack')continue;const d=Math.hypot(w.x-b.x,w.y-b.y)+(w.state==='idle'?0:(w.carry>3?400:120));if(d<bd){bd=d;bw=w}}
     if(bw){if(bw.state==='gather'&&bw.tid)bw.prev={tid:bw.tid,rtype:bw.rtype};bw.state='build';bw.tid=b.id;bw.rep=false;bw.pf=null}}}
 function eraAnimals(){const me=Math.max(G.epoch[0],G.epoch[1]);
-  if(me>=2)for(const e of G.ents)if(e.kind==='animal'&&!e.dead&&ANIMALS[e.type].ext&&me>=ANIMALS[e.type].ext)removeEnt(e);
+  if(me>=1)for(const e of G.ents)if(e.kind==='animal'&&!e.dead&&ANIMALS[e.type].ext&&me>=ANIMALS[e.type].ext){(G.bones||(G.bones=[])).push([e.type,Math.round(e.x),Math.round(e.y),Math.round(e.fa*100)/100,Math.round(G.t)]);e.hp=0;e.dead=true;navStampSafe(e)}
   if(G.late.length)G.late=G.late.filter(p=>{if(me<ANIMALS[p.type].from)return true;addAnimal(p.type,p.x,p.y);return false})}
 function step(dt){
   if(!G.mp||!NET.client){G.healT=(G.healT||0)-dt;if(G.healT<=0){G.healT=.5;healAura()}}
@@ -307,7 +307,7 @@ function animalMove(a,tx,ty,dt,spd){
   const dx=tx-a.x,dy=ty-a.y,d=Math.hypot(dx,dy);if(d<2)return true;
   const st=Math.min(d,spd*dt),ux=dx/d,uy=dy/d;let moved=false;
   for(const[mx,my]of[[ux,uy],[ux,0],[0,uy],[ux*.5+uy*.7,uy*.5-ux*.7],[ux*.5-uy*.7,uy*.5+ux*.7]]){
-    const nx=a.x+mx*st,ny=a.y+my*st;if(terrAt(nx,ny)===2&&navDyn[navCell(nx,ny)]===0){a.x=nx;a.y=ny;a.fa=Math.atan2(my||uy,mx||ux);a.mvT=G.t;moved=true;break}}
+    const nx=a.x+mx*st,ny=a.y+my*st;if(terrAt(nx,ny)===(ANIMALS[a.type].water?1:2)&&navDyn[navCell(nx,ny)]===0){a.x=nx;a.y=ny;a.fa=Math.atan2(my||uy,mx||ux);a.mvT=G.t;moved=true;break}}
   a.stk=moved?Math.max(0,(a.stk||0)-dt):(a.stk||0)+dt;return false}
 function updAnimal(a,dt){
   const d=ANIMALS[a.type];a.cd=Math.max(0,a.cd-dt);
@@ -340,3 +340,5 @@ function wallPosts(){
       for(const o of ws){if(o===e)continue;if(Math.hypot(o.x-ex,o.y-ey)<WALLHALF*1.35){const da=Math.abs(Math.atan2(Math.sin((o.ang||0)-a),Math.cos((o.ang||0)-a)));post=(da>.3&&da<Math.PI-.3)?1:0;if(!post)break}}
       pc+=post}
     e.pc=pc}}
+
+function navStampSafe(e){sel.delete(e.id)}

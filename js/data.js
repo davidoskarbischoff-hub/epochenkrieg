@@ -88,8 +88,9 @@ const ANIMALS={
   deer:{name:'Reh',hp:45,spd:82,r:7,sight:170,flee:140,roam:120,food:120,h:24,info:'Friedlich und scheu – jagbar, gibt Nahrung'},
   wolf:{name:'Wolf',from:1,hp:75,spd:86,atk:9,rng:5,cd:1,r:7,sight:170,agg:140,leash:380,roam:90,food:70,h:20,pack:true,info:'Rudeltier – greift an, wenn man zu nah kommt'},
   bear:{name:'Bär',from:1,hp:280,spd:60,atk:24,rng:7,cd:1.3,r:11,sight:150,agg:120,leash:300,roam:80,food:220,h:34,info:'Sehr stark – verteidigt sein Revier'},
-  mammoth:{name:'Mammut',hp:520,spd:46,atk:30,rng:10,cd:1.6,r:16,sight:150,agg:75,leash:260,roam:70,food:700,h:46,ext:2,info:'Riesig und friedlich, wehrt sich aber – viel Nahrung. Stirbt nach der Steinzeit aus'},
-  sabertooth:{name:'Säbelzahntiger',hp:240,spd:100,atk:26,rng:7,cd:1,r:10,sight:200,agg:190,leash:450,roam:150,food:200,h:28,ext:2,info:'Schnell und tödlich. Stirbt nach der Steinzeit aus'},
+  mammoth:{name:'Mammut',hp:520,spd:46,atk:30,rng:10,cd:1.6,r:16,sight:150,agg:75,leash:260,roam:70,food:700,h:46,ext:1,info:'Riesig und friedlich, wehrt sich aber – viel Nahrung. Stirbt nach der Steinzeit aus'},
+  sabertooth:{name:'Säbelzahntiger',hp:240,spd:100,atk:26,rng:7,cd:1,r:10,sight:200,agg:190,leash:450,roam:150,food:200,h:28,ext:1,info:'Schnell und tödlich. Stirbt nach der Steinzeit aus'},
+  croc:{name:'Krokodil',from:1,hp:210,spd:75,atk:24,rng:9,cd:1.2,r:10,sight:170,agg:105,leash:210,roam:60,food:160,h:10,water:true,info:'Lauert im seichten Wasser – gefährlich für alles am Ufer'},
   tiger:{name:'Tiger',from:2,hp:180,spd:98,atk:18,rng:6,cd:.9,r:9,sight:190,agg:170,leash:420,roam:140,food:160,h:26,info:'Schnell und gefährlich'}
 };
 /* Gegenstücke: Schadensfaktor Angreifer-Klasse -> Ziel-Klasse (Speer schlägt Reiter, Reiter jagen Fernkämpfer, Fernkämpfer schwächen Nahkämpfer, Nahkämpfer erreichen Fernkämpfer und Belagerung) */
