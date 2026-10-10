@@ -132,7 +132,8 @@ function r3Nodes(){
 
 /* ---------- Meeresbewohner ---------- */
 function seaModel(e){const g=new THREE.Group(),dark=m3Plain(e.type==='whale'?0x3b5273:0x7f9fb8,.45),belly=m3Plain(e.type==='whale'?0xcdd9e3:0xdce8ef,.5);
-  if(e.type==='fish'){const sk=[0xa9d0de,0xcfe6ee,0xd9c48a];for(let i=0;i<6;i++){const f=new THREE.Group(),b=put(f,new THREE.SphereGeometry(.26,10,8),m3Plain(sk[i%3],.35,{metalness:.35}),0,0,0);b.scale.set(1.7,.6,.4);put(f,cone(.12,.3,4),dark,-.52,0,0).rotation.z=Math.PI/2;put(f,cone(.07,.18,3),dark,0,.17,0);f.position.set(Math.cos(i*1.7)*e.r/R3.S*.9,-.2,Math.sin(i*2.3)*e.r/R3.S*.9);f.userData.ph=i;g.add(f)}}
+  if(e.type==='fish'){const sk=[0xf4fbff,0xffe48a,0xbfe8ff];for(let i=0;i<6;i++){const f=new THREE.Group(),b=put(f,new THREE.SphereGeometry(.4,10,8),new THREE.MeshStandardMaterial({color:sk[i%3],roughness:.3,metalness:.2,emissive:sk[i%3],emissiveIntensity:.25}),0,0,0);b.scale.set(1.7,.6,.42);put(f,cone(.2,.46,4),m3Plain(0xdfeef5),-.78,0,0).rotation.z=Math.PI/2;put(f,cone(.1,.28,3),m3Plain(0xdfeef5),0,.26,0);f.position.set(Math.cos(i*1.7)*e.r/R3.S*.9,-.2,Math.sin(i*2.3)*e.r/R3.S*.9);f.userData.ph=i;g.add(f)}
+    const ring=new THREE.Mesh(new THREE.RingGeometry(.9,1,28).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.5,depthWrite:false,fog:false}));ring.userData.ring=true;g.add(ring)}
   else{const whale=e.type==='whale',n=whale?1:2,L=whale?5.4:2.2,Rr=whale?.95:.34,topC=whale?0x56709a:0x86a8c4,botC=whale?0xdde6ee:0xe8f1f6;
     for(let i=0;i<n;i++){const f=new THREE.Group(),bg=swimBody(L,Rr,topC,botC);f.add(new THREE.Mesh(bg,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.4,metalness:.05})));
       const k=L/2.2,tailX=-L/2;
@@ -158,7 +159,7 @@ function r3Sync(list,dt,t){
     else if(e.kind==='bld'){obj.position.set(e.x/S,h,e.y/S);const pr=e.built?1:.12+.88*e.prog;obj.scale.set(1,pr,1);
       if(e.type==='harbor')obj.rotation.y=-(e.ang||0);for(const f of o.flags)f.rotation.y=Math.sin(t*3+f.position.x)*.3}
     else if(e.kind==='node'){obj.position.set(e.x/S,-.38+Math.sin(t*1.6+e.seed*20)*.05,e.y/S);obj.rotation.y=e.seed*6.28+Math.sin(t*.5+e.seed*9)*.15;
-      obj.children.forEach(f=>{const p=f.userData.ph||0;f.position.y=-.1+Math.sin(t*2+p*2+e.seed*9)*.06;if(e.type==='fish')f.rotation.y=Math.sin(t*1.5+p)*.4})}
+      obj.children.forEach(f=>{if(f.userData.ring){const k=(t*.45+e.seed*3)%1;f.scale.setScalar(1.2+k*2.8);f.material.opacity=(1-k)*.55;f.position.y=.05;return}const p=f.userData.ph||0;f.position.y=-.1+Math.sin(t*2+p*2+e.seed*9)*.06;if(e.type==='fish')f.rotation.y=Math.sin(t*1.5+p)*.4})}
     else if(e.kind==='animal')r3Animal(o,e,h,dt,t);
     o.seen=true}
   for(const[k,o]of R3.reg)if(!seen.has(k)){r3.gEnt.remove(o.obj);R3.reg.delete(k)}

@@ -161,7 +161,7 @@ function enqueue(b,type,team){
 }
 /* ---------- Stufen und Upgrades ---------- */
 /* ---------- Technologien ---------- */
-function techFx(set){const f={carry:0,gather:0,wspeed:0,pop:0,bcarry:0,bgather:0,bspeed:0,statfish:0,shiphp:0,hp:0,matk:0,ratk:0,tower:0};for(const id of set){const t=TECH[id];if(t)for(const k in t.fx)f[k]+=t.fx[k]}return f}
+function techFx(set){const f={claim:0,carry:0,gather:0,wspeed:0,pop:0,bcarry:0,bgather:0,bspeed:0,statfish:0,shiphp:0,hp:0,matk:0,ratk:0,tower:0};for(const id of set){const t=TECH[id];if(t)for(const k in t.fx)f[k]+=t.fx[k]}return f}
 const techsFor=type=>TECHS.filter(t=>t.bld===type||(t.blds&&t.blds.includes(type)));
 const unitHp=(team,type,lvl)=>{const d=UNITS[type],f=G.tfx[team];const b=d.naval?f.shiphp:(d.gather||d.passive?0:f.hp);return Math.round(d.hp*LVL.hp[lvl]*(1+b))};
 function techRefresh(team){G.tfx[team]=techFx(G.tech[team]);for(const e of G.ents){if(e.dead||e.team!==team||e.kind!=='unit')continue;const nm=unitHp(team,e.type,e.lvl);e.hp=e.hp/e.maxHp*nm;e.maxHp=nm}}
@@ -230,7 +230,7 @@ function updAnimal(a,dt){
   // Umgebung beobachten (nicht in jedem Schritt)
   a.th=(a.th||0)-dt;
   if(a.th<=0){a.th=.3+Math.random()*.1;let best=null,bd=1e9;
-    for(const e of G.ents){if(e.dead||e.team<0||(e.kind!=='unit'&&e.kind!=='bld')||(e.kind==='unit'&&UNITS[e.type].naval))continue;const dd=Math.hypot(e.x-a.x,e.y-a.y)-e.r;if(dd<bd){bd=dd;best=e}}
+    for(const e of G.ents){if(e.dead||e.team<0||(e.kind!=='unit'&&e.kind!=='bld')||(e.kind==='unit'&&(UNITS[e.type].naval||e.type==='scout')))continue;const dd=Math.hypot(e.x-a.x,e.y-a.y)-e.r;if(dd<bd){bd=dd;best=e}}
     if(best){
       if(d.agg){if(a.state!=='chase'&&a.state!=='return'&&best.kind==='unit'&&bd<d.agg&&Math.hypot(a.home.x-best.x,a.home.y-best.y)<d.leash){a.tid=best.id;a.state='chase';sfx('growl',a);
         if(d.pack)for(const o of G.ents)if(o.kind==='animal'&&o.type===a.type&&!o.dead&&o!==a&&o.state!=='chase'&&Math.hypot(o.x-a.x,o.y-a.y)<240){o.tid=best.id;o.state='chase'}}}

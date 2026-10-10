@@ -254,7 +254,7 @@ function treeGeo(pine){
   const T=cyl(.24,.38,2.5,6);T.translate(0,1.25,0);const bl=(r,x,y,z,s,c)=>{const b=new THREE.IcosahedronGeometry(r,1),p=b.attributes.position;for(let i=0;i<p.count;i++){const k=1+Math.sin(i*12.9+s)*.14;p.setXYZ(i,p.getX(i)*k,p.getY(i)*k*.88,p.getZ(i)*k)}b.computeVertexNormals();b.translate(x,y,z);return[b,c]};
   return mergeColored([[T,0x5b4228],bl(1.6,0,3.5,0,1,0x2e6b33),bl(1.15,.9,2.9,.5,2,0x3a7d3b),bl(1.1,-.8,3.0,-.5,3,0x2e6b33),bl(1.0,.1,4.6,.2,4,0x58a04a)])}
 function bushGeoC(){const bl=(r,x,y,z,c)=>{const b=new THREE.IcosahedronGeometry(r,1);b.translate(x,y,z);return[b,c]};const parts=[bl(.8,-.5,.55,0,0x3a6a2c),bl(.8,.5,.55,.2,0x3a6a2c),bl(.9,0,.95,-.2,0x467c33)];
-  for(let i=0;i<7;i++){const a=i*2.4;parts.push(bl(.1,Math.cos(a)*.9,.5+(i%3)*.3,Math.sin(a)*.8,0xd03b46))}return mergeColored(parts)}
+  for(let i=0;i<13;i++){const a=i*2.4;parts.push(bl(.17,Math.cos(a)*(.7+(i%3)*.12),.45+(i%4)*.22,Math.sin(a)*(.65+(i%3)*.1),i%5===0?0xf5d54a:0xee2d45))}return mergeColored(parts)}
 function rockGeoC(iron,seed){const g=rockGeo(seed).toNonIndexed();g.computeVertexNormals();const p=g.attributes.position,col=new Float32Array(p.count*3),base=new THREE.Color(iron?0x5a6780:0x9d998e),moss=new THREE.Color(iron?0x4b5870:0x7f8a62),c=new THREE.Color();
   for(let i=0;i<p.count;i++){const y=p.getY(i),n=.86+.2*Math.sin(p.getX(i)*5+p.getZ(i)*3+seed*4);c.copy(base).multiplyScalar(n);if(y>.45)c.lerp(moss,Math.min(1,(y-.45)*1.3)*.55);col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b}
   g.setAttribute('color',new THREE.BufferAttribute(col,3));

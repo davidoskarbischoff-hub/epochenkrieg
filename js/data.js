@@ -5,7 +5,7 @@ const W=3600,H=2400,CARRY=15;
 const GATHER={food:{rate:1.5,carry:15},wood:{rate:1.2,carry:12},stone:{rate:.9,carry:10},iron:{rate:.8,carry:8}};
 const UNITS={
   worker:{gather:true,passive:true,name:'Arbeiter',sight:130,hp:40,spd:58,atk:3,rng:4,cd:1.2,r:7,cost:{food:50},time:9,ep:0,from:'hq'},
-  scout:{name:'Späher',passive:true,sight:300,hp:40,spd:105,atk:2,rng:4,cd:1.2,r:6,cost:{food:60,wood:20},time:10,ep:0,from:'hq'},
+  scout:{name:'Späher',passive:true,sight:300,hp:40,spd:105,atk:0,rng:4,cd:1.2,r:6,cost:{food:60,wood:20},time:10,ep:0,from:'hq'},
   boat:{name:'Fischerboot',naval:true,gather:true,passive:true,sight:200,hp:90,spd:72,atk:0,rng:4,cd:1.2,r:11,cost:{wood:80},time:14,ep:0,from:'harbor'},
   warship:{tech:'shipbuild',name:'Kriegsschiff',naval:true,ranged:true,sight:240,hp:230,spd:62,atk:15,rng:175,cd:1.8,r:13,cost:{wood:140,stone:60},time:24,ep:1,from:'harbor'},
   club:{name:'Keulenkrieger',sight:140,hp:75,spd:52,atk:7,rng:4,cd:1.1,r:8,cost:{food:60,wood:20},time:12,ep:0,from:'barracks'},
@@ -75,6 +75,8 @@ const TECHS=[
   {id:'guilds',bld:'hq',ep:3,name:'Zünfte',desc:'+20 Bevölkerungslimit',cost:{food:450,wood:350,stone:200},time:42,fx:{pop:20}},
   {id:'industry',bld:'hq',ep:4,name:'Manufaktur',desc:'Arbeiter sammeln 30 % schneller',cost:{food:600,wood:400,iron:250},time:46,fx:{gather:.3}},
   {id:'metropolis',bld:'hq',ep:4,name:'Metropole',desc:'+25 Bevölkerungslimit',cost:{food:700,wood:500,stone:300},time:48,fx:{pop:25}},
+  {id:'influence1',bld:'hq',ep:1,name:'Einfluss',desc:'Dein Gebiet wächst: alle Gebäude beanspruchen 25 % mehr Land',cost:{food:200,wood:150,stone:100},time:30,fx:{claim:.25}},
+  {id:'influence2',bld:'hq',ep:3,name:'Herrschaft',desc:'Dein Gebiet wächst nochmal um 25 %',cost:{food:450,wood:300,iron:150},time:40,fx:{claim:.25}},
   {id:'nets',bld:'harbor',ep:0,name:'Größere Fangnetze',desc:'Boote tragen 50 % mehr und fangen 25 % schneller',cost:{wood:90,food:60},time:20,fx:{bcarry:.5,bgather:.25}},
   {id:'statfish',bld:'harbor',ep:1,name:'Stationäre Fischer',desc:'Jeder Hafen fängt selbst Nahrung (1,5 pro Sekunde), ganz ohne Fischquelle',cost:{wood:160,food:120},time:30,fx:{statfish:1.5}},
   {id:'shipbuild',bld:'harbor',ep:1,name:'Schiffsbau',desc:'Erlaubt Kriegsschiffe',cost:{wood:150,stone:60},time:26,fx:{}},
