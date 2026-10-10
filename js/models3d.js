@@ -214,6 +214,8 @@ function bodyOf(t,type,tm){
 /* Kleidung und Rüstung als Zusatzteile */
 function dress(rig,t,type,tm){
   const g=rig.g,war=type!=='worker'&&type!=='scout';
+  /* Teamfarbe gut erkennbar: Schärpe über der Brust (Kämpfer) bzw. Stirnband (Arbeiter, Späher) */
+  if(t!==4){if(war){const sh=put(g,new THREE.BoxGeometry(.09,.85,.62),tm,.27,1.45,0,false);sh.rotation.x=.55;put(g,new THREE.BoxGeometry(.5,.14,.7),tm,0,1.78,0,false)}else{const hb=put(g,new THREE.TorusGeometry(.255,.035,6,14),tm,.02,2.1,0,false);hb.rotation.x=Math.PI/2}}
   if(t===0){put(g,cyl(.33,.4,.3,10),furM(0x7a5a38),0,1.02,0);const p=put(g,new THREE.SphereGeometry(.26,8,6),furM(0x9a7a50),0,1.82,-.3);p.scale.set(1,.7,1.1);const bn=put(g,new THREE.TorusGeometry(.2,.028,6,12),m3Plain(0xe8dfc8,.7),.03,1.84,0,false);bn.rotation.x=1.45}
   else if(t===1){if(war)for(const s of[-1,1])put(g,cyl(.15,.15,.05,10),metT(1),0,1.84,s*.4,false).rotation.x=Math.PI/2}
   else if(t===2){if(war)put(g,new THREE.BoxGeometry(.32,.5,.5),metT(2),.02,1.46,0);else put(g,new THREE.BoxGeometry(.06,.5,.42),cloth(0xd8d2c0),.3,1.2,0)}
@@ -387,7 +389,13 @@ function swimBody(L,R,topC,botC){const N=20,pts=[];for(let i=N;i>=0;i--){const u
   const g=new THREE.LatheGeometry(pts,16);g.rotateZ(-Math.PI/2);const n=g.attributes.normal,col=new Float32Array(n.count*3),a=new THREE.Color(topC),b=new THREE.Color(botC),c=new THREE.Color();
   for(let i=0;i<n.count;i++){c.copy(a).lerp(b,Math.max(0,Math.min(1,.35-n.getY(i)*1.4)));col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b}g.setAttribute('color',new THREE.BufferAttribute(col,3));return g}
 function buildAnimal(e){const rig=quad(ANI3[e.type]||ANI3.deer);setShadows(rig.g);rig.g.scale.setScalar(e.type==='bear'?1.15:e.type==='mammoth'?1.25:1.1);return rig}
-function buildUnit(u){const f=UNIT3[u.type]||UNIT3.worker,tm=m3Team(u.team),rig=f(u,tm);setShadows(rig.g);return rig}
+/* Oberkörper an einem Hüftgelenk aufhängen, damit er sich beim Gehen, Arbeiten und Kämpfen neigen und drehen kann */
+function addUpper(rig){
+  if(!rig.legs||rig.legs.length!==2||!rig.arms||rig.arms.length!==2||rig.horse||rig.wheels||rig.ship)return;
+  const up=new THREE.Group();up.position.y=.88;
+  for(const ch of[...rig.g.children]){if(rig.legs.includes(ch))continue;rig.g.remove(ch);ch.position.y-=.88;up.add(ch)}
+  rig.g.add(up);rig.up=up}
+function buildUnit(u){const f=UNIT3[u.type]||UNIT3.worker,tm=m3Team(u.team),rig=f(u,tm);addUpper(rig);setShadows(rig.g);return rig}
 
 /* ---------- Ressourcen ---------- */
 function rockGeo(seed){const g=new THREE.IcosahedronGeometry(1,2),p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i);const n=1+Math.sin(x*3.1+seed*13)*.13+Math.cos(z*2.7+seed*7)*.1+Math.sin(y*4.3+x*1.7)*.07;p.setXYZ(i,x*n,Math.max(y*n*.8,-.15),z*n)}g.computeVertexNormals();return g}
