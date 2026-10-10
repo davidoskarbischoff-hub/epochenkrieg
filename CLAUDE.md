@@ -72,3 +72,10 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
 - Ton: siehe `SOUNDS.md` (alles synthetisch, Quellen/Lizenzen). Neue Geräusche `grunt`, `yell`, `horn`; Musik hat drei Spannungsstufen (Epoche, Kampfebene, `pieceHi`); `SND.setBattle` (Zahl der Kämpfenden), Taste M = stumm, Schalter „Ton an“ im Menü.
 - Tempo: Taste/Knopf wechselt 1×, 2×, 3×, 5× (`G.speed`).
 - Testskripte: Selbstspiel Berater (Auto) gegen KI mit `advisor.auto=true` und `aiTick()` im Schleifenlauf (`__norender`).
+
+## Noch neuer (Animation, Karten, Felder, Kampf)
+- Menschen-Animation: `addUpper` hängt den Oberkörper an ein Hüftgelenk (`rig.up`), `r3Human` in `render3d.js` steuert Gehen, Atmen, Abbauen je Werkzeug, Kampf (Ausholen, Schlag, Rückstoß), Zucken (`o.fl`); gestorbene Figuren fallen um (`R3.corpses`).
+- Wegfindung: `navPath` überspringt veraltete Heap-Einträge (`navCl`) und durchsucht notfalls das ganze Raster. Karten: neu `river` (Flusstal mit Furten) und `pass` (Gebirgspass); alle Karten haben jetzt Berge (`mthr0` je Karte), Gipfel mit Schnee (in `renderBg` und Vertexfarbe in `r3Map`), Biom-Flecken im Boden.
+- Arbeiter: reparieren (`autoRepair`, Befehl Rechtsklick auf beschädigtes Gebäude), bauen selbst Lager/Türme (`autoExpand`, Schalter „Arbeiter denken mit“). Truppen im Leerlauf stehen als Frontlinie vorn (`frontLine`, `u.manual` = Spielerbefehl, bleibt unangetastet).
+- Aufstieg braucht 5/10/20/30/40 Arbeiter (`wkNeed`). Felder (`farm` + Knoten `field`, wächst nach).
+- Kampf: Gegenstücke `CTR` (Klassen `cls` in `UNITS`), Heiler (`healAura`), Fähigkeit Kampfrausch (`useRage`, Taste F, `RAGE`). Duell-Test aller Einheiten: Skript siehe Verlauf (kostengleiche Gruppen).

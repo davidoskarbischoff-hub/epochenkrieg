@@ -129,7 +129,7 @@ function showStart(){
   if(NET.mp){endMP();if(window.Lobby)Lobby.leave()}
   const ov=$('overlay');ov.hidden=false;
   ov.innerHTML=`<div class="card"><p class="eyebrow">${tr('Prototyp · Echtzeitstrategie · 1 gegen 1')}</p><h1>Epochenkrieg</h1>
-  <p>${tr('Führe deinen Stamm durch fünf Zeitalter. Sammle Nahrung, Holz und Stein, baue deine Siedlung aus und zerstöre das Hauptlager des Gegners, bevor er deins erreicht.')}</p>
+  <p>${tr('Führe deinen Stamm durch sechs Zeitalter. Sammle Nahrung, Holz und Stein, baue deine Siedlung aus und zerstöre das Hauptlager des Gegners, bevor er deins erreicht.')}</p>
   <div class="eras">${EPOCHS.map(e=>`<span>${tr(e.name)}</span>`).join('')}</div>
   <div class="diff" role="group" aria-label="${tr('Schwierigkeit')}">${['leicht','normal','schwer'].map(d=>`<button data-d="${d}" aria-pressed="${d===diff}">${tr(d)}</button>`).join('')}</div>
   <div class="diff aist" role="group" aria-label="${tr('Gegner')}">${Object.entries(AI_STYLES).map(([k,v])=>`<button data-as="${k}" aria-pressed="${k===aiStyle}" title="${tr(v.desc)}">${tr(v.name)}</button>`).join('')}</div>

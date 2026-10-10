@@ -139,3 +139,10 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Stimmen, Kriegshorn, dritte Musikstufe, Ton-Schalter, `SOUNDS.md`
 - [ ] Idee: Gegner-Typ „Zufall“, Handelsrouten/Schiffe mit Gold, Berater-Warnung bei Gold-Überschuss
 - [ ] Idee: Mehrspieler siehe `MEHRSPIELER-VORSCHLAG.md`
+
+## Runde 3: Animation, Karten, Felder, Kampf
+- [x] Animationen (Gehen, Abbauen, Kampf, Treffer, Sterben), Teamfarben an allen Figuren
+- [x] Hall und Stereo-Klang, bessere Instrumente
+- [x] Karten Flusstal und Gebirgspass, Berge mit Schnee überall, Biome, Wegfindungs-Fehler behoben
+- [x] Arbeiter reparieren/bauen selbst, Frontlinie, Berater reagiert auf Angriff, Felder, Heiler, Kampfrausch, Gegenstücke
+- [ ] Idee: Handelsrouten/Schiffe mit Gold, Inselkarten mit Schiffsüberfahrt, Formationen, weitere Fähigkeiten pro Einheit

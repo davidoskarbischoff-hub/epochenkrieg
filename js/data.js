@@ -13,18 +13,18 @@ const UNITS={
   club:{cls:'inf',name:'Keulenkrieger',sight:140,hp:75,spd:52,atk:7,rng:4,cd:1.1,r:8,cost:{food:60,wood:20},time:12,ep:0,from:'barracks'},
   spear:{cls:'spear',tech:'spearbuild',name:'Speerträger',sight:140,hp:115,spd:54,atk:11,rng:8,cd:1.1,r:8,cost:{food:70,wood:40},time:14,ep:1,from:'barracks'},
   archer:{cls:'rng',tech:'bowbuild',name:'Bogenschütze',sight:170,hp:55,spd:55,atk:8,rng:130,cd:1.6,r:7,cost:{food:40,wood:60},time:14,ep:1,from:'barracks',ranged:true},
-  knight:{cls:'cav',tech:'stables',name:'Ritter',sight:170,hp:260,spd:70,atk:24,rng:6,cd:1.2,r:10,cost:{food:110,iron:60},time:22,ep:3,from:'barracks'},
-  crossbow:{cls:'rng',tech:'crossbowbuild',name:'Armbrustschütze',sight:180,hp:95,spd:52,atk:21,rng:150,cd:2,r:7,cost:{food:70,wood:60,iron:30},time:18,ep:3,from:'barracks',ranged:true},
-  musket:{cls:'rng',tech:'powder',name:'Musketier',sight:190,hp:115,spd:52,atk:34,rng:175,cd:2.6,r:7,cost:{gold:25,food:80,wood:40,iron:60},time:20,ep:4,from:'barracks',ranged:true,gun:true},
+  knight:{cls:'cav',tech:'stables',name:'Ritter',sight:170,hp:230,spd:70,atk:21,rng:6,cd:1.2,r:10,cost:{food:110,iron:60},time:22,ep:3,from:'barracks'},
+  crossbow:{cls:'rng',tech:'crossbowbuild',name:'Armbrustschütze',sight:180,hp:110,spd:52,atk:28,rng:150,cd:2,r:7,cost:{food:70,wood:60,iron:30},time:18,ep:3,from:'barracks',ranged:true},
+  musket:{cls:'rng',tech:'powder',name:'Musketier',sight:190,hp:135,spd:52,atk:46,rng:175,cd:2.2,r:7,cost:{gold:25,food:80,wood:40,iron:60},time:20,ep:4,from:'barracks',ranged:true,gun:true},
   cannon:{cls:'siege',tech:'foundry',name:'Kanone',sight:200,hp:170,spd:34,atk:60,rng:240,cd:4.2,r:11,cost:{gold:60,wood:160,iron:140},time:30,ep:4,from:'barracks',ranged:true,siege:true},
   ram:{cls:'siege',tech:'siegeworks',name:'Rammbock',sight:150,hp:330,spd:42,atk:42,rng:6,cd:2.2,r:11,cost:{wood:200,iron:60},time:26,ep:3,from:'barracks',siege:true},
   catapult:{cls:'siege',tech:'siegeworks',name:'Katapult',sight:190,hp:140,spd:36,atk:48,rng:250,cd:4.8,r:10,cost:{wood:220,stone:120},time:30,ep:3,from:'barracks',ranged:true,siege:true},
   galleon:{cls:'ship',tech:'galleonbuild',name:'Galeone',naval:true,ranged:true,sight:260,hp:380,spd:58,atk:28,rng:210,cd:2.2,r:15,cost:{wood:200,iron:80},time:32,ep:3,from:'harbor'},
-  rifle:{cls:'rng',tech:'rifles',name:'Gewehrschütze',sight:210,hp:150,spd:54,atk:46,rng:195,cd:2.3,r:7,cost:{gold:35,food:100,wood:40,iron:90},time:22,ep:5,from:'barracks',ranged:true,gun:true},
+  rifle:{cls:'rng',tech:'rifles',name:'Gewehrschütze',sight:210,hp:190,spd:54,atk:66,rng:195,cd:1.9,r:7,cost:{gold:35,food:100,wood:40,iron:90},time:22,ep:5,from:'barracks',ranged:true,gun:true},
   howitzer:{cls:'siege',tech:'artillery',name:'Haubitze',sight:230,hp:200,spd:34,atk:90,rng:300,cd:4.8,r:12,cost:{gold:110,wood:260,iron:260},time:34,ep:5,from:'barracks',ranged:true,siege:true},
   ironclad:{cls:'ship',tech:'ironclads',name:'Panzerschiff',naval:true,ranged:true,sight:280,hp:620,spd:58,atk:44,rng:240,cd:2.4,r:17,cost:{gold:90,wood:260,iron:240},time:40,ep:5,from:'harbor'},
   healer:{cls:'med',passive:true,heal:2.2,name:'Heiler',sight:150,hp:80,spd:56,atk:0,rng:4,cd:1.2,r:7,cost:{food:70,wood:30},time:14,ep:1,from:'barracks'},
-  sword:{cls:'inf',tech:'smithy',name:'Schwertkämpfer',sight:150,hp:170,spd:52,atk:17,rng:5,cd:1.1,r:9,cost:{food:80,iron:40},time:18,ep:2,from:'barracks'}
+  sword:{cls:'inf',tech:'smithy',name:'Schwertkämpfer',sight:150,hp:150,spd:52,atk:15,rng:5,cd:1.1,r:9,cost:{food:80,iron:40},time:18,ep:2,from:'barracks'}
 };
 const BLDS={
   hq:{name:'Hauptlager',sight:280,claim:260,hp:1400,r:36,pop:10,drop:true,shoot:{rng:150,atk:6,cd:1.8}},
