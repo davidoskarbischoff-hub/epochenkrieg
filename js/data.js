@@ -3,7 +3,7 @@
 const W=4800,H=3200,CARRY=15;
 const AREA=W*H/(3600*2400); /* Kartengrösse im Vergleich zur ersten Version (für Anzahlen von Vorkommen, Gras usw.) */
 // Sammeln je Ressource: Tempo-Faktor und Tragekapazität (Beeren bringen mehr, weil Nahrung sonst knapp ist)
-const GATHER={food:{rate:1.5,carry:15},wood:{rate:1.2,carry:12},stone:{rate:.9,carry:10},iron:{rate:.8,carry:8}};
+const GATHER={food:{rate:1.5,carry:15},wood:{rate:1.2,carry:12},stone:{rate:.9,carry:10},iron:{rate:.8,carry:8},gold:{rate:.7,carry:8}};
 const UNITS={
   worker:{gather:true,passive:true,name:'Arbeiter',sight:130,hp:40,spd:58,atk:3,rng:4,cd:1.2,r:7,cost:{food:50},time:9,ep:0,from:'hq'},
   scout:{name:'Späher',passive:true,sight:300,hp:40,spd:105,atk:0,rng:4,cd:1.2,r:6,cost:{food:60,wood:20},time:10,ep:0,from:'hq'},
@@ -15,14 +15,14 @@ const UNITS={
   archer:{tech:'bowbuild',name:'Bogenschütze',sight:170,hp:55,spd:55,atk:8,rng:130,cd:1.6,r:7,cost:{food:40,wood:60},time:14,ep:1,from:'barracks',ranged:true},
   knight:{tech:'stables',name:'Ritter',sight:170,hp:260,spd:70,atk:24,rng:6,cd:1.2,r:10,cost:{food:110,iron:60},time:22,ep:3,from:'barracks'},
   crossbow:{tech:'crossbowbuild',name:'Armbrustschütze',sight:180,hp:95,spd:52,atk:21,rng:150,cd:2,r:7,cost:{food:70,wood:60,iron:30},time:18,ep:3,from:'barracks',ranged:true},
-  musket:{tech:'powder',name:'Musketier',sight:190,hp:115,spd:52,atk:34,rng:175,cd:2.6,r:7,cost:{food:80,wood:40,iron:60},time:20,ep:4,from:'barracks',ranged:true,gun:true},
-  cannon:{tech:'foundry',name:'Kanone',sight:200,hp:170,spd:34,atk:60,rng:240,cd:4.2,r:11,cost:{wood:160,iron:140},time:30,ep:4,from:'barracks',ranged:true,siege:true},
+  musket:{tech:'powder',name:'Musketier',sight:190,hp:115,spd:52,atk:34,rng:175,cd:2.6,r:7,cost:{gold:25,food:80,wood:40,iron:60},time:20,ep:4,from:'barracks',ranged:true,gun:true},
+  cannon:{tech:'foundry',name:'Kanone',sight:200,hp:170,spd:34,atk:60,rng:240,cd:4.2,r:11,cost:{gold:60,wood:160,iron:140},time:30,ep:4,from:'barracks',ranged:true,siege:true},
   ram:{tech:'siegeworks',name:'Rammbock',sight:150,hp:330,spd:42,atk:42,rng:6,cd:2.2,r:11,cost:{wood:200,iron:60},time:26,ep:3,from:'barracks',siege:true},
   catapult:{tech:'siegeworks',name:'Katapult',sight:190,hp:140,spd:36,atk:48,rng:250,cd:4.8,r:10,cost:{wood:220,stone:120},time:30,ep:3,from:'barracks',ranged:true,siege:true},
   galleon:{tech:'galleonbuild',name:'Galeone',naval:true,ranged:true,sight:260,hp:380,spd:58,atk:28,rng:210,cd:2.2,r:15,cost:{wood:200,iron:80},time:32,ep:3,from:'harbor'},
-  rifle:{tech:'rifles',name:'Gewehrschütze',sight:210,hp:150,spd:54,atk:46,rng:195,cd:2.3,r:7,cost:{food:100,wood:40,iron:90},time:22,ep:5,from:'barracks',ranged:true,gun:true},
-  howitzer:{tech:'artillery',name:'Haubitze',sight:230,hp:200,spd:34,atk:90,rng:300,cd:4.8,r:12,cost:{wood:260,iron:260},time:34,ep:5,from:'barracks',ranged:true,siege:true},
-  ironclad:{tech:'ironclads',name:'Panzerschiff',naval:true,ranged:true,sight:280,hp:620,spd:58,atk:44,rng:240,cd:2.4,r:17,cost:{wood:260,iron:240},time:40,ep:5,from:'harbor'},
+  rifle:{tech:'rifles',name:'Gewehrschütze',sight:210,hp:150,spd:54,atk:46,rng:195,cd:2.3,r:7,cost:{gold:35,food:100,wood:40,iron:90},time:22,ep:5,from:'barracks',ranged:true,gun:true},
+  howitzer:{tech:'artillery',name:'Haubitze',sight:230,hp:200,spd:34,atk:90,rng:300,cd:4.8,r:12,cost:{gold:110,wood:260,iron:260},time:34,ep:5,from:'barracks',ranged:true,siege:true},
+  ironclad:{tech:'ironclads',name:'Panzerschiff',naval:true,ranged:true,sight:280,hp:620,spd:58,atk:44,rng:240,cd:2.4,r:17,cost:{gold:90,wood:260,iron:240},time:40,ep:5,from:'harbor'},
   sword:{tech:'smithy',name:'Schwertkämpfer',sight:150,hp:170,spd:52,atk:17,rng:5,cd:1.1,r:9,cost:{food:80,iron:40},time:18,ep:2,from:'barracks'}
 };
 const BLDS={
@@ -33,14 +33,16 @@ const BLDS={
   harbor:{name:'Hafen',sight:190,claim:140,hp:600,r:24,drop:true,cost:{wood:120},time:20,ep:0,sub:'Boote und Fischfang'},
   castle:{name:'Burg',sight:330,claim:240,hp:1500,r:30,cost:{wood:200,stone:260,iron:80},time:45,ep:3,shoot:{rng:205,atk:15,cd:1.3},sub:'Starke Festung, erobert Land'},
   wall:{name:'Mauer',sight:60,hp:520,r:9,cost:{stone:12},time:5,ep:3,sub:'Hält Feinde auf'},
+  mine:{name:'Mine',sight:150,claim:90,hp:420,r:16,drop:true,cost:{wood:100,stone:40},time:20,ep:2,sub:'Nötig für Eisen und Gold'},
+  market:{name:'Markt',sight:170,claim:110,hp:520,r:22,cost:{wood:150,stone:80},time:24,ep:3,sub:'Rohstoffe gegen Gold tauschen'},
   tower:{name:'Wachturm',sight:300,claim:320,hp:550,r:14,cost:{wood:70,stone:60},time:26,ep:0,shoot:{rng:170,atk:9,cd:1.5},sub:'Schiesst auf Gegner'}
 };
-const NODES={tree:{cap:3,rt:'wood',amt:260,r:11,name:'Baum'},bush:{cap:3,rt:'food',amt:340,r:8,name:'Beerenstrauch',regen:1.4},stone:{cap:6,rt:'stone',amt:1600,r:22,name:'Steinvorkommen'},iron:{cap:5,rt:'iron',amt:1200,r:20,name:'Eisenvorkommen'},
+const NODES={tree:{cap:3,rt:'wood',amt:260,r:11,name:'Baum'},bush:{cap:3,rt:'food',amt:340,r:8,name:'Beerenstrauch',regen:1.4},stone:{cap:6,rt:'stone',amt:1600,r:22,name:'Steinvorkommen'},iron:{cap:5,rt:'iron',amt:1200,r:20,name:'Eisenvorkommen'},gold:{cap:4,rt:'gold',amt:900,r:18,name:'Goldvorkommen'},
   // Wasser: nur Boote können hier sammeln (Delfine ab Stufe II, Wale ab Stufe III)
   fish:{cap:2,sea:true,rt:'food',amt:160,r:8,name:'Fischschwarm',gm:1,regen:.55},
   dolphin:{cap:3,sea:true,rt:'food',amt:420,r:11,name:'Delfine',gm:1.3,lvl:1,regen:.45},
   whale:{cap:4,sea:true,rt:'food',amt:1100,r:16,name:'Wal',gm:1.7,lvl:2,regen:.5}};
-const EPOCHS=[{name:'Steinzeit',cost:{food:350,wood:200},time:30},{name:'Bronzezeit',cost:{food:500,wood:250,stone:200},time:40},{name:'Eisenzeit',cost:{food:700,wood:350,stone:300,iron:150},time:50},{name:'Mittelalter',cost:{food:900,wood:450,stone:450,iron:350},time:60},{name:'Renaissance',cost:{food:1100,wood:600,stone:500,iron:450},time:70},{name:'Industriezeit'}];
+const EPOCHS=[{name:'Steinzeit',cost:{food:350,wood:200},time:30},{name:'Bronzezeit',cost:{food:500,wood:250,stone:200},time:40},{name:'Eisenzeit',cost:{food:700,wood:350,stone:300,iron:150},time:50},{name:'Mittelalter',cost:{food:900,wood:450,stone:450,iron:350,gold:200},time:60},{name:'Renaissance',cost:{food:1100,wood:600,stone:500,iron:450,gold:350},time:70},{name:'Industriezeit'}];
 /* Wilde Tiere: agg = Aggro-Reichweite (greift an, wenn jemand näher kommt), leash = so weit folgt es seinem Revier-Mittelpunkt, roam = Streifgebiet,
    flee = friedliche Tiere fliehen ab dieser Nähe, food = Nahrung für den, der es erlegt, h = Höhe fürs Anzeigen */
 const ANIMALS={
@@ -52,7 +54,9 @@ const ANIMALS={
   tiger:{name:'Tiger',from:2,hp:180,spd:98,atk:18,rng:6,cd:.9,r:9,sight:190,agg:170,leash:420,roam:140,food:160,h:26,info:'Schnell und gefährlich'}
 };
 const POPMAX=100;
-const RES=['food','wood','stone','iron'],RN={food:'Nahrung',wood:'Holz',stone:'Stein',iron:'Eisen'};
+const RES=['food','wood','stone','iron','gold'],RN={food:'Nahrung',wood:'Holz',stone:'Stein',iron:'Eisen',gold:'Gold'};
+const RES_EP={stone:1,iron:2,gold:3},MINE_RT={iron:1,gold:1}; /* ab welcher Epoche eine Ressource erscheint; Erz und Gold brauchen eine Mine in der Nähe */
+const MINE_RNG=150,TRADE={sell:.5,buy:1,lot:100}; /* Markt: 100 Rohstoff -> 50 Gold, 100 Gold -> 100 Rohstoff */
 /* army = Faktor für die Heeresgrösse der KI; pace = Tempo-Faktor für die frühesten Aufstiegszeiten der KI (kleiner = schneller) */
 const DIFF={leicht:{gather:.7,first:460,wave:4,pace:1.35,army:.55},normal:{gather:.9,first:420,wave:6,pace:1.2,army:.65},schwer:{gather:1.35,first:240,wave:6,pace:.8,army:1.1}};
 /* Gegner-Typen (unabhängig von der Schwierigkeit): wk = Arbeiter-Faktor, pace = Aufstiegstempo (kleiner = früher), army = Heeresgrösse, first = Zeit bis zum ersten Angriff, wave = Truppen für den Angriff,
@@ -73,7 +77,7 @@ const STATE={idle:'Wartet',move:'Unterwegs',amove:'Angriffsmarsch',attack:'Kämp
 // Neue Einheiten/Gebäude starten auf der Stufe der aktuellen Epoche; ältere müssen per Upgrade nachgezogen werden.
 const LVL={hp:[1,1.25,1.55,1.9,2.3,2.7],atk:[1,1.2,1.45,1.75,2.1,2.45],gather:[1,1.25,1.5,1.75,2,2.25],bhp:[1,1.3,1.7,2.2,2.8,3.4]};
 const LVLN=['I','II','III','IV','V','VI'],LVLC=['#a39a88','#6fc46a','#eab94b','#ec8a5c','#8fd3f2','#d6a6f0'];
-const NEED_LVL={stone:1,iron:2}; // ab welcher Stufe ein Arbeiter diese Ressource abbauen kann
+const NEED_LVL={stone:1,iron:2,gold:3}; // ab welcher Stufe ein Arbeiter diese Ressource abbauen kann
 const UPG={unit:[null,{food:20},{food:30,stone:15},{food:45,iron:20},{food:60,iron:35},{food:75,iron:50}],bld:[null,{wood:25},{wood:40,stone:25},{wood:60,stone:40},{wood:80,iron:40},{wood:100,iron:55}]}; // Kosten pro Stück für die Zielstufe
 const UPG_TIME={base:5,each:.7,max:40}; // Dauer in Sekunden
 

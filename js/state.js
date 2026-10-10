@@ -27,6 +27,7 @@ function placeBlock(type,x,y){
   const d=BLDS[type];
   if(type==='harbor'){if(!validSpot(x,y,d.r,true))return tr('Hier ist kein Platz.');if(!harborOk(x,y,d.r))return tr('Der Hafen muss zwischen Land und flachem Wasser stehen.')}
   else if(!validSpot(x,y,d.r))return tr('Hier ist kein Platz.');
+  if(type==='mine'&&!G.ents.some(n=>n.kind==='node'&&!n.dead&&MINE_RT[n.rt]&&Math.hypot(n.x-x,n.y-y)<MINE_RNG*.85))return tr('Eine Mine muss in der Nähe von Eisen oder Gold stehen.');
   if(NET.trust)return null;
   if(!fogEx[fogIdx(x,y)])return tr('Dieses Gebiet ist noch unerkundet.');
   if(terr[fogIdx(x,y)]===1)return tr('Im Gebiet des Gegners kann nicht gebaut werden. Ein Wachturm erobert Land zurück.');
@@ -56,7 +57,7 @@ function sfx(name,e){if(NET.cap)return;if(NET.host&&e&&G&&G.ev&&G.ev.length<14&&
 let G=null,bg=null,bgSmall=null,diff='normal',aiStyle='balanced';
 /* Mehrspieler: host = rechnet das Spiel, client = zeigt den Stand und schickt Befehle. send = Funktion zum anderen Spieler. */
 const NET={mp:false,host:false,client:false,send:null,cap:null,tgtSet:false,tgt:null,trust:false,acc:0,lastSnap:0};
-const SFXNET=new Set(['hit','arrow','boom','shot','die','crumble','chop','mine','pick','hammer']);
+const SFXNET=new Set(['grunt','yell','hit','arrow','boom','shot','die','crumble','chop','mine','pick','hammer']);
 const sel=new Set();
 let placing=null,armed=false,drag=null,panelSig='',uiT=0,lastClick={t:0,id:-1};
 const mouse={x:0,y:0,in:false,type:'mouse'};

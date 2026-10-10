@@ -62,3 +62,13 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
 - Nahrung wächst nach: Beerensträucher und Fischgründe haben `regen` in `NODES` (Menge steigt wieder bis zum Maximum, die Quelle verschwindet nicht).
 - Balancing/Tests: `window.__norender=true` schaltet das Zeichnen ab; `step(.04)` in einer Schleife simuliert ohne Fenster. KI-Tempo: `AI_MINT` und `DIFF[..].pace/army` in `data.js`. Aufstieg des Spielers braucht 10/20/30/40 Arbeiter (`wkNeed`).
 - Musik: Epochenstück plus Kampfebene (`pieceWar`), die bei Kampf/Alarm eingeblendet wird (`SND.setAlert`).
+
+## Neu in dieser Runde (Epochen-Looks, Gegner-Typen, Gold, Ton)
+- Aussehen je Epoche: Einheiten nutzen `u.lvl` (0–5) in `UNIT3` (`bodyOf`, `dress`, `headgear`, Waffen); Steinzeit-Gebäude stehen in `PRIM` (`models3d.js`), Renaissance/Industriezeit-Zusätze in `epExtras`. Bei Stufenwechsel ändert sich die Signatur in `r3Sync` und das Modell wird neu gebaut.
+- Gegner-Typen (`AI_STYLES` in `data.js`, Wahl im Startmenü, `aiStyle` in `state.js`, `G.ai.style`): Ausgewogen, Turtle, Rush, Wirtschaft, Aufstieg. Sie verändern Arbeiterzahl, Aufstiegstempo, Heeresgröße, Angriffszeit, Türme, Kasernen. Schwierigkeit (`DIFF`) wirkt unabhängig davon.
+- Berater: Takt 0,5 s, dringende Vorschläge (Angriff, Mangel) unterbrechen alte (`advKey`), Info-Meldungen (`info:true`) wiederholen sich selten, neue Regeln für knappe Vorräte, Minen, Markt.
+- Ressourcen: `RES` hat jetzt Gold. Erscheinen je Epoche (`RES_EP`: Stein 1, Eisen 2, Gold 3). Eisen und Gold braucht eine fertige eigene `mine` im Umkreis `MINE_RNG` (`minedBy`, `placeBlock`). `market` (ab Mittelalter) tauscht über `trade()` (100 Rohstoff ↔ Gold, Kurse in `TRADE`); Mehrspieler: `NET.send({c:'trade'})` und `case'trade'` in `execRemote`.
+- Tiere je Epoche: `ANIMALS` mit `from` (erscheint ab dieser Epoche, `G.late` → `eraAnimals`) und `ext` (stirbt aus): Mammut und Säbelzahntiger nur Steinzeit/Bronzezeit, Wolf/Bär ab Bronzezeit, Tiger ab Eisenzeit.
+- Ton: siehe `SOUNDS.md` (alles synthetisch, Quellen/Lizenzen). Neue Geräusche `grunt`, `yell`, `horn`; Musik hat drei Spannungsstufen (Epoche, Kampfebene, `pieceHi`); `SND.setBattle` (Zahl der Kämpfenden), Taste M = stumm, Schalter „Ton an“ im Menü.
+- Tempo: Taste/Knopf wechselt 1×, 2×, 3×, 5× (`G.speed`).
+- Testskripte: Selbstspiel Berater (Auto) gegen KI mit `advisor.auto=true` und `aiTick()` im Schleifenlauf (`__norender`).

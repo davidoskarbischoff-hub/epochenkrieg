@@ -109,6 +109,24 @@ const BLD3={
     put(g,cyl(.08,.08,R*1.9,6),woodD(),R*1.4,R*.95,0);const arm=put(g,cyl(.05,.05,R*1.1,6),woodD(),R*1.0,R*1.8,0);arm.rotation.z=Math.PI/2-.2;put(g,cyl(.01,.01,R*.7,4),m3Plain(0xcbb88f),R*.5,R*1.45,0,false);
     put(g,cyl(.22,.22,.45,8),m3Mat('planks',0x8d6a3e),R*2.2,.55,R*.25);
     flagPole(g,-R*.9,R*.8,-R*.3,R*1.0,team);g.userData.h=R*2;return g},
+  mine(R,st,team){const g=new THREE.Group(),rock=m3Mat('stone',0x7a766c);
+    const m=put(g,new THREE.SphereGeometry(R*1.2,10,8,0,6.283,0,1.57),rock,0,0,-R*.3);m.scale.set(1.2,.9,1);
+    put(g,new THREE.BoxGeometry(R*.18,R*.9,R*.18),woodD(),-R*.45,R*.45,R*.62);put(g,new THREE.BoxGeometry(R*.18,R*.9,R*.18),woodD(),R*.45,R*.45,R*.62);put(g,new THREE.BoxGeometry(R*1.2,R*.18,R*.2),woodD(),0,R*.95,R*.62);
+    put(g,new THREE.BoxGeometry(R*.7,R*.8,.1),m3Plain(0x120d08),0,R*.4,R*.55,false);
+    for(const z of[-.6,.6])put(g,new THREE.BoxGeometry(.08,.06,R*1.6),m3Plain(0x3a3b42,.5,{metalness:.5}),z*R*.3,.05,R*1.4);
+    const c=put(g,new THREE.BoxGeometry(R*.6,R*.35,R*.4),m3Mat('planks',0x8a6a42),R*.1,R*.28,R*1.5);put(c,new THREE.DodecahedronGeometry(R*.2,0),m3Plain(st.ep>=3?0xf7d64a:0x5a6780,.5),0,R*.22,0);
+    flagPole(g,R*.9,R*.4,0,R*1.1,team);g.userData.h=R*1.6;return g},
+  market(R,st,team){const g=new THREE.Group();
+    put(g,bx(R*2.4,.18,R*1.8,2),st.base,0,.09,0);
+    const cols=[0xc84b3a,0xe8dfc8,0x3d72b8];
+    for(let i=0;i<3;i++){const x=(i-1)*R*.8;
+      for(const dx of[-1,1])put(g,cyl(.05,.05,R*.9,5),woodD(),x+dx*R*.34,R*.5,-R*.3);
+      const aw=put(g,new THREE.BoxGeometry(R*.76,.08,R*.8),m3Plain(cols[i],.8),x,R*.95,-R*.05);aw.rotation.x=.25;
+      put(g,new THREE.BoxGeometry(R*.7,R*.35,R*.4),m3Mat('planks',0x8a6a42),x,R*.2,-R*.1);
+      put(g,new THREE.SphereGeometry(R*.14,8,6),m3Plain([0xd9a441,0xc84b3a,0x8aa84a][i],.6),x-R*.15,R*.43,-R*.1);put(g,new THREE.SphereGeometry(R*.12,8,6),m3Plain([0xe6c35a,0xe6c35a,0xf1e7cf][i],.4),x+R*.15,R*.42,-R*.1)}
+    for(let i=0;i<2;i++)put(g,cyl(R*.2,R*.2,R*.4,10),m3Mat('planks',0x8d6a3e),-R*1.0+i*.2,R*.2,R*.6);
+    put(g,cyl(.18,.18,.12,10),goldM(),R*1.0,R*.35,R*.6);put(g,cyl(.18,.18,.12,10),goldM(),R*1.0,R*.47,R*.6);put(g,cyl(.18,.18,.12,10),goldM(),R*1.0,R*.59,R*.6);
+    flagPole(g,0,R*.9,R*.5,R*1.2,team);g.userData.h=R*1.8;return g},
   wall(R,st,team){const g=new THREE.Group(),sm=m3Mat('stone',MAT[Math.max(2,st.ep)].wall);put(g,bx(R*2,R*1.5,R*1.2,1.4),sm,0,R*.75,0);for(let i=0;i<3;i++)put(g,new THREE.BoxGeometry(R*.5,R*.4,R*.5),sm,(i-1)*R*.7,R*1.7,0);g.userData.h=R*2;return g}
 };
 /* Steinzeit: ganz einfache Bauten aus Fell, Holz und Stein */
@@ -387,11 +405,11 @@ function treeGeo(pine){
   return mergeColored([[T,0x5b4228],bl(1.6,0,3.5,0,1,0x2e6b33),bl(1.15,.9,2.9,.5,2,0x3a7d3b),bl(1.1,-.8,3.0,-.5,3,0x2e6b33),bl(1.0,.1,4.6,.2,4,0x58a04a)])}
 function bushGeoC(){const bl=(r,x,y,z,c)=>{const b=new THREE.IcosahedronGeometry(r,1);b.translate(x,y,z);return[b,c]};const parts=[bl(.8,-.5,.55,0,0x3a6a2c),bl(.8,.5,.55,.2,0x3a6a2c),bl(.9,0,.95,-.2,0x467c33)];
   for(let i=0;i<13;i++){const a=i*2.4;parts.push(bl(.17,Math.cos(a)*(.7+(i%3)*.12),.45+(i%4)*.22,Math.sin(a)*(.65+(i%3)*.1),i%5===0?0xf5d54a:0xee2d45))}return mergeColored(parts)}
-function rockGeoC(iron,seed){const g=rockGeo(seed).toNonIndexed();g.computeVertexNormals();const p=g.attributes.position,col=new Float32Array(p.count*3),base=new THREE.Color(iron?0x5a6780:0x9d998e),moss=new THREE.Color(iron?0x4b5870:0x7f8a62),c=new THREE.Color();
+function rockGeoC(iron,seed,gold){const g=rockGeo(seed).toNonIndexed();g.computeVertexNormals();const p=g.attributes.position,col=new Float32Array(p.count*3),base=new THREE.Color(gold?0x8a7d5c:iron?0x5a6780:0x9d998e),moss=new THREE.Color(gold?0x7a6e4a:iron?0x4b5870:0x7f8a62),c=new THREE.Color();
   for(let i=0;i<p.count;i++){const y=p.getY(i),n=.86+.2*Math.sin(p.getX(i)*5+p.getZ(i)*3+seed*4);c.copy(base).multiplyScalar(n);if(y>.45)c.lerp(moss,Math.min(1,(y-.45)*1.3)*.55);col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b}
   g.setAttribute('color',new THREE.BufferAttribute(col,3));
   if(!iron)return g;
   const parts=[[g,0xffffff]],out=[g];for(let i=0;i<7;i++){const a=i*1.9+seed*9,b=new THREE.IcosahedronGeometry(.12,0);b.translate(Math.cos(a)*.78,.3+((i*37)%10)/14,Math.sin(a)*.78);out.push(b)}
-  const ore=mergeColored(out.slice(1).map(b=>[b,0xf0903a])),all=new THREE.BufferGeometry(),pa=[g.attributes.position.array,ore.attributes.position.array],na=[g.attributes.normal.array,ore.attributes.normal.array],ca=[g.attributes.color.array,ore.attributes.color.array];
+  const ore=mergeColored(out.slice(1).map(b=>[b,gold?0xf7d64a:0xf0903a])),all=new THREE.BufferGeometry(),pa=[g.attributes.position.array,ore.attributes.position.array],na=[g.attributes.normal.array,ore.attributes.normal.array],ca=[g.attributes.color.array,ore.attributes.color.array];
   const cat=arr=>{let n=0;arr.forEach(a=>n+=a.length);const r=new Float32Array(n);let o=0;arr.forEach(a=>{r.set(a,o);o+=a.length});return r};
   all.setAttribute('position',new THREE.BufferAttribute(cat(pa),3));all.setAttribute('normal',new THREE.BufferAttribute(cat(na),3));all.setAttribute('color',new THREE.BufferAttribute(cat(ca),3));return all}

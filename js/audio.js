@@ -1,17 +1,18 @@
 /* Epochenkrieg – Klang. Alles wird im Browser erzeugt (Web Audio), keine Audiodateien. */
 const SND=(()=>{
-let ac=null,master,sfxG,musG,musBase,musWar,noiseBuf,musicV=.7,sfxV=.7,musTimer=null,epoch=0,fight=0,alertV=0,tn=0,mdst=null;
+let ac=null,master,sfxG,musG,musBase,musWar,musHi,muted=false,bat=0,noiseBuf,musicV=.7,sfxV=.7,musTimer=null,epoch=0,fight=0,alertV=0,tn=0,mdst=null;
 const last={};
+try{muted=localStorage.getItem('ek-mute')==='1'}catch(_){}
 try{const m=localStorage.getItem('ek-music-v'),f=localStorage.getItem('ek-sfx-v');if(m!==null)musicV=+m;if(f!==null)sfxV=+f}catch(_){}
 const save=()=>{try{localStorage.setItem('ek-music-v',musicV);localStorage.setItem('ek-sfx-v',sfxV)}catch(_){}};
 
 function init(){
   if(ac){if(ac.state==='suspended')ac.resume();return}
   const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
-  ac=new C();master=ac.createGain();master.gain.value=.8;master.connect(ac.destination);
+  ac=new C();master=ac.createGain();master.gain.value=muted?0:.8;master.connect(ac.destination);
   sfxG=ac.createGain();sfxG.gain.value=sfxV*.57;sfxG.connect(master);
   musG=ac.createGain();musG.gain.value=musicV*.45;musG.connect(master);
-  musBase=ac.createGain();musBase.connect(musG);musWar=ac.createGain();musWar.gain.value=0;musWar.connect(musG);mdst=musBase;
+  musBase=ac.createGain();musBase.connect(musG);musWar=ac.createGain();musWar.gain.value=0;musWar.connect(musG);musHi=ac.createGain();musHi.gain.value=0;musHi.connect(musG);mdst=musBase;
   noiseBuf=ac.createBuffer(1,ac.sampleRate,ac.sampleRate);
   const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
   // Wind: leises, langsam an- und abschwellendes Rauschen
@@ -56,7 +57,12 @@ const FX={
   hammer:t=>{noise(t,.03,{f:2500,q:.8,vol:.45});metal(t,rnd(500,620),.14,.07);tone(200,t,.1,{type:'triangle',vol:.3,to:110})},
   drop:t=>{tone(400,t,.06,{type:'triangle',vol:.14});tone(560,t+.05,.09,{type:'triangle',vol:.14})},
   /* Nahkampf: Klingenschlag – Metall, Schleifen, dumpfer Treffer. Tonhöhe variiert */
-  hit:t=>{metal(t,rnd(750,1100),.3,.2);noise(t,.07,{f:4500,type:'highpass',q:.5,vol:.35});
+  /* Stimmen: kurze Brummlaute aus gefiltertem Rauschen und Grundton (Formanten), kein Sprachsample */
+  grunt:t=>{const f=rnd(95,140);tone(f,t,.16,{type:'sawtooth',vol:.12,to:f*.8,atk:.02});noise(t,.14,{f:rnd(500,800),to:400,q:3,vol:.35})},
+  yell:t=>{const f=rnd(150,210);tone(f,t,.55,{type:'sawtooth',vol:.14,to:f*1.35,atk:.05});tone(f*1.5,t,.5,{type:'square',vol:.05,to:f*1.9,atk:.05});noise(t,.5,{f:rnd(900,1300),q:2.5,vol:.28})},
+  horn:t=>{[0,.55].forEach((d,i)=>{tone(98,t+d,.6,{type:'sawtooth',vol:.18,to:i?110:98,atk:.08});tone(147,t+d,.6,{type:'sawtooth',vol:.1,atk:.08});noise(t+d,.5,{f:500,type:'lowpass',vol:.08})})},
+  hit:t=>{if(epoch<2){tone(rnd(110,150),t,.12,{type:'triangle',vol:.45,to:60});noise(t,.07,{f:900,to:300,q:.8,vol:.55});return}
+    metal(t,rnd(750,1100),.3,.2);noise(t,.07,{f:4500,type:'highpass',q:.5,vol:.35});
     noise(t,.1,{f:500,to:220,q:.8,vol:.4});tone(100,t,.12,{type:'sine',vol:.35,to:55})},
   /* Pfeil: Sehne zupft, dann Zischen der Luft */
   arrow:t=>{tone(rnd(190,230),t,.12,{type:'triangle',vol:.3,to:120,atk:.001});tone(rnd(380,460),t,.06,{type:'square',vol:.06,to:240});
@@ -76,7 +82,7 @@ const FX={
   win:t=>[0,.2,.4,.7].forEach((d,i)=>{tone([392,494,587,784][i],t+d,.8,{type:'triangle',vol:.28})}),
   lose:t=>[0,.3,.6].forEach((d,i)=>{tone([330,262,196][i],t+d,1.1,{type:'sawtooth',vol:.18})})
 };
-const GAP={growl:.8,deer:.6,chop:.18,mine:.18,pick:.18,hammer:.18,hit:.06,arrow:.06,die:.05,click:.03,select:.05,order:.05,drop:.1,crumble:.2};
+const GAP={grunt:.5,yell:1.2,horn:4,growl:.8,deer:.6,chop:.18,mine:.18,pick:.18,hammer:.18,hit:.06,arrow:.06,die:.05,click:.03,select:.05,order:.05,drop:.1,crumble:.2};
 function play(name){
   if(!ac||sfxV<=0||!FX[name])return;
   const n=ac.currentTime;if(last[name]&&n-last[name]<(GAP[name]||.02))return;last[name]=n;
@@ -199,8 +205,13 @@ function pieceWar(ep){
     if(ep>=3&&bar%2===0)ev.push({b:o,m:rt+12,d:1.5,i:'brass',v:.42});
   }
   return{bpm,len:16,ev}}
-const WARPIECES=[0,1,2,3,4,5].map(pieceWar);
-const base={cur:-1,loopT:0,done:0},war={cur:-1,loopT:0,done:0};
+/* Höchste Spannung: schnelle Trommeln, Streicher-Tremolo und Bläserstöße kommen dazu, wenn große Kämpfe toben */
+function pieceHi(ep){const ev=[],rt=midi(['D2','E2','D2','A2','E2','A2'][ep]);
+  for(let bar=0;bar<4;bar++){const o=bar*4;for(let k=0;k<16;k++)ev.push({b:o+k*.25,m:0,d:0,i:'snare',v:k%4===0?.34:.18});
+    ev.push({b:o,m:rt+24,d:2,i:ep>=3?'brass':'strings',v:.3});ev.push({b:o+2,m:rt+27,d:2,i:ep>=3?'brass':'strings',v:.3});if(ep>=4)for(let k=0;k<8;k++)ev.push({b:o+k*.5,m:rt+36+(k%2)*7,d:.4,i:'pluck',v:.2})}
+  return{bpm:[104,112,118,106,126,132][ep],len:16,ev}}
+const WARPIECES=[0,1,2,3,4,5].map(pieceWar),HIPIECES=[0,1,2,3,4,5].map(pieceHi);
+const base={cur:-1,loopT:0,done:0},war={cur:-1,loopT:0,done:0},hi={cur:-1,loopT:0,done:0};
 function runLayer(L,P,dst){
   const spb=60/P.bpm;
   if(L.loopT+L.done*spb<ac.currentTime-.5){L.loopT=ac.currentTime+.4;L.done=0}
@@ -215,13 +226,15 @@ function runLayer(L,P,dst){
 function chirp(t){const f=rnd(2400,4200);for(let i=0;i<2+(Math.random()*3|0);i++)tone(f*(1+i*.06),t+i*.09,.07,{type:'sine',vol:.035,to:f*rnd(1.1,1.4),dest:sfxG})}
 function schedule(){
   if(!ac)return;
-  fight*=.93;const want=Math.max(fight,alertV);tn+=(want-tn)*.18;const n=ac.currentTime;
+  fight*=.93;const want=Math.max(fight,alertV,bat);tn+=(want-tn)*.18;const n=ac.currentTime;
   if(sfxV>0&&tn<.12&&epoch<4&&Math.random()<.035)chirp(n+.05+Math.random()*.2);
   if(musicV<=0)return;
   musBase.gain.setTargetAtTime(1-.6*tn,n,.6);musWar.gain.setTargetAtTime(tn>.1?Math.min(1.1,Math.pow(tn,1.15)*1.15):0,n,.5);
   if(base.cur!==epoch){base.cur=epoch;base.loopT=n+.4;base.done=0}
   runLayer(base,PIECES[base.cur],musBase);
   if(tn>.1){if(war.cur!==epoch){war.cur=epoch;war.loopT=n+.25;war.done=0}runLayer(war,WARPIECES[epoch],musWar)}else war.cur=-1;
+  musHi.gain.setTargetAtTime(tn>.62?Math.min(1,(tn-.5)*2):0,n,.5);
+  if(tn>.62){if(hi.cur!==epoch){hi.cur=epoch;hi.loopT=war.cur===epoch?war.loopT:n+.25;hi.done=0}runLayer(hi,HIPIECES[epoch],musHi)}else hi.cur=-1;
 }
 
 function applyGains(){
@@ -231,6 +244,9 @@ function applyGains(){
 return{
   init,play,
   setEpoch(e){epoch=Math.max(0,Math.min(PIECES.length-1,e|0))},
+  setBattle(v){bat=Math.max(0,Math.min(1,v))},
+  setMute(m){muted=!!m;try{localStorage.setItem('ek-mute',muted?'1':'0')}catch(_){}if(ac)master.gain.setTargetAtTime(muted?0:.8,ac.currentTime,.05)},
+  get muted(){return muted},
   setAlert(v){alertV=Math.max(0,Math.min(1,v))},
   setMusic(v){const was=musicV;musicV=Math.max(0,Math.min(1,v));if(was<=0&&musicV>0){base.cur=-1;war.cur=-1}save();applyGains()},
   setSfx(v){sfxV=Math.max(0,Math.min(1,v));save();applyGains()},

@@ -29,8 +29,11 @@ function advFindSpot(type){
   const base=Math.atan2(H/2-hq.y,W/2-hq.x),far=type==='tower';
   for(let d=far?200:100;d<=(far?330:320);d+=20)for(let k=0;k<36;k++){const a=base+(k%2?1:-1)*Math.ceil(k/2)*.17;const x=hq.x+Math.cos(a)*d,y=hq.y+Math.sin(a)*d;if(!placeBlock(type,x,y))return{x,y}}
   return null}
-function advBuild(type){
-  const spot=advFindSpot(type),d=BLDS[type];if(!spot){toast(tr('Kein passender Platz gefunden.'));sfx('error');return false}
+/* Platz für eine Mine: nahe dem nächsten Vorkommen (Eisen oder Gold), das noch keine Mine hat */
+function advMineSpot(rt,hq){const nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||minedBy(0,nd))return null;
+  for(let d=34;d<=MINE_RNG*.8;d+=12)for(let k=0;k<20;k++){const a=k*.314,x=nd.x+Math.cos(a)*d,y=nd.y+Math.sin(a)*d;if(!placeBlock('mine',x,y))return{x,y}}return null}
+function advBuild(type,at){
+  const spot=at||advFindSpot(type),d=BLDS[type];if(!spot){toast(tr('Kein passender Platz gefunden.'));sfx('error');return false}
   if(!pay(0,d.cost)){toast(missing(0,d.cost)+'.');return false}
   const b=addBld(type,0,spot.x,spot.y,false);
   if(type==='harbor'){let best=0,bs=-9;for(let k=0;k<24;k++){const a=k*.2618;let sc=0;for(const dd of[40,70,100]){const t=terrAt(spot.x+Math.cos(a)*dd,spot.y+Math.sin(a)*dd);sc+=t===0?2:t===1?1:-2}if(sc>bs){bs=sc;best=a}}b.ang=best}
@@ -40,7 +43,7 @@ function advBuild(type){
   sfx('click');return true}
 function advIdle(){
   const R=G.res[0],ep=G.epoch[0];let i=0;
-  const goal={food:300,wood:300,stone:ep>=1?160:0,iron:ep>=2?100:0},need=RES.filter(rt=>goal[rt]).sort((a,b)=>R[a]/goal[a]-R[b]/goal[b])[0];
+  const goal={food:300,wood:300,stone:ep>=1?160:0,iron:ep>=2?100:0,gold:ep>=3?150:0},need=RES.filter(rt=>goal[rt]).sort((a,b)=>R[a]/goal[a]-R[b]/goal[b])[0];
   for(const u of G.ents){if(u.dead||u.team!==0||u.kind!=='unit'||!UNITS[u.type].gather||u.state!=='idle'||u.upj)continue;
     const order=UNITS[u.type].naval?['food']:[need,'food','wood','food'];
     const rt0=order[i++%order.length];
@@ -74,6 +77,11 @@ function advRules(){
   if(!bars.length&&workers.length>=S.barW&&afford(0,BLDS.barracks.cost)&&advFindSpot('barracks'))push({id:'barracks',txt:'eine Kaserne bauen, um Truppen auszubilden',cost:BLDS.barracks.cost,go:()=>advBuild('barracks')});
   if(ep>=(advisor.strat==='turtle'?0:1)&&has('tower').length<S.tow(ep)&&workers.length>=8&&afford(0,BLDS.tower.cost)&&advFindSpot('tower'))push({id:'tower',txt:'einen Wachturm bauen, um Land zu erobern und zu überblicken',cost:BLDS.tower.cost,go:()=>advBuild('tower')});
   if(!has('harbor').length&&workers.length>=9&&afford(0,BLDS.harbor.cost)&&advFindSpot('harbor'))push({id:'harbor',txt:'einen Hafen bauen, um Fische zu fangen',cost:BLDS.harbor.cost,go:()=>advBuild('harbor')});
+  // Minen: Eisen ab der Eisenzeit, Gold ab dem Mittelalter; Markt zum Tauschen
+  if(ep>=2&&workers.length>=8&&afford(0,BLDS.mine.cost)&&!mine.some(e=>e.type==='mine'&&!e.built))for(const rt of['iron','gold']){if(ep<RES_EP[rt])continue;const sp=advMineSpot(rt,hq);
+    if(sp){push({id:'mine:'+rt,txt:'eine Mine für {0} bauen (ohne Mine kann man {0} nicht abbauen)',args:[rn(rt)],cost:BLDS.mine.cost,go:()=>advBuild('mine',sp)});break}}
+  if(ep>=3&&!has('market').length&&workers.length>=14&&R.gold<250&&afford(0,BLDS.market.cost)&&advFindSpot('market'))push({id:'market',txt:'einen Markt bauen, um Rohstoffe gegen Gold zu tauschen',cost:BLDS.market.cost,go:()=>advBuild('market')});
+  if(has('market').some(b=>b.built)&&R.gold<200){const rt=['food','wood','stone'].find(x=>R[x]>(x==='stone'?450:800));if(rt)push({id:'trade:'+rt,txt:'100 {0} auf dem Markt gegen Gold tauschen (Vorrat ist groß)',args:[rn(rt)],go:()=>{trade(0,rt,'sell');sfx('click')}})}
   const ub=bars.find(b=>b.built&&b.queue.length<(R.food>350&&R.wood>250?2:1));
   if(ub&&mil<S.mil(ep)){const t=Object.keys(UNITS).filter(k=>UNITS[k].from==='barracks'&&UNITS[k].ep<=ep&&!UNITS[k].siege&&(!UNITS[k].tech||G.tech[0].has(UNITS[k].tech))).sort((a,b)=>UNITS[b].ep-UNITS[a].ep).find(k=>afford(0,UNITS[k].cost));if(t)push({id:'army',txt:'{0} ausbilden',args:[tr(UNITS[t].name)],cost:UNITS[t].cost,go:()=>enqueue(ub,t,0)&&(panelSig='')})}
   {const have=new Set([...G.tech[0],...G.rs[0].map(r=>r.id)]);const cand=TECHS.filter(t=>t.ep<=ep&&!have.has(t.id)&&afford(0,t.cost)&&mine.some(e=>e.kind==='bld'&&e.built&&(e.type===t.bld||(t.blds&&t.blds.includes(e.type)))));
@@ -87,7 +95,7 @@ function advRules(){
     for(const rt of RES){const need=goal[rt]||0;if(!need||R[rt]>=need)continue;const on=workers.filter(w=>w.rtype===rt&&(w.state==='gather'||w.state==='return')).length;if(on>=2||!workers.some(w=>canGather(w,rt)))continue;
       const donor=RES.filter(x=>x!==rt&&R[x]>(goal[x]||0)+150).sort((a,b)=>R[b]-R[a])[0];if(donor){push({id:'shift:'+rt,txt:'Arbeiter auf {0} umstellen (wird für den Aufstieg gebraucht)',args:[rn(rt)],go:()=>shiftWorkers(donor,rt,3)});break}}}
   // Knappe Vorräte: sofort reagieren, wenn eine Ressource fast leer ist
-  if(workers.length>=6)for(const rt of RES){const goal={food:60,wood:60,stone:30,iron:30}[rt];if(R[rt]>=goal||!workers.some(w=>canGather(w,rt)))continue;
+  if(workers.length>=6)for(const rt of RES){const goal={food:60,wood:60,stone:30,iron:30}[rt];if(!goal||R[rt]>=goal||!workers.some(w=>canGather(w,rt)))continue;
     const on=workers.filter(w=>w.rtype===rt&&w.state==='gather').length,donor=RES.filter(x=>x!==rt&&on<3&&workers.filter(w=>w.rtype===x&&w.state==='gather').length>=4).sort((x,y)=>R[y]-R[x])[0];
     if(donor){push({id:'low:'+rt,txt:'{0} ist knapp ({1}) – 3 Arbeiter von {2} auf {0} umstellen',args:[rn(rt),Math.floor(R[rt]),rn(donor)],go:()=>shiftWorkers(donor,rt,3)});break}}
   // Fischerboote: Nahrung vom Meer

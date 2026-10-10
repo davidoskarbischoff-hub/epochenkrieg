@@ -83,10 +83,10 @@ function toWorld(sx,sy){
 
 /* ---------- Instanzen für Bäume, Büsche, Felsen ---------- */
 function r3NodesInit(){
-  const{scene}=r3;for(const k of['pine','broad','bush','rock','ore'])if(r3['i_'+k]){scene.remove(r3['i_'+k]);r3['i_'+k].dispose()}
-  const cnt={tree:0,bush:0,stone:0,iron:0};for(const e of G.ents)if(e.kind==='node'&&cnt[e.type]!==undefined)cnt[e.type]++;
+  const{scene}=r3;for(const k of['pine','broad','bush','rock','ore','gold'])if(r3['i_'+k]){scene.remove(r3['i_'+k]);r3['i_'+k].dispose()}
+  const cnt={tree:0,bush:0,stone:0,iron:0,gold:0};for(const e of G.ents)if(e.kind==='node'&&cnt[e.type]!==undefined)cnt[e.type]++;
   const mk=(geo,n,flat)=>{const m=new THREE.InstancedMesh(geo,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.92,flatShading:!!flat}),Math.max(1,n));m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(m);return m};
-  r3.i_pine=mk(treeGeo(true),cnt.tree,false);r3.i_broad=mk(treeGeo(false),cnt.tree,false);r3.i_bush=mk(bushGeoC(),cnt.bush,false);r3.i_rock=mk(rockGeoC(false,1),cnt.stone*5,true);r3.i_ore=mk(rockGeoC(true,2),cnt.iron*5,true);
+  r3.i_pine=mk(treeGeo(true),cnt.tree,false);r3.i_broad=mk(treeGeo(false),cnt.tree,false);r3.i_bush=mk(bushGeoC(),cnt.bush,false);r3.i_rock=mk(rockGeoC(false,1),cnt.stone*5,true);r3.i_ore=mk(rockGeoC(true,2),cnt.iron*5,true);r3.i_gold=mk(rockGeoC(true,3,true),cnt.gold*5,true);
   r3Grass();R3.nodeT=0;
 }
 /* Grasbüschel und Blumen: viele winzige Instanzen auf dem Land, damit der Boden aus der Nähe lebendig wirkt */
@@ -122,15 +122,15 @@ let _o=null,_c=null;
 function fogShade(x,y){const i=fogIdx(x,y),a=(1-visF[i])*(165-95*exF[i])/255;return 1-a*.82}
 function r3Nodes(){
   if(!_o){_o=new THREE.Object3D();_c=new THREE.Color()}
-  const S=R3.S,cnt={pine:0,broad:0,bush:0,rock:0,ore:0},I=r3;
+  const S=R3.S,cnt={pine:0,broad:0,bush:0,rock:0,ore:0,gold:0},I=r3;
   const put=(m,key,x,y,z,ry,sx,sy,col)=>{const n=cnt[key]++;if(n>=m.instanceMatrix.count)return;_o.position.set(x,y,z);_o.rotation.set(0,ry,0);_o.scale.set(sx,sy,sx);_o.updateMatrix();m.setMatrixAt(n,_o.matrix);m.setColorAt(n,col)};
   for(const e of G.ents){if(e.dead||e.kind!=='node'||e.sea)continue;
     const k=Math.max(.5,Math.sqrt(e.amount/e.maxAmt)),sh=fogShade(e.x,e.y),h=hAt(e.x,e.y),x=e.x/S,z=e.y/S,sd=e.seed;
     if(e.type==='tree'){const s=e.r/11*.62*(.85+sd*.35)*(.55+.45*k),pine=sd<.5,v=.9+((sd*97)%1)*.2;_c.setRGB(v*sh,(.95+((sd*53)%1)*.12)*v*sh,v*sh);put(pine?I.i_pine:I.i_broad,pine?'pine':'broad',x,h,z,sd*6.28,s,s*(.9+((sd*31)%1)*.3),_c)}
     else if(e.type==='bush'){const s=e.r/10*(.55+.45*k);_c.setRGB(sh,sh,sh);put(I.i_bush,'bush',x,h,z,sd*6.28,s,s,_c)}
-    else{const iron=e.type==='iron',m=iron?I.i_ore:I.i_rock,key=iron?'ore':'rock',base=e.r/10*(.6+.4*k);
+    else{const iron=e.type==='iron',gold=e.type==='gold',m=gold?I.i_gold:iron?I.i_ore:I.i_rock,key=gold?'gold':iron?'ore':'rock',base=e.r/10*(.6+.4*k);
       for(let j=0;j<5;j++){const a=sd*20+j*1.9,dd=j?e.r/S*.62:0,sz=base*(j?.55+((j*37+sd*50)%7)/14:1.05),xx=x+Math.cos(a)*dd,zz=z+Math.sin(a)*dd;_c.setRGB(sh*(.92+(j%3)*.05),sh*(.92+(j%3)*.05),sh*(.95+(j%2)*.05));put(m,key,xx,hAt(xx*S,zz*S)-.1,zz,a,sz,sz*(j?1:1.15),_c)}}}
-  for(const[k,m]of[['pine',I.i_pine],['broad',I.i_broad],['bush',I.i_bush],['rock',I.i_rock],['ore',I.i_ore]]){m.count=Math.min(cnt[k],m.instanceMatrix.count);m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true}
+  for(const[k,m]of[['pine',I.i_pine],['broad',I.i_broad],['bush',I.i_bush],['rock',I.i_rock],['ore',I.i_ore],['gold',I.i_gold]]){m.count=Math.min(cnt[k],m.instanceMatrix.count);m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true}
 }
 
 /* ---------- Meeresbewohner ---------- */
@@ -230,4 +230,4 @@ function entH(e){
   if(e.kind==='unit'){const t=e.type,d=UNITS[t];return d.naval?(t==='galleon'?55:40):t==='knight'?46:d.siege?(t==='ram'?30:34):e.r/7*25}
   if(e.kind==='bld'){const o=R3.reg.get(entKey(e,false));return o&&o.obj.userData.h?o.obj.userData.h*R3.S:e.r*2.4}
   if(e.kind==='animal')return ANIMALS[e.type].h||26;
-  return e.r*({tree:3.6,bush:1.5,stone:1.1,iron:1.1}[e.type]||1)}
+  return e.r*({tree:3.6,bush:1.5,stone:1.1,iron:1.1,gold:1.1}[e.type]||1)}

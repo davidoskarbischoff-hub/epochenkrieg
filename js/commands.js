@@ -45,7 +45,8 @@ function command(wx,wy,append,sp){
   if(s[0].kind==='bld'){s.forEach(b=>{if(b.kind==='bld')b.rally={x:wx,y:wy,id:t&&t.kind==='node'?t.id:null,nodeType:t&&t.kind==='node'?t.rt:null}});fxMark(wx,wy,'rally');return}
   const units=s.filter(e=>e.kind==='unit');const cols=Math.ceil(Math.sqrt(units.length));let i=0;
   for(const u of units){
-    if(t&&t.kind==='node'&&UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval){giveOrder(u,{t:'gather',tid:t.id,rt:t.rt},append)}
+    if(t&&t.kind==='node'&&UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval&&!minedBy(0,t)){if(!u.mineMsg||G.t-u.mineMsg>4){u.mineMsg=G.t;toast(tr('Für {0} brauchst du eine fertige Mine in der Nähe.',rn(t.rt)));sfx('error')}}
+    else if(t&&t.kind==='node'&&UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval){giveOrder(u,{t:'gather',tid:t.id,rt:t.rt},append)}
     else if(t&&(t.team===1||t.kind==='animal')&&u.type!=='scout'){giveOrder(u,{t:'attack',tid:t.id},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&!t.built&&u.type==='worker'){giveOrder(u,{t:'build',tid:t.id},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&BLDS[t.type].drop&&UNITS[u.type].gather&&u.carry>0&&(!UNITS[u.type].naval||t.type==='harbor')){giveOrder(u,{t:'return'},append)}
@@ -59,6 +60,11 @@ function attackMove(wx,wy,append){
   units.forEach((u,i)=>{giveOrder(u,{t:'amove',x:wx+(i%cols-(cols-1)/2)*18,y:wy+(Math.floor(i/cols)-(cols-1)/2)*18},append)});
   armed=false;fxMark(wx,wy,'attack');
 }
+/* Markt: 100 Rohstoff gegen Gold verkaufen (dir='sell') oder 100 Rohstoff für Gold kaufen (dir='buy') */
+function trade(team,rt,dir){const R=G.res[team],lot=TRADE.lot,g=Math.round(lot*TRADE.sell),c=Math.round(lot*TRADE.buy);
+  if(!G.ents.some(b=>b.kind==='bld'&&b.type==='market'&&b.built&&!b.dead&&b.team===team))return false;
+  if(dir==='sell'){if(R[rt]<lot)return false;R[rt]-=lot;R.gold=(R.gold||0)+g}else{if((R.gold||0)<c)return false;R.gold-=c;R[rt]+=lot}
+  if(team===0)sfx('click');return true}
 function startPlace(type){const d=BLDS[type];if(d.ep>G.epoch[0]){toast(tr('Erst ab der {0} verfügbar.',tr(EPOCHS[d.ep].name)));sfx('error');return}if(!afford(0,d.cost)){toast(missing(0,d.cost)+'.');sfx('error');return}placing=type;armed=false}
 function tryPlace(wx,wy,keep){
   const d=BLDS[placing],blk=placeBlock(placing,wx,wy);if(blk){toast(blk);sfx('error');return}

@@ -33,8 +33,9 @@ function aiTick(){
   for(const sc of scouts)if(sc.state==='idle')sc.state='explore';
   // Sammeln verteilen
   const w8=[{food:.6,wood:.4,stone:0,iron:0},{food:.4,wood:.32,stone:.28,iron:0},{food:.4,wood:.24,stone:.16,iron:.2},{food:.36,wood:.22,stone:.18,iron:.24},{food:.34,wood:.2,stone:.18,iron:.28},{food:.32,wood:.2,stone:.16,iron:.32}][ep];
+  w8.gold=[0,0,0,.1,.14,.16][ep];
   for(const k of RES){if(w8[k]){const f=r[k]>700?.3:r[k]>350?.65:r[k]<120?1.7:1;w8[k]*=f}} // Vorrat steuert die Verteilung: Überfluss -> weniger Arbeiter dort
-  const cnt={food:0,wood:0,stone:0,iron:0};workers.forEach(w=>{if(w.state!=='idle'&&w.rtype)cnt[w.rtype]++});
+  const cnt={food:0,wood:0,stone:0,iron:0,gold:0};workers.forEach(w=>{if(w.state!=='idle'&&w.rtype)cnt[w.rtype]++});
   for(const w of workers){if(w.state!=='idle')continue;
     const n=workers.length;const order=RES.filter(rt=>canGather(w,rt)).sort((a,b)=>(w8[b]*n-cnt[b])-(w8[a]*n-cnt[a]));
     for(const rt of order){const node=nearestNode(rt,hq.x,hq.y,900,w,true)||nearestNode(rt,hq.x,hq.y,900,w);if(node){w.state='gather';w.tid=node.id;w.rtype=rt;cnt[rt]++;break}}}
@@ -48,6 +49,12 @@ function aiTick(){
     const cx=best?best.reduce((s,n)=>s+n.x,0)/best.length:0,cy=best?best.reduce((s,n)=>s+n.y,0)/best.length:0;
     if(best&&best.length>=3&&blds.filter(b=>b.type==='store').length<2+ep&&!blds.some(b=>b.type==='store'&&Math.hypot(b.x-cx,b.y-cy)<190)){
       for(let d=24;d<=120;d+=12){let done=false;for(let k=0;k<14;k++){const a=Math.random()*6.283,x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d;if(validSpot(x,y,BLDS.store.r)){pay(1,BLDS.store.cost);addBld('store',1,x,y,false);done=true;break}}if(done)break}}}
+  // Minen für Eisen und Gold, Markt für Gold
+  if(ep>=2&&workers.length>=10&&G.t>(ai.mineT||0)&&!unbuilt.some(b=>b.type==='mine')){ai.mineT=G.t+25;
+    for(const rt of['iron','gold']){if(ep<RES_EP[rt])continue;const nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||minedBy(1,nd)||!afford(1,BLDS.mine.cost))continue;
+      for(let k=0;k<60;k++){const a=Math.random()*6.283,d=34+Math.random()*(MINE_RNG*.55),x=nd.x+Math.cos(a)*d,y=nd.y+Math.sin(a)*d;if(validSpot(x,y,BLDS.mine.r)){pay(1,BLDS.mine.cost);addBld('mine',1,x,y,false);break}}break}}
+  if(ep>=3&&workers.length>=16&&!blds.some(b=>b.type==='market')&&r.gold<250&&afford(1,BLDS.market.cost))aiPlace('market',hq,90,230);
+  if(blds.some(b=>b.type==='market'&&b.built)&&r.gold<260)for(const rt of['food','wood','stone']){if(r[rt]>(rt==='stone'?500:850)&&trade(1,rt,'sell'))break}
   // Gebäude
   if(G.cap[1]-G.pop[1]<=3&&G.cap[1]<POPMAX&&!unbuilt.some(b=>b.type==='house'))(aiPlace('house',hq,90,200)||aiPlace('house',hq,150,330));
   const nBar=blds.filter(b=>b.type==='barracks').length,wantBar=(ep>=2&&diff!=='leicht'?2:1)+ST.bar;
@@ -75,7 +82,7 @@ function aiTick(){
   const armyCap=Math.round([8,13,20,28,36,44][ep]*DIFF[diff].army*ST.army),queued=blds.reduce((n,b)=>n+(b.type==='barracks'?b.queue.length:0),0);
   for(const b of blds){if(b.type!=='barracks'||!b.built||b.queue.length>=2||army.length+queued>=armyCap)continue;
     if(saving&&!(r.food>adv.food+90&&r.wood>(adv.wood||0)+90))continue;
-    enqueue(b,types[(G.stats.trained[1]+b.id)%types.length],1)}
+    const pick=types.map((_,i)=>types[(G.stats.trained[1]+b.id+i)%types.length]).find(t=>afford(1,UNITS[t].cost)&&(!UNITS[t].tech||G.tech[1].has(UNITS[t].tech)));if(pick)enqueue(b,pick,1)}
   // Verteidigung
   const threats=G.ents.filter(e=>!e.dead&&e.team===0&&e.kind==='unit'&&blds.some(b=>dist(e,b)<ST.def));
   if(threats.length){for(const m of army){if(m.state==='attack'||dist(m,hq)>750)continue;let t=null,td=1e9;for(const th of threats){const d=dist(m,th);if(d<td){td=d;t=th}}m.state='attack';m.tid=t.id}}
@@ -83,7 +90,7 @@ function aiTick(){
     // Angriff: erst wenn der Gegner gefunden ist, sonst wird gesucht
     const seenB=[...ai.seen.values()].map(s=>get(s.id)).filter(e=>e&&e.kind==='bld');
     const tgt=seenB.find(e=>e.type==='hq')||seenB.sort((a,b)=>dist(a,hq)-dist(b,hq))[0];
-    if(!ai.attack&&G.t>=ai.next&&army.length>=Math.min(ai.wave,armyCap-1)){ai.attack=true;ai.wave+=1.5}
+    if(!ai.attack&&G.t>=ai.next&&army.length>=Math.min(ai.wave,armyCap-1)){ai.attack=true;ai.wave+=1.5;if(typeof SND!=='undefined')SND.play('horn')}
     if(ai.attack){
       if(army.length<Math.max(3,ai.wave*.35)){ai.attack=false;ai.next=G.t+70;const a=Math.atan2(H/2-hq.y,W/2-hq.x);for(const m of army){m.state='amove';m.amove={x:hq.x+Math.cos(a)*170,y:hq.y+Math.sin(a)*170}}}
       else{
