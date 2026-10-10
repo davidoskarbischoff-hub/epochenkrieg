@@ -46,7 +46,8 @@
      "#1c1410",
      "#6b4a2a"
     ],
-    "belt": "#3b2a1a"
+    "belt": "#3b2a1a",
+    "human": true
    },
    {
     "file": "neu/Farmer.glb",
@@ -62,7 +63,8 @@
      "walk": "Walk",
      "attack": "Punch_Right",
      "work": "Interact"
-    }
+    },
+    "human": true
    }
   ],
   "scout": {
@@ -72,7 +74,8 @@
     "walk": "Walk",
     "attack": "Sword_Slash",
     "work": "Interact"
-   }
+   },
+   "human": true
   },
   "healer": {
    "file": "neu/Witch.glb",
@@ -81,7 +84,8 @@
     "walk": "Walk",
     "attack": "Punch_Right",
     "work": "Interact"
-   }
+   },
+   "human": true
   },
   "engineer": {
    "file": "neu/Worker.glb",
@@ -90,7 +94,8 @@
     "walk": "Walk",
     "attack": "Punch_Right",
     "work": "Interact"
-   }
+   },
+   "human": true
   },
   "spear": [
    {
@@ -113,7 +118,7 @@
     ],
     "hand": {
      "file": "neu/Spear.glb",
-     "scale": 0.5,
+     "scale": 0.3,
      "rot": [
       -90,
       0,
@@ -153,7 +158,8 @@
     ],
     "belt": "#3b2a1a",
     "cape": "#6b4a2b",
-    "tooth": true
+    "tooth": true,
+    "human": true
    },
    {
     "file": "neu/Medieval.glb",
@@ -172,7 +178,7 @@
     ],
     "hand": {
      "file": "neu/Spear.glb",
-     "scale": 0.5,
+     "scale": 0.3,
      "rot": [
       -90,
       0,
@@ -183,7 +189,8 @@
       0,
       0
      ]
-    }
+    },
+    "human": true
    }
   ],
   "sword": [
@@ -245,7 +252,8 @@
      "#6b4a2a"
     ],
     "belt": "#3b2a1a",
-    "cape": "#5a4a3a"
+    "cape": "#5a4a3a",
+    "human": true
    },
    {
     "file": "neu/Medieval.glb",
@@ -258,7 +266,8 @@
      "walk": "Walk",
      "attack": "Sword_Slash",
      "work": "Interact"
-    }
+    },
+    "human": true
    }
   ],
   "archer": [
@@ -307,7 +316,8 @@
      "#6b4a2a"
     ],
     "belt": "#3b2a1a",
-    "cape": "#8a6a40"
+    "cape": "#8a6a40",
+    "human": true
    },
    {
     "file": "neu/Medieval.glb",
@@ -337,7 +347,8 @@
       0,
       0
      ]
-    }
+    },
+    "human": true
    }
   ],
   "crossbow": {
@@ -354,7 +365,8 @@
    },
    "hide": [
     "^Sword$"
-   ]
+   ],
+   "human": true
   },
   "musket": {
    "file": "neu/Soldier.glb",
@@ -368,7 +380,8 @@
     "walk": "Walk",
     "attack": "Gun_Shoot",
     "work": "Interact"
-   }
+   },
+   "human": true
   },
   "rifle": {
    "file": "neu/Soldier.glb",
@@ -382,7 +395,8 @@
     "walk": "Walk",
     "attack": "Gun_Shoot",
     "work": "Interact"
-   }
+   },
+   "human": true
   },
   "assault": {
    "file": "neu/Soldier.glb",
@@ -396,7 +410,8 @@
     "walk": "Walk",
     "attack": "Gun_Shoot",
     "work": "Interact"
-   }
+   },
+   "human": true
   },
   "mg": {
    "file": "neu/Soldier.glb",
@@ -410,7 +425,8 @@
     "walk": "Walk",
     "attack": "Gun_Shoot",
     "work": "Interact"
-   }
+   },
+   "human": true
   },
   "tank": {
    "file": "neu/Tank.glb",
@@ -418,7 +434,7 @@
    "anim": {
     "walk": "Tank_Forward"
    },
-   "scale": 0.65
+   "scale": 0.5
   },
   "mark1": {
    "file": "neu/Tank-uYHpj7lz1J.glb",
@@ -426,7 +442,7 @@
    "anim": {
     "walk": "Tank_Forward"
    },
-   "scale": 0.65
+   "scale": 0.5
   },
   "renault": {
    "file": "neu/Tank-jWS1CLA0RO.glb",
@@ -434,7 +450,7 @@
    "anim": {
     "walk": "Tank_Forward"
    },
-   "scale": 0.65
+   "scale": 0.5
   },
   "carro": {
    "file": "neu/Tank-cW3zvvkMOM.glb",
@@ -442,7 +458,7 @@
    "anim": {
     "walk": "Tank_Forward"
    },
-   "scale": 0.65
+   "scale": 0.5
   },
   "club": {
    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
@@ -489,7 +505,8 @@
    ],
    "belt": "#3b2a1a",
    "cape": "#7a5a38",
-   "tooth": true
+   "tooth": true,
+   "human": true
   },
   "sling": {
    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
@@ -534,7 +551,8 @@
     "#1c1410",
     "#6b4a2a"
    ],
-   "belt": "#3b2a1a"
+   "belt": "#3b2a1a",
+   "human": true
   },
   "boat": [
    {
@@ -545,7 +563,7 @@
      1,
      2
     ],
-    "yaw": -90
+    "yaw": 0
    },
    {
     "file": "neu/Boat by Poly by Google - 1ZuSXvhkRg_.glb",
@@ -561,12 +579,12 @@
   "warship": {
    "file": "neu/Sail Boat by Quaternius - BgSZXwmm7k.glb",
    "fit": "length",
-   "yaw": -90
+   "yaw": 0
   },
   "galleon": {
    "file": "neu/Sail Ship by Quaternius - cIzO4MBPqI.glb",
    "fit": "length",
-   "yaw": -90
+   "yaw": 0
   },
   "catapult": {
    "file": "neu/Catapult by Poly by Google - 7P_ZOjZbbMJ.glb",
@@ -592,16 +610,22 @@
  "buildings": {
   "hq": [
    {
-    "file": "neu/Town Center-76GTkSh4KM.glb",
+    "file": "neu/Wooden house tower.glb",
     "epochs": [
      0,
-     1,
+     1
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Wooden Monument.glb",
+    "epochs": [
      2
     ],
     "fit": 1.0
    },
    {
-    "file": "neu/Town Center Second Age.glb",
+    "file": "neu/Tower House.glb",
     "epochs": [
      3,
      4
@@ -696,13 +720,7 @@
     "file": "neu/Wooden Fortress.glb",
     "epochs": [
      2,
-     3
-    ],
-    "fit": 1.0
-   },
-   {
-    "file": "neu/Tower House.glb",
-    "epochs": [
+     3,
      4
     ],
     "fit": 1.0
@@ -889,22 +907,68 @@
   ],
   "iron": [
    {
-    "file": "neu/Rock Medium.glb",
-    "tint": "#8a7a74"
+    "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
+    "mesh": "crystal_basalt_green.018"
    },
    {
-    "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
-    "tint": "#8a7a74"
+    "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
+    "mesh": "crystal_basalt_green.021"
    },
    {
-    "file": "neu/Rock Medium-JQxF95498B.glb",
-    "tint": "#8a7a74"
+    "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
+    "mesh": "crystal_basalt_green.017"
    }
   ],
   "gold": [
    {
-    "file": "neu/Gold Rocks.glb"
+    "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
+    "mesh": "crystal_basalt_green.010"
+   },
+   {
+    "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
+    "mesh": "crystal_basalt_green.008"
+   },
+   {
+    "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
+    "mesh": "crystal_basalt_green.014"
    }
   ]
+ },
+ "sea": {
+  "fish": {
+   "files": [
+    "neu/Clownfish.glb",
+    "neu/Blue Tang.glb",
+    "neu/Yellow Tang.glb",
+    "neu/Koi.glb",
+    "neu/Red Snapper.glb",
+    "neu/Butterfly Fish.glb",
+    "neu/Royal Gramma.glb",
+    "neu/Tuna.glb"
+   ],
+   "count": 6,
+   "size": 1.5,
+   "spread": 1.4,
+   "roll": 90
+  },
+  "dolphin": {
+   "files": [
+    "neu/Tuna.glb",
+    "neu/Swordfish.glb"
+   ],
+   "count": 2,
+   "size": 2.6,
+   "spread": 1.8,
+   "roll": 90
+  },
+  "whale": {
+   "files": [
+    "neu/Shark.glb"
+   ],
+   "count": 1,
+   "size": 6.5,
+   "tint": "#5a7a9a",
+   "roll": 90
+  }
  }
 }

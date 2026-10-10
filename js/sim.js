@@ -308,7 +308,10 @@ function animalMove(a,tx,ty,dt,spd){
   const st=Math.min(d,spd*dt),ux=dx/d,uy=dy/d;let moved=false;
   for(const[mx,my]of[[ux,uy],[ux,0],[0,uy],[ux*.5+uy*.7,uy*.5-ux*.7],[ux*.5-uy*.7,uy*.5+ux*.7]]){
     const nx=a.x+mx*st,ny=a.y+my*st;if(terrAt(nx,ny)===(ANIMALS[a.type].water?1:2)&&navDyn[navCell(nx,ny)]===0){a.x=nx;a.y=ny;a.fa=Math.atan2(my||uy,mx||ux);a.mvT=G.t;moved=true;break}}
-  a.stk=moved?Math.max(0,(a.stk||0)-dt):(a.stk||0)+dt;return false}
+  a.stk=moved?Math.max(0,(a.stk||0)-dt):(a.stk||0)+dt;
+  /* festgeklemmt (z. B. in/neben einem Vorkommen): nach 0,7 s zum nächsten freien Feld im Umkreis springen */
+  if(!moved&&a.stk>.7){const okc=ANIMALS[a.type].water?1:2;outer:for(let r=10;r<=90;r+=10)for(let k=0;k<12;k++){const an=k/12*6.283,nx=a.x+Math.cos(an)*r,ny=a.y+Math.sin(an)*r;if(terrAt(nx,ny)===okc&&navDyn[navCell(nx,ny)]===0){a.x=nx;a.y=ny;a.stk=0;break outer}}}
+  return false}
 function updAnimal(a,dt){
   const d=ANIMALS[a.type];a.cd=Math.max(0,a.cd-dt);
   if(a.hp<a.maxHp&&a.state==='idle')a.hp=Math.min(a.maxHp,a.hp+dt*2);
