@@ -165,3 +165,11 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] GitHub Action baut den Installer bei neuem Release; Anleitung in `VEROEFFENTLICHEN.md`
 - [ ] Windows-Installer signieren (kostenpflichtig, entfernt die SmartScreen-Warnung), Mac-Signatur/Notarisierung
 - [ ] Einladungslink direkt in der App öffnen (eigenes `epochenkrieg://`-Protokoll), Steam-Anbindung später prüfen
+
+## Grafik (Schritt für Schritt)
+- [x] 1 Licht & Stimmung: wärmeres Licht, kühles Gegenlicht, Kontaktschatten, Vignette, Farbkorrektur
+- [ ] 2 Gelände & Wasser: Bodentexturen, Küstenschaum, Wasserspiegelung
+- [ ] 3 Vegetation: Windbewegung, vielfältigere Bäume und Gras
+- [ ] 4 Materialien: Detailtexturen für Gebäude und Einheiten
+- [ ] 5 Effekte: Rauch, Feuer, Staub, Treffer, Wetter
+- [ ] 6 Nachbearbeitung: Bloom, Umgebungsverdeckung (SSAO)

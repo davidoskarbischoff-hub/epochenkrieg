@@ -73,6 +73,7 @@
       "icon": "build/icon.png",
       "identity": null,
       "artifactName": "Epochenkrieg-${version}-${arch}.${ext}"
-    }
+    },
+    "afterPack": "scripts/adhoc-sign.js"
   }
 }
