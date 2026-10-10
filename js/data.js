@@ -3,7 +3,7 @@
 const W=4800,H=3200,CARRY=15;
 const AREA=W*H/(3600*2400); /* Kartengrösse im Vergleich zur ersten Version (für Anzahlen von Vorkommen, Gras usw.) */
 // Sammeln je Ressource: Tempo-Faktor und Tragekapazität (Beeren bringen mehr, weil Nahrung sonst knapp ist)
-const GATHER={food:{rate:1.5,carry:15},wood:{rate:1.2,carry:12},stone:{rate:.9,carry:10},iron:{rate:.8,carry:8},gold:{rate:.7,carry:8}};
+const GATHER={food:{rate:1.5,carry:15},wood:{rate:1.2,carry:12},stone:{rate:.9,carry:10},iron:{rate:.8,carry:8},gold:{rate:.7,carry:8},oil:{rate:.75,carry:10}};
 const UNITS={
   worker:{cls:'wk',gather:true,builds:true,passive:true,name:'Arbeiter',sight:130,hp:40,spd:58,atk:3,rng:4,cd:1.2,r:7,cost:{food:50},time:9,ep:0,from:'hq'},
   scout:{cls:'wk',name:'Späher',passive:true,sight:300,hp:40,spd:105,atk:0,rng:4,cd:1.2,r:6,cost:{food:60,wood:20},time:10,ep:0,from:'hq'},
@@ -21,7 +21,7 @@ const UNITS={
   catapult:{cls:'siege',tech:'siegeworks',name:'Katapult',sight:190,hp:140,spd:36,atk:48,rng:250,cd:4.8,r:10,cost:{wood:220,stone:120},time:30,ep:3,from:'barracks',ranged:true,siege:true},
   galleon:{cls:'ship',tech:'galleonbuild',name:'Galeone',naval:true,ranged:true,sight:260,hp:380,spd:58,atk:28,rng:210,cd:2.2,r:15,cost:{wood:200,iron:80},time:32,ep:3,from:'harbor'},
   rifle:{cls:'rng',tech:'rifles',name:'Gewehrschütze',sight:210,hp:190,spd:54,atk:66,rng:195,cd:1.9,r:7,cost:{gold:35,food:100,wood:40,iron:90},time:22,ep:5,from:'barracks',ranged:true,gun:true},
-  tank:{cls:'siege',tech:'armor',name:'Panzer',sight:230,hp:420,spd:48,atk:46,rng:210,cd:2.6,r:14,cost:{wood:200,iron:320,gold:140},time:38,ep:5,from:'barracks',ranged:true,siege:true},
+  tank:{cls:'siege',tech:'armor',name:'Panzer',sight:230,hp:420,spd:48,atk:46,rng:210,cd:2.6,r:14,cost:{wood:200,iron:320,gold:140,oil:60},time:38,ep:5,from:'barracks',ranged:true,siege:true},
   howitzer:{cls:'siege',tech:'artillery',name:'Haubitze',sight:230,hp:200,spd:34,atk:90,rng:300,cd:4.8,r:12,cost:{gold:110,wood:260,iron:260},time:34,ep:5,from:'barracks',ranged:true,siege:true},
   ironclad:{cls:'ship',tech:'ironclads',name:'Panzerschiff',naval:true,ranged:true,sight:280,hp:620,spd:58,atk:44,rng:240,cd:2.4,r:17,cost:{gold:90,wood:260,iron:240},time:40,ep:5,from:'harbor'},
   healer:{cls:'med',passive:true,heal:2.2,name:'Heiler',sight:150,hp:80,spd:56,atk:0,rng:4,cd:1.2,r:7,cost:{food:60,wood:20},time:14,ep:0,from:'barracks'},
@@ -39,11 +39,13 @@ const BLDS={
   gate:{name:'Tor',sight:80,hp:480,r:13,cost:{wood:30,stone:8},time:10,ep:1,passable:true,sub:'Einheiten kommen hindurch'},
   farm:{name:'Feld',sight:120,claim:60,hp:200,r:20,cost:{wood:70},time:16,ep:1,sub:'Nahrung, die immer nachwächst'},
   trench:{name:'Stellung',sight:110,hp:260,r:15,cost:{wood:25,stone:10},time:8,ep:1,passable:true,cover:true,sub:'Truppen darin erleiden 35 % weniger Schaden'},
+  derrick:{name:'Bohrturm',sight:150,claim:80,hp:420,r:16,cost:{wood:150,iron:80},time:24,ep:5,sub:'Nötig, um Öl zu fördern'},
+  refinery:{name:'Raffinerie',sight:170,claim:110,hp:650,r:24,dropOil:true,cost:{wood:200,stone:100,iron:120},time:34,ep:5,sub:'Hier wird Öl abgeliefert'},
   mine:{name:'Mine',sight:150,claim:90,hp:420,r:16,drop:true,cost:{wood:100,stone:40},time:20,ep:2,sub:'Nötig für Eisen und Gold'},
   market:{name:'Markt',sight:170,claim:110,hp:520,r:22,cost:{wood:150,stone:80},time:24,ep:3,sub:'Rohstoffe gegen Gold tauschen'},
   tower:{name:'Wachturm',sight:300,claim:320,hp:550,r:14,cost:{wood:70,stone:60},time:26,ep:0,shoot:{rng:170,atk:9,cd:1.5},sub:'Schiesst auf Gegner'}
 };
-const NODES={tree:{cap:3,rt:'wood',amt:420,r:11,name:'Baum'},bush:{cap:3,rt:'food',amt:340,r:8,name:'Beerenstrauch',regen:1.4},stone:{cap:6,rt:'stone',amt:2600,r:28,name:'Steinvorkommen'},iron:{cap:5,rt:'iron',amt:3200,r:26,name:'Eisenvorkommen'},gold:{cap:4,rt:'gold',amt:2200,r:23,name:'Goldvorkommen'},field:{cap:5,rt:'food',amt:700,r:25,name:'Feld',regen:3.2,hidden:true},
+const NODES={tree:{cap:3,rt:'wood',amt:420,r:11,name:'Baum'},bush:{cap:3,rt:'food',amt:340,r:8,name:'Beerenstrauch',regen:1.4},stone:{cap:6,rt:'stone',amt:2600,r:28,name:'Steinvorkommen'},iron:{cap:5,rt:'iron',amt:3200,r:26,name:'Eisenvorkommen'},gold:{cap:4,rt:'gold',amt:2200,r:23,name:'Goldvorkommen'},oil:{cap:3,rt:'oil',amt:3500,r:26,name:'Ölfeld'},field:{cap:5,rt:'food',amt:700,r:25,name:'Feld',regen:3.2,hidden:true},
   // Wasser: nur Boote können hier sammeln (Delfine ab Stufe II, Wale ab Stufe III)
   fish:{cap:2,sea:true,rt:'food',amt:160,r:8,name:'Fischschwarm',gm:1,regen:.55},
   dolphin:{cap:3,sea:true,rt:'food',amt:420,r:11,name:'Delfine',gm:1.3,lvl:1,regen:.45},
@@ -65,8 +67,8 @@ const RAGE={dur:6,cd:35,dmg:1.35,spd:1.25}; /* Fähigkeit Kampfrausch (Taste F) 
 /* Einheiten ändern ihren Namen mit dem Zeitalter (Sanitäter-Reihe) */
 const UNAMES={healer:['Schamane','Heiler','Priester','Feldscher','Sanitäter','Medizintechniker']};
 const POPMAX=100;
-const RES=['food','wood','stone','iron','gold'],RN={food:'Nahrung',wood:'Holz',stone:'Stein',iron:'Eisen',gold:'Gold'};
-const RES_EP={stone:1,iron:2,gold:3},MINE_RT={iron:1,gold:1}; /* ab welcher Epoche eine Ressource erscheint; Erz und Gold brauchen eine Mine in der Nähe */
+const RES=['food','wood','stone','iron','gold','oil'],RN={food:'Nahrung',wood:'Holz',stone:'Stein',iron:'Eisen',gold:'Gold',oil:'Öl'};
+const RES_EP={stone:1,iron:2,gold:3,oil:5},MINE_RT={iron:'mine',gold:'mine',oil:'derrick'}; /* ab welcher Epoche eine Ressource erscheint; Erz und Gold brauchen eine Mine in der Nähe */
 const MINE_RNG=150,TRADE={sell:.5,buy:1,lot:100}; /* Markt: 100 Rohstoff -> 50 Gold, 100 Gold -> 100 Rohstoff */
 /* army = Faktor für die Heeresgrösse der KI; pace = Tempo-Faktor für die frühesten Aufstiegszeiten der KI (kleiner = schneller) */
 const DIFF={leicht:{gather:.7,first:460,wave:4,pace:1.35,army:.55},normal:{gather:.85,first:480,wave:7,pace:1.3,army:.55},schwer:{gather:1.35,first:240,wave:6,pace:.8,army:1.1}};
@@ -88,7 +90,7 @@ const STATE={idle:'Wartet',move:'Unterwegs',amove:'Angriffsmarsch',attack:'Kämp
 // Neue Einheiten/Gebäude starten auf der Stufe der aktuellen Epoche; ältere müssen per Upgrade nachgezogen werden.
 const LVL={hp:[1,1.25,1.55,1.9,2.3,2.7],atk:[1,1.2,1.45,1.75,2.1,2.45],gather:[1,1.25,1.5,1.75,2,2.25],bhp:[1,1.3,1.7,2.2,2.8,3.4]};
 const LVLN=['I','II','III','IV','V','VI'],LVLC=['#a39a88','#6fc46a','#eab94b','#ec8a5c','#8fd3f2','#d6a6f0'];
-const NEED_LVL={stone:1,iron:2,gold:3}; // ab welcher Stufe ein Arbeiter diese Ressource abbauen kann
+const NEED_LVL={stone:1,iron:2,gold:3,oil:5}; // ab welcher Stufe ein Arbeiter diese Ressource abbauen kann
 const UPG={unit:[null,{food:20},{food:30,stone:15},{food:45,iron:20},{food:60,iron:35},{food:75,iron:50}],bld:[null,{wood:25},{wood:40,stone:25},{wood:60,stone:40},{wood:80,iron:40},{wood:100,iron:55}]}; // Kosten pro Stück für die Zielstufe
 const UPG_TIME={base:5,each:.7,max:40}; // Dauer in Sekunden
 

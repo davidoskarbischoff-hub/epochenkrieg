@@ -47,9 +47,9 @@ function aiTick(){
   for(const sc of scouts)if(sc.state==='idle')sc.state='explore';
   // Sammeln verteilen
   const w8=[{food:.6,wood:.4,stone:0,iron:0},{food:.4,wood:.32,stone:.28,iron:0},{food:.4,wood:.24,stone:.16,iron:.2},{food:.36,wood:.22,stone:.18,iron:.24},{food:.34,wood:.2,stone:.18,iron:.28},{food:.32,wood:.2,stone:.16,iron:.32}][ep];
-  w8.gold=[0,0,0,.1,.14,.16][ep];
+  w8.gold=[0,0,0,.1,.14,.16][ep];w8.oil=blds.some(b=>b.type==='refinery'&&b.built)?[0,0,0,0,0,.12][ep]:0;
   for(const k of RES){if(w8[k]){const f=r[k]>700?.3:r[k]>350?.65:r[k]<120?1.7:1;w8[k]*=f}} // Vorrat steuert die Verteilung: Überfluss -> weniger Arbeiter dort
-  const cnt={food:0,wood:0,stone:0,iron:0,gold:0};workers.forEach(w=>{if(w.state!=='idle'&&w.rtype)cnt[w.rtype]++});
+  const cnt={food:0,wood:0,stone:0,iron:0,gold:0,oil:0};workers.forEach(w=>{if(w.state!=='idle'&&w.rtype)cnt[w.rtype]++});
   for(const w of workers){if(w.state!=='idle')continue;
     const n=workers.length;const order=RES.filter(rt=>canGather(w,rt)).sort((a,b)=>(w8[b]*n-cnt[b])-(w8[a]*n-cnt[a]));
     for(const rt of order){const node=nearestNode(rt,hq.x,hq.y,900,w,true)||nearestNode(rt,hq.x,hq.y,900,w);if(node){w.state='gather';w.tid=node.id;w.rtype=rt;cnt[rt]++;break}}}
@@ -67,9 +67,10 @@ function aiTick(){
   if(ep>=1&&workers.length>=8&&G.t>(ai.farmT||0)&&!unbuilt.some(b=>b.type==='farm')){ai.farmT=G.t+35;const nf=blds.filter(b=>b.type==='farm').length;
     if(nf<Math.min(2+ep,5)&&r.wood>=BLDS.farm.cost.wood+60&&(r.food<400||nf<2))aiPlace('farm',hq,60,150)}
   // Minen für Eisen und Gold, Markt für Gold
-  if(ep>=2&&workers.length>=10&&G.t>(ai.mineT||0)&&!unbuilt.some(b=>b.type==='mine')){ai.mineT=G.t+25;
-    for(const rt of['iron','gold']){if(ep<RES_EP[rt])continue;const nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||minedBy(1,nd)||!afford(1,BLDS.mine.cost))continue;
-      for(let k=0;k<60;k++){const a=Math.random()*6.283,d=34+Math.random()*(MINE_RNG*.55),x=nd.x+Math.cos(a)*d,y=nd.y+Math.sin(a)*d;if(validSpot(x,y,BLDS.mine.r)){pay(1,BLDS.mine.cost);addBld('mine',1,x,y,false);break}}break}}
+  if(ep>=2&&workers.length>=10&&G.t>(ai.mineT||0)&&!unbuilt.some(b=>b.type==='mine'||b.type==='derrick')){ai.mineT=G.t+25;
+    for(const rt of['iron','gold','oil']){if(ep<RES_EP[rt])continue;const bt=MINE_RT[rt],nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||minedBy(1,nd)||!afford(1,BLDS[bt].cost))continue;
+      for(let k=0;k<60;k++){const a=Math.random()*6.283,d=34+Math.random()*(MINE_RNG*.55),x=nd.x+Math.cos(a)*d,y=nd.y+Math.sin(a)*d;if(validSpot(x,y,BLDS[bt].r)){pay(1,BLDS[bt].cost);addBld(bt,1,x,y,false);break}}break}}
+  if(ep>=5&&blds.some(b=>b.type==='derrick'&&b.built)&&!blds.some(b=>b.type==='refinery')&&afford(1,BLDS.refinery.cost))aiPlace('refinery',hq,100,260);
   if(ep>=3&&workers.length>=16&&!blds.some(b=>b.type==='market')&&r.gold<250&&afford(1,BLDS.market.cost))aiPlace('market',hq,90,230);
   if(blds.some(b=>b.type==='market'&&b.built)&&r.gold<260)for(const rt of['food','wood','stone']){if(r[rt]>(rt==='stone'?500:850)&&trade(1,rt,'sell'))break}
   // Gebäude

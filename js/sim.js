@@ -5,7 +5,7 @@
 let mapSeed=0,mapFresh=false,mapKey='',curMap='coast';
 function newGame(d,reuse,opts){
   opts=opts||{};diff=d;if(opts.aiStyle)aiStyle=opts.aiStyle;if(opts.map)curMap=opts.map;else if(typeof window.__map==='string')curMap=window.__map;
-  G={late:[],t:0,ents:[],byId:new Map(),nid:1,res:[{food:200,wood:200,stone:100,iron:0,gold:0},{food:200,wood:200,stone:100,iron:0,gold:0}],epoch:[0,0],adv:[null,null],jobs:[[],[]],tech:[new Set(),new Set()],rs:[[],[]],tfx:[techFx(new Set()),techFx(new Set())],pop:[0,0],cap:[0,0],speed:1,paused:false,running:false,over:null,overShown:false,proj:[],fx:[],aiT:1,alertT:-99,ping:null,ev:[],alertT1:-99,mem:new Map(),ai:{style:opts.aiStyle||aiStyle,next:DIFF[d].first*AI_STYLES[opts.aiStyle||aiStyle].first,wave:DIFF[d].wave*AI_STYLES[opts.aiStyle||aiStyle].wave,ex:new Uint8Array(FW*FH),seen:new Map(),attack:false,towT:0,shipNext:200,exPt:null},stats:{lost:[0,0],trained:[0,0]}};
+  G={late:[],t:0,ents:[],byId:new Map(),nid:1,res:[{food:200,wood:200,stone:100,iron:0,gold:0,oil:0},{food:200,wood:200,stone:100,iron:0,gold:0,oil:0}],epoch:[0,0],adv:[null,null],jobs:[[],[]],tech:[new Set(),new Set()],rs:[[],[]],tfx:[techFx(new Set()),techFx(new Set())],pop:[0,0],cap:[0,0],speed:1,paused:false,running:false,over:null,overShown:false,proj:[],fx:[],aiT:1,alertT:-99,ping:null,ev:[],alertT1:-99,mem:new Map(),ai:{style:opts.aiStyle||aiStyle,next:DIFF[d].first*AI_STYLES[opts.aiStyle||aiStyle].first,wave:DIFF[d].wave*AI_STYLES[opts.aiStyle||aiStyle].wave,ex:new Uint8Array(FW*FH),seen:new Map(),attack:false,towT:0,shipNext:200,exPt:null},stats:{lost:[0,0],trained:[0,0]}};
   sel.clear();placing=null;armed=false;panelSig='';advisor.cur=null;advisor.ignore={};advisor.next=8;advisor.last=-9;if(typeof SND!=='undefined')SND.setEpoch(0);
   const want=opts.seed!==undefined?opts.seed:(typeof window.__seed==='number'?window.__seed:undefined),keep=reuse&&mapFresh&&bg&&mapKey===curMap&&want===undefined,seed=keep?mapSeed:(want!==undefined?want:(Math.random()*1e9)|0);mapSeed=seed;mapFresh=true;mapKey=curMap;genTerrain(seed,curMap);navInit();genMap(seed);if(!keep)renderBg(seed);
   if(opts.flip)flipTeams();G.mp=!!opts.mp;if(G.mp)G.speed=1;
@@ -118,9 +118,9 @@ function moveToward(u,tx,ty,dt,ignore){
   u.fa=Math.atan2(ey,ex);return d<=step;
 }
 /* Eisen und Gold lassen sich nur abbauen, wenn eine eigene, fertige Mine in der Nähe steht */
-function minedBy(team,n){if(!MINE_RT[n.rt]||team<0)return true;for(const b of G.ents)if(b.kind==='bld'&&b.type==='mine'&&b.built&&!b.dead&&b.team===team&&Math.hypot(b.x-n.x,b.y-n.y)<MINE_RNG)return true;return false}
+function minedBy(team,n){if(!MINE_RT[n.rt]||team<0)return true;for(const b of G.ents)if(b.kind==='bld'&&b.type===MINE_RT[n.rt]&&b.built&&!b.dead&&b.team===team&&Math.hypot(b.x-n.x,b.y-n.y)<MINE_RNG)return true;return false}
 function nearestNode(rt,x,y,max,u,free){const naval=!!(u&&UNITS[u.type].naval);let best=null,bd=max;for(const e of G.solids){if(e.kind!=='node'||e.dead||(rt&&e.rt!==rt)||!!e.sea!==naval||(e.regen&&e.amount<30))continue;if(u&&!minedBy(u.team,e))continue;if(u&&u.team===0&&!G.mp&&!nodeKnown(e))continue;if(u&&u.bad&&u.bad[e.id]&&G.t-u.bad[e.id]<40)continue;if(free&&(G.load[e.id]||0)>=NODES[e.type].cap)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
-function nearestDrop(t,x,y,naval){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='bld'||e.team!==t||!e.built||!BLDS[e.type].drop||(naval&&e.type!=='harbor')||e.dead)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
+function nearestDrop(t,x,y,naval,rt){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='bld'||e.team!==t||!e.built||e.dead)continue;if(rt==='oil'?!BLDS[e.type].dropOil:!BLDS[e.type].drop)continue;if(naval&&e.type!=='harbor')continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
 function findEnemy(s,rad,unitsOnly){let best=null,bd=1e9;for(const e of G.ents){if(e.dead||e.team===s.team)continue;if(e.team<0&&!(e.kind==='animal'&&e.state==='chase'))continue;if(unitsOnly&&e.kind!=='unit'&&e.kind!=='animal')continue;const d=Math.hypot(e.x-s.x,e.y-s.y)-e.r-s.r;if(d>rad)continue;const sc=d+(e.kind==='bld'?80:0);if(sc<bd){bd=sc;best=e}}return best}
 const reach=(u,t)=>dist(u,t)<=u.r+t.r+5;
 
@@ -161,7 +161,7 @@ function updUnit(u,dt){
       moveToward(u,n.x,n.y,dt,n.id);
       if(u.pf&&u.pf.fail){(u.bad||(u.bad={}))[n.id]=G.t;u.tid=null;u.pf=null}}
     break}
-  case 'return':{const dp=nearestDrop(u.team,u.x,u.y,!!d.naval);if(!dp||!u.ctype){u.state='idle';break}
+  case 'return':{const dp=nearestDrop(u.team,u.x,u.y,!!d.naval,u.ctype);if(!dp||!u.ctype){u.state='idle';break}
     if(reach(u,dp)){G.res[u.team][u.ctype]+=u.carry;if(u.team===0)sfx('drop',u);u.carry=0;if(!(u.q&&u.q.length&&nextOrder(u)))u.state='gather'}else moveToward(u,dp.x,dp.y,dt,dp.id);break}
   case 'build':{const b=get(u.tid);
     if(b&&b.built&&u.rep&&b.hp<b.maxHp-1){ /* Reparatur: kostenlos, etwas langsamer als Bauen */

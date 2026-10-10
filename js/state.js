@@ -29,7 +29,7 @@ function placeBlock(type,x,y){
   const d=BLDS[type];
   if(type==='harbor'){if(!validSpot(x,y,d.r,true))return tr('Hier ist kein Platz.');if(!harborOk(x,y,d.r))return tr('Der Hafen muss zwischen Land und flachem Wasser stehen.')}
   else if(!validSpot(x,y,d.r))return tr('Hier ist kein Platz.');
-  if(type==='mine'&&!G.ents.some(n=>n.kind==='node'&&!n.dead&&MINE_RT[n.rt]&&Math.hypot(n.x-x,n.y-y)<MINE_RNG*.85))return tr('Eine Mine muss in der Nähe von Eisen oder Gold stehen.');
+  if((type==='mine'||type==='derrick')&&!G.ents.some(n=>n.kind==='node'&&!n.dead&&MINE_RT[n.rt]===type&&nodeKnown(n)&&Math.hypot(n.x-x,n.y-y)<MINE_RNG*.85))return type==='mine'?tr('Eine Mine muss in der Nähe von Eisen oder Gold stehen.'):tr('Ein Bohrturm muss in der Nähe eines entdeckten Ölfelds stehen.');
   if(NET.trust)return null;
   if(!fogEx[fogIdx(x,y)])return tr('Dieses Gebiet ist noch unerkundet.');
   if(terr[fogIdx(x,y)]===1)return tr('Im Gebiet des Gegners kann nicht gebaut werden. Ein Wachturm erobert Land zurück.');

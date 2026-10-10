@@ -31,7 +31,7 @@ function advFindSpot(type){
   return null}
 /* Platz für eine Mine: nahe dem nächsten Vorkommen (Eisen oder Gold), das noch keine Mine hat */
 function advMineSpot(rt,hq){const nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||minedBy(0,nd))return null;
-  for(let d=34;d<=MINE_RNG*.8;d+=12)for(let k=0;k<20;k++){const a=k*.314,x=nd.x+Math.cos(a)*d,y=nd.y+Math.sin(a)*d;if(!placeBlock('mine',x,y))return{x,y}}return null}
+  for(let d=34;d<=MINE_RNG*.8;d+=12)for(let k=0;k<20;k++){const a=k*.314,x=nd.x+Math.cos(a)*d,y=nd.y+Math.sin(a)*d;if(!placeBlock(MINE_RT[rt],x,y))return{x,y}}return null}
 function advBuild(type,at){
   const spot=at||advFindSpot(type),d=BLDS[type];if(!spot){toast(tr('Kein passender Platz gefunden.'));sfx('error');return false}
   if(!pay(0,d.cost)){toast(missing(0,d.cost)+'.');return false}
@@ -43,7 +43,7 @@ function advBuild(type,at){
   sfx('click');return true}
 function advIdle(){
   const R=G.res[0],ep=G.epoch[0];let i=0;
-  const goal={food:300,wood:300,stone:ep>=1?160:0,iron:ep>=2?100:0,gold:ep>=3?150:0},need=RES.filter(rt=>goal[rt]).sort((a,b)=>R[a]/goal[a]-R[b]/goal[b])[0];
+  const goal={food:300,wood:300,stone:ep>=1?160:0,iron:ep>=2?100:0,gold:ep>=3?150:0,oil:ep>=5&&has('refinery').some(b=>b.built)?100:0},need=RES.filter(rt=>goal[rt]).sort((a,b)=>R[a]/goal[a]-R[b]/goal[b])[0];
   for(const u of G.ents){if(u.dead||u.team!==0||u.kind!=='unit'||!UNITS[u.type].gather||u.state!=='idle'||u.upj)continue;
     const order=UNITS[u.type].naval?['food']:[need,'food','wood','food'];
     const rt0=order[i++%order.length];
@@ -81,8 +81,9 @@ function advRules(){
   if(!has('harbor').length&&workers.length>=9&&afford(0,BLDS.harbor.cost)&&advFindSpot('harbor'))push({id:'harbor',txt:'einen Hafen bauen, um Fische zu fangen',cost:BLDS.harbor.cost,go:()=>advBuild('harbor')});
   if(ep>=1&&workers.length>=8&&has('farm').length<Math.min(2+ep,5)&&R.food<420&&afford(0,BLDS.farm.cost)&&advFindSpot('farm')&&!mine.some(e=>e.type==='farm'&&!e.built))push({id:'farm',txt:'ein Feld anlegen (Nahrung, die nie ausgeht)',cost:BLDS.farm.cost,go:()=>advBuild('farm')});
   // Minen: Eisen ab der Eisenzeit, Gold ab dem Mittelalter; Markt zum Tauschen
-  if(ep>=2&&workers.length>=8&&afford(0,BLDS.mine.cost)&&!mine.some(e=>e.type==='mine'&&!e.built))for(const rt of['iron','gold']){if(ep<RES_EP[rt])continue;const sp=advMineSpot(rt,hq);
-    if(sp){push({id:'mine:'+rt,txt:'eine Mine für {0} bauen (ohne Mine kann man {0} nicht abbauen)',args:[rn(rt)],cost:BLDS.mine.cost,go:()=>advBuild('mine',sp)});break}}
+  if(ep>=2&&workers.length>=8&&!mine.some(e=>(e.type==='mine'||e.type==='derrick')&&!e.built))for(const rt of['iron','gold','oil']){if(ep<RES_EP[rt])continue;const bt=MINE_RT[rt],sp=advMineSpot(rt,hq);if(!afford(0,BLDS[bt].cost))continue;
+    if(sp){push({id:'mine:'+rt,txt:bt==='mine'?'eine Mine für {0} bauen (ohne Mine kann man {0} nicht abbauen)':'einen Bohrturm für {0} bauen (ohne Bohrturm gibt es kein {0})',args:[rn(rt)],cost:BLDS[bt].cost,go:()=>advBuild(bt,sp)});break}}
+  if(ep>=5&&has('derrick').some(b=>b.built)&&!has('refinery').length&&afford(0,BLDS.refinery.cost)&&advFindSpot('refinery'))push({id:'refinery',txt:'eine Raffinerie bauen (hier wird das Öl abgeliefert)',cost:BLDS.refinery.cost,go:()=>advBuild('refinery')});
   if(ep>=3&&!has('market').length&&workers.length>=14&&R.gold<250&&afford(0,BLDS.market.cost)&&advFindSpot('market'))push({id:'market',txt:'einen Markt bauen, um Rohstoffe gegen Gold zu tauschen',cost:BLDS.market.cost,go:()=>advBuild('market')});
   if(has('market').some(b=>b.built)&&R.gold<200){const rt=['food','wood','stone'].find(x=>R[x]>(x==='stone'?450:800));if(rt)push({id:'trade:'+rt,txt:'100 {0} auf dem Markt gegen Gold tauschen (Vorrat ist groß)',args:[rn(rt)],go:()=>{trade(0,rt,'sell');sfx('click')}})}
   const ub=bars.find(b=>b.built&&b.queue.length<(R.food>350&&R.wood>250?2:1));

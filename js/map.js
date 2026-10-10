@@ -37,7 +37,7 @@ function genMap(seed){
   bases.forEach((b,i)=>{for(let k=0;k<4;k++)addUnit('worker',i,b.x+b.s*(k*18-27),b.y+b.s*58)});
   // Startvorkommen rund um Basis A (zufällige Richtung, gültiges Land), danach gespiegelt auf Basis B
   const near=(type,n,spread,dmin,dmax,okFn)=>{for(let k=0;k<60;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!okFn(x,y,spread*.5))continue;const n0=G.ents.length;cluster(type,x,y,n,spread,okFn);if(G.ents.length-n0>=Math.min(n,3)){mirror(n0);return}}};
-  near('tree',28,92,175,265,landOk);near('tree',24,88,285,400,landOk);near('bush',8,52,110,200,landOk);near('bush',6,44,290,430,landOk);near('stone',2,52,170,270,landOk);near('iron',3,52,210,330,landOk);near('iron',2,50,430,640,landOk);near('gold',1,40,380,560,landOk);
+  near('tree',28,92,175,265,landOk);near('tree',24,88,285,400,landOk);near('bush',8,52,110,200,landOk);near('bush',6,44,290,430,landOk);near('stone',2,52,170,270,landOk);near('iron',3,52,210,330,landOk);near('iron',2,50,430,640,landOk);near('gold',1,40,380,560,landOk);near('oil',1,40,520,760,landOk);
   // Fische in Küstennähe von Basis A
   const nearWater=(type,n,spread,dmin,dmax)=>{for(let k=0;k<200;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!waterOk[type](x,y,spread*.4))continue;const n0=G.ents.length;cluster(type,x,y,n,spread,waterOk[type]);if(G.ents.length>n0){mirror(n0);return}}};
   nearWater('fish',5,55,180,520);nearWater('fish',4,50,250,650);nearWater('dolphin',3,50,350,900);
@@ -48,6 +48,7 @@ function genMap(seed){
   for(let i=0;i<cnt(5);i++)feats.push(['stone',2,56,landOk]);
   for(let i=0;i<cnt(3);i++)feats.push(['bush',5,44,landOk]);
   for(let i=0;i<cnt(5);i++)feats.push(['iron',2,54,landOk]);
+  for(let i=0;i<cnt(2);i++)feats.push(['oil',1,40,landOk]);
   for(let i=0;i<cnt(3);i++)feats.push(['gold',1+Math.floor(R()*2),46,landOk]);
   for(let i=0;i<cnt(10);i++)feats.push(['fish',4+Math.floor(R()*2),55,waterOk.fish]);
   for(let i=0;i<cnt(6);i++)feats.push(['dolphin',2+Math.floor(R()*2),50,waterOk.dolphin]);

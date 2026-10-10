@@ -54,7 +54,7 @@ function command(wx,wy,append,sp){
   if(s[0].kind==='bld'){s.forEach(b=>{if(b.kind==='bld')b.rally={x:wx,y:wy,id:t&&t.kind==='node'?t.id:null,nodeType:t&&t.kind==='node'?t.rt:null}});fxMark(wx,wy,'rally');return}
   const units=s.filter(e=>e.kind==='unit');const mv=units.filter(u=>!UNITS[u.type].gather&&!UNITS[u.type].naval),movers=new Map();if(!t&&mv.length>1){const sp3=formationSpots(mv,wx,wy,curForm);mv.forEach((u,k)=>movers.set(u.id,sp3[k]))}const spread=t&&t.kind==='node'?spreadGather(units.filter(u=>UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval),t):null;const cols=Math.ceil(Math.sqrt(units.length));let i=0;
   for(const u of units){
-    if(t&&t.kind==='node'&&UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval&&!minedBy(0,t)){if(!u.mineMsg||G.t-u.mineMsg>4){u.mineMsg=G.t;toast(tr('Für {0} brauchst du eine fertige Mine in der Nähe.',rn(t.rt)));sfx('error')}}
+    if(t&&t.kind==='node'&&UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval&&!minedBy(0,t)){if(!u.mineMsg||G.t-u.mineMsg>4){u.mineMsg=G.t;toast(tr(MINE_RT[t.rt]==='derrick'?'Für {0} brauchst du einen fertigen Bohrturm in der Nähe.':'Für {0} brauchst du eine fertige Mine in der Nähe.',rn(t.rt)));sfx('error')}}
     else if(t&&t.kind==='node'&&UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval){const tg=(spread&&spread.get(u.id))||t;giveOrder(u,{t:'gather',tid:tg.id,rt:tg.rt},append)}
     else if(t&&(t.team===1||t.kind==='animal')&&u.type!=='scout'){giveOrder(u,{t:'attack',tid:t.id},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&!t.built&&UNITS[u.type].builds){giveOrder(u,{t:'build',tid:t.id},append)}

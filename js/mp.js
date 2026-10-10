@@ -19,7 +19,7 @@ function encodeSnap(){
     else if(e.kind==='bld')B.push({i:e.id,ty:e.type,m:e.team,x:r1(e.x),y:r1(e.y),h:Math.round(e.hp),H:e.maxHp,l:e.lvl,b:e.built?1:0,p:Math.round(e.prog*1000)/1000,an:e.ang||0,u:e.upj?1:0,qu:e.team===0?e.queue.map(q=>({type:q.type,t:r1(q.t),blocked:q.blocked?1:0})):0,r:e.team===0&&e.rally?e.rally:0});
     else if(e.kind==='animal')A.push({i:e.id,ty:e.type,x:r1(e.x),y:r1(e.y),a:Math.round(e.fa*100)/100,h:Math.round(e.hp),s:e.state,sw:rel(e.swing),mv:rel(e.mvT)});
     else if(e.kind==='node'&&(e.amount<e.maxAmt-.5||e.snapLow)){N.push([e.id,Math.round(e.amount)]);e.snapLow=e.amount<e.maxAmt-.5}}
-  return{t:r1(G.t),over:G.over,res:G.res.map(r=>({food:Math.floor(r.food),wood:Math.floor(r.wood),stone:Math.floor(r.stone),iron:Math.floor(r.iron),gold:Math.floor(r.gold||0)})),epoch:G.epoch.slice(),
+  return{t:r1(G.t),over:G.over,res:G.res.map(r=>({food:Math.floor(r.food),wood:Math.floor(r.wood),stone:Math.floor(r.stone),iron:Math.floor(r.iron),gold:Math.floor(r.gold||0),oil:Math.floor(r.oil||0)})),epoch:G.epoch.slice(),
     adv:G.adv.map(a=>a?{t:r1(a.t),time:a.time}:null),tech:G.tech.map(t=>[...t]),rs:G.rs.map(a=>a.map(r=>({id:r.id,t:r1(r.t),time:r.time}))),
     jobs:G.jobs.map(a=>a.map(j=>({label:j.label,t:r1(j.t),time:j.time,to:j.to,n:j.n,team:j.team}))),stats:{lost:G.stats.lost.slice(),trained:G.stats.trained.slice()},
     U,B,N,A,P:G.proj.map(p=>[Math.round(p.x),Math.round(p.y),Math.round(p.a*100)/100,p.big?1:0,p.gun?1:0])}}

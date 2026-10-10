@@ -88,7 +88,7 @@ const costHTML=c=>RES.filter(r=>c[r]).map(r=>`<span class="c ${(G&&G.res[0][r]||
 function actionsFor(s){
   if(!s.length||s[0].team!==0)return[];const f=s[0],acts=[],ep=G.epoch[0];
   if(f.kind==='unit'){
-    if(s.some(u=>UNITS[u.type].builds))for(const k of ['house','store','barracks','farm','mine','market','harbor','tower','castle','wall','gate','trench'].filter(k=>BLDS[k].ep<=ep)){const d=BLDS[k];acts.push({key:'b'+k,nm:tr(d.name),cost:d.cost,sub:tr(d.sub),lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>startPlace(k)})}
+    if(s.some(u=>UNITS[u.type].builds))for(const k of ['house','store','barracks','farm','mine','derrick','refinery','market','harbor','tower','castle','wall','gate','trench'].filter(k=>BLDS[k].ep<=ep)){const d=BLDS[k];acts.push({key:'b'+k,nm:tr(d.name),cost:d.cost,sub:tr(d.sub),lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>startPlace(k)})}
     if(s.some(u=>u.kind==='unit'&&!UNITS[u.type].passive))acts.push({key:'am',nm:tr('Angriffsmarsch'),sub:tr('Taste Q, dann Ziel'),run:()=>{armed=true;placing=null}});
     if(s.filter(u=>u.kind==='unit'&&!UNITS[u.type].gather).length>1)acts.push({key:'form',nm:tr('Formation: {0}',tr(FORMS[curForm])),sub:tr('Taste G wechselt: Linie, Keil, Kolonne, Karree, Kreis'),run:()=>{curForm=(curForm+1)%FORMS.length;panelSig='';toast(tr('Formation: {0}',tr(FORMS[curForm])),'good')}});
     if(s.some(u=>u.kind==='unit'&&!UNITS[u.type].passive&&!UNITS[u.type].naval))acts.push({key:'rage',nm:tr('Kampfrausch'),sub:tr('Taste F: mehr Schaden und Tempo für {0} s',RAGE.dur),run:()=>{const ids=s.filter(u=>u.kind==='unit').map(u=>u.id);if(NET.client)NET.send({c:'rage',ids});else if(!useRage(0,ids))toast(tr('Kampfrausch lädt noch.'),'warn')}});
@@ -149,7 +149,7 @@ function infoHTML(s){
 }
 function updateUI(){
   if(typeof SND!=='undefined'){SND.setAlert(G.t-G.alertT<22?.85:0);if(G.t-(G.batT||-9)>.5){G.batT=G.t;let n=0;for(const e of G.ents)if(!e.dead&&e.kind==='unit'&&e.state==='attack'&&G.t-(e.swing||-9)<3&&shown(e))n++;SND.setBattle(Math.min(1,n/16))}}
-  const r=G.res[0];$('v-food').textContent=Math.floor(r.food);$('v-wood').textContent=Math.floor(r.wood);$('v-stone').textContent=Math.floor(r.stone);$('v-iron').textContent=Math.floor(r.iron);$('res-iron').hidden=G.epoch[0]<2&&r.iron<=0;$('v-gold').textContent=Math.floor(r.gold||0);$('res-gold').hidden=G.epoch[0]<3&&!(r.gold>0);
+  const r=G.res[0];$('v-food').textContent=Math.floor(r.food);$('v-wood').textContent=Math.floor(r.wood);$('v-stone').textContent=Math.floor(r.stone);$('v-iron').textContent=Math.floor(r.iron);$('res-iron').hidden=G.epoch[0]<2&&r.iron<=0;$('v-gold').textContent=Math.floor(r.gold||0);$('res-gold').hidden=G.epoch[0]<3&&!(r.gold>0);$('v-oil').textContent=Math.floor(r.oil||0);$('res-oil').hidden=G.epoch[0]<5&&!(r.oil>0);
   {const w=wkCount(0),nd=wkNeed(G.epoch[0]),last=G.epoch[0]>=EPOCHS.length-1;$('v-wk').textContent=w+(last?'':'/'+nd);$('v-wk').style.color=!last&&w<nd?'':'#a9e283';let tr_=0;for(const e of G.ents)if(!e.dead&&e.team===0&&e.kind==='unit'&&e.type!=='worker')tr_++;$('v-troop').textContent=tr_}
   if(document.body.dataset.ep!==String(G.epoch[0]))document.body.dataset.ep=G.epoch[0];
   const pe=$('v-pop');pe.textContent=G.pop[0]+'/'+G.cap[0];pe.style.color=G.pop[0]>=G.cap[0]?'var(--warn)':'';
@@ -203,7 +203,7 @@ function showEnd(){
 
 
 /* ---------- Hinweise: bleibt die Maus kurz auf einem Symbol oder Knopf, erscheint ein erklärender Text ---------- */
-const TIPS={'Nahrung':'Wird für Arbeiter und Truppen gebraucht. Beeren, Felder, Wild und Fische liefern Nahrung.','Holz':'Baumaterial für Gebäude und viele Einheiten. Arbeiter fällen Bäume.','Stein':'Für Türme, Mauern und Aufstiege. Abbau ab der Bronzezeit mit Spitzhacke.','Eisen':'Für Waffen, Rüstungen und Aufstiege. Braucht ab der Eisenzeit eine Mine neben dem Vorkommen.','Gold':'Für späte Einheiten und den Markt. Braucht ab dem Mittelalter eine Mine neben dem Vorkommen.','Bevölkerung':'Belegte Plätze / Gesamtplätze. Hütten und Technologien schaffen mehr Platz.','Spieltempo':'Klicken wechselt zwischen 1×, 2×, 3× und 5×.','Menü (Esc)':'Optionen, Grafik, Ton und Spiel beenden.'};
+const TIPS={'Nahrung':'Wird für Arbeiter und Truppen gebraucht. Beeren, Felder, Wild und Fische liefern Nahrung.','Holz':'Baumaterial für Gebäude und viele Einheiten. Arbeiter fällen Bäume.','Stein':'Für Türme, Mauern und Aufstiege. Abbau ab der Bronzezeit mit Spitzhacke.','Eisen':'Für Waffen, Rüstungen und Aufstiege. Braucht ab der Eisenzeit eine Mine neben dem Vorkommen.','Öl':'Treibstoff für Panzer und Flugzeuge. Ölfelder sind verborgen: erst erkunden, dann Bohrturm bauen, Öl zur Raffinerie bringen.','Gold':'Für späte Einheiten und den Markt. Braucht ab dem Mittelalter eine Mine neben dem Vorkommen.','Bevölkerung':'Belegte Plätze / Gesamtplätze. Hütten und Technologien schaffen mehr Platz.','Spieltempo':'Klicken wechselt zwischen 1×, 2×, 3× und 5×.','Menü (Esc)':'Optionen, Grafik, Ton und Spiel beenden.'};
 {const tip=document.createElement('div');tip.id='tip';tip.hidden=true;document.body.appendChild(tip);let timer=null,cur=null;
   const content=el=>{
     if(el.classList&&el.classList.contains('act')){const a=curActs[+el.dataset.i];if(!a)return null;return{h:a.nm,t:[a.sub,a.need,a.lock&&tr('Erst ab der {0} verfügbar.',a.lock)].filter(Boolean).join(' · '),c:a.cost?costHTML(a.cost):''}}

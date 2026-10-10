@@ -148,6 +148,20 @@ const BLD3={
     for(let i=0;i<2;i++)put(g,cyl(R*.2,R*.2,R*.4,10),m3Mat('planks',0x8d6a3e),-R*1.0+i*.2,R*.2,R*.6);
     put(g,cyl(.18,.18,.12,10),goldM(),R*1.0,R*.35,R*.6);put(g,cyl(.18,.18,.12,10),goldM(),R*1.0,R*.47,R*.6);put(g,cyl(.18,.18,.12,10),goldM(),R*1.0,R*.59,R*.6);
     flagPole(g,0,R*.9,R*.5,R*1.2,team);g.userData.h=R*1.8;return g},
+  derrick(R,st,team){const g=new THREE.Group(),steel=m3Mat('scratch',0x6a6e74,{roughness:.5,metalness:.7}),dark=m3Mat('rust',0x3a3b3c,{roughness:.8});
+    put(g,rbox(R*2,.25,R*2,.05),m3Plain(0x3a3632,.9),0,.12,0);const H=R*3.6;
+    for(const[x,z]of[[-1,-1],[1,-1],[-1,1],[1,1]]){const l=put(g,cyl(.05,.09,H,6),steel,x*R*.55,H/2+.2,z*R*.55);l.rotation.z=-x*.1;l.rotation.x=z*.1}
+    for(let k=1;k<6;k++){const y=.2+H*k/6,w=R*(1.1-.16*k);for(const[a,b,c,d]of[[-1,-1,1,-1],[1,-1,1,1],[1,1,-1,1],[-1,1,-1,-1]])put(g,cyl(.025,.025,w*1.05,4),steel,(a+c)/2*w*.5,y,(b+d)/2*w*.5).rotation.z=(a!==c)?Math.PI/2:0}
+    put(g,cyl(.08,.08,H*.9,8),dark,0,H*.45+.2,0);put(g,rbox(R*.9,.4,R*.9,.05),steel,0,H+.3,0);
+    const pump=new THREE.Group();pump.position.set(R*1.1,.5,0);g.add(pump);put(pump,rbox(.5,.6,.3,.05),dark,0,.3,0);put(pump,rbox(1.4,.12,.16,.03),steel,0,.85,0).rotation.z=.25;put(pump,cyl(.1,.1,.2,8),steel,.55,.8,0);
+    for(const z of[-1,1])put(g,cyl(.18,.18,.9,10),m3Plain(0x3a4a5a,.5,{metalness:.5}),-R*1.2,.5,z*R*.6);flagPole(g,-R*.9,.3,R*1.0,R*1.0,team);g.userData.h=H+1;return g},
+  refinery(R,st,team){const g=new THREE.Group(),steel=m3Mat('scratch',0x8a8d90,{roughness:.45,metalness:.7}),dark=m3Mat('rust',0x3a3b3c,{roughness:.8}),conc=m3Mat('stone',0x8a8a84);
+    put(g,rbox(R*2.6,.3,R*2,.06),conc,0,.15,0);
+    for(let i=0;i<3;i++){const x=-R*.9+i*R*.9;put(g,cyl(R*.34,R*.34,R*1.6+i*.2,14),steel,x,R*.9+i*.1+.3,-R*.35);put(g,new THREE.SphereGeometry(R*.34,12,8,0,6.283,0,1.57),steel,x,R*1.7+i*.2+.3,-R*.35);for(let k=0;k<4;k++)put(g,new THREE.TorusGeometry(R*.345,.02,5,16),dark,x,.5+k*R*.4,-R*.35).rotation.x=Math.PI/2}
+    for(const x of[-R*.7,R*.7])put(g,cyl(.16,.2,R*2.6,10),m3Mat('brick',0x7a3a2a),x,R*1.3+.3,R*.5);
+    put(g,cyl(.06,.06,R*2.4,6),dark,0,R*1.2,R*.2).rotation.z=Math.PI/2;
+    for(let i=0;i<3;i++)put(g,cyl(.2,.2,.9,10),m3Plain(0x2a3a4a,.5,{metalness:.5}),R*1.0+i*.45,.75,R*.9).rotation.x=Math.PI/2;
+    put(g,rbox(R*1.2,R*.8,R*.8,.06),dark,R*.7,R*.4+.3,R*.8);flagPole(g,-R*1.0,R*1.0,R*.8,R*1.0,team);g.userData.h=R*3.2;return g},
   trench(R,st,team){const g=new THREE.Group(),sand=m3Plain(0xb8a578,.95),earth=m3Mat('dirt',0x5a4a32);
     put(g,cyl(R*1.05,R*1.1,.1,18),earth,0,.05,0,false);put(g,cyl(R*.7,R*.7,.12,16),m3Plain(0x2a2018,1),0,.08,0,false);
     for(let i=0;i<14;i++){const a=i/14*Math.PI*1.55-Math.PI*.78+Math.PI,x=Math.cos(a)*R*.95,z=Math.sin(a)*R*.95;const b=put(g,new THREE.SphereGeometry(.26,8,6),sand,x,.2+((i%2)*.18),z);b.scale.set(1.25,.62,.8);b.rotation.y=-a}
