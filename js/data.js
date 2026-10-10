@@ -79,7 +79,7 @@ const BLDS={
   market:{name:'Markt',sight:170,claim:110,hp:520,r:22,cost:{wood:150,stone:80},time:24,ep:3,sub:'Rohstoffe gegen Gold tauschen'},
   tower:{name:'Wachturm',sight:300,claim:320,hp:550,r:14,cost:{wood:70,stone:60},time:26,ep:0,shoot:{rng:170,atk:9,cd:1.5},sub:'Schiesst auf Gegner'}
 };
-const NODES={tree:{cap:3,rt:'wood',amt:420,r:11,name:'Baum'},bush:{cap:3,rt:'food',amt:340,r:8,name:'Beerenstrauch',regen:1.4},stone:{cap:6,rt:'stone',amt:1800,r:28,name:'Steinvorkommen'},iron:{cap:5,rt:'iron',amt:2200,r:26,name:'Eisenvorkommen'},gold:{cap:4,rt:'gold',amt:1600,r:23,name:'Goldvorkommen'},oil:{cap:3,rt:'oil',amt:2600,r:26,name:'Ölfeld'},field:{cap:5,rt:'food',amt:700,r:25,name:'Feld',regen:3.2,hidden:true},
+const NODES={tree:{cap:3,rt:'wood',amt:420,r:11,name:'Baum'},bush:{cap:3,rt:'food',amt:340,r:8,name:'Beerenstrauch',regen:1.4},stone:{cap:6,rt:'stone',amt:2400,r:28,name:'Steinvorkommen'},iron:{cap:5,rt:'iron',amt:3000,r:26,name:'Eisenvorkommen'},gold:{cap:4,rt:'gold',amt:1600,r:23,name:'Goldvorkommen'},oil:{cap:3,rt:'oil',amt:2600,r:26,name:'Ölfeld'},field:{cap:5,rt:'food',amt:700,r:25,name:'Feld',regen:3.2,hidden:true},
   // Wasser: nur Boote können hier sammeln (Delfine ab Stufe II, Wale ab Stufe III)
   fish:{cap:2,sea:true,rt:'food',amt:160,r:8,name:'Fischschwarm',gm:1,regen:.55},
   dolphin:{cap:3,sea:true,rt:'food',amt:420,r:11,name:'Delfine',gm:1.3,lvl:1,regen:.45},
