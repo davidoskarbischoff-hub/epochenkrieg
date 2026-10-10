@@ -25,6 +25,26 @@ const EKMODELS=(()=>{
   /* Größe des bisherigen Code-Modells als Maßstab: so passt ein neues Modell automatisch zur Spielgröße */
   function refSize(kind,type,make){const k=kind+type;if(refCache[k])return refCache[k];try{const b=box(make()),s=b.getSize(new THREE.Vector3());return refCache[k]={h:s.y||1,m:Math.max(s.x,s.y,s.z)||1,w:Math.max(s.x,s.z)||1}}catch(_){return refCache[k]={h:2.3,m:3,w:3}}}
   function pickClip(clips,names,re){for(const n of names||[]){const c=clips.find(c=>c.name===n||c.name.split('|').pop()===n);if(c)return c}return clips.find(c=>re.test(c.name))}
+  /* Umbauen eines Modells ohne neue Datei: Material einfärben (tint), Teile verstecken (hide), Waffen/Werkzeuge in die Hände (hand/off), Fell-Hüftrock (pelt).
+     So wird aus der nackten Basisfigur ein Steinzeit-Jäger, aus der Mittelalterfigur ein Speerträger usw. Siehe MODELLE.md. */
+  function findBone(root,re){let f=null;root.traverse(o=>{if(!f&&o.isBone&&re.test(o.name))f=o});return f}
+  function attach(root,bone,spec,k){
+    const gl=files.get(spec.file);if(!bone||!gl)return;const p=EKGLTF.SkeletonUtils.clone(gl.scene);prepare(p,0);
+    const holder=new THREE.Group();holder.add(p);bone.add(holder);root.updateMatrixWorld(true);
+    const ws=new THREE.Vector3();bone.getWorldScale(ws);const sc=k*(spec.scale||1)/(ws.x||1);holder.scale.setScalar(sc);
+    const r=spec.rot||[0,0,0];holder.rotation.set(r[0]*Math.PI/180,r[1]*Math.PI/180,r[2]*Math.PI/180);
+    const q=spec.pos||[0,0,0];holder.position.set(q[0]*k/(ws.x||1),q[1]*k/(ws.x||1),q[2]*k/(ws.x||1))}
+  function dress(root,wrap,en,k,team){
+    if(en.tint||en.hide){root.traverse(o=>{if(!o.isMesh)return;
+      if(en.hide&&en.hide.some(h=>new RegExp(h,'i').test(o.name))){o.visible=false;return}
+      if(en.tint){const f=m=>{const c=en.tint[m.name];if(!c)return m;const n=m.clone();n.color.set(c);n.name=m.name;return n};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}})}
+    if(en.hand)attach(root,findBone(root,/hand\.?r|wrist\.?r/i),en.hand,k);
+    if(en.left)attach(root,findBone(root,/hand\.?l|wrist\.?l/i),en.left,k);
+    if(en.pelt){const hips=findBone(root,/hips|pelvis/i);if(hips){const ws=new THREE.Vector3();root.updateMatrixWorld(true);hips.getWorldScale(ws);
+      const m=new THREE.MeshStandardMaterial({color:en.pelt,roughness:1,flatShading:true}),g=new THREE.Group(),sc=k/(ws.x||1);
+      const sk=new THREE.Mesh(new THREE.CylinderGeometry(.2,.26,.26,8,1,true),m);sk.position.y=-.1;sk.castShadow=true;g.add(sk);
+      const fl=new THREE.Mesh(new THREE.BoxGeometry(.2,.3,.03),m);fl.position.set(0,-.2,.2);g.add(fl);
+      g.scale.setScalar(sc);hips.add(g)}}}
   function makeUnit(u,origMake){
     const en=entryFor('unit',u.type,u.lvl||0);if(!en)return null;const gl=files.get(en.file);
     try{
@@ -33,6 +53,7 @@ const EKMODELS=(()=>{
       let b=box(wrap),sz=b.getSize(new THREE.Vector3());const ref=refSize('unit',u.type,()=>origMake(u).g);
       const k=(en.height?en.height/(sz.y||1):en.fit==='length'?ref.m/(Math.max(sz.x,sz.y,sz.z)||1):ref.h/(sz.y||1))*(en.scale||1);
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y+(en.lift||0),-c.z);
+      dress(root,wrap,en,k,u.team);
       const rig={g:wrap,gltf:true,legs:[],arms:[],tools:{},acts:{},cur:null};
       if(gl.animations&&gl.animations.length){rig.mixer=new THREE.AnimationMixer(root);const A=en.anim||{},cl=gl.animations;
         const map={idle:pickClip(cl,[A.idle],/idle|stand|rest/i),walk:pickClip(cl,[A.walk],/walk|run|move/i),attack:pickClip(cl,[A.attack],/attack|hit|strike|shoot|fire/i),work:pickClip(cl,[A.work],/work|gather|chop|mine|build|dig/i)};
@@ -56,7 +77,7 @@ const EKMODELS=(()=>{
     if(typeof EKGLTF==='undefined'){return}
     try{const r=await fetch(url||'models/manifest.json',{cache:'no-cache'});if(!r.ok)return;manifest=await r.json()}catch(_){return}
     loader=new EKGLTF.GLTFLoader();try{loader.setMeshoptDecoder(EKGLTF.MeshoptDecoder)}catch(_){}
-    const want=new Set();for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off)want.add(x.file);
+    const want=new Set();for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off){want.add(x.file);if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file)}
     await Promise.all([...want].map(async f=>{try{files.set(f,await loader.loadAsync('models/'+f))}catch(err){failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}}));
     R.ready=true;R.ver++;if(typeof R3!=='undefined'&&R3.reg){/* Anzeige neu aufbauen: Signaturen ändern sich über tag() von selbst */}}
   /* für Tests/Vorschau: Modell von Hand eintragen */

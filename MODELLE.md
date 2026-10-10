@@ -44,3 +44,11 @@ Nützliche Felder: `height` (Zielhöhe einer Einheit, sonst automatisch), `fit: 
 - ✔ Rückfall auf die eingebauten Modelle bei fehlender/defekter Datei
 - ✘ Noch nicht: **Tiere, Bäume, Felsen** (kommen als nächster Schritt; sie werden anders gezeichnet), Mauern/Tore, Schiffe/Flugzeuge mit eigenen Animationen (laufen als normale Einheit), Sterbe-Animation
 - Technik: `js/gltfmodels.js` (Laden), Baustein `js/vendor/gltf-bundle.js` (siehe `tools/gltf-bundle/README.md`).
+
+## Modelle umbauen (ohne neue Datei) – Felder im Manifest
+Ein Modell kann im Manifest „angezogen“ werden, damit man nicht für jede Einheit eine eigene Figur braucht (Beispiel: Steinzeit-Jäger aus der nackten Basisfigur):
+- `tint`: Material einfärben, z. B. `{"M_Main":"#c9966e"}` (Name des Materials aus der Vorschau).
+- `hide`: Teile ausblenden (Namensmuster), z. B. `["^Sword$"]` versteckt das mitgelieferte Schwert.
+- `hand` / `left`: Waffe oder Werkzeug in die rechte/linke Hand: `{"file":"neu/Spear.glb","scale":0.5,"rot":[-90,0,0],"pos":[0,0,0]}`.
+- `pelt`: Fell-Hüftrock in dieser Farbe, z. B. `"#6b4a2b"`.
+Beispiel: Steinzeit-Keulenträger = Basisfigur + Hautfarbe + Fellrock + Keule (`Wooden Torch`).
