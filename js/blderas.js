@@ -108,4 +108,44 @@ BLD3.hq=(R,st,team)=>{const ep=st.ep;if(ep<4)return O.hq(R,st,team);
     put(g,cyl(.5,.5,.2,14),m3Plain(0xdddddd,.4,{metalness:.7}),w*.32,.3+h*2.0,d*.1);camoNet(g,-w*.6,1.2,R*1.1,R*1.8,R*1.2);tent(g,w*.66,R*.9,1.2);tent(g,-w*.66,-R*.7,1.1);sbLine(g,0,.1,d/2+R*.9,8,R*2.2);
     flagPole(g,w*.4,.3+h*1.95,-d*.3,R*1.6,team);g.userData.h=h*3.4;return g}
 };
+
+/* ----- Lager, Hafen, Markt, Festung ----- */
+const O2={store:BLD3.store,harbor:BLD3.harbor,market:BLD3.market,castle:BLD3.castle};
+BLD3.store=(R,st,team)=>{const ep=st.ep;if(ep<4)return O2.store(R,st,team);
+  const g=new THREE.Group(),w=R*2.5,d=R*1.6,h=R*.8;
+  if(ep===4){put(g,bx(w,h,d,2),m3Mat('stone',0xc4b8a2),0,h/2,0);gab(g,0,h,0,w,d,h*.5,m3Plain(0xc4b8a2),m3Mat('shingle',0x58708a),.3);put(g,bx(R*.9,h*.8,.2,1),m3Mat('planks',0x5a4028),0,h*.4,d/2+.05);
+    put(g,cyl(.04,.04,1.2,5),woodD(),w*.4,h+.9,d*.1);put(g,bx(.9,.05,.05,1),woodD(),w*.4+.4,h+1.45,d*.1);for(let i=0;i<4;i++)put(g,bx(.55,.55,.55,1),m3Mat('planks',0xa9834f),-w*.6+(i%2)*.6,.28+Math.floor(i/2)*.55,d*.7);g.userData.h=h*1.8;return g}
+  if(ep===5){put(g,bx(w,h*1.2,d,2),brick(),0,h*.6,0);put(g,bx(w*1.03,.14,d*1.03,1),m3Plain(0x5a5048,.9),0,h*1.2,0);gab(g,0,h*1.2,0,w*1.02,d*1.02,h*.35,brick(0x8f4538),m3Mat('shingle',0x3e444d),.1);
+    put(g,bx(R*1.0,h*.95,.2,1),m3Plain(0x3a4a5a,.6,{metalness:.3}),0,h*.48,d/2+.05);put(g,bx(R*.25,h*1.7,R*.25,1),brick(),w*.38,h*.85,d/2+.1);put(g,bx(R*.9,.08,.08,1),iron(),w*.38+R*.3,h*1.7,d/2+.1);
+    for(let i=0;i<4;i++)put(g,bx(.6,.6,.6,1),m3Mat('planks',0xa9834f),-w*.62+(i%2)*.65,.3+Math.floor(i/2)*.6,d*.75);chimney(g,-w*.3,h*1.3,0,h*.8,brick(0x6a3a2e));g.userData.h=h*2.2;return g}
+  { put(g,cyl(R*1.45,R*1.45,R*1.3,14,1,false,0,Math.PI).rotateZ(Math.PI/2).rotateY(Math.PI/2),m3Plain(0x8a8f88,.5,{metalness:.5}),0,.2,0);for(let i=0;i<7;i++)put(g,bx(.06,R*1.3,.06,1),iron(),-R*1.3+i*R*.43,R*.7,R*.77).rotation.z=0;
+    put(g,bx(R*.9,R*.9,.15,1),m3Plain(0x4a5a4a,.6),0,R*.45,R*1.0);for(let i=0;i<5;i++){const b=put(g,cyl(.28,.28,.65,10),m3Plain([0x4a6a3a,0x6a4a3a,0x3a4a6a][i%3],.6,{metalness:.4}),-R*1.5+i*.5,.35,R*1.0)}g.userData.h=R*1.5;return g}
+};
+BLD3.harbor=(R,st,team)=>{const ep=st.ep;if(ep<3)return O2.harbor(R,st,team);
+  const g=new THREE.Group(),stone=m3Mat('stone',ep>=5?0x8a8a86:0xa29d94);
+  put(g,bx(R*2.8,.35,R*1.2,2),stone,R*1.3,.25,0);for(const z of[-R*.55,R*.55])put(g,bx(R*2.8,.2,.18,1),stone,R*1.3,.5,z);
+  for(const x of[R*.5,R*1.5,R*2.4])put(g,cyl(.14,.16,.45,8),iron(),x,.6,R*.45);
+  const hut=new THREE.Group();put(hut,bx(R*1.5,R*.9,R*1.2,1.6),ep>=5?brick():st.wall,0,R*.45,0);gab(hut,0,R*.9,0,R*1.5,R*1.2,R*.55,st.wall,st.roof);door(hut,-R*.2,R*.6,R*.35,R*.55);hut.position.set(-R*.3,.2,0);g.add(hut);if(ep>=5)chimney(g,-R*.6,R*1.4,0,R*.7,brick(0x6a3a2e));
+  if(ep>=5){put(g,bx(.3,R*2.2,.3,1),iron(),R*1.4,R*1.1,-R*.4);const arm=put(g,bx(R*1.8,.2,.2,1),iron(),R*1.9,R*2.2,-R*.4);put(g,cyl(.01,.01,R*1.2,4),m3Plain(0xcccccc,.6),R*2.5,R*1.6,-R*.4);put(g,bx(.4,.4,.4,1),m3Plain(0xb04a2a,.6),R*2.5,R*.9,-R*.4)}
+  else{put(g,cyl(.08,.08,R*1.9,6),woodD(),R*1.4,R*.95,0);const arm=put(g,cyl(.05,.05,R*1.1,6),woodD(),R*1.0,R*1.8,0);arm.rotation.z=Math.PI/2-.2;put(g,cyl(.22,.22,.45,8),m3Mat('planks',0x8d6a3e),R*2.2,.7,R*.25)}
+  flagPole(g,-R*.9,R*.9,-R*.3,R*1.0,team);g.userData.h=R*2.4;return g};
+BLD3.market=(R,st,team)=>{const ep=st.ep;if(ep<4)return O2.market(R,st,team);
+  const g=new THREE.Group(),w=R*2.4,d=R*1.7;
+  if(ep===4){put(g,bx(w+.6,.25,d+.6,2),m3Mat('stone',0xb8ad96),0,.12,0);for(let i=0;i<5;i++)for(const z of[-1,1]){put(g,cyl(.14,.16,R*1.1,10),m3Plain(0xf0e8d6,.7),-w/2+i*w/4,R*.55+.25,z*d*.45)}
+    put(g,bx(w+.4,.25,d*1.05,1),m3Plain(0xf0e8d6,.7),0,R*1.15+.25,0);gab(g,0,R*1.28+.25,0,w+.4,d*1.05,R*.45,m3Plain(0xe8dcc4),m3Mat('shingle',0x58708a),.1);
+    for(let i=0;i<4;i++){const x=-w*.36+i*w*.24;put(g,bx(.9,.5,.6,1),woodD(),x,.5,0);put(g,bx(.95,.06,.7,1),m3Plain([0xc84b3a,0xe8dfc8,0x3d72b8,0x5a9a4a][i],.8),x,.85,0)}flagPole(g,w*.45,R*1.4,0,R*1.1,team);g.userData.h=R*2.4;return g}
+  if(ep===5){put(g,bx(w,R*1.5,d,2),brick(),0,R*.75,0);put(g,bx(w*1.04,.16,d*1.04,1),m3Plain(0x5a5048,.9),0,R*1.5,0);gab(g,0,R*1.5,0,w*1.02,d*1.02,R*.4,brick(0x8f4538),m3Mat('shingle',0x3e444d),.1);
+    for(let i=0;i<5;i++){const x=-w*.4+i*w*.2;put(g,bx(.34,.9,.1,1),m3Plain(0xffe9a8,.4,{emissive:0xffcc66,emissiveIntensity:.3}),x,.7,d/2+.03)}put(g,cyl(.3,.3,.08,16),m3Plain(0xf0ead6,.5),0,R*1.2,d/2+.06).rotation.x=Math.PI/2;door(g,0,d/2+.02,R*.5,R*.7);
+    put(g,bx(R*.7,R*.7,R*.7,1),brick(),0,R*1.85,0);put(g,cone(R*.55,R*.45,4),m3Mat('shingle',0x3e444d),0,R*2.4,0).rotation.y=.785;flagPole(g,w*.4,R*1.6,-d*.2,R*1.2,team);g.userData.h=R*3;return g}
+  { put(g,bx(w,R*1.2,d,2),conc(),0,R*.6,0);put(g,bx(w*1.04,.2,d*1.04,1),concD(),0,R*1.2,0);winGrid(g,[-w*.35,-w*.17,0,w*.17,w*.35],[R*.75],d/2+.04,.34,.45,true);door(g,0,d/2+.02,R*.6,R*.75);
+    for(let i=0;i<5;i++)put(g,cyl(.02,.02,R*1.0,4),iron(),-w*.4+i*w*.2,R*1.7,d*.45);for(let i=0;i<4;i++)put(g,new THREE.PlaneGeometry(.5,.32),new THREE.MeshStandardMaterial({color:[0xc84b3a,0xf0e8d6,0x3d72b8,0xf0c030][i],side:THREE.DoubleSide}),-w*.3+i*w*.2+.25,R*2.05,d*.45);flagPole(g,w*.42,R*1.4,-d*.2,R*1.3,team);g.userData.h=R*2.6;return g}
+};
+BLD3.castle=(R,st,team)=>{const ep=st.ep;if(ep<4)return O2.castle(R,st,team);
+  const g=new THREE.Group(),sm=ep===5?brick(0x9a4a3a):ep===6?conc():m3Mat('stone',0xc0b49c),w=R*2.5,d=R*2.2,h=R*.9,pts=[];
+  /* Sternfestung: niedrige dicke Mauern, Spitzbastionen an den Ecken, Kanonen, Wachhaus in der Mitte */
+  put(g,bx(w,h,d,2.4),sm,0,h/2,0);put(g,bx(w+.3,.2,d+.3,1),m3Plain(0x6a655a,.9),0,h,0);
+  for(const sx of[-1,1])for(const sz of[-1,1]){const b=put(g,bx(R*1.0,h*1.15,R*1.0,2),sm,sx*(w/2+R*.1),h*.575,sz*(d/2+R*.1));b.rotation.y=.785;put(g,cyl(R*.2,R*.2,.5,10),ep>=6?concD():m3Plain(0x6a655a,.9),sx*(w/2+R*.1),h*1.1+.2,sz*(d/2+R*.1));
+    if(ep>=5||true)put(g,cyl(.14,.16,R*.9,8),iron(),sx*(w/2+R*.45),h*1.25,sz*(d/2+R*.45)).rotation.set(sz*.3+0,0,-sx*.9)}
+  put(g,bx(w*.4,h*.8,d*.45,2),sm,0,h+h*.4,0);gab(g,0,h*1.8,0,w*.4,d*.45,h*.4,sm,ep>=6?concD():m3Mat('shingle',ep===5?0x3e444d:0x58708a),.1);door(g,0,d/2+.02,R*.7,R*.85);flagPole(g,0,h*2.2,0,R*1.3,team);
+  if(ep>=6){sandbags(g,0,h+.15,0,24,Math.min(w,d)*.5)}g.userData.h=h*3;return g};
 })();
