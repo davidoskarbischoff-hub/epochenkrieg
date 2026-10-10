@@ -109,6 +109,13 @@ const BLD3={
     put(g,cyl(.08,.08,R*1.9,6),woodD(),R*1.4,R*.95,0);const arm=put(g,cyl(.05,.05,R*1.1,6),woodD(),R*1.0,R*1.8,0);arm.rotation.z=Math.PI/2-.2;put(g,cyl(.01,.01,R*.7,4),m3Plain(0xcbb88f),R*.5,R*1.45,0,false);
     put(g,cyl(.22,.22,.45,8),m3Mat('planks',0x8d6a3e),R*2.2,.55,R*.25);
     flagPole(g,-R*.9,R*.8,-R*.3,R*1.0,team);g.userData.h=R*2;return g},
+  farm(R,st,team){const g=new THREE.Group(),soil=m3Mat('dirt',0x6a4a2c),crop=[0x5a9a3a,0x7ab04a,0xc8b44a][Math.min(2,Math.max(0,st.ep-1))];
+    put(g,bx(R*2.1,.14,R*2.1,2),soil,0,.07,0);
+    for(let i=-3;i<=3;i++){const r=put(g,new THREE.BoxGeometry(R*1.9,.22+(i%2?.06:0),.34),m3Plain(i%2?crop:0x4a8a30,.9),0,.2,i*R*.27);r.castShadow=false;
+      for(let k=0;k<5;k++)put(g,cone(.1,.34,5),m3Plain(crop,.8),-R*.8+k*R*.4,.42,i*R*.27,false)}
+    for(const x of[-1,1])for(const z of[-1,1])put(g,cyl(.06,.06,.5,5),woodD(),x*R*1.05,.25,z*R*1.05);
+    const s=put(g,cyl(.05,.05,1.1,5),woodD(),R*.9,.55,-R*.9);put(g,new THREE.BoxGeometry(.9,.07,.07),woodD(),R*.9,.95,-R*.9);put(g,new THREE.SphereGeometry(.17,8,6),m3Plain(0xd9c28a),R*.9,1.2,-R*.9);
+    g.userData.h=1.4;return g},
   mine(R,st,team){const g=new THREE.Group(),rock=m3Mat('stone',0x7a766c);
     const m=put(g,new THREE.SphereGeometry(R*1.2,10,8,0,6.283,0,1.57),rock,0,0,-R*.3);m.scale.set(1.2,.9,1);
     put(g,new THREE.BoxGeometry(R*.18,R*.9,R*.18),woodD(),-R*.45,R*.45,R*.62);put(g,new THREE.BoxGeometry(R*.18,R*.9,R*.18),woodD(),R*.45,R*.45,R*.62);put(g,new THREE.BoxGeometry(R*1.2,R*.18,R*.2),woodD(),0,R*.95,R*.62);

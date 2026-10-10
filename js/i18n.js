@@ -213,7 +213,8 @@ const EN={
   'Ton an':'Sound on','Ton aus':'Sound off',
   'Karte wird erzeugt …':'Generating map …','Flusstal':'River Valley','Ein Fluss trennt die Basen, nur wenige Furten führen hinüber':'A river separates the bases, only a few fords lead across','Gebirgspass':'Mountain Pass','Bergmassiv mit engen Pässen als Engstellen':'Mountain massif with narrow passes as chokepoints',
   'Berater: Wegen des Angriffs wechselt die Taktik auf Verteidigung.':'Advisor: Because of the attack, tactic switches to Defense.','Berater: Die Lage ist ruhig, Taktik zurück auf {0}.':'Advisor: Things are calm, tactic back to {0}.',
-  'Arbeiter denken mit':'Workers use initiative','Deine Arbeiter bauen ein Lager bei den weit entfernten Vorkommen.':'Your workers are building a storehouse near the distant deposits.','Ein Arbeiter baut einen Wachturm zur Sicherung des vorgeschobenen Lagers.':'A worker is building a watchtower to protect the forward storehouse.'
+  'Arbeiter denken mit':'Workers use initiative','Deine Arbeiter bauen ein Lager bei den weit entfernten Vorkommen.':'Your workers are building a storehouse near the distant deposits.','Ein Arbeiter baut einen Wachturm zur Sicherung des vorgeschobenen Lagers.':'A worker is building a watchtower to protect the forward storehouse.',
+  'Feld':'Field','Nahrung, die immer nachwächst':'Food that always regrows','ein Feld anlegen (Nahrung, die nie ausgeht)':'lay out a field (food that never runs out)'
 };
 let LANG='de';try{LANG=localStorage.getItem('ek-lang')==='en'?'en':'de'}catch(_){}
 function tr(de,...a){let s=LANG==='en'&&EN[de]!==undefined?EN[de]:de;a.forEach((v,i)=>{s=s.split('{'+i+'}').join(v)});return s}

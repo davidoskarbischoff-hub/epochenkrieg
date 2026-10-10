@@ -79,6 +79,7 @@ function advRules(){
   if(!bars.length&&workers.length>=S.barW&&afford(0,BLDS.barracks.cost)&&advFindSpot('barracks'))push({id:'barracks',txt:'eine Kaserne bauen, um Truppen auszubilden',cost:BLDS.barracks.cost,go:()=>advBuild('barracks')});
   if(ep>=(advisor.strat==='turtle'?0:1)&&has('tower').length<S.tow(ep)&&workers.length>=8&&afford(0,BLDS.tower.cost)&&advFindSpot('tower'))push({id:'tower',txt:'einen Wachturm bauen, um Land zu erobern und zu überblicken',cost:BLDS.tower.cost,go:()=>advBuild('tower')});
   if(!has('harbor').length&&workers.length>=9&&afford(0,BLDS.harbor.cost)&&advFindSpot('harbor'))push({id:'harbor',txt:'einen Hafen bauen, um Fische zu fangen',cost:BLDS.harbor.cost,go:()=>advBuild('harbor')});
+  if(ep>=1&&workers.length>=8&&has('farm').length<Math.min(2+ep,5)&&R.food<420&&afford(0,BLDS.farm.cost)&&advFindSpot('farm')&&!mine.some(e=>e.type==='farm'&&!e.built))push({id:'farm',txt:'ein Feld anlegen (Nahrung, die nie ausgeht)',cost:BLDS.farm.cost,go:()=>advBuild('farm')});
   // Minen: Eisen ab der Eisenzeit, Gold ab dem Mittelalter; Markt zum Tauschen
   if(ep>=2&&workers.length>=8&&afford(0,BLDS.mine.cost)&&!mine.some(e=>e.type==='mine'&&!e.built))for(const rt of['iron','gold']){if(ep<RES_EP[rt])continue;const sp=advMineSpot(rt,hq);
     if(sp){push({id:'mine:'+rt,txt:'eine Mine für {0} bauen (ohne Mine kann man {0} nicht abbauen)',args:[rn(rt)],cost:BLDS.mine.cost,go:()=>advBuild('mine',sp)});break}}
