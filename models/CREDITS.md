@@ -1,6 +1,9 @@
 # Modell-Quellen und Lizenzen
-Hier trägst du für **jedes** Modell ein, woher es stammt und unter welcher Lizenz (Pflicht bei CC-BY, gute Gewohnheit bei allem anderen).
+Hier steht für jedes Modellpaket, woher es stammt und unter welcher Lizenz (bei CC-BY ist die Namensnennung Pflicht).
 
-| Datei | Quelle (Link) | Autor/in | Lizenz | Geändert? |
+| Ordner / Dateien | Quelle (Link) | Autor/in | Lizenz | Geändert? |
 |---|---|---|---|---|
-| `_beispiel/figur.glb`, `_beispiel/haus.glb` | selbst erzeugt (Test) | Epochenkrieg | frei | – |
+| `neu/` und `neu/dorf/` (von David hochgeladen: Figuren, Tiere, Fische, Gebäude, Bäume, Gegenstände) | **bitte eintragen** (Download-Seite) | vermutlich Quaternius | **bitte prüfen** (CC0 oder CC-BY?) | nein |
+| `_beispiel/` | selbst erzeugt (Test) | Epochenkrieg | frei | – |
+
+Hinweis: Vor dem Veröffentlichen/Verkaufen die Lizenz der Pakete prüfen und hier eintragen.

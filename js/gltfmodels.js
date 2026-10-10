@@ -24,7 +24,7 @@ const EKMODELS=(()=>{
   const box=o=>{o.updateMatrixWorld(true);return new THREE.Box3().setFromObject(o)};
   /* Größe des bisherigen Code-Modells als Maßstab: so passt ein neues Modell automatisch zur Spielgröße */
   function refSize(kind,type,make){const k=kind+type;if(refCache[k])return refCache[k];try{const b=box(make()),s=b.getSize(new THREE.Vector3());return refCache[k]={h:s.y||1,m:Math.max(s.x,s.y,s.z)||1,w:Math.max(s.x,s.z)||1}}catch(_){return refCache[k]={h:2.3,m:3,w:3}}}
-  function pickClip(clips,names,re){for(const n of names||[]){const c=clips.find(c=>c.name===n);if(c)return c}return clips.find(c=>re.test(c.name))}
+  function pickClip(clips,names,re){for(const n of names||[]){const c=clips.find(c=>c.name===n||c.name.split('|').pop()===n);if(c)return c}return clips.find(c=>re.test(c.name))}
   function makeUnit(u,origMake){
     const en=entryFor('unit',u.type,u.lvl||0);if(!en)return null;const gl=files.get(en.file);
     try{
@@ -49,7 +49,7 @@ const EKMODELS=(()=>{
       wrap.userData.h=b.max.y-b.min.y;wrap.userData.flags=[];wrap.userData.gltf=true;return wrap}catch(err){console.warn('glTF-Gebäude',type,err);return null}}
   /* Animationen pro Bild: passenden Clip wählen, weich überblenden */
   function animate(rig,want,dt,speedScale){
-    if(!rig.mixer)return;const chain={attack:['attack','idle'],work:['work','idle'],walk:['walk','idle'],idle:['idle']},w=(chain[want]||['idle']).find(n=>rig.acts[n])||null;
+    if(!rig.mixer)return;if(want==='idle'&&!rig.acts.idle&&rig.cur){rig.acts[rig.cur].fadeOut(.2);rig.cur=null}if(want==='idle'&&!rig.acts.idle){rig.mixer.update(dt*(speedScale||1));return}const chain={attack:['attack','idle'],work:['work','idle'],walk:['walk','idle'],idle:['idle']},w=(chain[want]||['idle']).find(n=>rig.acts[n])||null;
     if(w&&rig.cur!==w){const a=rig.acts[w],p=rig.cur&&rig.acts[rig.cur];a.reset().fadeIn(.2).play();if(p)p.fadeOut(.2);rig.cur=w}
     rig.mixer.update(dt*(speedScale||1))}
   async function init(url){

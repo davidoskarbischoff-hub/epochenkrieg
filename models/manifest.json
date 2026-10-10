@@ -1,14 +1,412 @@
 {
-  "_info": "Hier steht, welche Einheit/welches Gebäude ein echtes 3D-Modell (.glb) bekommt. Fehlt ein Eintrag, nutzt das Spiel das eingebaute Modell. Anleitung: MODELLE.md. Beispiel unten: Zeilen mit „_beispiel_“ entfernen/umbenennen und die Datei in den Ordner models/units bzw. models/buildings legen.",
-  "units": {
-    "_beispiel_worker": { "file": "units/worker.glb", "epochs": [0, 1, 2, 3, 4, 5, 6], "yaw": 0, "scale": 1, "anim": { "idle": "Idle", "walk": "Walk", "attack": "Attack", "work": "Work" }, "off": true }
+ "_info": "Hier steht, welche Einheit/welches Gebäude ein echtes 3D-Modell (.glb) bekommt. Fehlt ein Eintrag, nutzt das Spiel das eingebaute Modell. Anleitung: MODELLE.md. Beispiel unten: Zeilen mit „_beispiel_“ entfernen/umbenennen und die Datei in den Ordner models/units bzw. models/buildings legen.",
+ "units": {
+  "worker": [
+   {
+    "file": "neu/Farmer.glb",
+    "epochs": [
+     0,
+     1,
+     2,
+     3,
+     4
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Punch_Right",
+     "work": "Interact"
+    }
+   },
+   {
+    "file": "neu/Worker.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Punch_Right",
+     "work": "Interact"
+    }
+   }
+  ],
+  "scout": {
+   "file": "neu/Adventurer.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Sword_Slash",
+    "work": "Interact"
+   }
   },
-  "buildings": {
-    "_beispiel_house": [
-      { "file": "buildings/house_ep0.glb", "epochs": [0, 1], "fit": 1.0, "yaw": 0, "off": true },
-      { "file": "buildings/house_ep3.glb", "epochs": [2, 3, 4], "fit": 1.0, "yaw": 0, "off": true }
-    ]
+  "healer": {
+   "file": "neu/Witch.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Punch_Right",
+    "work": "Interact"
+   }
   },
-  "animals": {},
-  "nodes": {}
+  "engineer": {
+   "file": "neu/Worker.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Punch_Right",
+    "work": "Interact"
+   }
+  },
+  "spear": {
+   "file": "neu/Medieval.glb",
+   "epochs": [
+    3,
+    4
+   ],
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Sword_Slash",
+    "work": "Interact"
+   }
+  },
+  "sword": {
+   "file": "neu/Medieval.glb",
+   "epochs": [
+    3,
+    4
+   ],
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Sword_Slash",
+    "work": "Interact"
+   }
+  },
+  "archer": {
+   "file": "neu/Medieval.glb",
+   "epochs": [
+    3,
+    4
+   ],
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   }
+  },
+  "crossbow": {
+   "file": "neu/Medieval.glb",
+   "epochs": [
+    3,
+    4
+   ],
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   }
+  },
+  "musket": {
+   "file": "neu/Soldier.glb",
+   "epochs": [
+    4,
+    5,
+    6
+   ],
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   }
+  },
+  "rifle": {
+   "file": "neu/Soldier.glb",
+   "epochs": [
+    4,
+    5,
+    6
+   ],
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   }
+  },
+  "assault": {
+   "file": "neu/Soldier.glb",
+   "epochs": [
+    4,
+    5,
+    6
+   ],
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   }
+  },
+  "mg": {
+   "file": "neu/Soldier.glb",
+   "epochs": [
+    4,
+    5,
+    6
+   ],
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   }
+  },
+  "tank": {
+   "file": "neu/Tank.glb",
+   "fit": "length",
+   "anim": {
+    "walk": "Tank_Forward"
+   },
+   "scale": 0.65
+  },
+  "mark1": {
+   "file": "neu/Tank-uYHpj7lz1J.glb",
+   "fit": "length",
+   "anim": {
+    "walk": "Tank_Forward"
+   },
+   "scale": 0.65
+  },
+  "renault": {
+   "file": "neu/Tank-jWS1CLA0RO.glb",
+   "fit": "length",
+   "anim": {
+    "walk": "Tank_Forward"
+   },
+   "scale": 0.65
+  },
+  "carro": {
+   "file": "neu/Tank-cW3zvvkMOM.glb",
+   "fit": "length",
+   "anim": {
+    "walk": "Tank_Forward"
+   },
+   "scale": 0.65
+  }
+ },
+ "buildings": {
+  "hq": [
+   {
+    "file": "neu/Town Center-76GTkSh4KM.glb",
+    "epochs": [
+     0,
+     1,
+     2
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Town Center Second Age.glb",
+    "epochs": [
+     3,
+     4
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Town Center-cuQuFJEIfH.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "fit": 1.0
+   }
+  ],
+  "house": [
+   {
+    "file": "neu/Hut.glb",
+    "epochs": [
+     0,
+     1
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/House.glb",
+    "epochs": [
+     2
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/House-RSwoYSLblu.glb",
+    "epochs": [
+     3,
+     4
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/House-k6tP5nFUd2.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "fit": 1.0
+   }
+  ],
+  "store": [
+   {
+    "file": "neu/Storage Hut.glb",
+    "epochs": [
+     0,
+     1
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Storage Shed.glb",
+    "epochs": [
+     2,
+     3
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Storage House.glb",
+    "epochs": [
+     4,
+     5,
+     6
+    ],
+    "fit": 1.0
+   }
+  ],
+  "barracks": [
+   {
+    "file": "neu/Wooden Encampment.glb",
+    "epochs": [
+     0,
+     1
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Wooden Fortress.glb",
+    "epochs": [
+     2,
+     3
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Tower House.glb",
+    "epochs": [
+     4,
+     5,
+     6
+    ],
+    "fit": 1.0
+   }
+  ],
+  "harbor": [
+   {
+    "file": "neu/Port.glb",
+    "epochs": [
+     0,
+     1,
+     2
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Shipping Port.glb",
+    "epochs": [
+     3,
+     4,
+     5,
+     6
+    ],
+    "fit": 1.0
+   }
+  ],
+  "castle": {
+   "file": "neu/Castle Fortress.glb",
+   "epochs": [
+    3,
+    4,
+    5,
+    6
+   ],
+   "fit": 1.0
+  },
+  "farm": {
+   "file": "neu/Farm-91wMLb9kKo.glb",
+   "epochs": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "fit": 1.0
+  },
+  "mine": {
+   "file": "neu/Mine.glb",
+   "epochs": [
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "fit": 1.0
+  },
+  "market": {
+   "file": "neu/Village Market.glb",
+   "epochs": [
+    3,
+    4,
+    5,
+    6
+   ],
+   "fit": 1.0
+  },
+  "tower": [
+   {
+    "file": "neu/Small Watch Tower.glb",
+    "epochs": [
+     0,
+     1
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Watch Tower.glb",
+    "epochs": [
+     2
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Stone Tower.glb",
+    "epochs": [
+     3,
+     4,
+     5,
+     6
+    ],
+    "fit": 1.0
+   }
+  ]
+ },
+ "animals": {},
+ "nodes": {}
 }
