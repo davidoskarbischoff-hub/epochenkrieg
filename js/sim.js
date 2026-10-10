@@ -194,7 +194,7 @@ function startUpgrade(team,key){key=key||'all';if(NET.client&&team===0){NET.send
   G.jobs[team].push(job);
   if(team===0){panelSig='';infoCache='';sfx('click');toast(tr('Upgrade gestartet: {0} ruhen, bis es fertig ist.',job.label))}return true}
 function canGather(u,x){const need=typeof x==='string'?(NEED_LVL[x]||0):(NODES[x.type].lvl!==undefined?NODES[x.type].lvl:(NEED_LVL[x.rt]||0));return u.lvl>=need}
-const wkNeed=ep=>10*(ep+1); /* Arbeiter, die für den Aufstieg aus Epoche ep nötig sind: 10, 20, 30, 40 */
+const wkNeed=ep=>[10,20,30,40,45][Math.min(4,ep)]; /* Arbeiter, die für den Aufstieg aus Epoche ep nötig sind */
 const wkCount=t=>G.ents.reduce((n,e)=>n+(!e.dead&&e.team===t&&e.kind==='unit'&&e.type==='worker'?1:0),0);
 function advance(team){
   if(NET.client&&team===0){NET.send({c:'adv'});return true}

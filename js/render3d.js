@@ -154,7 +154,7 @@ function r3Sync(list,dt,t){
   const S=R3.S,seen=new Set();
   for(const[e,ghost]of list){
     const key=entKey(e,ghost);seen.add(key);
-    const ep=e.kind==='bld'?G.epoch[e.team]:0,sig=e.kind==='unit'?e.type+e.team:e.kind==='bld'?e.type+':'+ep+':'+e.team:e.kind==='animal'?e.type:e.type;
+    const ep=e.kind==='bld'?G.epoch[e.team]:0,sig=e.kind==='unit'?e.type+e.team+':'+(e.lvl||0):e.kind==='bld'?e.type+':'+ep+':'+e.team:e.kind==='animal'?e.type:e.type;
     let o=R3.reg.get(key);
     if(!o||o.sig!==sig){if(o)r3.gEnt.remove(o.obj);o=r3Make(e,sig);R3.reg.set(key,o);r3.gEnt.add(o.obj)}
     const h=hAt(e.x,e.y),obj=o.obj;

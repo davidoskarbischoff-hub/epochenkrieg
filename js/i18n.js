@@ -10,7 +10,7 @@ const EN={
   'Arbeiter':'Worker','Späher':'Scout','Keulenkrieger':'Clubman','Speerträger':'Spearman','Bogenschütze':'Archer','Schwertkämpfer':'Swordsman',
   'Hauptlager':'Town Center','Hütte':'Hut','Lager':'Storehouse','Kaserne':'Barracks','Wachturm':'Watchtower',
   'Baum':'Tree','Beerenstrauch':'Berry Bush','Steinvorkommen':'Stone Deposit',
-  'Steinzeit':'Stone Age','Bronzezeit':'Bronze Age','Eisenzeit':'Iron Age','Mittelalter':'Middle Ages','Neuzeit':'Modern Age',
+  'Steinzeit':'Stone Age','Bronzezeit':'Bronze Age','Eisenzeit':'Iron Age','Mittelalter':'Middle Ages','Renaissance':'Renaissance','Industriezeit':'Industrial Age',
   'Ritter':'Knight','Armbrustschütze':'Crossbowman','Musketier':'Musketeer','Kanone':'Cannon','Galeone':'Galleon','Burg':'Castle','Starke Festung, erobert Land':'Strong fortress, claims land',
   '+5 Bevölkerung':'+5 population','Abgabestelle':'Drop-off point','Bildet Krieger aus':'Trains warriors','Schiesst auf Gegner':'Shoots at enemies',
   'Wartet':'Idle','Unterwegs':'Moving','Angriffsmarsch':'Attack-move','Kämpft':'Fighting','Baut':'Building',
@@ -44,7 +44,7 @@ const EN={
   'Musik':'Music','Ton':'Sound','Lautstärke':'Volume','Sprache':'Language','Spiel fortsetzen':'Resume game','Neues Spiel':'New game','Einstellungen':'Settings',
   // Start und Ende
   'Prototyp · Echtzeitstrategie · 1 gegen 1':'Prototype · Real-time strategy · 1 vs 1',
-  'Führe deinen Stamm durch fünf Zeitalter. Sammle Nahrung, Holz und Stein, baue deine Siedlung aus und zerstöre das Hauptlager des Gegners, bevor er deins erreicht.':'Lead your tribe through five ages. Gather food, wood and stone, expand your settlement and destroy the enemy town center before he reaches yours.',
+  'Führe deinen Stamm durch sechs Zeitalter. Sammle Nahrung, Holz und Stein, baue deine Siedlung aus und zerstöre das Hauptlager des Gegners, bevor er deins erreicht.':'Lead your tribe through six ages. Gather food, wood and stone, expand your settlement and destroy the enemy town center before he reaches yours.',
   'Schwierigkeit':'Difficulty','leicht':'Easy','normal':'Normal','schwer':'Hard',
   'Auswählen':'Select','Linksklick, Rahmen ziehen, Doppelklick für alle gleichen':'Left-click, drag a box, double-click for all of a kind',
   'Befehl':'Orders','Rechtsklick: bewegen, sammeln, bauen, angreifen, Sammelpunkt':'Right-click: move, gather, build, attack, rally point',

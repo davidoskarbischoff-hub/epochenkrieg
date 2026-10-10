@@ -140,7 +140,7 @@ function pieceGreensleeves(){ // Mittelalter: Lautenmusik, 3/4 (traditionell, ge
   const len=Math.ceil(t/3)*3,roots=['A2','A2','C3','G2','E2','A2','A2','E2'],fifths=['E3','E3','G3','D3','B2','E3','E3','B2'];
   for(let bar=0;bar<len/3;bar++){const r=roots[bar%roots.length],f=fifths[bar%fifths.length];ev.push({b:bar*3,m:midi(r),d:2.6,i:'pluck',v:.4});ev.push({b:bar*3+1,m:midi(f),d:1.2,i:'pluck',v:.22});ev.push({b:bar*3+2,m:midi(f)+5,d:1.2,i:'pluck',v:.2});if(bar%4===0)ev.push({b:bar*3,m:0,d:0,i:'drum',v:.3})}
   return{bpm:104,len,ev}}
-function pieceOde(){ // Neuzeit: Beethoven, Ode an die Freude (gemeinfrei)
+function pieceOde(){ // Renaissance-Ende/Aufklärung: Beethoven, Ode an die Freude (gemeinfrei)
   const ev=[],P1=[['E4',1],['E4',1],['F4',1],['G4',1],['G4',1],['F4',1],['E4',1],['D4',1],['C4',1],['C4',1],['D4',1],['E4',1]],
     E1=[['E4',1.5],['D4',.5],['D4',2]],E2=[['D4',1.5],['C4',.5],['C4',2]],
     M=[['D4',1],['D4',1],['E4',1],['C4',1],['D4',1],['E4',.5],['F4',.5],['E4',1],['C4',1],['D4',1],['E4',.5],['F4',.5],['E4',1],['D4',1],['C4',1],['D4',1],['G3',2]];
@@ -150,7 +150,18 @@ function pieceOde(){ // Neuzeit: Beethoven, Ode an die Freude (gemeinfrei)
   const len=Math.ceil(t/4)*4,bass=['C2','C2','C2','G2','C2','C2','C2','G2','G2','C2','G2','C2'];
   for(let bar=0;bar<len/4;bar++){const r=bass[bar%bass.length];ev.push({b:bar*4,m:midi(r),d:3.6,i:'pad',v:.3});ev.push({b:bar*4,m:midi(r),d:1.8,i:'pluck',v:.34});ev.push({b:bar*4+2,m:midi(r)+7,d:1.8,i:'pluck',v:.26});ev.push({b:bar*4,m:0,d:0,i:'drum',v:.4});ev.push({b:bar*4+2,m:0,d:0,i:'drum',v:.25})}
   return{bpm:108,len,ev}}
-const PIECES=[pieceSatie(),piecePachelbel(),pieceGrieg(),pieceGreensleeves(),pieceOde()];
+function pieceMarsch(){ // Industriezeit: kräftiger Marsch im 2/4-Takt (eigene Komposition im Stil des 19. Jahrhunderts)
+  const ev=[],A=[[0,'G4',.5],[.5,'C5',.5],[1,'E5',.5],[1.5,'G5',.5],[2,'E5',1],[3,'C5',.5],[3.5,'E5',.5],[4,'D5',.5],[4.5,'F5',.5],[5,'A5',.5],[5.5,'F5',.5],[6,'G5',1.5],[7.5,'F5',.5],
+    [8,'E5',.5],[8.5,'G5',.5],[9,'C6',.5],[9.5,'G5',.5],[10,'A5',1],[11,'F5',.5],[11.5,'D5',.5],[12,'E5',.5],[12.5,'D5',.5],[13,'C5',.5],[13.5,'B4',.5],[14,'C5',2]];
+  const B=[[0,'E5',.5],[.5,'E5',.5],[1,'G5',.5],[1.5,'E5',.5],[2,'C5',1],[3,'D5',.5],[3.5,'E5',.5],[4,'F5',.5],[4.5,'F5',.5],[5,'A5',.5],[5.5,'F5',.5],[6,'D5',1.5],[7.5,'E5',.5],
+    [8,'G5',.5],[8.5,'F5',.5],[9,'E5',.5],[9.5,'D5',.5],[10,'C5',1],[11,'E5',.5],[11.5,'G5',.5],[12,'A5',.5],[12.5,'G5',.5],[13,'F5',.5],[13.5,'D5',.5],[14,'C5',2]];
+  A.forEach(([b,n,d])=>ev.push({b,m:midi(n),d:d*1.05,i:'brass',v:.36}));
+  B.forEach(([b,n,d])=>ev.push({b:16+b,m:midi(n),d:d*1.05,i:'brass',v:.36}));
+  A.forEach(([b,n,d])=>ev.push({b:16+b,m:midi(n)+12,d:d*1.05,i:'flute',v:.16}));
+  const roots=['C3','C3','G2','C3','F2','C3','G2','C3','C3','C3','F2','C3','G2','G2','C3','C3'];
+  for(let bar=0;bar<16;bar++){const r=roots[bar],o=bar*2;ev.push({b:o,m:midi(r),d:.8,i:'pluck',v:.42});ev.push({b:o+1,m:midi(r)+12,d:.6,i:'pluck',v:.26});ev.push({b:o+1,m:midi(r)+16,d:.6,i:'pluck',v:.22});ev.push({b:o,m:0,d:0,i:'drum',v:.45});ev.push({b:o+1,m:0,d:0,i:'snare',v:.4});ev.push({b:o+1.5,m:0,d:0,i:'snare',v:.25})}
+  return{bpm:116,len:32,ev}}
+const PIECES=[pieceSatie(),piecePachelbel(),pieceGrieg(),pieceGreensleeves(),pieceOde(),pieceMarsch()];
 
 /* Instrumente */
 const INST={
@@ -177,7 +188,7 @@ const INST={
 
 /* Kampfmusik: eine zweite Ebene (Trommeln, tiefe Bläser, Streicher) wird über die Epochenmusik gelegt, sobald gekämpft wird */
 function pieceWar(ep){
-  const ev=[],bpm=[104,112,118,106,126][ep],roots=['D2','E2','D2','A2','E2'],rt=midi(roots[ep]),osc=[0,0,3,0,5,0,3,1];
+  const ev=[],bpm=[104,112,118,106,126,132][ep],roots=['D2','E2','D2','A2','E2','A2'],rt=midi(roots[ep]),osc=[0,0,3,0,5,0,3,1];
   for(let bar=0;bar<4;bar++){const o=bar*4;
     for(let k=0;k<4;k++){ev.push({b:o+k,m:0,d:0,i:'drum',v:.55});if(ep>=2&&(k===1||k===3))ev.push({b:o+k,m:0,d:0,i:'snare',v:.5});if(k===2)ev.push({b:o+k+.5,m:rt+19,d:.3,i:'tom',v:.35})}
     if(bar===3)for(let k=0;k<4;k++)ev.push({b:o+3+k*.25,m:rt+24-k*2,d:.2,i:'tom',v:.4});
@@ -188,7 +199,7 @@ function pieceWar(ep){
     if(ep>=3&&bar%2===0)ev.push({b:o,m:rt+12,d:1.5,i:'brass',v:.42});
   }
   return{bpm,len:16,ev}}
-const WARPIECES=[0,1,2,3,4].map(pieceWar);
+const WARPIECES=[0,1,2,3,4,5].map(pieceWar);
 const base={cur:-1,loopT:0,done:0},war={cur:-1,loopT:0,done:0};
 function runLayer(L,P,dst){
   const spb=60/P.bpm;

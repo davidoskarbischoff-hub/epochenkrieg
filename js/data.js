@@ -9,6 +9,7 @@ const UNITS={
   scout:{name:'Späher',passive:true,sight:300,hp:40,spd:105,atk:0,rng:4,cd:1.2,r:6,cost:{food:60,wood:20},time:10,ep:0,from:'hq'},
   boat:{name:'Fischerboot',naval:true,gather:true,passive:true,sight:200,hp:90,spd:72,atk:0,rng:4,cd:1.2,r:11,cost:{wood:80},time:14,ep:0,from:'harbor'},
   warship:{tech:'shipbuild',name:'Kriegsschiff',naval:true,ranged:true,sight:240,hp:230,spd:62,atk:15,rng:175,cd:1.8,r:13,cost:{wood:140,stone:60},time:24,ep:1,from:'harbor'},
+  sling:{name:'Steinschleuderer',sight:150,hp:50,spd:58,atk:6,rng:105,cd:1.7,r:7,cost:{food:40,wood:25},time:12,ep:0,from:'barracks',ranged:true},
   club:{name:'Keulenkrieger',sight:140,hp:75,spd:52,atk:7,rng:4,cd:1.1,r:8,cost:{food:60,wood:20},time:12,ep:0,from:'barracks'},
   spear:{tech:'spearbuild',name:'Speerträger',sight:140,hp:115,spd:54,atk:11,rng:8,cd:1.1,r:8,cost:{food:70,wood:40},time:14,ep:1,from:'barracks'},
   archer:{tech:'bowbuild',name:'Bogenschütze',sight:170,hp:55,spd:55,atk:8,rng:130,cd:1.6,r:7,cost:{food:40,wood:60},time:14,ep:1,from:'barracks',ranged:true},
@@ -19,6 +20,9 @@ const UNITS={
   ram:{tech:'siegeworks',name:'Rammbock',sight:150,hp:330,spd:42,atk:42,rng:6,cd:2.2,r:11,cost:{wood:200,iron:60},time:26,ep:3,from:'barracks',siege:true},
   catapult:{tech:'siegeworks',name:'Katapult',sight:190,hp:140,spd:36,atk:48,rng:250,cd:4.8,r:10,cost:{wood:220,stone:120},time:30,ep:3,from:'barracks',ranged:true,siege:true},
   galleon:{tech:'galleonbuild',name:'Galeone',naval:true,ranged:true,sight:260,hp:380,spd:58,atk:28,rng:210,cd:2.2,r:15,cost:{wood:200,iron:80},time:32,ep:3,from:'harbor'},
+  rifle:{tech:'rifles',name:'Gewehrschütze',sight:210,hp:150,spd:54,atk:46,rng:195,cd:2.3,r:7,cost:{food:100,wood:40,iron:90},time:22,ep:5,from:'barracks',ranged:true,gun:true},
+  howitzer:{tech:'artillery',name:'Haubitze',sight:230,hp:200,spd:34,atk:90,rng:300,cd:4.8,r:12,cost:{wood:260,iron:260},time:34,ep:5,from:'barracks',ranged:true,siege:true},
+  ironclad:{tech:'ironclads',name:'Panzerschiff',naval:true,ranged:true,sight:280,hp:620,spd:58,atk:44,rng:240,cd:2.4,r:17,cost:{wood:260,iron:240},time:40,ep:5,from:'harbor'},
   sword:{tech:'smithy',name:'Schwertkämpfer',sight:150,hp:170,spd:52,atk:17,rng:5,cd:1.1,r:9,cost:{food:80,iron:40},time:18,ep:2,from:'barracks'}
 };
 const BLDS={
@@ -36,7 +40,7 @@ const NODES={tree:{cap:3,rt:'wood',amt:260,r:11,name:'Baum'},bush:{cap:3,rt:'foo
   fish:{cap:2,sea:true,rt:'food',amt:160,r:8,name:'Fischschwarm',gm:1,regen:.55},
   dolphin:{cap:3,sea:true,rt:'food',amt:420,r:11,name:'Delfine',gm:1.3,lvl:1,regen:.45},
   whale:{cap:4,sea:true,rt:'food',amt:1100,r:16,name:'Wal',gm:1.7,lvl:2,regen:.5}};
-const EPOCHS=[{name:'Steinzeit',cost:{food:350,wood:200},time:30},{name:'Bronzezeit',cost:{food:500,wood:250,stone:200},time:40},{name:'Eisenzeit',cost:{food:700,wood:350,stone:300,iron:150},time:50},{name:'Mittelalter',cost:{food:900,wood:450,stone:450,iron:350},time:60},{name:'Neuzeit'}];
+const EPOCHS=[{name:'Steinzeit',cost:{food:350,wood:200},time:30},{name:'Bronzezeit',cost:{food:500,wood:250,stone:200},time:40},{name:'Eisenzeit',cost:{food:700,wood:350,stone:300,iron:150},time:50},{name:'Mittelalter',cost:{food:900,wood:450,stone:450,iron:350},time:60},{name:'Renaissance',cost:{food:1100,wood:600,stone:500,iron:450},time:70},{name:'Industriezeit'}];
 /* Wilde Tiere: agg = Aggro-Reichweite (greift an, wenn jemand näher kommt), leash = so weit folgt es seinem Revier-Mittelpunkt, roam = Streifgebiet,
    flee = friedliche Tiere fliehen ab dieser Nähe, food = Nahrung für den, der es erlegt, h = Höhe fürs Anzeigen */
 const ANIMALS={
@@ -49,17 +53,17 @@ const POPMAX=100;
 const RES=['food','wood','stone','iron'],RN={food:'Nahrung',wood:'Holz',stone:'Stein',iron:'Eisen'};
 /* army = Faktor für die Heeresgrösse der KI; pace = Tempo-Faktor für die frühesten Aufstiegszeiten der KI (kleiner = schneller) */
 const DIFF={leicht:{gather:.7,first:460,wave:4,pace:1.35,army:.55},normal:{gather:1,first:330,wave:5,pace:1,army:.8},schwer:{gather:1.35,first:240,wave:6,pace:.8,army:1.1}};
-const AI_MINT=[230,520,900,1320]; /* früheste Zeit (s), zu der die KI in die nächste Epoche steigen darf (normal) */
+const AI_MINT=[230,520,900,1320,1800]; /* früheste Zeit (s), zu der die KI in die nächste Epoche steigen darf (normal) */
 const TC=['#3d72b8','#b9442f'],TCD=['#1f3f6b','#6e2215'],TCL=['#8fb4e6','#ef9b86'];
-const MAT=[{wall:'#7d5f3b',roof:'#a8834f',line:'#4f3a22'},{wall:'#b48a5a',roof:'#cfa66e',line:'#6f5131'},{wall:'#86837c',roof:'#aaa69d',line:'#55524c'},{wall:'#a29d94',roof:'#9a4a38',line:'#4a443d'},{wall:'#c0b4a0',roof:'#58708a',line:'#3a3d46'}];
+const MAT=[{wall:'#7d5f3b',roof:'#a8834f',line:'#4f3a22'},{wall:'#b48a5a',roof:'#cfa66e',line:'#6f5131'},{wall:'#86837c',roof:'#aaa69d',line:'#55524c'},{wall:'#a29d94',roof:'#9a4a38',line:'#4a443d'},{wall:'#c0b4a0',roof:'#58708a',line:'#3a3d46'},{wall:'#a8503f',roof:'#3e444d',line:'#2d2926'}];
 const STATE={idle:'Wartet',move:'Unterwegs',amove:'Angriffsmarsch',attack:'Kämpft',build:'Baut',explore:'Erkundet'};
 
 // Stufen (Level) von Einheiten und Gebäuden: Stufe 0 = Steinzeit, 1 = Bronzezeit, 2 = Eisenzeit.
 // Neue Einheiten/Gebäude starten auf der Stufe der aktuellen Epoche; ältere müssen per Upgrade nachgezogen werden.
-const LVL={hp:[1,1.25,1.55,1.9,2.3],atk:[1,1.2,1.45,1.75,2.1],gather:[1,1.25,1.5,1.75,2],bhp:[1,1.3,1.7,2.2,2.8]};
-const LVLN=['I','II','III','IV','V'],LVLC=['#a39a88','#6fc46a','#eab94b','#ec8a5c','#8fd3f2'];
+const LVL={hp:[1,1.25,1.55,1.9,2.3,2.7],atk:[1,1.2,1.45,1.75,2.1,2.45],gather:[1,1.25,1.5,1.75,2,2.25],bhp:[1,1.3,1.7,2.2,2.8,3.4]};
+const LVLN=['I','II','III','IV','V','VI'],LVLC=['#a39a88','#6fc46a','#eab94b','#ec8a5c','#8fd3f2','#d6a6f0'];
 const NEED_LVL={stone:1,iron:2}; // ab welcher Stufe ein Arbeiter diese Ressource abbauen kann
-const UPG={unit:[null,{food:20},{food:30,stone:15},{food:45,iron:20},{food:60,iron:35}],bld:[null,{wood:25},{wood:40,stone:25},{wood:60,stone:40},{wood:80,iron:40}]}; // Kosten pro Stück für die Zielstufe
+const UPG={unit:[null,{food:20},{food:30,stone:15},{food:45,iron:20},{food:60,iron:35},{food:75,iron:50}],bld:[null,{wood:25},{wood:40,stone:25},{wood:60,stone:40},{wood:80,iron:40},{wood:100,iron:55}]}; // Kosten pro Stück für die Zielstufe
 const UPG_TIME={base:5,each:.7,max:40}; // Dauer in Sekunden
 
 /* Technologien: gehören zu einem Gebäudetyp, werden mit Ressourcen und Zeit erforscht und gelten für das ganze Team.
@@ -98,6 +102,12 @@ const TECHS=[
   {id:'powder',bld:'barracks',ep:4,name:'Schießpulver',desc:'Erlaubt Musketiere',cost:{food:500,wood:300,iron:250},time:42,fx:{}},
   {id:'foundry',bld:'barracks',ep:4,name:'Gießerei',desc:'Erlaubt Kanonen',cost:{wood:500,iron:350},time:46,fx:{}},
   {id:'rifling',bld:'barracks',ep:4,name:'Gezogene Läufe',desc:'Fernkämpfer machen 25 % mehr Schaden',cost:{food:500,iron:300},time:44,fx:{ratk:.25}},
+  {id:'electric',bld:'hq',ep:5,name:'Elektrizität',desc:'Arbeiter sammeln 35 % schneller',cost:{food:800,wood:500,iron:350},time:50,fx:{gather:.35}},
+  {id:'railway',bld:'hq',ep:5,name:'Eisenbahn',desc:'+30 Bevölkerungslimit',cost:{food:900,wood:600,stone:400},time:52,fx:{pop:30}},
+  {id:'rifles',bld:'barracks',ep:5,name:'Gezogene Gewehre',desc:'Erlaubt Gewehrschützen',cost:{food:600,wood:350,iron:300},time:44,fx:{}},
+  {id:'artillery',bld:'barracks',ep:5,name:'Schwere Artillerie',desc:'Erlaubt Haubitzen',cost:{wood:600,iron:450},time:48,fx:{}},
+  {id:'ironclads',bld:'harbor',ep:5,name:'Panzerschiffbau',desc:'Erlaubt Panzerschiffe',cost:{wood:500,iron:400},time:48,fx:{}},
+  {id:'concrete',bld:'tower',blds:['tower','castle'],ep:5,name:'Beton',desc:'Türme und Burgen machen 40 % mehr Schaden',cost:{stone:500,iron:300},time:44,fx:{tower:.4}},
   {id:'slits',bld:'tower',blds:['tower','castle'],ep:1,name:'Schießscharten',desc:'Türme und Burgen machen 25 % mehr Schaden',cost:{wood:150,stone:120},time:28,fx:{tower:.25}},
   {id:'castiron',bld:'tower',blds:['tower','castle'],ep:4,name:'Gusseisen',desc:'Türme und Burgen machen 35 % mehr Schaden',cost:{stone:300,iron:250},time:40,fx:{tower:.35}}
 ];
