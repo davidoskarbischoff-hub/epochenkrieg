@@ -104,3 +104,27 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Idee: Befehlsknöpfe mit eigenen Symbolen und Tastenkürzeln für alle Aktionen
 - [x] Kartenauswahl mit Vorschaubildern (`mapPreview` in nav.js), neue Karte Seenplatte, Seen/Teiche auf mehreren Karten (`lakes` in `MAPS`)
 - [x] Berater: 5 Taktiken (`STRATS`), Lagebild/Erkenntnisse über den Gegner (`advIntel`), Auto-Modus
+- [x] Code aufgeteilt (state/map/sim/ai/commands/input/mp/advisor/render/ui/main)
+- [x] Optik: weiche Küsten, Sandstrand und Brandung, Gras mit Korn/Blumen/Steinchen, Küstenschatten, Licht von links oben
+- [x] Partikel: Rauch (Hütten, Hauptlager), Feuer bei beschädigten Gebäuden, Staub, Funken im Kampf, Späne beim Sammeln, Kielwasser
+- [ ] Nächste Optik-Ideen: Tag/Nacht-Licht, Wolkenschatten, bessere Schatten, Wasser-Animation
+- [ ] Später: echte 3D-Modelle oder vorgerenderte Bilder, Spielserver, Steam
+
+## Plan nach dem 3D-Test (Stil ist entschieden: 3D mit Three.js, siehe 3dtest.html / js/test3d.js)
+1. [ ] 3D-Umstieg Darstellung: neuer Renderer `render3d.js` statt `render.js`/`sprites.js`; Spielregeln, KI, Mehrspieler bleiben. Klicken per Strahl (Raycast), Kamera wie im Test, Minikarte bleibt 2D.
+2. [ ] Mehr Detail an den 3D-Modellen (Epochen-Aussehen, Fenster, Dachziegel, Texturen), später echte Modelle (glTF) einsetzbar.
+3. [ ] Wilde Tiere (`kind:'animal'`): Reh (friedlich, jagbar = Nahrung), Wolf, Bär, Tiger (Aggro-Reichweite, Revier/Leine), Anzahl je nach Zone/Biom; Mehrspieler-Spielstand und Nebel beachten.
+4. [ ] Ton und Musik: bessere Geräusche, dynamische Musik (ruhig im Frieden, Kampfmusik bei Krieg/Angriff, Übergänge).
+5. [ ] Danach: Spielserver, GitHub Pages, Steam-Vorbereitung.
+
+## Stand nach der grossen Überarbeitung (3D, Tiere, Ton, Balancing)
+- [x] 3D-Darstellung (Three.js): Gelände mit Höhen, Modelle je Epoche, Bäume/Büsche/Felsen als Instanzen, Gras und Blumen, Wellen
+- [x] Wilde Tiere: Reh (jagbar), Wolf, Bär, Tiger mit Revier und Aggro-Reichweite
+- [x] Dynamische Musik (Kampfebene), Wind, Vogelgezwitscher, Raubtier-Geräusche
+- [x] Balancing: KI-Tempo (`AI_MINT`), Heeresgrösse (`DIFF.army`), Nahrung wächst nach, mehr Beeren, KI baut Lager
+- [x] Berater: Lager am Wald, Fischerboote, Arbeiter umverteilen; Aufstieg braucht 10/20/30/40 Arbeiter
+- [x] Anleitung GitHub Pages: `VEROEFFENTLICHEN.md`
+- [ ] Idee: Felder/Farmen als wiederholbare Nahrungsquelle, Heilung/Priester, Luftheinheiten (F3)
+- [ ] Idee: Modelle durch echte glTF-Modelle ersetzen (`models3d.js` ist die einzige Stelle)
+- [ ] Idee: Spielserver für zuverlässigen Mehrspieler, Steam-Vorbereitung (Electron/Tauri)
+- [ ] Idee: Tag/Nacht, Wetter, Schnee/Wüste-Gebiete
