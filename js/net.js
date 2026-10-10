@@ -13,18 +13,29 @@ const Lobby=(()=>{
   const rid=()=>Math.random().toString(36).slice(2,7);
   const T=(...a)=>tr(...a);
 
+  const ICE=()=>{const l=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}];return l};
+  function mkPeer(){const p=new Peer(undefined,{config:{iceServers:ICE()}});p.on('disconnected',()=>{NetLog.log('NET','Vermittler getrennt');try{p.reconnect()}catch(_){}});return p}
   function loadPeerJS(){return new Promise((res,rej)=>{if(window.Peer)return res();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';s.onload=res;s.onerror=()=>rej(new Error('peerjs'));document.head.appendChild(s)})}
-  function close(){clearInterval(helloTimer);clearInterval(pingTimer);try{if(conn)conn.close()}catch(_){}try{if(peer)peer.destroy()}catch(_){}try{if(bc)bc.close()}catch(_){}conn=peer=bc=raw=null;st.connected=false}
+  function close(){clearTimeout(waitTimer);clearInterval(rejoinTimer);clearInterval(iceTimer);clearInterval(helloTimer);clearInterval(pingTimer);try{if(conn)conn.close()}catch(_){}try{if(peer)peer.destroy()}catch(_){}try{if(bc)bc.close()}catch(_){}conn=peer=bc=raw=null;st.connected=false}
 
   let iceTimer=null;
   /* ICE-Zustand der WebRTC-Verbindung mitschreiben (zeigt, ob Router/Firewall die Verbindung blockieren) */
   function watchConn(c){clearInterval(iceTimer);iceTimer=setInterval(()=>{try{const pc=c&&c.peerConnection;if(pc)NetLog.set('ice',pc.iceConnectionState)}catch(_){}},1000);
     try{c.on('iceStateChanged',s=>NetLog.log('ICE',String(s)))}catch(_){}}
-  function onClosed(){NetLog.log('NET','Verbindung geschlossen');NetLog.set('state','getrennt');if(inGame){EKG.peerLeft&&EKG.peerLeft();return}st.connected=false;st.status='Verbindung getrennt.';render()}
+  let waitTimer=null,rejoinTimer=null,hostId='';
+  function onClosed(c){if(c&&c!==conn)return;NetLog.log('NET','Verbindung geschlossen');
+    if(inGame&&G&&!G.over){
+      if(role==='host'){NetLog.set('state','wiederverbinde');G.netPause=true;EKG.toast(tr('Mitspieler getrennt – Spiel pausiert, ich warte bis zu 90 Sekunden …'),'warn');clearTimeout(waitTimer);waitTimer=setTimeout(()=>{NetLog.set('state','getrennt');G.netPause=false;EKG.peerLeft&&EKG.peerLeft()},90000)}
+      else startRejoin();
+      return}
+    NetLog.set('state','getrennt');if(inGame){EKG.peerLeft&&EKG.peerLeft();return}st.connected=false;st.status='Verbindung getrennt.';render()}
   function onData(m){
     if(!m||!m.t)return;
     switch(m.t){
-      case'hello':if(role==='host'){st.connected=true;pushLobby();render()}break;
+      case'hello':if(role==='host'){
+        if(inGame){if(!m.rejoin){raw({t:'busy'});break}clearTimeout(waitTimer);if(G)G.netPause=false;NET.prev=null;NetLog.S.reconnects++;NetLog.set('state','verbunden');EKG.toast(tr('Mitspieler ist wieder da – weiter geht\'s.'),'good');break}
+        st.connected=true;pushLobby();render()}break;
+      case'busy':if(role==='client'){st.error='Das Spiel läuft bereits. Ein Wiedereinstieg nach Neuladen der Seite ist nicht möglich.';st.connected=false;render()}break;
       case'lobby':if(role==='client'){clearInterval(helloTimer);st.cfg=m.cfg;st.prop=m.prop||{};st.connected=true;render()}break;
       case'prop':if(role==='host'){Object.assign(st.prop,m.p);pushLobby();render()}break;
       case'col':if(role==='host'&&m.c!==st.cfg.colH){st.cfg.colG=m.c;pushLobby();render()}break;
@@ -42,23 +53,39 @@ const Lobby=(()=>{
     close();role='host';view='host';st.error='';st.status=local?'Lokaler Test: Öffne den Link in einem zweiten Tab.':'Verbinde mit dem Vermittler …';link='';render();
     if(local){const code=rid();bc=new BroadcastChannel('ek-'+code);link=baseUrl()+'?join=local:'+code;bc.onmessage=e=>{if(e.data&&e.data.to==='h')onData(e.data.msg)};raw=m=>bc.postMessage({to:'c',msg:m});st.status='Warte auf Mitspieler …';render();return}
     try{await loadPeerJS()}catch(_){st.error='Der Vermittlungsdienst (PeerJS) ist nicht erreichbar. Prüfe deine Internetverbindung – oder nutze „Lokal testen“.';render();return}
-    peer=new Peer(undefined,{config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}});peer.on('disconnected',()=>{try{peer.reconnect()}catch(_){}});
+    peer=mkPeer();
     peer.on('open',id=>{link=baseUrl()+'?join='+id;st.status='Warte auf Mitspieler …';render()});
-    peer.on('connection',c=>{if(conn&&conn.open){c.close();return}conn=c;raw=m=>{if(!(conn&&conn.open))return;if(m&&m.t==='snap'){const bf=conn.dataChannel?conn.dataChannel.bufferedAmount:0;if(bf>262144){NET.prev=null;return}NET.backlog=bf}conn.send(m)};c.on('data',onData);c.on('close',onClosed);c.on('error',e=>NetLog.log('ERR','Verbindung: '+e));watchConn(c);NetLog.log('NET','Gast verbunden')});
+    peer.on('connection',c=>{if(conn&&conn.open){c.close();return}conn=c;raw=m=>{if(!(conn&&conn.open))return;if(m&&m.t==='snap'){const bf=conn.dataChannel?conn.dataChannel.bufferedAmount:0;if(bf>262144){NET.prev=null;NetLog.S.drops++;return}NET.backlog=bf;NetLog.S.backlog=bf}conn.send(m)};c.on('data',onData);c.on('close',()=>onClosed(c));c.on('error',e=>NetLog.log('ERR','Verbindung: '+e));watchConn(c);NetLog.log('NET','Gast verbunden')});
     peer.on('error',e=>{NetLog.log('ERR','Vermittler: '+(e&&e.type));st.error='Verbindungsfehler ('+(e.type||'?')+').';render()});
   }
   /* ---- Gast ---- */
   async function join(target){
     close();role='client';view='join';st.error='';st.status='Verbinde …';st.connected=false;render();
-    target=(target||'').trim();const m=/[?&]join=([^&#\s]+)/.exec(target);if(m)target=decodeURIComponent(m[1]);
+    target=(target||'').trim();const m=/[?&]join=([^&#\s]+)/.exec(target);if(m)target=decodeURIComponent(m[1]);hostId=target;
     if(!target){st.error='Bitte einen Einladungslink oder Code eingeben.';view='enter';render();return}
     if(target.startsWith('local:')){const code=target.slice(6);bc=new BroadcastChannel('ek-'+code);bc.onmessage=e=>{if(e.data&&e.data.to==='c')onData(e.data.msg)};raw=m=>bc.postMessage({to:'h',msg:m});
       raw({t:'hello'});let tries=0;helloTimer=setInterval(()=>{if(!raw||st.connected)return;raw({t:'hello'});if(++tries===6){st.error='Kein Gastgeber gefunden. Der Gastgeber-Tab muss in DIESEM Browser (kein privates Fenster) offen bleiben und in der Lobby warten. Am besten das Spiel mit „npx serve .“ starten und beide Tabs über http://localhost:… öffnen.';render()}},1000);return}
     try{await loadPeerJS()}catch(_){st.error='Der Vermittlungsdienst (PeerJS) ist nicht erreichbar. Prüfe deine Internetverbindung.';render();return}
-    peer=new Peer(undefined,{config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}});peer.on('disconnected',()=>{try{peer.reconnect()}catch(_){}});
+    peer=mkPeer();
     peer.on('open',()=>{conn=peer.connect(target,{reliable:true});conn.on('open',()=>{raw=m=>{if(conn&&conn.open)conn.send(m)};st.status='Verbunden – warte auf den Gastgeber …';raw({t:'hello'});render()});conn.on('data',onData);conn.on('close',onClosed);conn.on('error',e=>NetLog.log('ERR','Verbindung: '+e));watchConn(conn);NetLog.log('NET','Mit Gastgeber verbunden')});
     peer.on('error',e=>{NetLog.log('ERR','Vermittler: '+(e&&e.type));st.error=e.type==='peer-unavailable'?'Den Gastgeber gibt es nicht (mehr). Ist der Link noch aktuell?':'Verbindungsfehler ('+(e.type||'?')+').';render()});
   }
+  /* Gast: nach einem Abbruch automatisch neu mit dem Gastgeber verbinden (bis zu ~40 s) */
+  function startRejoin(){
+    NetLog.set('state','wiederverbinde');EKG.toast(tr('Verbindung weg – ich versuche, mich neu zu verbinden …'),'warn');clearInterval(rejoinTimer);let n=0;
+    const tryOnce=()=>{
+      if(conn&&conn.open){clearInterval(rejoinTimer);return}
+      if(++n>16){clearInterval(rejoinTimer);NetLog.set('state','getrennt');if(G){G.over='lose';G.lostMsg=true}return}
+      try{
+        if(!peer||peer.destroyed){peer=mkPeer();peer.on('error',e=>NetLog.log('ERR','Vermittler: '+(e&&e.type)));return}
+        if(peer.disconnected){peer.reconnect();return}
+        if(!peer.open)return;
+        try{if(conn)conn.close()}catch(_){}
+        const c=peer.connect(hostId,{reliable:true});conn=c;
+        c.on('open',()=>{raw=m=>{if(conn&&conn.open)conn.send(m)};c.on('data',onData);c.on('close',()=>onClosed(c));c.on('error',e=>NetLog.log('ERR','Verbindung: '+e));watchConn(c);
+          raw({t:'hello',rejoin:1});clearInterval(rejoinTimer);NetLog.S.reconnects++;NetLog.set('state','verbunden');NET.lastSnap=performance.now();if(G)G.leftMsg=false;EKG.toast(tr('Wieder verbunden.'),'good')});
+      }catch(e){NetLog.log('ERR','Neuverbindung: '+e)}};
+    rejoinTimer=setInterval(tryOnce,2500);tryOnce()}
   function start(){
     if(role!=='host'||!st.connected)return;
     const seed=(Math.random()*1e9)|0;inGame=true;NetLog.reset();NetLog.set('state','verbunden');raw({t:'start',seed,map:st.cfg.map,side:st.cfg.side,cfg:st.cfg});
@@ -110,6 +137,6 @@ const Lobby=(()=>{
   }
   /* Einladungslink geöffnet? Dann gleich beitreten. */
   window.addEventListener('load',()=>{const j=new URLSearchParams(location.search).get('join');if(j)setTimeout(()=>join(j),300)});
-  return{open,leave,render};
+  return{open,leave,render,debugDrop:()=>{try{if(conn)conn.close()}catch(_){}}};
 })();
 window.Lobby=Lobby;

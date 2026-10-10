@@ -196,7 +196,7 @@ function showStart(){
 function showEnd(){
   G.overShown=true;G.running=false;const win=G.over==='win';sfx(win?'win':'lose');const m=Math.floor(G.t/60),s=Math.floor(G.t%60);
   const ov=$('overlay');ov.hidden=false;
-  ov.innerHTML=`<div class="card"><p class="eyebrow">${G.leftMsg&&NET.mp?tr('Dein Mitspieler hat das Spiel verlassen'):win?tr('Das gegnerische Hauptlager ist gefallen'):tr('Dein Hauptlager wurde zerstört')}</p><h1>${win?tr('Sieg'):tr('Niederlage')}</h1>
+  ov.innerHTML=`<div class="card"><p class="eyebrow">${G.lostMsg&&NET.mp?tr('Die Verbindung zum Gastgeber ist abgebrochen'):G.leftMsg&&NET.mp?tr('Dein Mitspieler hat das Spiel verlassen'):win?tr('Das gegnerische Hauptlager ist gefallen'):tr('Dein Hauptlager wurde zerstört')}</p><h1>${win?tr('Sieg'):tr('Niederlage')}</h1>
   <div class="stats"><div><b>${m}:${String(s).padStart(2,'0')}</b><small>${tr('Spielzeit')}</small></div><div><b>${G.stats.trained[0]}</b><small>${tr('Ausgebildet')}</small></div><div><b>${G.stats.lost[1]}</b><small>${tr('Gegner besiegt')}</small></div></div>
   <p>${tr('Erreichtes Zeitalter: {0}. Schwierigkeit: {1}.',tr(EPOCHS[G.epoch[0]].name),tr(diff))}</p>
   <button class="go" id="againBtn">${tr('Neues Spiel')}</button></div>`;
