@@ -114,7 +114,7 @@ function aiTick(){
     if(!afs.length&&workers.length>=8&&!unbuilt.some(b=>b.type==='airfield'))aiPlace('airfield',hq,110,230);
     for(const b of afs){if(!b.built||b.queue.length>=1)continue;const planes=mine.filter(e=>e.kind==='unit'&&UNITS[e.type].air).length;if(planes>=4+ep)continue;
       const cand=Object.keys(UNITS).filter(u=>UNITS[u].from==='airfield'&&(!UNITS[u].nation||UNITS[u].nation===G.nation[1])&&afford(1,UNITS[u].cost));if(cand.length)enqueue(b,cand[(Math.random()*cand.length)|0],1)}}
-  for(const b of blds)if(b.type==='tower'&&b.built&&!b.spec){const dist=Math.hypot(b.x-hq.x,b.y-hq.y);towerSpec(1,b.id,dist>330?'obs':'def');break}
+  for(const b of blds)if(b.built&&!b.spec&&BSPEC[b.type]){let k;if(b.type==='tower')k=Math.hypot(b.x-hq.x,b.y-hq.y)>330?'obs':'def';else if(b.type==='hq')k=(ai.style==='eco'||ai.style==='boom')?'eco':'mil';else k=(b.id%2)?'drill':'range';if(buildSpec(1,b.id,k))break}
   // Sanitäter laufen hinter der Armee her
   if(healers.length&&army.length){const c=army.reduce((p,m)=>({x:p.x+m.x/army.length,y:p.y+m.y/army.length}),{x:0,y:0});for(const h of healers){if(h.state==='idle'||h.state==='move'){const d=Math.hypot(h.x-c.x,h.y-c.y);if(d>110&&(!h.dest||Math.hypot(h.dest.x-c.x,h.dest.y-c.y)>90)){h.state='move';h.dest={x:c.x-(c.x-hq.x)*.08,y:c.y};h.pf=null}}}}
   // Kampfrausch, sobald eine größere Gruppe im Gefecht ist

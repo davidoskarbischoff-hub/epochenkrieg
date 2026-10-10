@@ -52,7 +52,12 @@ const UNITS={
   sword:{cls:'inf',tech:'smithy',name:'Schwertkämpfer',sight:150,hp:150,spd:52,atk:15,rng:5,cd:1.1,r:9,cost:{food:80,iron:40},time:18,ep:2,from:'barracks'}
 };
 /* Turm-Ausbau: Verteidigung (stärker schiessen, mehr Leben) oder Aussicht (Sicht und Gebiet) */
-const TSPEC={def:{name:'Wehrturm',cost:{wood:120,stone:140,iron:60},sub:'Schiesst stärker und weiter, hält mehr aus'},obs:{name:'Aussichtsturm',cost:{wood:100,stone:80},sub:'Doppelte Sicht, grösseres Gebiet'}};
+const BSPEC={
+  tower:{def:{name:'Wehrturm',cost:{wood:120,stone:140,iron:60},sub:'Schiesst stärker und weiter, hält mehr aus'},obs:{name:'Aussichtsturm',cost:{wood:100,stone:80},sub:'Doppelte Sicht, grösseres Gebiet'}},
+  hq:{eco:{name:'Handelshof',cost:{wood:250,stone:200,gold:60},sub:'Arbeiter sammeln 20 % schneller, +10 Bevölkerung'},mil:{name:'Kommandozentrale',cost:{wood:250,stone:200,iron:100},sub:'Ausbildung 25 % schneller, neue Truppen +10 % Leben'}},
+  barracks:{drill:{name:'Drillplatz',cost:{wood:150,iron:80},sub:'Nahkämpfer und Reiter dieser Kaserne +25 % Leben'},range:{name:'Schiessstand',cost:{wood:150,iron:80},sub:'Fernkämpfer dieser Kaserne +25 % Schaden'}}
+};
+const TSPEC=BSPEC.tower;
 const BLDS={
   hq:{name:'Hauptlager',sight:280,claim:260,hp:1400,r:36,pop:10,drop:true,shoot:{rng:150,atk:6,cd:1.8}},
   house:{name:'Hütte',sight:150,claim:100,hp:250,r:16,pop:5,cost:{wood:50},time:14,ep:0,sub:'+5 Bevölkerung'},
