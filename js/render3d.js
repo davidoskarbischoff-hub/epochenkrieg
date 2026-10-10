@@ -11,11 +11,12 @@ function r3Init(){
   const glc=document.getElementById('gl');
   const rd=new THREE.WebGLRenderer({canvas:glc,antialias:true,powerPreference:'high-performance'});
   rd.shadowMap.enabled=true;rd.shadowMap.type=THREE.PCFSoftShadowMap;rd.outputColorSpace=THREE.SRGBColorSpace;
-  rd.toneMapping=THREE.ACESFilmicToneMapping;rd.toneMappingExposure=1.15;
+  rd.toneMapping=THREE.ACESFilmicToneMapping;rd.toneMappingExposure=1.12;
   const scene=new THREE.Scene(),SKY=0x16384f;scene.background=new THREE.Color(SKY);scene.fog=new THREE.Fog(0x9db8c4,260,620);
   const camera=new THREE.PerspectiveCamera(R3.FOV,1,2,1400);
-  const sun=new THREE.DirectionalLight(0xfff0d4,2.7);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-.0004;sun.shadow.normalBias=.35;scene.add(sun,sun.target);
-  const hemi=new THREE.HemisphereLight(0xcfe3f5,0x56623a,1.5);scene.add(hemi);
+  const sun=new THREE.DirectionalLight(0xffe2b8,3.1);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-.0004;sun.shadow.normalBias=.35;scene.add(sun,sun.target);
+  const hemi=new THREE.HemisphereLight(0xbcd2ee,0x4a5230,1.2);scene.add(hemi);
+  const fill=new THREE.DirectionalLight(0x9db8ff,.38);fill.position.set(60,40,70);scene.add(fill); /* kühles Gegenlicht: Schattenseiten bekommen Farbe statt Grau */
   const sea=new THREE.Mesh(new THREE.PlaneGeometry(3600,3600).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0x17405c,fog:false}));sea.position.set(W/R3.S/2,-.8,H/R3.S/2);scene.add(sea);
   /* Umgebungslicht für Metall: ein kleiner gemalter Himmel (blau oben, warm am Horizont, dunkler Boden, helle Sonne) wird zur Spiegelung für Helme, Panzer, Waffen */
   try{const es=new THREE.Scene(),eg=new THREE.SphereGeometry(50,24,16),ec=[],c=new THREE.Color();const pa=eg.attributes.position;
@@ -185,10 +186,16 @@ function r3Sync(list,dt,t){
     if(c.t>3.2){r3.gEnt.remove(c.obj);R3.corpses.splice(i,1)}}
   r3Bones()
 }
+/* Kontaktschatten: weicher dunkler Fleck unter Gebäuden – die Bauten sitzen dadurch „im“ Boden statt darauf zu schweben */
+let _aoTex=null,_aoMat=null;
+function aoDecal(radius,op){
+  if(!_aoTex){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),g=x.createRadialGradient(64,64,6,64,64,64);g.addColorStop(0,'rgba(0,0,0,.85)');g.addColorStop(.55,'rgba(0,0,0,.4)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,128,128);
+    _aoTex=new THREE.CanvasTexture(c);_aoMat=new THREE.MeshBasicMaterial({map:_aoTex,transparent:true,depthWrite:false,opacity:.6,fog:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2})}
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2),_aoMat);m.scale.set(radius*2,1,radius*2);m.position.y=.07;m.renderOrder=1;m.castShadow=false;m.receiveShadow=false;m.userData.noShadow=true;return m}
 function r3Make(e,sig){
   const S=R3.S;
   if(e.kind==='unit'){const rig=buildUnit(e),sc=(UNITS[e.type].vr||e.r)/7*1.25*(UNITS[e.type].naval?.46:e.type==='tank'||e.type==='mark1'?.72:UNITS[e.type].siege?.7:UNITS[e.type].cls==='cav'?.74:e.type==='worker'?.8:1);rig.g.scale.setScalar(sc*(.94+((e.id*37)%13)/13*.12));const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
-  if(e.kind==='bld'){const g=buildBld(e.type,e.r/S*1.05,G.epoch[e.team],e.team);if(e.pc&&typeof wallPostModel==='function')wallPostModel(g,e.pc,e.r/S*1.05,G.epoch[e.team],e.team);if(e.spec&&typeof specModel==='function')specModel(g,e.type,e.spec,e.r/S*1.05,e.team);return{obj:g,sig,flags:g.userData.flags||[]}}
+  if(e.kind==='bld'){const g=buildBld(e.type,e.r/S*1.05,G.epoch[e.team],e.team);if(e.type!=='wall'&&e.type!=='gate'&&e.type!=='trench'&&e.type!=='farm')g.add(aoDecal(e.r/S*1.55));if(e.pc&&typeof wallPostModel==='function')wallPostModel(g,e.pc,e.r/S*1.05,G.epoch[e.team],e.team);if(e.spec&&typeof specModel==='function')specModel(g,e.type,e.spec,e.r/S*1.05,e.team);return{obj:g,sig,flags:g.userData.flags||[]}}
   if(e.kind==='animal'){const rig=buildAnimal(e);const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
   const g=seaModel(e);return{obj:g,sig,flags:[]}}
 /* Gliederbewegung der Menschen: Gehen (Gegenschwung, Neigen, Wippen), Atmen im Stand, Arbeiten je Werkzeug, Kampf mit Ausholen/Schlag/Rückstoß, Zucken bei Treffern */

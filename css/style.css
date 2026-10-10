@@ -410,3 +410,7 @@ body[data-ep="6"]{--fr:#aeb78c;--tint:rgba(26,32,24,.66)}
 #netpanel .npbtn{display:flex;gap:8px}
 #netpanel .npbtn button{padding:4px 12px;border-radius:4px;border:1px solid #7b5a2c;background:#3a2d21;color:#e8e0cc;cursor:pointer}
 .ladv{margin:10px 0;color:var(--bone-dim)}.ladv summary{cursor:pointer}.ladv .linput{display:block;margin:6px 0;width:100%}
+
+/* Bildstimmung: leichte Farbkorrektur und Vignette über der 3D-Welt */
+#gl{filter:saturate(1.1) contrast(1.05)}
+#vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 46%,transparent 52%,rgba(6,9,16,.34) 100%)}

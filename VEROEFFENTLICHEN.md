@@ -61,6 +61,12 @@ Wichtig: Die Versionsnummer wird **aus dem Tag** genommen – du musst keine Dat
 
 **Updates:** Beim Start sucht die App selbst nach einer neuen Version. Erscheint „**Neue Version verfügbar**“ → *Herunterladen* → danach *Jetzt installieren und neu starten*. Man kann auch im Spielmenü auf **„Nach Updates suchen“** klicken. Die aktuelle Versionsnummer steht unten im Spielmenü (Esc).
 
+## Update auf dem Mac installieren (jedes Mal)
+1. Neues Release öffnen → unter *Assets* die passende `.dmg` laden (Apple-Chip: `arm64`, Intel: `x64`).
+2. `.dmg` doppelklicken, **Epochenkrieg** in *Programme* ziehen und bei der Rückfrage auf **Ersetzen** klicken. Die alte Version wird überschrieben, du musst nichts vorher löschen. Spielstände/Einstellungen bleiben erhalten.
+3. Falls der Mac wieder „beschädigt“ meldet: im Terminal `xattr -cr /Applications/Epochenkrieg.app` ausführen (nur nötig, wenn die Meldung kommt).
+Unter **Windows** ist das alles automatisch: die App fragt selbst „Neue Version verfügbar“.
+
 ## Mac (optional)
 Die Mac-Dateien (`.dmg`) sind **nicht von Apple signiert**. Installieren: `.dmg` öffnen, Epochenkrieg in *Programme* ziehen, beim ersten Start **Rechtsklick → Öffnen → Öffnen**. Das Auto-Update kann auf dem Mac ohne bezahltes Apple-Zertifikat nicht selbst installieren: Die App zeigt „Neue Version verfügbar“ und öffnet die Download-Seite.
 
