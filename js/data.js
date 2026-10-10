@@ -21,7 +21,7 @@ const UNITS={
   catapult:{cls:'siege',tech:'siegeworks',name:'Katapult',sight:190,hp:140,spd:36,atk:48,rng:250,cd:4.8,r:10,cost:{wood:220,stone:120},time:30,ep:3,from:'barracks',ranged:true,siege:true},
   galleon:{cls:'ship',tech:'galleonbuild',name:'Galeone',naval:true,ranged:true,sight:260,hp:380,spd:58,atk:28,rng:210,cd:2.2,r:15,cost:{wood:200,iron:80},time:32,ep:3,from:'harbor'},
   rifle:{cls:'rng',tech:'rifles',name:'Gewehrschütze',sight:210,hp:190,spd:54,atk:66,rng:195,cd:1.9,r:7,cost:{gold:35,food:100,wood:40,iron:90},time:22,ep:5,from:'barracks',ranged:true,gun:true},
-  tank:{cls:'siege',tech:'armor',name:'Panzer',sight:230,hp:420,spd:48,atk:46,rng:210,cd:2.6,r:14,cost:{wood:200,iron:320,gold:140,oil:60},time:38,ep:5,from:'barracks',ranged:true,siege:true},
+  tank:{cls:'siege',tech:'armor',name:'Panzer',sight:230,hp:760,spd:48,atk:58,rng:210,cd:2.6,r:17,cost:{wood:200,iron:320,gold:140,oil:60},time:38,ep:5,from:'barracks',ranged:true,siege:true},
   howitzer:{cls:'siege',tech:'artillery',name:'Haubitze',sight:230,hp:200,spd:34,atk:90,rng:300,cd:4.8,r:12,cost:{gold:110,wood:260,iron:260},time:34,ep:5,from:'barracks',ranged:true,siege:true},
   ironclad:{cls:'ship',tech:'ironclads',name:'Panzerschiff',naval:true,ranged:true,sight:280,hp:620,spd:58,atk:44,rng:240,cd:2.4,r:17,cost:{gold:90,wood:260,iron:240},time:40,ep:5,from:'harbor'},
   healer:{cls:'med',passive:true,heal:2.2,name:'Heiler',sight:150,hp:80,spd:56,atk:0,rng:4,cd:1.2,r:7,cost:{food:60,wood:20},time:14,ep:0,from:'barracks'},
@@ -47,6 +47,8 @@ const UNITS={
   fighter:{cls:'air',air:true,nation:'us',name:'Jagdflieger',sight:290,hp:190,spd:175,atk:22,rng:120,cd:.4,r:10,cost:{wood:160,iron:210,gold:110,oil:90},time:30,ep:6,from:'airfield',ranged:true,gun:true},
   sword:{cls:'inf',tech:'smithy',name:'Schwertkämpfer',sight:150,hp:150,spd:52,atk:15,rng:5,cd:1.1,r:9,cost:{food:80,iron:40},time:18,ep:2,from:'barracks'}
 };
+/* Turm-Ausbau: Verteidigung (stärker schiessen, mehr Leben) oder Aussicht (Sicht und Gebiet) */
+const TSPEC={def:{name:'Wehrturm',cost:{wood:120,stone:140,iron:60},sub:'Schiesst stärker und weiter, hält mehr aus'},obs:{name:'Aussichtsturm',cost:{wood:100,stone:80},sub:'Doppelte Sicht, grösseres Gebiet'}};
 const BLDS={
   hq:{name:'Hauptlager',sight:280,claim:260,hp:1400,r:36,pop:10,drop:true,shoot:{rng:150,atk:6,cd:1.8}},
   house:{name:'Hütte',sight:150,claim:100,hp:250,r:16,pop:5,cost:{wood:50},time:14,ep:0,sub:'+5 Bevölkerung'},

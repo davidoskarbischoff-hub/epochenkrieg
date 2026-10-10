@@ -689,3 +689,13 @@ UNIT3.kosak=viaKnight(1);UNIT3.kurass=viaKnight(1.05);UNIT3.kamel=viaKnight(1.15
 const viaGun=(base,sc)=>(u,tm)=>{const r=UNIT3[base](u,tm);r.g.scale.multiplyScalar(sc);return r};
 UNIT3.skoda=viaGun('howitzer',1);UNIT3.bertha=viaGun('howitzer',1.35);
 UNIT3.mark1=viaGun('tank',1.1);UNIT3.renault=viaGun('tank',.75);
+
+/* Turm-Ausbau: Wehrturm (Zinnen, Kanone) oder Aussichtsturm (Plattform, Fesselballon) */
+function towerSpecModel(g,kind,R,team){const st=m3Plain(0x8d8a80,.9),tm=m3Team(team),T=new THREE.Box3().setFromObject(g).max.y,k=T/(R*3.5);
+  if(kind==='def'){for(let i=0;i<8;i++){const a=i/8*6.283;put(g,new THREE.BoxGeometry(.5,.55,.5),st,Math.cos(a)*R*.9,T*1.0,Math.sin(a)*R*.9)}
+    put(g,cyl(.22,.3,R*1.4,8),m3Plain(0x2c2c2c,.5,{metalness:.7}),R*.5,T,0).rotation.z=Math.PI/2-.25;put(g,new THREE.SphereGeometry(.3,8,6),m3Plain(0x2c2c2c,.5,{metalness:.7}),0,T*.97,0)}
+  else{put(g,cyl(R*1.25,R*1.1,.3,12),m3Plain(0x7a5a3a,.9),0,T*.97,0);for(let i=0;i<10;i++){const a=i/10*6.283;put(g,cyl(.05,.05,.7,5),m3Plain(0x5b4228),Math.cos(a)*R*1.2,R*3.8,Math.sin(a)*R*1.2)}
+    const bl=new THREE.Group();bl.position.set(0,T+R*4*k+R*2,0);g.add(bl);const ball=put(bl,new THREE.SphereGeometry(R*1.6,14,10),tm,0,0,0);ball.scale.y=1.2;
+    for(const a of[0,1.57,3.14,4.71])put(bl,cyl(.02,.02,R*3,4),m3Plain(0xdddddd,.8),Math.cos(a)*R*.9,-R*1.7,Math.sin(a)*R*.9).rotation.z=Math.cos(a)*.3;
+    put(bl,new THREE.BoxGeometry(.7,.45,.7),m3Plain(0x7a5a3a,.9),0,-R*3.2,0);
+    put(g,cyl(.03,.03,R*4,4),m3Plain(0xdddddd,.8),0,T+R*2.5,0)}}
