@@ -3,7 +3,21 @@
 'use strict';
 /* ---------- AI ---------- */
 function findSpot(team,cx,cy,r,minD,maxD){for(let k=0;k<80;k++){const a=Math.random()*6.283,d=minD+Math.random()*(maxD-minD);const x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d;if(validSpot(x,y,r))return{x,y}}return null}
-function aiPlace(type,hq,minD,maxD){const d=BLDS[type];if(!afford(1,d.cost))return null;const s=findSpot(1,hq.x,hq.y,d.r,minD,maxD);if(!s)return null;pay(1,d.cost);return addBld(type,1,s.x,s.y,false)}
+/* Platzwahl mit Abstand: viele Kandidaten, nur gültige mit Mindestlücke zu eigenen Gebäuden, der mit der größten Lücke gewinnt (so entsteht keine Klumpenbildung) */
+const AI_GAP={house:46,barracks:90,store:80,farm:55,market:90,mine:30,harbor:60,castle:160,tower:300};
+function aiBestSpot(type,hq,minD,maxD,wantAng,tol){
+  const d=BLDS[type],gap=AI_GAP[type]||50,own=G.ents.filter(e=>!e.dead&&e.team===1&&e.kind==='bld'),towers=own.filter(e=>e.type==='tower'||e.type==='castle');
+  let best=null,bs=-1e9;
+  for(let k=0;k<160;k++){const a=wantAng===undefined?Math.random()*6.283:wantAng+(Math.random()-.5)*2*tol,dd=minD+Math.random()*(maxD-minD),x=hq.x+Math.cos(a)*dd,y=hq.y+Math.sin(a)*dd;
+    if(!validSpot(x,y,d.r))continue;let g=1e9;for(const e of own)g=Math.min(g,Math.hypot(e.x-x,e.y-y)-e.r-d.r);if(g<gap)continue;
+    let sc=Math.min(g,260)+Math.random()*30;if(type==='tower'){let tg=1e9;for(const t of towers)tg=Math.min(tg,Math.hypot(t.x-x,t.y-y));if(tg<AI_GAP.tower)continue;sc+=Math.min(tg,500)*.3}
+    if(sc>bs){bs=sc;best={x,y}}}
+  return best}
+function aiPlaceSpread(type,hq,minD,maxD,wantAng,tol){const d=BLDS[type];if(!afford(1,d.cost))return null;const s=aiBestSpot(type,hq,minD,maxD,wantAng,tol);if(!s)return null;pay(1,d.cost);return addBld(type,1,s.x,s.y,false)}
+/* Türme bilden einen weiten Ring: der erste zeigt zur Kartenmitte (Gegner), weitere versetzt links/rechts und dann hinten */
+function aiPlaceTower(hq,n){const base=Math.atan2(H/2-hq.y,W/2-hq.x),offs=[0,.95,-.95,1.9,-1.9,3.1];return aiPlaceSpread('tower',hq,250+Math.min(n,4)*35,430+Math.min(n,4)*45,base+offs[n%offs.length],.5)||aiPlaceSpread('tower',hq,220,520)}
+function aiPlace(type,hq,minD,maxD){return aiPlaceSpread(type,hq,minD,maxD)||(()=>{const d=BLDS[type];if(!afford(1,d.cost))return null;const s=findSpot(1,hq.x,hq.y,d.r,minD,maxD);if(!s)return null;pay(1,d.cost);return addBld(type,1,s.x,s.y,false)})()}
+function aiPlaceOld(type,hq,minD,maxD){const d=BLDS[type];if(!afford(1,d.cost))return null;const s=findSpot(1,hq.x,hq.y,d.r,minD,maxD);if(!s)return null;pay(1,d.cost);return addBld(type,1,s.x,s.y,false)}
 /* Turm in Richtung Kartenmitte: so wächst das Gebiet der KI nach vorn */
 function aiPlaceToward(type,hq,minD,maxD){const d=BLDS[type];if(!afford(1,d.cost))return null;const base=Math.atan2(H/2-hq.y,W/2-hq.x);
   for(let k=0;k<80;k++){const a=base+(Math.random()-.5)*2,dd=minD+Math.random()*(maxD-minD),x=hq.x+Math.cos(a)*dd,y=hq.y+Math.sin(a)*dd;if(validSpot(x,y,d.r)){pay(1,d.cost);return addBld(type,1,x,y,false)}}return null}
@@ -24,7 +38,7 @@ function aiTick(){
   const army=mine.filter(e=>e.kind==='unit'&&!UNITS[e.type].passive&&!UNITS[e.type].naval),boats=mine.filter(e=>e.type==='boat'),ships=mine.filter(e=>e.kind==='unit'&&UNITS[e.type].naval&&UNITS[e.type].ranged),scouts=mine.filter(e=>e.type==='scout');
   const unbuilt=blds.filter(b=>!b.built);
   aiLook(mine);
-  const targetW=Math.round([6,12,20,30,36,36][ep]*ST.wk),minT=ep<EPOCHS.length-1?AI_MINT[ep]*DIFF[diff].pace*ST.pace:0;
+  const targetW=Math.round([6,12,20,30,36,38,40][ep]*ST.wk),minT=ep<EPOCHS.length-1?AI_MINT[ep]*DIFF[diff].pace*ST.pace:0;
   const saving=ep<EPOCHS.length-1&&!G.adv[1]&&workers.length>=targetW-2&&G.t>=minT-60;
   const adv=ep<EPOCHS.length-1?EPOCHS[ep].cost:null;
   if(workers.length+hq.queue.filter(q=>q.type==='worker').length<targetW&&hq.queue.length<2&&!(saving&&r.food<adv.food+50))enqueue(hq,'worker',1);
@@ -32,10 +46,10 @@ function aiTick(){
   if(G.t>60&&r.food>=130&&!scouts.length&&!hq.queue.some(q=>q.type==='scout')&&hq.queue.length<2&&G.pop[1]<G.cap[1])enqueue(hq,'scout',1);
   for(const sc of scouts)if(sc.state==='idle')sc.state='explore';
   // Sammeln verteilen
-  const w8=[{food:.6,wood:.4,stone:0,iron:0},{food:.4,wood:.32,stone:.28,iron:0},{food:.4,wood:.24,stone:.16,iron:.2},{food:.36,wood:.22,stone:.18,iron:.24},{food:.34,wood:.2,stone:.18,iron:.28},{food:.32,wood:.2,stone:.16,iron:.32}][ep];
-  w8.gold=[0,0,0,.1,.14,.16][ep];
+  const w8=[{food:.6,wood:.4,stone:0,iron:0},{food:.4,wood:.32,stone:.28,iron:0},{food:.4,wood:.24,stone:.16,iron:.2},{food:.36,wood:.22,stone:.18,iron:.24},{food:.34,wood:.2,stone:.18,iron:.28},{food:.32,wood:.2,stone:.16,iron:.32},{food:.3,wood:.18,stone:.14,iron:.3}][ep];
+  w8.gold=[0,0,0,.1,.14,.16,.18][ep];w8.oil=blds.some(b=>b.type==='refinery'&&b.built)?[0,0,0,0,0,.12,.14][ep]:0;
   for(const k of RES){if(w8[k]){const f=r[k]>700?.3:r[k]>350?.65:r[k]<120?1.7:1;w8[k]*=f}} // Vorrat steuert die Verteilung: Überfluss -> weniger Arbeiter dort
-  const cnt={food:0,wood:0,stone:0,iron:0,gold:0};workers.forEach(w=>{if(w.state!=='idle'&&w.rtype)cnt[w.rtype]++});
+  const cnt={food:0,wood:0,stone:0,iron:0,gold:0,oil:0};workers.forEach(w=>{if(w.state!=='idle'&&w.rtype)cnt[w.rtype]++});
   for(const w of workers){if(w.state!=='idle')continue;
     const n=workers.length;const order=RES.filter(rt=>canGather(w,rt)).sort((a,b)=>(w8[b]*n-cnt[b])-(w8[a]*n-cnt[a]));
     for(const rt of order){const node=nearestNode(rt,hq.x,hq.y,900,w,true)||nearestNode(rt,hq.x,hq.y,900,w);if(node){w.state='gather';w.tid=node.id;w.rtype=rt;cnt[rt]++;break}}}
@@ -53,19 +67,20 @@ function aiTick(){
   if(ep>=1&&workers.length>=8&&G.t>(ai.farmT||0)&&!unbuilt.some(b=>b.type==='farm')){ai.farmT=G.t+35;const nf=blds.filter(b=>b.type==='farm').length;
     if(nf<Math.min(2+ep,5)&&r.wood>=BLDS.farm.cost.wood+60&&(r.food<400||nf<2))aiPlace('farm',hq,60,150)}
   // Minen für Eisen und Gold, Markt für Gold
-  if(ep>=2&&workers.length>=10&&G.t>(ai.mineT||0)&&!unbuilt.some(b=>b.type==='mine')){ai.mineT=G.t+25;
-    for(const rt of['iron','gold']){if(ep<RES_EP[rt])continue;const nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||minedBy(1,nd)||!afford(1,BLDS.mine.cost))continue;
-      for(let k=0;k<60;k++){const a=Math.random()*6.283,d=34+Math.random()*(MINE_RNG*.55),x=nd.x+Math.cos(a)*d,y=nd.y+Math.sin(a)*d;if(validSpot(x,y,BLDS.mine.r)){pay(1,BLDS.mine.cost);addBld('mine',1,x,y,false);break}}break}}
+  if(ep>=2&&workers.length>=10&&G.t>(ai.mineT||0)&&!unbuilt.some(b=>b.type==='mine'||b.type==='derrick')){ai.mineT=G.t+25;
+    for(const rt of['iron','gold','oil']){if(ep<RES_EP[rt])continue;const bt=MINE_RT[rt],nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||minedBy(1,nd)||!afford(1,BLDS[bt].cost))continue;
+      for(let k=0;k<60;k++){const a=Math.random()*6.283,d=34+Math.random()*(MINE_RNG*.55),x=nd.x+Math.cos(a)*d,y=nd.y+Math.sin(a)*d;if(validSpot(x,y,BLDS[bt].r)){pay(1,BLDS[bt].cost);addBld(bt,1,x,y,false);break}}break}}
+  if(ep>=5&&blds.some(b=>b.type==='derrick'&&b.built)&&!blds.some(b=>b.type==='refinery')&&afford(1,BLDS.refinery.cost))aiPlace('refinery',hq,100,260);
   if(ep>=3&&workers.length>=16&&!blds.some(b=>b.type==='market')&&r.gold<250&&afford(1,BLDS.market.cost))aiPlace('market',hq,90,230);
   if(blds.some(b=>b.type==='market'&&b.built)&&r.gold<260)for(const rt of['food','wood','stone']){if(r[rt]>(rt==='stone'?500:850)&&trade(1,rt,'sell'))break}
   // Gebäude
   if(G.cap[1]-G.pop[1]<=3&&G.cap[1]<POPMAX&&!unbuilt.some(b=>b.type==='house'))(aiPlace('house',hq,90,200)||aiPlace('house',hq,150,330));
   const nBar=blds.filter(b=>b.type==='barracks').length,wantBar=(ep>=2&&diff!=='leicht'?2:1)+ST.bar;
   if(nBar<wantBar&&workers.length>=6&&!unbuilt.some(b=>b.type==='barracks')){const b=aiPlace('barracks',hq,110,210);if(b){const a=Math.atan2(H/2-hq.y,W/2-hq.x);b.rally={x:hq.x+Math.cos(a)*170,y:hq.y+Math.sin(a)*170}}}
-  if(diff!=='leicht'&&!saving&&!blds.some(b=>b.type==='tower')&&(ep>=1||(G.t>170&&workers.length>=10))&&ST.tow>=0)aiPlace('tower',hq,70,140);
+  if(diff!=='leicht'&&!saving&&!blds.some(b=>b.type==='tower')&&(ep>=1||(G.t>170&&workers.length>=10))&&ST.tow>=0)aiPlaceTower(hq,0);
   // Expansion: weitere Türme Richtung Kartenmitte erobern Land
   const nTow=blds.filter(b=>b.type==='tower').length;
-  if(ep>=1&&diff!=='leicht'&&!saving&&nTow<Math.min(4,1+ep)+ST.tow&&ST.tow>=0&&G.t>ai.towT&&!unbuilt.some(b=>b.type==='tower')&&afford(1,BLDS.tower.cost)&&aiPlaceToward('tower',hq,190,320))ai.towT=G.t+75;
+  if(ep>=1&&diff!=='leicht'&&!saving&&nTow<Math.min(4,1+ep)+ST.tow&&ST.tow>=0&&G.t>ai.towT&&!unbuilt.some(b=>b.type==='tower')&&afford(1,BLDS.tower.cost)&&aiPlaceTower(hq,nTow))ai.towT=G.t+80;
   if(saving&&G.t>=minT&&workers.length>=targetW-1&&afford(1,adv))advance(1);
   // Marine: Hafen, Fischerboote, Kriegsschiffe
   if(diff!=='leicht'){
@@ -81,11 +96,27 @@ function aiTick(){
     }
   }
   // Armee
-  const types=[['club'],['spear','archer','spear'],['sword','archer','sword','spear'],['knight','crossbow','sword','catapult','knight'],['musket','cannon','knight','musket','crossbow'],['rifle','howitzer','rifle','tank','musket','rifle']][ep];
-  const armyCap=Math.round([8,13,20,28,36,44][ep]*DIFF[diff].army*ST.army),queued=blds.reduce((n,b)=>n+(b.type==='barracks'?b.queue.length:0),0);
+  /* Armeemischung nach Rollen: Front (hält die Linie), Fernkampf, Reiter, Belagerung, Sanitäter. Gebaut wird, was gemessen am Ziel-Anteil fehlt. */
+  const ROLE=u=>({club:'front',spear:'front',sword:'front',engineer:'front',knight:'shock',sling:'rng',archer:'rng',crossbow:'rng',musket:'rng',rifle:'rng',catapult:'siege',cannon:'siege',howitzer:'siege',ram:'siege',tank:'siege',healer:'med'})[u]||({inf:'front',rng:'rng',cav:'shock',siege:'siege'})[UNITS[u].cls]||'front';
+  const MIX={balanced:{front:.38,rng:.3,shock:.1,siege:.12,med:.1},turtle:{front:.5,rng:.3,siege:.1,med:.1},rush:{front:.45,shock:.25,rng:.25,med:.05},eco:{front:.4,rng:.35,siege:.1,med:.15},boom:{front:.35,rng:.3,siege:.2,med:.15}}[ai.style]||{front:.4,rng:.3,siege:.1,med:.1,shock:.1};
+  const have=u=>UNITS[u].ep<=ep&&(!UNITS[u].tech||G.tech[1].has(UNITS[u].tech))&&u!=='scout'&&UNITS[u].from==='barracks'&&(!UNITS[u].nation||UNITS[u].nation===G.nation[1]);
+  const pool=Object.keys(UNITS).filter(have),healers=mine.filter(e=>e.type==='healer'),all=army.concat(healers),tot=Math.max(1,all.length);
+  const armyCap=Math.round([8,13,20,28,36,44,52][ep]*DIFF[diff].army*ST.army),queued=blds.reduce((n,b)=>n+(b.type==='barracks'?b.queue.length:0),0);
   for(const b of blds){if(b.type!=='barracks'||!b.built||b.queue.length>=2||army.length+queued>=armyCap)continue;
     if(saving&&!(r.food>adv.food+90&&r.wood>(adv.wood||0)+90))continue;
-    const pick=types.map((_,i)=>types[(G.stats.trained[1]+b.id+i)%types.length]).find(t=>afford(1,UNITS[t].cost)&&(!UNITS[t].tech||G.tech[1].has(UNITS[t].tech)));if(pick)enqueue(b,pick,1)}
+    const share={};for(const u of all)share[ROLE(u.type)]=(share[ROLE(u.type)]||0)+1;for(const q of blds.flatMap(x=>x.queue||[]))if(UNITS[q.type])share[ROLE(q.type)]=(share[ROLE(q.type)]||0)+1;
+    const roles=Object.keys(MIX).sort((x,y)=>((share[x]||0)/tot/MIX[x])-((share[y]||0)/tot/MIX[y]));
+    let pick=null;for(const role of roles){const cand=pool.filter(u=>ROLE(u)===role&&afford(1,UNITS[u].cost)).sort((x,y)=>UNITS[y].ep-UNITS[x].ep||(Math.random()<.5?1:-1));if(cand.length){pick=cand[Math.random()<.3&&cand.length>1?1:0];break}}
+    if(!pick)pick=pool.filter(u=>afford(1,UNITS[u].cost)&&ROLE(u)==='front')[0];
+    if(pick)enqueue(b,pick,1)}
+  // Flugplatz und Flugzeuge (Weltkriegszeit), Turm-Ausbau
+  if(ep>=6){const afs=blds.filter(b=>b.type==='airfield');
+    if(!afs.length&&workers.length>=8&&!unbuilt.some(b=>b.type==='airfield'))aiPlace('airfield',hq,110,230);
+    for(const b of afs){if(!b.built||b.queue.length>=1)continue;const planes=mine.filter(e=>e.kind==='unit'&&UNITS[e.type].air).length;if(planes>=4+ep)continue;
+      const cand=Object.keys(UNITS).filter(u=>UNITS[u].from==='airfield'&&(!UNITS[u].nation||UNITS[u].nation===G.nation[1])&&afford(1,UNITS[u].cost));if(cand.length)enqueue(b,cand[(Math.random()*cand.length)|0],1)}}
+  for(const b of blds)if(b.type==='tower'&&b.built&&!b.spec){const dist=Math.hypot(b.x-hq.x,b.y-hq.y);towerSpec(1,b.id,dist>330?'obs':'def');break}
+  // Sanitäter laufen hinter der Armee her
+  if(healers.length&&army.length){const c=army.reduce((p,m)=>({x:p.x+m.x/army.length,y:p.y+m.y/army.length}),{x:0,y:0});for(const h of healers){if(h.state==='idle'||h.state==='move'){const d=Math.hypot(h.x-c.x,h.y-c.y);if(d>110&&(!h.dest||Math.hypot(h.dest.x-c.x,h.dest.y-c.y)>90)){h.state='move';h.dest={x:c.x-(c.x-hq.x)*.08,y:c.y};h.pf=null}}}}
   // Kampfrausch, sobald eine größere Gruppe im Gefecht ist
   {const fighting=army.filter(m=>m.state==='attack');if(fighting.length>=5&&G.t>(ai.rageT||0)){ai.rageT=G.t+30;useRage(1,fighting.map(m=>m.id))}}
   // Verteidigung

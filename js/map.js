@@ -2,14 +2,15 @@
    (Teil des Spiels; alle game-Dateien teilen sich die globalen Namen, Ladereihenfolge siehe index.html.) */
 'use strict';
 /* ---------- entities ---------- */
-function reg(e){G.ents.push(e);G.byId.set(e.id,e);if(e.kind==='bld'||(e.kind==='node'&&!e.sea))navStamp(e,1);return e}
+function reg(e){G.ents.push(e);G.byId.set(e.id,e);if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea))navStamp(e,1);return e}
 function addUnit(type,team,x,y,fid){const d=UNITS[type],lvl=G.epoch[team],hp=unitHp(team,type,lvl);return reg({id:fid!==undefined?fid:G.nid++,kind:'unit',type,team,x,y,r:d.r,lvl,hp,maxHp:hp,state:'idle',cd:0,carry:0,ctype:null,rtype:null,tid:null,dest:null,amove:null,fa:team===0?-1.57:1.57})}
-function addBld(type,team,x,y,built,fid){const d=BLDS[type],lvl=G.epoch[team],mh=Math.round(d.hp*LVL.bhp[lvl]);return reg({id:fid!==undefined?fid:G.nid++,kind:'bld',type,team,x,y,r:d.r,lvl,maxHp:mh,hp:built?mh:1,built,prog:built?1:0,queue:[],rally:null,cd:0})}
+function wallNeighbor(b){let best=null,bd=48;for(const o of G.ents)if(o!==b&&!o.dead&&o.kind==='bld'&&(o.type==='wall'||o.type==='gate')&&o.team===b.team){const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<bd){bd=d;best=o}}return best}
+function addBld(type,team,x,y,built,fid){const d=BLDS[type],lvl=G.epoch[team],mh=Math.round(d.hp*LVL.bhp[lvl]*(1+(G.nfx?G.nfx[team].bhp:0)));const b=reg({id:fid!==undefined?fid:G.nid++,kind:'bld',type,team,x,y,r:d.r,lvl,maxHp:mh,hp:built?mh:1,built,prog:built?1:0,queue:[],rally:null,cd:0});if(type==='wall'||type==='gate'){const n=wallNeighbor(b);if(n){const a=Math.atan2(n.y-b.y,n.x-b.x);b.ang=a;if(n.type==='wall'&&n.ang===undefined)n.ang=a}}return b}
 function addAnimal(type,x,y,fid){const d=ANIMALS[type];return reg({id:fid!==undefined?fid:G.nid++,kind:'animal',type,team:-1,x,y,r:d.r,hp:d.hp,maxHp:d.hp,lvl:0,state:'idle',cd:0,home:{x,y},fa:Math.random()*6.283,wt:Math.random()*4})}
 function addNode(type,x,y){const d=NODES[type];return reg({id:G.nid++,kind:'node',type,team:-1,x,y,r:d.r,rt:d.rt,sea:!!d.sea,amount:d.amt,maxAmt:d.amt,regen:d.regen||0,seed:Math.random()})}
 const rn=r=>tr(RN[r]);
 function get(id){const e=G.byId.get(id);return e&&!e.dead?e:null}
-function nameOf(e){return e.kind==='animal'?tr(ANIMALS[e.type].name):e.kind==='unit'?tr(UNITS[e.type].name):e.kind==='bld'?tr(BLDS[e.type].name):tr(NODES[e.type].name)}
+function nameOf(e){return e.kind==='animal'?tr(ANIMALS[e.type].name):e.kind==='unit'?tr(UNAMES[e.type]?UNAMES[e.type][Math.min(5,e.lvl||0)]:UNITS[e.type].name):e.kind==='bld'?tr(BLDS[e.type].name):tr(NODES[e.type].name)}
 
 /* ---------- map ---------- */
 function genMap(seed){
@@ -23,7 +24,7 @@ function genMap(seed){
   const bases=[{x:A.x,y:A.y,s:1},{x:W-A.x,y:H-A.y,s:-1}];
   genRelief(A,bases[1],seed,curMap);navInit(); // Hügel, Plateaus, Klippen
   if(MAPS[curMap]&&MAPS[curMap].cliff){carveCoast(A.x,A.y,380);carveCoast(W-A.x,H-A.y,380);navInit()}
-  const GAP={tree:15,bush:12,stone:12,iron:12,gold:12,fish:10,dolphin:14,whale:20};
+  const GAP={tree:15,bush:12,stone:14,iron:14,gold:14,oil:16,fish:10,dolphin:14,whale:20};
   const free=(x,y,r,type)=>!G.ents.some(e=>Math.hypot(e.x-x,e.y-y)<e.r+r+GAP[type]);
   const cluster=(type,cx,cy,n,spread,okFn)=>{for(let i=0;i<n;i++){for(let k=0;k<20;k++){const a=R()*6.283,d=Math.sqrt(R())*spread;const x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d,r=NODES[type].r;if(!okFn(x,y,r))continue;if(!free(x,y,r,type))continue;addNode(type,x,y);break}}};
   const landOk=(x,y,r)=>okSpot(x,y,r+4);
@@ -36,7 +37,7 @@ function genMap(seed){
   bases.forEach((b,i)=>{for(let k=0;k<4;k++)addUnit('worker',i,b.x+b.s*(k*18-27),b.y+b.s*58)});
   // Startvorkommen rund um Basis A (zufällige Richtung, gültiges Land), danach gespiegelt auf Basis B
   const near=(type,n,spread,dmin,dmax,okFn)=>{for(let k=0;k<60;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!okFn(x,y,spread*.5))continue;const n0=G.ents.length;cluster(type,x,y,n,spread,okFn);if(G.ents.length-n0>=Math.min(n,3)){mirror(n0);return}}};
-  near('tree',28,92,175,265,landOk);near('tree',24,88,285,400,landOk);near('bush',8,52,110,200,landOk);near('bush',6,44,290,430,landOk);near('stone',2,52,170,270,landOk);near('iron',3,52,210,330,landOk);near('iron',2,50,430,640,landOk);near('gold',1,40,380,560,landOk);
+  near('tree',28,92,175,265,landOk);near('tree',24,88,285,400,landOk);near('bush',8,52,110,200,landOk);near('bush',6,44,290,430,landOk);near('stone',2,52,170,270,landOk);near('iron',3,52,210,330,landOk);near('iron',2,50,430,640,landOk);near('gold',1,40,380,560,landOk);near('oil',1,40,520,760,landOk);
   // Fische in Küstennähe von Basis A
   const nearWater=(type,n,spread,dmin,dmax)=>{for(let k=0;k<200;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!waterOk[type](x,y,spread*.4))continue;const n0=G.ents.length;cluster(type,x,y,n,spread,waterOk[type]);if(G.ents.length>n0){mirror(n0);return}}};
   nearWater('fish',5,55,180,520);nearWater('fish',4,50,250,650);nearWater('dolphin',3,50,350,900);
@@ -44,10 +45,11 @@ function genMap(seed){
   const feats=[];
   const cnt=n=>Math.round(n*Math.sqrt(AREA)*1.1);
   for(let i=0;i<cnt(8);i++)feats.push(['tree',22+Math.floor(R()*12),98,landOk]);
-  for(let i=0;i<cnt(3);i++)feats.push(['stone',2,52,landOk]);
+  for(let i=0;i<cnt(5);i++)feats.push(['stone',2,56,landOk]);
   for(let i=0;i<cnt(3);i++)feats.push(['bush',5,44,landOk]);
-  for(let i=0;i<cnt(4);i++)feats.push(['iron',2,50,landOk]);
-  for(let i=0;i<cnt(2);i++)feats.push(['gold',1+Math.floor(R()*2),42,landOk]);
+  for(let i=0;i<cnt(5);i++)feats.push(['iron',2,54,landOk]);
+  for(let i=0;i<cnt(2);i++)feats.push(['oil',1,40,landOk]);
+  for(let i=0;i<cnt(3);i++)feats.push(['gold',1+Math.floor(R()*2),46,landOk]);
   for(let i=0;i<cnt(10);i++)feats.push(['fish',4+Math.floor(R()*2),55,waterOk.fish]);
   for(let i=0;i<cnt(6);i++)feats.push(['dolphin',2+Math.floor(R()*2),50,waterOk.dolphin]);
   for(let i=0;i<cnt(4);i++)feats.push(['whale',1+Math.floor(R()*2),70,waterOk.whale]);

@@ -146,3 +146,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Karten Flusstal und Gebirgspass, Berge mit Schnee überall, Biome, Wegfindungs-Fehler behoben
 - [x] Arbeiter reparieren/bauen selbst, Frontlinie, Berater reagiert auf Angriff, Felder, Heiler, Kampfrausch, Gegenstücke
 - [ ] Idee: Handelsrouten/Schiffe mit Gold, Inselkarten mit Schiffsüberfahrt, Formationen, weitere Fähigkeiten pro Einheit
+
+## Runde J
+- [x] KI-Bauabstände, Arbeiter-Verteilung, verborgene Erze, Öl, Mauern/Tore, Sanitäter, Formationen, Nationen, Flugzeuge/Flugplatz
+- [ ] Diktaturen/Asien-Zweig im Zeitalter-Baum, 21. Jahrhundert, bessere Flugzeugmodelle, Luftabwehr, Mehrspieler für Nationen

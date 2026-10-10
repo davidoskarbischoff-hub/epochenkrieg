@@ -103,7 +103,7 @@ function draw(){
     if(p.big||p.gun){ctx.fillStyle=p.big?'#2b2b30':'#46464c';ctx.beginPath();ctx.arc(q.x,q.y,(p.big?4.2:2)*k,0,6.283);ctx.fill();continue}
     const a=scr(p.x-Math.cos(p.a)*7,p.y-Math.sin(p.a)*7,16);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(q.x,q.y);ctx.stroke()}
   for(const e of vis){if(e.kind==='unit')ovUnit(e);else if(e.kind==='bld')ovBld(e)}
-  for(const e of vis)if(e.kind!=='node'&&(s.has(e.id)||e.hp<e.maxHp))hpBar(e);
+  if(OPT.hpBars!=='off')for(const e of vis)if(e.kind!=='node'&&(s.has(e.id)||OPT.hpBars==='all'&&e.kind==='unit'||e.hp<e.maxHp))hpBar(e);
   for(const e of vis)if(e.kind==='node'&&s.has(e.id))atGround(e.x,e.y,entH(e)+6,()=>{ctx.fillStyle='rgba(20,15,10,.75)';ctx.fillRect(-12,0,24,4);ctx.fillStyle='#ecdfc3';ctx.fillRect(-12,0,24*e.amount/e.maxAmt,4)});
   if(placing&&pw){const d=BLDS[placing];ctx.setLineDash([4,6]);ctx.lineWidth=1;ctx.strokeStyle='rgba(208,83,60,.85)';if(d.shoot)groundCircle(pw.x,pw.y,d.r+d.shoot.rng);ctx.strokeStyle='rgba(143,191,99,.9)';groundCircle(pw.x,pw.y,d.claim);ctx.setLineDash([])}
   // Upgrade und Forschung: Balken über dem Gebäude bzw. der Einheit
@@ -118,7 +118,7 @@ function draw(){
 function drawMini(){
   mctx.setTransform(dpr,0,0,dpr,0,0);mctx.drawImage(bgSmall,0,0,MW,MH);const kx=MW/W,ky=MH/H;
   for(const e of G.ents){if(e.dead||!shown(e)||(e.kind==='bld'&&e.team===1))continue;
-    if(e.kind==='node'){mctx.fillStyle=e.type==='tree'?'#2b4f27':e.type==='bush'?'#c2553f':e.type==='iron'?'#6d7886':e.type==='gold'?'#e6c35a':e.type==='fish'?'#bfe3ee':e.type==='dolphin'?'#7fa6c0':e.type==='whale'?'#2c3f66':'#c8c4ba';mctx.fillRect(e.x*kx-1,e.y*ky-1,2,2)}
+    if(e.kind==='node'){mctx.fillStyle=e.type==='tree'?'#2b4f27':e.type==='bush'?'#c2553f':e.type==='iron'?'#6d7886':e.type==='gold'?'#e6c35a':e.type==='oil'?'#2a2724':e.type==='fish'?'#bfe3ee':e.type==='dolphin'?'#7fa6c0':e.type==='whale'?'#2c3f66':'#c8c4ba';mctx.fillRect(e.x*kx-1,e.y*ky-1,2,2)}
     else if(e.kind==='bld'){mctx.fillStyle=TC[e.team];const s=e.type==='hq'?6:4;mctx.fillRect(e.x*kx-s/2,e.y*ky-s/2,s,s);mctx.strokeStyle='#1d1812';mctx.lineWidth=.8;mctx.strokeRect(e.x*kx-s/2,e.y*ky-s/2,s,s)}
     else if(e.kind==='animal'){mctx.fillStyle=ANIMALS[e.type].agg?'#e0a050':'#c9b27a';mctx.fillRect(e.x*kx-1,e.y*ky-1,2,2)}
     else{mctx.fillStyle=e.team===0?'#a9c8f0':'#f2a28c';mctx.fillRect(e.x*kx-1.2,e.y*ky-1.2,2.4,2.4)}}

@@ -9,6 +9,7 @@ const ICONS={
   stone:`<polygon points="1.6,12 3.6,6 8.6,2.6 14,6.6 13.2,12.6 7.4,14.4" fill="#aeaaa0" ${SV}/><polygon points="3.6,6 8.6,2.6 14,6.6 8.8,8.6" fill="#dcd8cd" ${SV}/><polyline points="8.8,8.6 7.4,14.4" fill="none" stroke="#2a2119" stroke-width=".8"/>`,
   iron:`<polygon points="2.6,7 13.4,7 15,12.6 1,12.6" fill="#65738a" ${SV}/><polygon points="2.6,7 13.4,7 12.2,4 3.8,4" fill="#a4b2c6" ${SV}/><circle cx="8" cy="9.8" r="1.1" fill="#f0903a"/>`,
   gold:`<circle cx="8" cy="8" r="6.2" fill="#e6c35a" ${SV}/><circle cx="8" cy="8" r="4.2" fill="none" stroke="#a07a1a" stroke-width="1.1"/><path d="M8 5v6M6.4 6.6h2.6a1 1 0 010 2H6.4" fill="none" stroke="#a07a1a" stroke-width="1"/>`,
+  oil:`<path d="M8 1.5C5.6 5.2 3.6 7.4 3.6 10a4.4 4.4 0 008.8 0C12.4 7.4 10.4 5.2 8 1.5z" fill="#1d1a18" ${SV}/><path d="M6 10a2.2 2.2 0 001.6 2.1" fill="none" stroke="#6d6a66" stroke-width="1"/>`,
   pop:`<circle cx="8" cy="4.8" r="3" fill="#e8c29a" ${SV}/><path d="M1.8 15c0-4.4 2.6-6 6.2-6s6.2 1.6 6.2 6z" fill="#5f8fd3" ${SV}/>`
 };
 const icon=n=>`<svg class="ic ic-${n}" viewBox="0 0 16 16" aria-hidden="true">${ICONS[n]||''}</svg>`;

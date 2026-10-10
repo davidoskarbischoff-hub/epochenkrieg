@@ -11,11 +11,12 @@ function simAdvance(raw){
 let bgLast=performance.now();
 try{const w=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(0),50)'],{type:'text/javascript'})));
   w.onmessage=()=>{const now=performance.now(),raw=Math.min(.25,(now-bgLast)/1000);bgLast=now;if(document.hidden&&NET.mp)simAdvance(raw)}}catch(_){}
+let fpsN=0,fpsT=0;
 function frame(ts){
   const raw=Math.min(.1,(ts-last)/1000||0);last=ts;bgLast=performance.now();
   simAdvance(raw);
   if(G&&G.over&&!G.overShown){updateUI();showEnd()}
-  scrollCam(raw);draw();
+  scrollCam(raw);draw();if(OPT.fps){fpsN++;fpsT+=raw;if(fpsT>=.5){const f=document.getElementById('fps');if(f)f.textContent=Math.round(fpsN/fpsT)+' FPS';fpsN=0;fpsT=0}}
   uiT+=raw;if(G&&uiT>.15){uiT=0;updateUI()}
   requestAnimationFrame(frame);
 }

@@ -1,6 +1,6 @@
 /* Epochenkrieg – Klang. Alles wird im Browser erzeugt (Web Audio), keine Audiodateien. */
 const SND=(()=>{
-let cur=null,ac=null,master,sfxG,musG,musBase,musWar,musHi,muted=false,bat=0,noiseBuf,musicV=.7,sfxV=.7,musTimer=null,epoch=0,fight=0,alertV=0,tn=0,mdst=null;
+let flags={war:true,voice:true},cur=null,ac=null,master,sfxG,musG,musBase,musWar,musHi,muted=false,bat=0,noiseBuf,musicV=.7,sfxV=.7,musTimer=null,epoch=0,fight=0,alertV=0,tn=0,mdst=null;
 const last={};
 try{muted=localStorage.getItem('ek-mute')==='1'}catch(_){}
 try{const m=localStorage.getItem('ek-music-v'),f=localStorage.getItem('ek-sfx-v');if(m!==null)musicV=+m;if(f!==null)sfxV=+f}catch(_){}
@@ -88,7 +88,7 @@ const FX={
 };
 const GAP={grunt:.5,yell:1.2,horn:4,growl:.8,deer:.6,chop:.18,mine:.18,pick:.18,hammer:.18,hit:.06,arrow:.06,die:.05,click:.03,select:.05,order:.05,drop:.1,crumble:.2};
 function play(name,pan=0,vol=1){
-  if(!ac||sfxV<=0||!FX[name])return;
+  if(!ac||sfxV<=0||!FX[name])return;if(!flags.voice&&(name==='grunt'||name==='yell'||name==='horn'))return;
   const n=ac.currentTime;if(last[name]&&n-last[name]<(GAP[name]||.02))return;last[name]=n;
   if(name==='hit'||name==='arrow'||name==='die'||name==='crumble')fight=Math.min(1,fight+.3);
   const b=ac.createGain(),pn=ac.createStereoPanner();b.gain.value=vol;pn.pan.value=Math.max(-.9,Math.min(.9,pan));b.connect(pn);pn.connect(sfxG);cur=b;
@@ -172,7 +172,17 @@ function pieceMarsch(){ // Industriezeit: kräftiger Marsch im 2/4-Takt (eigene 
   const roots=['C3','C3','G2','C3','F2','C3','G2','C3','C3','C3','F2','C3','G2','G2','C3','C3'];
   for(let bar=0;bar<16;bar++){const r=roots[bar],o=bar*2;ev.push({b:o,m:midi(r),d:.8,i:'pluck',v:.42});ev.push({b:o+1,m:midi(r)+12,d:.6,i:'pluck',v:.26});ev.push({b:o+1,m:midi(r)+16,d:.6,i:'pluck',v:.22});ev.push({b:o,m:0,d:0,i:'drum',v:.45});ev.push({b:o+1,m:0,d:0,i:'snare',v:.4});ev.push({b:o+1.5,m:0,d:0,i:'snare',v:.25})}
   return{bpm:116,len:32,ev}}
-const PIECES=[pieceSatie(),piecePachelbel(),pieceGrieg(),pieceGreensleeves(),pieceOde(),pieceMarsch()];
+function pieceWelt(){ // Weltkriegszeit: düsterer Marsch in Moll, Kleine Trommel und tiefe Bläser (Eigenkomposition)
+  const ev=[],A=[[0,'A4',1],[1,'C5',.5],[1.5,'A4',.5],[2,'E5',1.5],[3.5,'D5',.5],[4,'C5',1],[5,'B4',.5],[5.5,'C5',.5],[6,'A4',2],
+    [8,'A4',1],[9,'C5',.5],[9.5,'E5',.5],[10,'F5',1.5],[11.5,'E5',.5],[12,'D5',1],[13,'C5',.5],[13.5,'B4',.5],[14,'A4',2]];
+  const B=[[0,'E5',1],[1,'E5',.5],[1.5,'F5',.5],[2,'G5',1.5],[3.5,'F5',.5],[4,'E5',1],[5,'D5',.5],[5.5,'E5',.5],[6,'C5',2],
+    [8,'F5',1],[9,'E5',.5],[9.5,'D5',.5],[10,'C5',1.5],[11.5,'B4',.5],[12,'C5',1],[13,'D5',.5],[13.5,'E5',.5],[14,'A4',2]];
+  A.forEach(([b,n,d])=>ev.push({b,m:midi(n),d:d*1.05,i:'brass',v:.34}));B.forEach(([b,n,d])=>ev.push({b:16+b,m:midi(n),d:d*1.05,i:'brass',v:.34}));
+  A.forEach(([b,n,d])=>ev.push({b:16+b,m:midi(n)+12,d:d*1.05,i:'flute',v:.14}));
+  const roots=['A2','A2','F2','E2','A2','A2','D2','E2'];
+  for(let bar=0;bar<16;bar++){const r=roots[bar%8],o=bar*2;ev.push({b:o,m:midi(r),d:1.6,i:'pad',v:.34});ev.push({b:o,m:midi(r)+12,d:.8,i:'pluck',v:.3});ev.push({b:o,m:0,d:0,i:'drum',v:.5});for(const k of[.5,1,1.25,1.5])ev.push({b:o+k,m:0,d:0,i:'snare',v:k===1?.4:.22})}
+  return{bpm:104,len:32,ev}}
+const PIECES=[pieceSatie(),piecePachelbel(),pieceGrieg(),pieceGreensleeves(),pieceOde(),pieceMarsch(),pieceWelt()];
 
 /* Instrumente */
 const INST={
@@ -202,7 +212,7 @@ const INST={
 
 /* Kampfmusik: eine zweite Ebene (Trommeln, tiefe Bläser, Streicher) wird über die Epochenmusik gelegt, sobald gekämpft wird */
 function pieceWar(ep){
-  const ev=[],bpm=[104,112,118,106,126,132][ep],roots=['D2','E2','D2','A2','E2','A2'],rt=midi(roots[ep]),osc=[0,0,3,0,5,0,3,1];
+  const ev=[],bpm=[104,112,118,106,126,132,138][ep],roots=['D2','E2','D2','A2','E2','A2','C2'],rt=midi(roots[ep]),osc=[0,0,3,0,5,0,3,1];
   for(let bar=0;bar<4;bar++){const o=bar*4;
     for(let k=0;k<4;k++){ev.push({b:o+k,m:0,d:0,i:'drum',v:.55});if(ep>=2&&(k===1||k===3))ev.push({b:o+k,m:0,d:0,i:'snare',v:.5});if(k===2)ev.push({b:o+k+.5,m:rt+19,d:.3,i:'tom',v:.35})}
     if(bar===3)for(let k=0;k<4;k++)ev.push({b:o+3+k*.25,m:rt+24-k*2,d:.2,i:'tom',v:.4});
@@ -214,11 +224,11 @@ function pieceWar(ep){
   }
   return{bpm,len:16,ev}}
 /* Höchste Spannung: schnelle Trommeln, Streicher-Tremolo und Bläserstöße kommen dazu, wenn große Kämpfe toben */
-function pieceHi(ep){const ev=[],rt=midi(['D2','E2','D2','A2','E2','A2'][ep]);
+function pieceHi(ep){const ev=[],rt=midi(['D2','E2','D2','A2','E2','A2','C2'][ep]);
   for(let bar=0;bar<4;bar++){const o=bar*4;for(let k=0;k<16;k++)ev.push({b:o+k*.25,m:0,d:0,i:'snare',v:k%4===0?.34:.18});
     ev.push({b:o,m:rt+24,d:2,i:ep>=3?'brass':'strings',v:.3});ev.push({b:o+2,m:rt+27,d:2,i:ep>=3?'brass':'strings',v:.3});if(ep>=4)for(let k=0;k<8;k++)ev.push({b:o+k*.5,m:rt+36+(k%2)*7,d:.4,i:'pluck',v:.2})}
-  return{bpm:[104,112,118,106,126,132][ep],len:16,ev}}
-const WARPIECES=[0,1,2,3,4,5].map(pieceWar),HIPIECES=[0,1,2,3,4,5].map(pieceHi);
+  return{bpm:[104,112,118,106,126,132,138][ep],len:16,ev}}
+const WARPIECES=[0,1,2,3,4,5,6].map(pieceWar),HIPIECES=[0,1,2,3,4,5,6].map(pieceHi);
 const base={cur:-1,loopT:0,done:0},war={cur:-1,loopT:0,done:0},hi={cur:-1,loopT:0,done:0};
 function runLayer(L,P,dst){
   const spb=60/P.bpm;
@@ -237,12 +247,12 @@ function schedule(){
   fight*=.93;const want=Math.max(fight,alertV,bat);tn+=(want-tn)*.18;const n=ac.currentTime;
   if(sfxV>0&&tn<.12&&epoch<4&&Math.random()<.035)chirp(n+.05+Math.random()*.2);
   if(musicV<=0)return;
-  musBase.gain.setTargetAtTime(1-.6*tn,n,.6);musWar.gain.setTargetAtTime(tn>.1?Math.min(1.1,Math.pow(tn,1.15)*1.15):0,n,.5);
+  musBase.gain.setTargetAtTime(1-.6*(flags.war?tn:0),n,.6);musWar.gain.setTargetAtTime(tn>.1&&flags.war?Math.min(1.1,Math.pow(tn,1.15)*1.15):0,n,.5);
   if(base.cur!==epoch){base.cur=epoch;base.loopT=n+.4;base.done=0}
   runLayer(base,PIECES[base.cur],musBase);
-  if(tn>.1){if(war.cur!==epoch){war.cur=epoch;war.loopT=n+.25;war.done=0}runLayer(war,WARPIECES[epoch],musWar)}else war.cur=-1;
-  musHi.gain.setTargetAtTime(tn>.62?Math.min(1,(tn-.5)*2):0,n,.5);
-  if(tn>.62){if(hi.cur!==epoch){hi.cur=epoch;hi.loopT=war.cur===epoch?war.loopT:n+.25;hi.done=0}runLayer(hi,HIPIECES[epoch],musHi)}else hi.cur=-1;
+  if(tn>.1&&flags.war){if(war.cur!==epoch){war.cur=epoch;war.loopT=n+.25;war.done=0}runLayer(war,WARPIECES[epoch],musWar)}else war.cur=-1;
+  musHi.gain.setTargetAtTime(tn>.62&&flags.war?Math.min(1,(tn-.5)*2):0,n,.5);
+  if(tn>.62&&flags.war){if(hi.cur!==epoch){hi.cur=epoch;hi.loopT=war.cur===epoch?war.loopT:n+.25;hi.done=0}runLayer(hi,HIPIECES[epoch],musHi)}else hi.cur=-1;
 }
 
 function applyGains(){
@@ -252,6 +262,7 @@ function applyGains(){
 return{
   init,play,
   setEpoch(e){epoch=Math.max(0,Math.min(PIECES.length-1,e|0))},
+  setFlags(f){Object.assign(flags,f)},
   setBattle(v){bat=Math.max(0,Math.min(1,v))},
   setMute(m){muted=!!m;try{localStorage.setItem('ek-mute',muted?'1':'0')}catch(_){}if(ac)master.gain.setTargetAtTime(muted?0:.8,ac.currentTime,.05)},
   get muted(){return muted},

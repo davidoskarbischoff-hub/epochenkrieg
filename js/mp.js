@@ -7,7 +7,7 @@
    Code wie im Einzelspiel. */
 function flipTeams(){
   for(const e of G.ents)if(e.team>=0)e.team=1-e.team;
-  for(const k of ['res','epoch','adv','tech','rs','tfx','pop','cap','jobs']){const a=G[k];[a[0],a[1]]=[a[1],a[0]]}
+  for(const k of ['res','epoch','adv','tech','rs','tfx','pop','cap','jobs','nation','nfx']){const a=G[k];[a[0],a[1]]=[a[1],a[0]]}
   const st=G.stats;[st.lost[0],st.lost[1]]=[st.lost[1],st.lost[0]];[st.trained[0],st.trained[1]]=[st.trained[1],st.trained[0]];
   for(const js of G.jobs)for(const j of js)j.team=1-j.team;
   if(G.over)G.over=G.over==='win'?'lose':'win'}
@@ -19,16 +19,16 @@ function encodeSnap(){
     else if(e.kind==='bld')B.push({i:e.id,ty:e.type,m:e.team,x:r1(e.x),y:r1(e.y),h:Math.round(e.hp),H:e.maxHp,l:e.lvl,b:e.built?1:0,p:Math.round(e.prog*1000)/1000,an:e.ang||0,u:e.upj?1:0,qu:e.team===0?e.queue.map(q=>({type:q.type,t:r1(q.t),blocked:q.blocked?1:0})):0,r:e.team===0&&e.rally?e.rally:0});
     else if(e.kind==='animal')A.push({i:e.id,ty:e.type,x:r1(e.x),y:r1(e.y),a:Math.round(e.fa*100)/100,h:Math.round(e.hp),s:e.state,sw:rel(e.swing),mv:rel(e.mvT)});
     else if(e.kind==='node'&&(e.amount<e.maxAmt-.5||e.snapLow)){N.push([e.id,Math.round(e.amount)]);e.snapLow=e.amount<e.maxAmt-.5}}
-  return{t:r1(G.t),over:G.over,res:G.res.map(r=>({food:Math.floor(r.food),wood:Math.floor(r.wood),stone:Math.floor(r.stone),iron:Math.floor(r.iron),gold:Math.floor(r.gold||0)})),epoch:G.epoch.slice(),
+  return{t:r1(G.t),over:G.over,res:G.res.map(r=>({food:Math.floor(r.food),wood:Math.floor(r.wood),stone:Math.floor(r.stone),iron:Math.floor(r.iron),gold:Math.floor(r.gold||0),oil:Math.floor(r.oil||0)})),epoch:G.epoch.slice(),nat:G.nation.slice(),
     adv:G.adv.map(a=>a?{t:r1(a.t),time:a.time}:null),tech:G.tech.map(t=>[...t]),rs:G.rs.map(a=>a.map(r=>({id:r.id,t:r1(r.t),time:r.time}))),
     jobs:G.jobs.map(a=>a.map(j=>({label:j.label,t:r1(j.t),time:j.time,to:j.to,n:j.n,team:j.team}))),stats:{lost:G.stats.lost.slice(),trained:G.stats.trained.slice()},
     U,B,N,A,P:G.proj.map(p=>[Math.round(p.x),Math.round(p.y),Math.round(p.a*100)/100,p.big?1:0,p.gun?1:0])}}
 function sendSnap(){if(!NET.send)return;flipTeams();let snap;try{snap=encodeSnap()}finally{flipTeams()}snap.ev=G.ev;G.ev=[];NET.send({t:'snap',s:snap})}
-function removeEnt(e){if(e.dead)return;e.dead=true;if(e.kind==='bld'||(e.kind==='node'&&!e.sea))navStamp(e,-1);sel.delete(e.id)}
+function removeEnt(e){if(e.dead)return;e.dead=true;if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea))navStamp(e,-1);sel.delete(e.id)}
 function applySnap(s){
   if(!G||!NET.client)return;
   NET.lastSnap=performance.now();
-  G.t=s.t;G.over=s.over;G.res=s.res;G.epoch=s.epoch;G.adv=s.adv;G.tech=s.tech.map(a=>new Set(a));G.tfx=G.tech.map(techFx);G.rs=s.rs;
+  G.t=s.t;G.over=s.over;G.res=s.res;G.epoch=s.epoch;if(s.nat){G.nation=s.nat;G.nfx=s.nat.map(nationFx)}G.adv=s.adv;G.tech=s.tech.map(a=>new Set(a));G.tfx=G.tech.map(techFx);G.rs=s.rs;
   G.jobs=s.jobs.map(a=>a.map(j=>({...j,ids:[],done:false})));G.stats=s.stats;
   const seen=new Set();
   for(const r of s.U){seen.add(r.i);let e=G.byId.get(r.i);if(!e||e.dead){e=addUnit(r.ty,r.m,r.x,r.y,r.i)}
@@ -61,10 +61,11 @@ function execRemote(m){
       case'amove':attackMove(m.x,m.y,!!m.append);break;
       case'rage':useRage(0,(m.ids||[]).slice(0,80));break;
       case'trade':if(RES.includes(m.rt)&&m.rt!=='gold')trade(0,m.rt,m.dir==='buy'?'buy':'sell');break;
-      case'place':placing=m.type;if(BLDS[m.type]&&BLDS[m.type].ep<=G.epoch[0])tryPlace(m.x,m.y,!!m.keep);break;
+      case'place':placing=m.type;wallAng=typeof m.ang==='number'?m.ang:null;if(BLDS[m.type]&&BLDS[m.type].ep<=G.epoch[0])tryPlace(m.x,m.y,!!m.keep);break;
       case'train':{const b=get(m.b);if(b&&b.team===0&&b.built&&UNITS[m.type]&&UNITS[m.type].from===b.type)enqueue(b,m.type,0);break}
-      case'adv':advance(0);break;
+      case'adv':advance(0,m.nation);break;
       case'upg':startUpgrade(0,m.key);break;
+      case'tspec':towerSpec(0,m.id,m.kind);break;
       case'tech':startResearch(0,m.id);break;
       case'cq':{const b=get(m.b);if(b&&b.team===0)cancelQueue(b,m.i);break}
       case'halt':ownSel().forEach(u=>{if(u.kind==='unit'){u.state='idle';u.amove=null;u.q=[];u.loop=null}});break;

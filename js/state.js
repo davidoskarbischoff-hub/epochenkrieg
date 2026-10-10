@@ -11,12 +11,15 @@ const FC=20,FW=W/FC,FH=H/FC;
 let visF=null,exF=null,terrK=null,terrT=null,fogEx=null,fogVis=null,fogCv=null,fogCtx=null,fogImg=null,fogT=0,terr=null,terrCv=null,terrCtx=null,terrImg=null;
 function fogReset(){fogEx=new Uint8Array(FW*FH);fogVis=new Uint8Array(FW*FH);visF=new Float32Array(FW*FH);exF=new Float32Array(FW*FH);terrK=new Float32Array(FW*FH);terrT=new Int8Array(FW*FH);fogCv=document.createElement('canvas');fogCv.width=FW;fogCv.height=FH;fogCtx=fogCv.getContext('2d');fogImg=fogCtx.createImageData(FW,FH);terr=new Int8Array(FW*FH);terrCv=document.createElement('canvas');terrCv.width=FW;terrCv.height=FH;terrCtx=terrCv.getContext('2d');terrImg=terrCtx.createImageData(FW,FH);fogT=0;fogUpdate()}
 const fogIdx=(x,y)=>Math.max(0,Math.min(FH-1,y/FC|0))*FW+Math.max(0,Math.min(FW-1,x/FC|0));
-function sightOf(e){return e.kind==='unit'?UNITS[e.type].sight:e.built?BLDS[e.type].sight:50}
+/* Erze, Gold und Öl sieht man erst, wenn das Gebiet erkundet wurde (Nebel des Krieges); Bäume und Büsche sieht man immer */
+const HIDDEN_NODES=new Set(['stone','iron','gold','oil']);
+function nodeKnown(e){return !HIDDEN_NODES.has(e.type)||!fogEx||fogEx[fogIdx(e.x,e.y)]===1}
+function sightOf(e){return e.kind==='unit'?UNITS[e.type].sight:e.built?BLDS[e.type].sight*(e.spec==='obs'?2:1):50}
 /* Gebiet: jedes fertige Gebäude beansprucht einen Kreis; bei Überschneidung gewinnt das nähere Gebäude */
 const ss=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t)};
 function terrUpdate(){
   terrK.fill(9);terrT.fill(-1);terr.fill(-1);
-  for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const rad=BLDS[e.type].claim*(1+(G.tfx?G.tfx[e.team].claim:0));if(!BLDS[e.type].claim)continue;const rc=rad/FC,cx=e.x/FC,cy=e.y/FC,R=rc*1.14;
+  for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const rad=BLDS[e.type].claim*(1+(G.tfx?G.tfx[e.team].claim:0))*(e.spec==='obs'?1.7:1);if(!BLDS[e.type].claim)continue;const rc=rad/FC,cx=e.x/FC,cy=e.y/FC,R=rc*1.14;
     for(let y=Math.max(0,Math.floor(cy-R));y<=Math.min(FH-1,Math.ceil(cy+R));y++)for(let x=Math.max(0,Math.floor(cx-R));x<=Math.min(FW-1,Math.ceil(cx+R));x++){const dx=x+.5-cx,dy=y+.5-cy,k=Math.sqrt(dx*dx+dy*dy)/rc,i=y*FW+x;if(k<=1.14&&k<terrK[i]){terrK[i]=k;terrT[i]=e.team}}}
   for(let i=0;i<terr.length;i++)if(terrK[i]<=1)terr[i]=terrT[i];
 }
@@ -26,7 +29,7 @@ function placeBlock(type,x,y){
   const d=BLDS[type];
   if(type==='harbor'){if(!validSpot(x,y,d.r,true))return tr('Hier ist kein Platz.');if(!harborOk(x,y,d.r))return tr('Der Hafen muss zwischen Land und flachem Wasser stehen.')}
   else if(!validSpot(x,y,d.r))return tr('Hier ist kein Platz.');
-  if(type==='mine'&&!G.ents.some(n=>n.kind==='node'&&!n.dead&&MINE_RT[n.rt]&&Math.hypot(n.x-x,n.y-y)<MINE_RNG*.85))return tr('Eine Mine muss in der Nähe von Eisen oder Gold stehen.');
+  if((type==='mine'||type==='derrick')&&!G.ents.some(n=>n.kind==='node'&&!n.dead&&MINE_RT[n.rt]===type&&nodeKnown(n)&&Math.hypot(n.x-x,n.y-y)<MINE_RNG*.85))return type==='mine'?tr('Eine Mine muss in der Nähe von Eisen oder Gold stehen.'):tr('Ein Bohrturm muss in der Nähe eines entdeckten Ölfelds stehen.');
   if(NET.trust)return null;
   if(!fogEx[fogIdx(x,y)])return tr('Dieses Gebiet ist noch unerkundet.');
   if(terr[fogIdx(x,y)]===1)return tr('Im Gebiet des Gegners kann nicht gebaut werden. Ein Wachturm erobert Land zurück.');
@@ -51,7 +54,7 @@ function fogUpdate(){
   terrCtx.putImageData(terrImg,0,0);
 }
 /* Die Karte ist überall zu sehen (grau abgedunkelt). Gegnerische Einheiten nur im hellen Bereich, gegnerische Gebäude erst nach dem Erkunden */
-const shown=e=>{if(e.kind==='animal')return fogVis[fogIdx(e.x,e.y)]===1;if(e.team!==1)return true;const i=fogIdx(e.x,e.y);return e.kind==='unit'?fogVis[i]===1:fogEx[i]===1};
+const shown=e=>{if(e.kind==='node')return nodeKnown(e);if(e.kind==='animal')return fogVis[fogIdx(e.x,e.y)]===1;if(e.team!==1)return true;const i=fogIdx(e.x,e.y);return e.kind==='unit'?fogVis[i]===1:fogEx[i]===1};
 function sfx(name,e){if(NET.cap)return;if(NET.host&&e&&G&&G.ev&&G.ev.length<14&&SFXNET.has(name))G.ev.push({t:'s',n:name,x:Math.round(e.x),y:Math.round(e.y)});if(typeof SND==='undefined')return;if(e&&!shown(e))return;let pan=0,vol=1;if(e&&R3.ok){const q=scr(e.x,e.y,0);if(!q.front||q.x<-40||q.y<-40||q.x>VW+40||q.y>VH+40)return;const dx=q.x/VW-.5,dy=q.y/VH-.5;pan=dx*1.7;vol=Math.max(.35,1.15-Math.hypot(dx,dy)*.9)*Math.min(1,.55+R3.k*.45)}SND.play(name,pan,vol)}
 let G=null,bg=null,bgSmall=null,diff='normal',aiStyle='balanced';
 /* Mehrspieler: host = rechnet das Spiel, client = zeigt den Stand und schickt Befehle. send = Funktion zum anderen Spieler. */

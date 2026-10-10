@@ -17,6 +17,7 @@
     <div class="res" data-tt="Nahrung" title="Nahrung"><span class="icn" data-ic="food"></span><b id="v-food">0</b><small data-t="Nahrung">Nahrung</small></div>
     <div class="res" data-tt="Holz" title="Holz"><span class="icn" data-ic="wood"></span><b id="v-wood">0</b><small data-t="Holz">Holz</small></div>
     <div class="res" data-tt="Stein" title="Stein"><span class="icn" data-ic="stone"></span><b id="v-stone">0</b><small data-t="Stein">Stein</small></div>
+    <div class="res" id="res-oil" data-tt="Öl" title="Öl" hidden><span class="icn" data-ic="oil"></span><b id="v-oil">0</b><small data-t="Öl">Öl</small></div>
     <div class="res" id="res-gold" data-tt="Gold" title="Gold" hidden><span class="icn" data-ic="gold"></span><b id="v-gold">0</b><small data-t="Gold">Gold</small></div>
     <div class="res" id="res-iron" data-tt="Eisen" title="Eisen" hidden><span class="icn" data-ic="iron"></span><b id="v-iron">0</b><small data-t="Eisen">Eisen</small></div>
     <div class="res" data-tt="Bevölkerung" title="Bevölkerung"><span class="icn" data-ic="pop"></span><b id="v-pop">0</b><small data-t="Bevölkerung">Bevölkerung</small></div>
@@ -26,6 +27,7 @@
     <div class="spacer"></div>
     <button class="tbtn idle ok" id="idleBtn" data-tt="Untätigen Arbeiter auswählen (.)" title="Untätigen Arbeiter auswählen (.)">Alle Arbeiter beschäftigt</button>
     <button class="tbtn" id="pauseBtn">Pause</button>
+    <button class="tbtn" id="treeBtn" data-tt="Zeitalter-Baum (T)" title="Zeitalter-Baum (T)">Baum</button>
     <button class="tbtn" id="speedBtn" data-tt="Spieltempo" title="Spieltempo">Tempo 1×</button>
     <button class="tbtn" id="menuBtn" data-tt="Menü (Esc)" title="Menü (Esc)"><span data-t="Menü">Menü</span> ☰</button>
   </header>
@@ -37,6 +39,7 @@
     <div id="advisor" hidden></div>
     <div id="hint" hidden></div>
     <div id="overlay"></div>
+    <div id="fps" hidden></div>
     <div id="menu" hidden></div>
   </main>
   <footer id="panel">
@@ -46,6 +49,7 @@
   </footer>
 </div>
 <script src="js/data.js"></script>
+<script src="js/settings.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/audio.js"></script>
