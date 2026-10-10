@@ -29,7 +29,7 @@ function r3Init(){
 }
 /* Grafikqualität (Menü): 0 normal, 1 hoch (Standard), 2 sehr hoch = schärfer durch höhere Auflösung und feinere Schatten */
 let gfxQ=1;try{const q=localStorage.getItem('ek-gfx');if(q!==null)gfxQ=Math.max(0,Math.min(2,+q||0))}catch(_){}
-function setGfx(q){gfxQ=q;try{localStorage.setItem('ek-gfx',q)}catch(_){}if(!R3.ok)return;const sz=[1024,2048,Math.min(4096,r3.maxTex)][q];if(r3.sun.shadow.mapSize.x!==sz){r3.sun.shadow.mapSize.set(sz,sz);if(r3.sun.shadow.map){r3.sun.shadow.map.dispose();r3.sun.shadow.map=null}}r3Resize()}
+function setGfx(q,temp){gfxQ=q;if(!temp)try{localStorage.setItem('ek-gfx',q)}catch(_){}if(!R3.ok)return;const sz=[1024,2048,Math.min(4096,r3.maxTex)][q];if(r3.sun.shadow.mapSize.x!==sz){r3.sun.shadow.mapSize.set(sz,sz);if(r3.sun.shadow.map){r3.sun.shadow.map.dispose();r3.sun.shadow.map=null}}r3Resize()}
 function r3Resize(){if(!R3.ok)return;r3.rd.setPixelRatio(Math.min([1,1.5,2][gfxQ],(window.devicePixelRatio||1)*(gfxQ===2?1.5:1)));r3.rd.setSize(VW,VH,false);camUpdate()}
 
 /* ---------- Gelände ---------- */
@@ -310,3 +310,7 @@ function r3Bones(){
   const L=G.bones||[];
   for(let i=0;i<L.length;i++){if(R3.boneDone.has(i))continue;const b=L[i];if(G.t<b[4]+3.2)continue;
     const m=skeletonModel(b[0]);m.position.set(b[1]/R3.S,hAt(b[1],b[2])+.02,b[2]/R3.S);m.rotation.y=-b[3];setShadows(m);r3.gEnt.add(m);R3.boneObjs.push(m);R3.boneDone.add(i)}}
+
+/* Sparmodus (Mehrspieler): wenn das Bild zu langsam wird, Grafik vorübergehend vereinfachen (niedrige Auflösung, keine Schatten); wird nicht gespeichert */
+function r3Saver(on){if(!R3.ok)return;if(on&&!R3.saverOn){R3.saverOn=true;R3.savedQ=gfxQ;setGfx(0,true);r3.sun.castShadow=false;r3Resize()}
+  else if(!on&&R3.saverOn){R3.saverOn=false;setGfx(R3.savedQ,true);r3.sun.castShadow=true;r3Resize()}}

@@ -55,6 +55,9 @@ const UNITS={
 const BSPEC={
   tower:{def:{name:'Wehrturm',ep:1,cost:{wood:120,stone:140,iron:60},sub:'Schiesst stärker und weiter, hält mehr aus'},obs:{name:'Aussichtsturm',ep:4,cost:{wood:100,stone:80},sub:'Doppelte Sicht, grösseres Gebiet'}},
   hq:{eco:{name:'Handelshof',ep:2,cost:{wood:250,stone:200,gold:60},sub:'Arbeiter sammeln 20 % schneller, +10 Bevölkerung'},mil:{name:'Kommandozentrale',ep:2,cost:{wood:250,stone:200,iron:100},sub:'Ausbildung 25 % schneller, neue Truppen +10 % Leben'}},
+  harbor:{fish:{name:'Fischerhafen',ep:2,cost:{wood:200,stone:80},sub:'Boote fangen 25 % mehr'},navy:{name:'Werft',ep:3,cost:{wood:250,iron:120},sub:'Neue Schiffe +25 % Leben'}},
+  market:{trade:{name:'Handelskontor',ep:3,cost:{wood:200,stone:150},sub:'Besserer Kurs: Verkauf bringt 25 % mehr Gold'},bank:{name:'Bank',ep:4,cost:{wood:200,stone:250,gold:100},sub:'Bringt dauerhaft Gold (1,5 pro Sekunde)'}},
+  airfield:{ace:{name:'Jagdstaffel',ep:6,cost:{wood:200,iron:150,gold:100},sub:'Neue Flugzeuge +25 % Schaden'},armor:{name:'Panzerung',ep:6,cost:{wood:200,iron:200,gold:80},sub:'Neue Flugzeuge +30 % Leben'}},
   barracks:{drill:{name:'Drillplatz',ep:1,cost:{wood:150,iron:80},sub:'Nahkämpfer und Reiter dieser Kaserne +25 % Leben'},range:{name:'Schiessstand',ep:2,cost:{wood:150,iron:80},sub:'Fernkämpfer dieser Kaserne +25 % Schaden'}}
 };
 const TSPEC=BSPEC.tower;

@@ -87,7 +87,7 @@ function attackMove(wx,wy,append){
   armed=false;fxMark(wx,wy,'attack');
 }
 /* Markt: 100 Rohstoff gegen Gold verkaufen (dir='sell') oder 100 Rohstoff für Gold kaufen (dir='buy') */
-function trade(team,rt,dir){const R=G.res[team],lot=TRADE.lot,g=Math.round(lot*TRADE.sell),c=Math.round(lot*TRADE.buy);
+function trade(team,rt,dir){const R=G.res[team],lot=TRADE.lot,g=Math.round(lot*TRADE.sell*(1+SF(team).trade)),c=Math.round(lot*TRADE.buy);
   if(!G.ents.some(b=>b.kind==='bld'&&b.type==='market'&&b.built&&!b.dead&&b.team===team))return false;
   if(dir==='sell'){if(R[rt]<lot)return false;R[rt]-=lot;R.gold=(R.gold||0)+g}else{if((R.gold||0)<c)return false;R.gold-=c;R[rt]+=lot}
   if(team===0)sfx('click');return true}

@@ -23,7 +23,7 @@ function genMap(seed){
   for(let pp=700;pp>=0&&!A;pp-=20){const c={x:W/2+(.17*W+nx*pp-W/2)*startK,y:H/2+(.83*H+ny*pp-H/2)*startK};if(okSpot(c.x,c.y,175))A=c}
   if(!A)A={x:W/2+(.17*W-W/2)*startK,y:H/2+(.83*H-H/2)*startK};
   const bases=[{x:A.x,y:A.y,s:1},{x:W-A.x,y:H-A.y,s:-1}];
-  genRelief(A,bases[1],seed,curMap);navInit(); // Hügel, Plateaus, Klippen
+  genRelief(A,bases[1],seed,curMap);applyPlayRect(playF);navInit(); // Hügel, Plateaus, Klippen
   if(MAPS[curMap]&&MAPS[curMap].cliff){carveCoast(A.x,A.y,380);carveCoast(W-A.x,H-A.y,380);navInit()}
   const GAP={tree:15,bush:12,stone:14,iron:14,gold:14,oil:16,fish:10,dolphin:14,whale:20};
   const free=(x,y,r,type)=>!G.ents.some(e=>Math.hypot(e.x-x,e.y-y)<e.r+r+GAP[type]);
@@ -45,7 +45,7 @@ function genMap(seed){
   nearWater('fish',5,55,180,520);nearWater('fish',4,50,250,650);nearWater('dolphin',3,50,350,900);
   // gespiegelte Mitte
   const feats=[];
-  const cnt=n=>Math.round(n*Math.sqrt(AREA)*1.1);
+  const cnt=n=>Math.max(1,Math.round(n*Math.sqrt(AREA)*1.1*playF*playF));
   for(let i=0;i<cnt(8);i++)feats.push(['tree',22+Math.floor(R()*12),98,landOk]);
   for(let i=0;i<cnt(3);i++)feats.push(['stone',1+Math.floor(R()*2),56,landOk]);
   for(let i=0;i<cnt(3);i++)feats.push(['bush',5,44,landOk]);

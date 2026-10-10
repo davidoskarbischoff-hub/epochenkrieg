@@ -99,7 +99,7 @@ function actionsFor(s){
   if(f.kind==='bld'&&f.built){
     for(const [k,d] of Object.entries(UNITS))if(d.from===f.type&&d.ep<=ep&&(!d.nation||d.nation===G.nation[0])){const nt=d.tech&&!G.tech[0].has(d.tech);acts.push({key:'t'+k,nm:tr(UNAMES[k]?UNAMES[k][Math.min(5,G.epoch[0])]:d.name),cost:ucost(0,k),need:nt?tr('Technologie nötig: {0}',tr(TECH[d.tech].name)):null,sub:nt?tr('Technologie nötig'):null,run:()=>enqueue(f,k,0),unit:k})}
     if(BSPEC[f.type]&&f.team===0&&!f.spec)for(const [k,sp] of Object.entries(BSPEC[f.type]).filter(([k,sp])=>(sp.ep||0)<=G.epoch[0])){acts.push({key:'ts'+k,nm:tr(sp.name),cost:sp.cost,sub:tr(sp.sub),adv:true,run:()=>{if(!buildSpec(0,f.id,k))toast(tr('Nicht genug Rohstoffe.'),'warn')}})}
-    if(f.type==='market')for(const rt of['food','wood','stone','iron'])for(const dir of['sell','buy']){const lot=TRADE.lot,g=Math.round(lot*TRADE.sell),c=Math.round(lot*TRADE.buy);
+    if(f.type==='market')for(const rt of['food','wood','stone','iron'])for(const dir of['sell','buy']){const lot=TRADE.lot,g=Math.round(lot*TRADE.sell*(1+SF(0).trade)),c=Math.round(lot*TRADE.buy);
       acts.push({key:'tr'+dir+rt,nm:dir==='sell'?tr('{0} → Gold',lot+' '+rn(rt)):tr('Gold → {0}',lot+' '+rn(rt)),cost:dir==='sell'?{[rt]:lot}:{gold:c},sub:dir==='sell'?tr('Du erhältst {0} Gold',g):tr('Du erhältst {0}',lot+' '+rn(rt)),run:()=>{if(NET.client)NET.send({c:'trade',rt,dir});else if(!trade(0,rt,dir))toast(tr('Nicht genug Rohstoffe.'),'warn')}})}
     if(f.type==='hq'&&f.team===0){const pd=pending(0);
       if(pd.n)acts.push({key:'upg',nm:tr('Alle upgraden'),cost:pd.cost,adv:true,sub:tr('{0} Gebäude · {1} Truppen',pd.nb,pd.nu),run:()=>startUpgrade(0,'all')});
@@ -196,7 +196,7 @@ function showStart(){
 function showEnd(){
   G.overShown=true;G.running=false;const win=G.over==='win';sfx(win?'win':'lose');const m=Math.floor(G.t/60),s=Math.floor(G.t%60);
   const ov=$('overlay');ov.hidden=false;
-  ov.innerHTML=`<div class="card"><p class="eyebrow">${G.leftMsg&&NET.mp?tr('Dein Mitspieler hat das Spiel verlassen'):win?tr('Das gegnerische Hauptlager ist gefallen'):tr('Dein Hauptlager wurde zerstört')}</p><h1>${win?tr('Sieg'):tr('Niederlage')}</h1>
+  ov.innerHTML=`<div class="card"><p class="eyebrow">${G.lostMsg&&NET.mp?tr('Die Verbindung zum Gastgeber ist abgebrochen'):G.leftMsg&&NET.mp?tr('Dein Mitspieler hat das Spiel verlassen'):win?tr('Das gegnerische Hauptlager ist gefallen'):tr('Dein Hauptlager wurde zerstört')}</p><h1>${win?tr('Sieg'):tr('Niederlage')}</h1>
   <div class="stats"><div><b>${m}:${String(s).padStart(2,'0')}</b><small>${tr('Spielzeit')}</small></div><div><b>${G.stats.trained[0]}</b><small>${tr('Ausgebildet')}</small></div><div><b>${G.stats.lost[1]}</b><small>${tr('Gegner besiegt')}</small></div></div>
   <p>${tr('Erreichtes Zeitalter: {0}. Schwierigkeit: {1}.',tr(EPOCHS[G.epoch[0]].name),tr(diff))}</p>
   <button class="go" id="againBtn">${tr('Neues Spiel')}</button></div>`;
