@@ -86,6 +86,8 @@ function aiTick(){
   for(const b of blds){if(b.type!=='barracks'||!b.built||b.queue.length>=2||army.length+queued>=armyCap)continue;
     if(saving&&!(r.food>adv.food+90&&r.wood>(adv.wood||0)+90))continue;
     const pick=types.map((_,i)=>types[(G.stats.trained[1]+b.id+i)%types.length]).find(t=>afford(1,UNITS[t].cost)&&(!UNITS[t].tech||G.tech[1].has(UNITS[t].tech)));if(pick)enqueue(b,pick,1)}
+  // Kampfrausch, sobald eine größere Gruppe im Gefecht ist
+  {const fighting=army.filter(m=>m.state==='attack');if(fighting.length>=5&&G.t>(ai.rageT||0)){ai.rageT=G.t+30;useRage(1,fighting.map(m=>m.id))}}
   // Verteidigung
   const threats=G.ents.filter(e=>!e.dead&&e.team===0&&e.kind==='unit'&&blds.some(b=>dist(e,b)<ST.def));
   if(threats.length){for(const m of army){if(m.state==='attack'||dist(m,hq)>750)continue;let t=null,td=1e9;for(const th of threats){const d=dist(m,th);if(d<td){td=d;t=th}}m.state='attack';m.tid=t.id}}

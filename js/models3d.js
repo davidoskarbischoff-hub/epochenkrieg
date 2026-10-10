@@ -358,6 +358,11 @@ UNIT3.ironclad=(u,tm)=>{const g=new THREE.Group(),rig={g,legs:[],arms:[],ship:tr
   for(const x of[-1.8,2.0])put(g,cyl(.13,.13,1.0,8),darkM(),x,1.55,0).rotation.z=Math.PI/2;
   put(g,new THREE.PlaneGeometry(.9,.7),new THREE.MeshStandardMaterial({color:TC[u.team],side:THREE.DoubleSide}),-1.8,2.0,0);
   rig.sail=null;return rig};
+UNIT3.healer=(u,tm)=>{const t=Math.min(5,u.lvl||0),rig=human({body:m3Plain([0xd9cdb0,0xe8dfc8,0xf1ead6,0xf1ead6,0xf3efe4,0xe9edf2][t],.9),legs:cloth(0xe8e0cc),belt:tm}),R=armHand(rig,1);
+  put(rig.g,new THREE.BoxGeometry(.5,.12,.64),tm,0,1.78,0,false);put(rig.g,cyl(.34,.42,.9,12),m3Plain([0xd9cdb0,0xe8dfc8,0xf1ead6,0xf1ead6,0xf3efe4,0xe9edf2][t],.9),0,1.0,0);
+  put(rig.g,new THREE.BoxGeometry(.04,.34,.1),m3Plain(0x3aa05a),.3,1.4,0,false);put(rig.g,new THREE.BoxGeometry(.04,.1,.34),m3Plain(0x3aa05a),.3,1.4,0,false);
+  put(rig.g,new THREE.SphereGeometry(.29,10,8,0,6.283,0,2.1),m3Plain(0xe8dfc8,.9),-.03,2.04,0);
+  put(R,cyl(.04,.04,1.9,6),wood(),0,.3,0);put(R,new THREE.SphereGeometry(.14,8,8),m3Plain(0x3aa05a,.4,{emissive:0x2a8a4a,emissiveIntensity:.5}),0,1.28,0);return rig};
 UNIT3.boat=(u,tm)=>ship(u,tm,false,false);UNIT3.warship=(u,tm)=>ship(u,tm,true,false);UNIT3.galleon=(u,tm)=>ship(u,tm,true,true);
 
 /* Vierbeiner: o = {col,belly,dark,br (Rumpfradius),bl (Rumpflänge),legH,lw (Beinbreite),hr (Kopfradius),neck:[x,y],snout,ears,tail}. Blickt in +x. */
