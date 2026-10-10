@@ -186,7 +186,7 @@ function damage(t,amt,src){
   if(t.team===1&&G.mp&&G.t-G.alertT1>12){G.alertT1=G.t;G.ev.push({t:'alert',x:Math.round(t.x),y:Math.round(t.y)})}
   if(t.hp<=0){kill(t);if(t.kind==='animal'&&src&&src.team>=0){const f=ANIMALS[t.type].food;if(f){G.res[src.team][ 'food']+=f;if(src.team===0&&!NET.cap)toast(tr('Beute erlegt: +{0} Nahrung',f),'good')}}}
 }
-function kill(e){if(e.dead)return;e.dead=true;if(e.type==='farm')for(const n of G.ents)if(n.type==='field'&&n.farm===e.id)n.dead=true;if(e.kind==='bld'||(e.kind==='node'&&!e.sea))navStamp(e,-1);if(e.kind==='unit'||e.kind==='animal')sfx('die',e);else if(e.kind==='bld')sfx('crumble',e);sel.delete(e.id);if(e.kind==='unit')G.stats.lost[e.team]++;
+function kill(e){if(e.dead)return;e.dead=true;if(e.type==='farm')for(const n of G.ents)if(n.type==='field'&&n.farm===e.id)n.dead=true;if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea))navStamp(e,-1);if(e.kind==='unit'||e.kind==='animal')sfx('die',e);else if(e.kind==='bld')sfx('crumble',e);sel.delete(e.id);if(e.kind==='unit')G.stats.lost[e.team]++;
   if(e.type==='hq'&&!G.over)G.over=e.team===0?'lose':'win';}
 function updBld(b,dt){
   if(!b.built)return;const d=BLDS[b.type];
@@ -265,7 +265,7 @@ function validSpot(x,y,r,anyTerrain){if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)retur
 function separate(){
   const us=G.ents.filter(e=>e.kind==='unit'&&!e.dead);
   for(let i=0;i<us.length;i++){const a=us[i];for(let j=i+1;j<us.length;j++){const b=us[j];let dx=b.x-a.x,dy=b.y-a.y;const m=a.r+b.r;if(Math.abs(dx)>m||Math.abs(dy)>m)continue;let d=Math.hypot(dx,dy);if(d>=m)continue;if(d<.01){dx=Math.random()-.5;dy=Math.random()-.5;d=Math.hypot(dx,dy)}const p=(m-d)/2*.8;a.x-=dx/d*p;a.y-=dy/d*p;b.x+=dx/d*p;b.y+=dy/d*p}}
-  for(const u of us){const nav=!!UNITS[u.type].naval;for(const o of G.solids){if(o.dead||(o.sea&&!nav))continue;let dx=u.x-o.x,dy=u.y-o.y;const R=o.r+u.r;if(Math.abs(dx)>R||Math.abs(dy)>R)continue;let d=Math.hypot(dx,dy);if(d>=R)continue;if(d<.01){dx=1;dy=0;d=1}u.x=o.x+dx/d*R;u.y=o.y+dy/d*R}
+  for(const u of us){const nav=!!UNITS[u.type].naval;for(const o of G.solids){if(o.dead||(o.sea&&!nav)||(o.kind==='bld'&&BLDS[o.type].passable))continue;let dx=u.x-o.x,dy=u.y-o.y;const R=o.r+u.r;if(Math.abs(dx)>R||Math.abs(dy)>R)continue;let d=Math.hypot(dx,dy);if(d>=R)continue;if(d<.01){dx=1;dy=0;d=1}u.x=o.x+dx/d*R;u.y=o.y+dy/d*R}
     u.x=Math.max(u.r,Math.min(W-u.r,u.x));u.y=Math.max(u.r,Math.min(H-u.r,u.y));
     if(u.px!==undefined&&!terrOk(u.x,u.y,!!UNITS[u.type].naval)){u.x=u.px;u.y=u.py}}
 }

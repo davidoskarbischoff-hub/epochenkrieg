@@ -138,7 +138,7 @@ function r3Nodes(){
     const k=Math.max(.5,Math.sqrt(e.amount/e.maxAmt)),sh=fogShade(e.x,e.y),h=hAt(e.x,e.y),x=e.x/S,z=e.y/S,sd=e.seed;
     if(e.type==='tree'){const s=e.r/11*.62*(.85+sd*.35)*(.55+.45*k),pine=sd<.5,v=.9+((sd*97)%1)*.2;_c.setRGB(v*sh,(.95+((sd*53)%1)*.12)*v*sh,v*sh);put(pine?I.i_pine:I.i_broad,pine?'pine':'broad',x,h,z,sd*6.28,s,s*(.9+((sd*31)%1)*.3),_c)}
     else if(e.type==='bush'){const s=e.r/10*(.55+.45*k);_c.setRGB(sh,sh,sh);put(I.i_bush,'bush',x,h,z,sd*6.28,s,s,_c)}
-    else{if(HIDDEN_NODES.has(e.type)&&!nodeKnown(e))continue;const key=e.type+(Math.floor(sd*3)%3),m=I.rocks[key],base=e.r/10*(.6+.4*k);if(!m)continue;cnt[key]=cnt[key]||0;
+    else{if(HIDDEN_NODES.has(e.type)&&!nodeKnown(e))continue;const key=e.type+(Math.floor(sd*3)%3),m=I.rocks[key],base=e.r/10*(.6+.4*k)*.78;if(!m)continue;cnt[key]=cnt[key]||0;
       const nn=e.type==='oil'?1:5;for(let j=0;j<nn;j++){const a=sd*20+j*1.9,dd=j?e.r/S*.62:0,sz=base*(j?.55+((j*37+sd*50)%7)/14:1.05),xx=x+Math.cos(a)*dd,zz=z+Math.sin(a)*dd;_c.setRGB(sh*(.92+(j%3)*.05),sh*(.92+(j%3)*.05),sh*(.95+(j%2)*.05));put(m,key,xx,hAt(xx*S,zz*S)-.1,zz,a,sz,sz*(j?1:1.15),_c)}}}
   for(const[k,m]of[['pine',I.i_pine],['broad',I.i_broad],['bush',I.i_bush],...Object.entries(I.rocks)]){m.count=Math.min(cnt[k]||0,m.instanceMatrix.count);m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true}
 }
@@ -170,7 +170,7 @@ function r3Sync(list,dt,t){
     const h=hAt(e.x,e.y),obj=o.obj;
     if(e.kind==='unit')r3Unit(o,e,h,dt,t);
     else if(e.kind==='bld'){obj.position.set(e.x/S,h,e.y/S);const pr=e.built?1:.12+.88*e.prog;obj.scale.set(1,pr,1);
-      if(e.type==='harbor')obj.rotation.y=-(e.ang||0);for(const f of o.flags)f.rotation.y=Math.sin(t*3+f.position.x)*.3}
+      if(e.type==='harbor'||e.type==='wall'||e.type==='gate')obj.rotation.y=-(e.ang||0);for(const f of o.flags)f.rotation.y=Math.sin(t*3+f.position.x)*.3}
     else if(e.kind==='node'){obj.position.set(e.x/S,-.38+Math.sin(t*1.6+e.seed*20)*.05,e.y/S);obj.rotation.y=e.seed*6.28+Math.sin(t*.5+e.seed*9)*.15;
       obj.children.forEach(f=>{if(f.userData.ring){const k=(t*.45+e.seed*3)%1;f.scale.setScalar(1.2+k*2.8);f.material.opacity=(1-k)*.55;f.position.y=.05;return}const p=f.userData.ph||0;f.position.y=-.1+Math.sin(t*2+p*2+e.seed*9)*.06;if(e.type==='fish')f.rotation.y=Math.sin(t*1.5+p)*.4})}
     else if(e.kind==='animal')r3Animal(o,e,h,dt,t);

@@ -148,7 +148,35 @@ const BLD3={
     for(let i=0;i<2;i++)put(g,cyl(R*.2,R*.2,R*.4,10),m3Mat('planks',0x8d6a3e),-R*1.0+i*.2,R*.2,R*.6);
     put(g,cyl(.18,.18,.12,10),goldM(),R*1.0,R*.35,R*.6);put(g,cyl(.18,.18,.12,10),goldM(),R*1.0,R*.47,R*.6);put(g,cyl(.18,.18,.12,10),goldM(),R*1.0,R*.59,R*.6);
     flagPole(g,0,R*.9,R*.5,R*1.2,team);g.userData.h=R*1.8;return g},
-  wall(R,st,team){const g=new THREE.Group(),sm=m3Mat('stone',MAT[Math.max(2,st.ep)].wall);put(g,bx(R*2,R*1.5,R*1.2,1.4),sm,0,R*.75,0);for(let i=0;i<3;i++)put(g,new THREE.BoxGeometry(R*.5,R*.4,R*.5),sm,(i-1)*R*.7,R*1.7,0);g.userData.h=R*2;return g}
+  wall(R,st,team){const g=new THREE.Group(),L=R*2.3,ep=st.ep;
+    if(ep<=2){ /* Holzpalisade: angespitzte Stämme mit Querbalken und Schnüren */
+      const H=R*1.7,n=6,lg=m3Mat('planks',ep===1?0x8a6a42:0x7a5a3a);for(let i=0;i<n;i++){const x=-L/2+L*(i+.5)/n,h=H*(.9+.18*((i*7)%3)/2);put(g,cyl(.15,.17,h,7),lg,x,h/2,0);put(g,cone(.15,.34,7),lg,x,h+.15,0)}
+      for(const y of[H*.3,H*.68])put(g,new THREE.BoxGeometry(L,.1,.1),woodD(),0,y,.17);
+      for(let i=0;i<n;i++)put(g,new THREE.TorusGeometry(.17,.02,5,8),m3Plain(0xb59a68,.9),-L/2+L*(i+.5)/n,H*.5,0).rotation.x=Math.PI/2;
+      g.userData.h=H+.5}
+    else if(ep<=4){ /* Steinmauer (Mittelalter) / Ziegelmauer mit Pfeilern (Renaissance) */
+      const sm=ep===3?m3Mat('stone',MAT[3].wall):m3Mat('brick',MAT[4].wall),H=R*1.8;put(g,rbox(L,H,R*.95,.06),sm,0,H/2,0);put(g,rbox(L*1.03,.22,R*1.1,.05),st.base,0,H+.05,0);put(g,rbox(L*1.04,.3,R*1.15,.05),st.base,0,.12,0,false);
+      if(ep===3)for(let i=0;i<3;i++)put(g,new THREE.BoxGeometry(L*.22,.38,R*.95),sm,(i-1)*L*.36,H+.3,0);
+      else for(const x of[-L/2,L/2])put(g,rbox(.34,H+.3,R*1.15,.05),m3Mat('brick',0x9a4a3a),x,(H+.3)/2,0);
+      g.userData.h=H+.5}
+    else{ /* Industriezeit: Panzersperren (Stahlträger-Igel) und Stacheldraht */
+      const st2=m3Mat('scratch',0x6a6e74,{roughness:.5,metalness:.7}),con=m3Mat('scratch',0x8a8a84,{roughness:.9});
+      for(const x of[-L*.28,L*.28]){const ig=new THREE.Group();ig.position.set(x,.5,0);g.add(ig);for(const [rx,ry,rz] of[[0,0,.8],[.8,0,0],[0,.8,0]]){const b=put(ig,new THREE.BoxGeometry(1.3,.12,.12),st2,0,0,0);b.rotation.set(rx*1.0,ry*1.0,rz*1.0)}}
+      for(let k=0;k<3;k++){const c=put(g,new THREE.TorusGeometry(.22,.012,5,10),m3Plain(0x3a3b3a,.5,{metalness:.8}),-L*.4+k*L*.4,.3,0);c.rotation.y=1.57;c.scale.set(1,1,1.6)}
+      put(g,new THREE.BoxGeometry(L,.05,.05),st2,0,.2,.0);for(const x of[-L/2,L/2])put(g,cyl(.04,.04,.7,5),st2,x,.35,0);
+      for(let i=0;i<4;i++)put(g,new THREE.SphereGeometry(.3,7,5),m3Plain(0xb8a578,.95),-L*.35+i*L*.23,.14,R*.5).scale.set(1,.5,.8);
+      g.userData.h=1.3}
+    return g},
+  gate(R,st,team){const g=new THREE.Group(),ep=st.ep,L=R*2.4;
+    if(ep<=2){const H=R*2.1,lg=m3Mat('planks',0x7a5a3a);for(const x of[-L/2,L/2])put(g,cyl(.2,.24,H,8),lg,x,H/2,0);put(g,new THREE.BoxGeometry(L+.6,.24,.3),woodD(),0,H,0);
+      for(const s of[-1,1]){const d=put(g,new THREE.BoxGeometry(L*.42,H*.8,.1),m3Mat('planks',0x5a4028),s*(L/2+.1),H*.42,-.55);d.rotation.y=s*1.1}
+      put(g,cone(.22,.5,7),lg,-L/2,H+.3,0);put(g,cone(.22,.5,7),lg,L/2,H+.3,0);flagPole(g,0,H,0,R*.9,team);g.userData.h=H+R}
+    else if(ep<=4){const sm=ep===3?m3Mat('stone',MAT[3].wall):m3Mat('brick',MAT[4].wall),H=R*2.4;for(const x of[-L/2,L/2]){put(g,rbox(.9,H,1.1,.06),sm,x,H/2,0);put(g,rbox(1.1,.3,1.25,.05),st.base,x,H+.1,0)}
+      const ar=new THREE.Mesh(new THREE.TorusGeometry(L/2-.05,.2,8,16,Math.PI),sm);ar.position.set(0,H*.62,0);ar.castShadow=true;g.add(ar);put(g,rbox(L+.8,.5,1.1,.05),sm,0,H*.62+L/2+.12,0);
+      for(let i=-2;i<=2;i++)put(g,cyl(.035,.035,H*.62,5),m3Plain(0x2a2b2c,.5,{metalness:.7}),i*L*.17,H*.31,0);flagPole(g,0,H*.62+L/2+.3,0,R*1.0,team);g.userData.h=H+R}
+    else{const st2=m3Mat('scratch',0x6a6e74,{roughness:.5,metalness:.7});for(const x of[-L/2,L/2]){put(g,cyl(.1,.1,1.3,8),st2,x,.65,0);for(let i=0;i<4;i++)put(g,new THREE.SphereGeometry(.3,7,5),m3Plain(0xb8a578,.95),x+(i%2?.4:-.4)*(x>0?1:-1),.14+Math.floor(i/2)*.26,.55).scale.set(1,.55,.8)}
+      const arm=put(g,new THREE.BoxGeometry(L*.95,.1,.1),m3Plain(0xe8e8e8,.6),0,1.2,0);for(let i=0;i<5;i++)put(g,new THREE.BoxGeometry(L*.1,.11,.11),m3Plain(0xc43a2a,.6),-L*.4+i*L*.2,1.2,0);flagPole(g,L/2,1.3,0,R*1.0,team);g.userData.h=2}
+    return g},
 };
 /* Steinzeit: ganz einfache Bauten aus Fell, Holz und Stein */
 const PRIM={

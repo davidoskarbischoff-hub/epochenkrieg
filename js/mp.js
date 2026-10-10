@@ -24,7 +24,7 @@ function encodeSnap(){
     jobs:G.jobs.map(a=>a.map(j=>({label:j.label,t:r1(j.t),time:j.time,to:j.to,n:j.n,team:j.team}))),stats:{lost:G.stats.lost.slice(),trained:G.stats.trained.slice()},
     U,B,N,A,P:G.proj.map(p=>[Math.round(p.x),Math.round(p.y),Math.round(p.a*100)/100,p.big?1:0,p.gun?1:0])}}
 function sendSnap(){if(!NET.send)return;flipTeams();let snap;try{snap=encodeSnap()}finally{flipTeams()}snap.ev=G.ev;G.ev=[];NET.send({t:'snap',s:snap})}
-function removeEnt(e){if(e.dead)return;e.dead=true;if(e.kind==='bld'||(e.kind==='node'&&!e.sea))navStamp(e,-1);sel.delete(e.id)}
+function removeEnt(e){if(e.dead)return;e.dead=true;if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea))navStamp(e,-1);sel.delete(e.id)}
 function applySnap(s){
   if(!G||!NET.client)return;
   NET.lastSnap=performance.now();
