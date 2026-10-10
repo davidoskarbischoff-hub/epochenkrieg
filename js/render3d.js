@@ -208,7 +208,7 @@ function r3Sync(list,dt,t){
     if(e.kind==='unit')r3Unit(o,e,h,dt,t);
     else if(e.kind==='bld'){obj.position.set(e.x/S,h,e.y/S);const pr=e.built?1:.12+.88*e.prog;obj.scale.set(1,pr,1);
       if(e.type==='harbor'||e.type==='wall'||e.type==='gate')obj.rotation.y=-(e.ang||0);for(const f of o.flags)f.rotation.y=Math.sin(t*3+f.position.x)*.3}
-    else if(e.kind==='node'){if(obj.userData.mix)for(const mx of obj.userData.mix)mx.update(dt);obj.position.set(e.x/S,-.38+Math.sin(t*1.6+e.seed*20)*.05,e.y/S);obj.rotation.y=e.seed*6.28+Math.sin(t*.5+e.seed*9)*.15;
+    else if(e.kind==='node'){if(obj.userData.mix)for(const mx of obj.userData.mix)mx.update(dt);if(obj.userData.school)for(const it of obj.userData.school){it.a+=it.sp*dt;it.w.position.x=Math.cos(it.a)*it.r;it.w.position.z=Math.sin(it.a)*it.r;it.w.rotation.y=-(it.a+1.5708)}obj.position.set(e.x/S,-.38+Math.sin(t*1.6+e.seed*20)*.05,e.y/S);obj.rotation.y=e.seed*6.28+Math.sin(t*.5+e.seed*9)*.15;
       obj.children.forEach(f=>{if(f.userData.ring){const k=(t*.45+e.seed*3)%1;f.scale.setScalar(1.2+k*2.8);f.material.opacity=(1-k)*.55;f.position.y=.05;return}const p=f.userData.ph||0;f.position.y=-.1+Math.sin(t*2+p*2+e.seed*9)*.06;if(e.type==='fish')f.rotation.y=Math.sin(t*1.5+p)*.4})}
     else if(e.kind==='animal')r3Animal(o,e,h,dt,t);
     o.seen=true;o.e=e}
@@ -274,6 +274,8 @@ function r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t){
   if(rig.head)rig.head.rotation.y=moving||atk?0:Math.sin(t*.6+id*3)*.45;
   if(rig.tool){const kk=build?'build':(e.state==='gather'||e.state==='return'||work)?e.rtype:null;rig.tool(kk==='food'&&e.carry>0&&e.state==='return'?null:kk);if(rig.sack){rig.sack.visible=e.carry>0&&e.state!=='gather'||e.carry>4;rig.sack.scale.setScalar(.6+Math.min(1,e.carry/CARRY)*.6)}}
 }
+/* Welche Arbeit macht die Einheit gerade? (bestimmt Werkzeug und Bewegung) */
+function wkKind(e){if(e.state==='build')return'build';const n=e.tid!=null&&e.tid!==undefined?G.byId.get(e.tid):null;if(!n)return'';if(n.kind==='animal')return'hunt';const t=n.type;return t==='tree'?'chop':(t==='stone'||t==='iron'||t==='gold'||t==='oil')?'mine':t==='field'?'farm':t==='bush'?'pick':n.sea?'fish':''}
 function r3Unit(o,e,h,dt,t){
   const S=R3.S,d=UNITS[e.type],rig=o.rig,moving=G.t-(e.mvT||-9)<.2,obj=o.obj;
   let want=-e.fa,dy=want-o.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));o.yaw+=dy*Math.min(1,dt*14);
@@ -285,7 +287,7 @@ function r3Unit(o,e,h,dt,t){
     if(e.gar){const gb=G.byId.get(e.gar);y=h+(gb&&gb.type==='tower'?4.2:2.1)}
     if(rig.props){y=h+5+Math.sin(t*1.5+e.id)*.25;rig.props.forEach(pr=>pr.rotation.x+=dt*40);obj.rotation.z=moving?-.12:0}
     else if(moving&&!rig.gltf)y+=Math.abs(s)*.07*(rig.horse?1.6:1);
-    if(rig.gltf)EKMODELS.animate(rig,e.state==='attack'&&G.t-(e.swing||-9)<1?'attack':(work||build)?'work':moving?'walk':'idle',dt,moving?Math.max(.6,d.spd/60):1);
+    if(rig.gltf)EKMODELS.animate(rig,e.state==='attack'&&G.t-(e.swing||-9)<1?'attack':(work||build)?'work':moving?'walk':'idle',dt,moving?Math.max(.6,d.spd/60):1,wkKind(e));
     else if(rig.horse){rig.legs.forEach((l,i)=>l.rotation.z=(i%2?s:-s)*.7);const rd=rig.rider;rd.arms[1].rotation.z=.2+sw*.6}
     else if(rig.wheels){if(moving)rig.wheels.forEach(w=>w.rotation[w.userData.axis||'y']+=dt*3.2*(d.spd/40));if(rig.log)rig.log.position.x=sw*.9;if(rig.arm)rig.arm.rotation.z=-sw*1.8;if(rig.barrel)rig.barrel.position.x=.1-sw*.35}
     else if(rig.up){r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t)}

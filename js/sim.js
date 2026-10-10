@@ -324,8 +324,8 @@ function updAnimal(a,dt){
         if(d.pack)for(const o of G.ents)if(o.kind==='animal'&&o.type===a.type&&!o.dead&&o!==a&&o.state!=='chase'&&Math.hypot(o.x-a.x,o.y-a.y)<240){o.tid=best.id;o.state='chase'}}}
       else if(bd<d.flee){if(a.state!=='flee')sfx('deer',a);a.state='flee';a.thr={x:best.x,y:best.y};a.until=G.t+2.5}}}
   switch(a.state){
-  case'idle':a.wt-=dt;if(a.wt<=0){const ang=Math.random()*6.283,r=Math.random()*d.roam;a.wp={x:a.home.x+Math.cos(ang)*r,y:a.home.y+Math.sin(ang)*r};a.state='wander';a.stk=0}break;
-  case'wander':if(animalMove(a,a.wp.x,a.wp.y,dt,d.spd*.35)||a.stk>1){a.state='idle';a.wt=3+Math.random()*6;a.stk=0}break;
+  case'idle':a.wt-=dt;if(a.wt<=0){const okc=d.water?1:2;let wp=null;for(let k=0;k<10&&!wp;k++){const ang=Math.random()*6.283,r=(.3+Math.random()*.7)*d.roam*(d.agg?1:1.8),x=a.home.x+Math.cos(ang)*r,y=a.home.y+Math.sin(ang)*r;if(terrAt(x,y)===okc&&navDyn[navCell(x,y)]===0&&terrAt((x+a.x)/2,(y+a.y)/2)===okc&&navDyn[navCell((x+a.x)/2,(y+a.y)/2)]===0)wp={x,y}}if(wp){a.wp=wp;a.state='wander';a.stk=0}else a.wt=1+Math.random()*2}break;
+  case'wander':if(animalMove(a,a.wp.x,a.wp.y,dt,d.spd*.35)||a.stk>.6){a.state='idle';a.wt=2+Math.random()*5;a.stk=0}break;
   case'flee':{const t=a.thr||{x:a.x,y:a.y};if(G.t>a.until){a.state='idle';a.wt=1;a.home={x:a.x,y:a.y};break}const dx=a.x-t.x,dy=a.y-t.y,l=Math.hypot(dx,dy)||1;animalMove(a,a.x+dx/l*80,a.y+dy/l*80,dt,d.spd);if(a.stk>.5){a.stk=0;a.thr={x:a.x+(Math.random()-.5)*120,y:a.y+(Math.random()-.5)*120}}break}
   case'chase':{const t=get(a.tid);if(!t||Math.hypot(a.home.x-a.x,a.home.y-a.y)>d.leash||Math.hypot(t.x-a.x,t.y-a.y)>d.agg*2.4){a.state='return';a.tid=null;a.stk=0;break}
     const gap=Math.hypot(t.x-a.x,t.y-a.y)-a.r-t.r;
