@@ -722,6 +722,12 @@ function specModel(g,type,kind,R,team){
       put(g,new THREE.SphereGeometry(.4,10,8),m3Plain(0xf0c040,.3,{metalness:.8}),0,T+.5,0)}
     else{for(const s of[-1,1]){put(g,cyl(.04,.04,R*2.2,5),wd,s*R*1.6,R*1.1,R*1.2);const f=put(g,new THREE.BoxGeometry(.03,.6,.9),m3Plain(0xb02a22,.8),s*R*1.6,R*2.0,R*1.2+.45)}
       for(let i=0;i<3;i++){put(g,cyl(.18,.22,1.0,8),m3Plain(0x2c2c2c,.5,{metalness:.7}),-R*1.4+i*.6,.3,R*1.8).rotation.z=Math.PI/2-.2}}}
+  else if(type==='harbor'){if(kind==='fish'){for(let i=0;i<3;i++){put(g,cyl(.03,.03,1.4,4),wd,R*(.4+i*.6),1.0,-R*.8);put(g,new THREE.PlaneGeometry(.8,.5),new THREE.MeshStandardMaterial({color:0xd8d0b8,side:THREE.DoubleSide}),R*(.4+i*.6),.7,-R*.8)}for(let i=0;i<3;i++)put(g,new THREE.SphereGeometry(.18,8,6),m3Plain(0xc8d6dc,.5),R*(.3+i*.2),.5,R*.9).scale.set(1.6,.7,.7)}
+    else{put(g,cyl(.05,.05,R*2.6,5),wd,R*2.4,R*1.3,-R*.9);put(g,new THREE.BoxGeometry(.6,.9,.04),tm,R*2.4+.3,R*2.2,-R*.9);put(g,new THREE.BoxGeometry(R*1.4,.4,.5),m3Plain(0x5a5a58,.5,{metalness:.5}),R*1.2,.8,R*.9);put(g,cyl(.1,.12,.7,8),m3Plain(0x2c2c2c,.5,{metalness:.7}),R*1.5,1.1,R*.9).rotation.z=Math.PI/2-.3}}
+  else if(type==='market'){if(kind==='trade'){for(let i=0;i<4;i++)put(g,new THREE.BoxGeometry(.6,.5,.6),wd,R*1.5+(i%2)*.7,.25+Math.floor(i/2)*.5,R*.4+(i%2)*.1);put(g,new THREE.BoxGeometry(.7,.06,.7),m3Plain(0xc84b3a,.8),R*1.8,1.1,R*.4)}
+    else{put(g,new THREE.BoxGeometry(R*.8,R*.5,R*.5),m3Plain(0x7a6a50,.5),R*1.7,R*.25,0);for(let i=0;i<5;i++)put(g,cyl(.28,.28,.07,14),m3Plain(0xf0c030,.3,{metalness:.9}),R*1.7,R*.55+i*.08,0);put(g,new THREE.SphereGeometry(.3,10,8),m3Plain(0xf0c030,.3,{metalness:.9}),R*1.7,R*1.2,0)}}
+  else if(type==='airfield'){if(kind==='ace'){for(let i=0;i<3;i++){put(g,new THREE.BoxGeometry(.04,.5,.5),i%2?tm:m3Plain(0xeeeeee,.8),-R*1.3+i*.7,R*.9,R*.95)}put(g,cyl(.04,.04,R*.9,5),wd,-R*1.3,R*.45,R*.95)}
+    else{for(let i=0;i<4;i++)put(g,new THREE.BoxGeometry(.9,.12,.5),m3Plain(0x6a6e74,.4,{metalness:.7}),-R*1.3+(i%2)*1.0,.2+Math.floor(i/2)*.14,R*.95)}}
   else if(type==='barracks'){
     if(kind==='drill'){for(let i=0;i<3;i++){put(g,cyl(.06,.06,1.2,5),wd,-R*1.6,.6,-R*.6+i*.7);put(g,new THREE.SphereGeometry(.2,6,5),m3Plain(0xb8a578,.9),-R*1.6,1.3,-R*.6+i*.7)}}
     else{for(let i=0;i<2;i++){const z=-R*.4+i*.9;put(g,cyl(.4,.4,.06,14),m3Plain(0xeeeeee,.8),-R*1.7,.9,z).rotation.z=Math.PI/2;put(g,cyl(.2,.2,.08,14),m3Plain(0xc8382a,.8),-R*1.68,.9,z).rotation.z=Math.PI/2;put(g,cyl(.04,.04,.9,5),wd,-R*1.7,.45,z)}}}}

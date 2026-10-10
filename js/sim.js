@@ -15,9 +15,9 @@ function newGame(d,reuse,opts){
 }
 function recount(){G.pop=[0,0];G.cap=[0,0];for(const e of G.ents){if(e.dead)continue;if(e.kind==='unit')G.pop[e.team]++;else if(e.kind==='bld'&&e.built&&BLDS[e.type].pop)G.cap[e.team]+=BLDS[e.type].pop}G.cap=G.cap.map((c,t)=>Math.min(POPMAX+(G.nfx?G.nfx[t].pop:0),c+(G.tfx?G.tfx[t].pop:0)+(G.nfx?G.nfx[t].pop:0)+SF(t).pop))}
 function afford(t,c){return RES.every(r=>(G.res[t][r]||0)>=(c[r]||0))}
-const SF0={gather:0,prod:0,pop:0};
+const SF0={gather:0,prod:0,pop:0,bgather:0,trade:0,gold:0};
 const SF=t=>(G.sfx&&G.sfx[t])||SF0;
-function specFx(){G.sfx=[{gather:0,prod:0,pop:0},{gather:0,prod:0,pop:0}];for(const b of G.ents){if(b.dead||b.kind!=='bld'||!b.built||b.team<0||!b.spec)continue;const f=G.sfx[b.team];if(b.type==='hq'&&b.spec==='eco'){f.gather+=.2;f.pop+=10}if(b.type==='hq'&&b.spec==='mil')f.prod+=.25}}
+function specFx(){G.sfx=[{...SF0},{...SF0}];for(const b of G.ents){if(b.dead||b.kind!=='bld'||!b.built||b.team<0||!b.spec)continue;const f=G.sfx[b.team];if(b.type==='hq'&&b.spec==='eco'){f.gather+=.2;f.pop+=10}if(b.type==='hq'&&b.spec==='mil')f.prod+=.25;if(b.type==='harbor'&&b.spec==='fish')f.bgather+=.25;if(b.type==='market'&&b.spec==='trade')f.trade+=.25;if(b.type==='market'&&b.spec==='bank')f.gold+=1.5}}
 function buildSpec(team,id,kind){if(NET.client&&team===0){NET.send({c:'tspec',id,kind});return true}const b=G.byId.get(id),sp=b&&BSPEC[b.type]&&BSPEC[b.type][kind];if(!b||b.dead||b.team!==team||!b.built||b.spec||!sp||(sp.ep||0)>G.epoch[team])return false;if(!pay(team,sp.cost))return false;b.spec=kind;if(b.type==='tower'&&kind==='def'){b.maxHp=Math.round(b.maxHp*1.5);b.hp=Math.round(b.hp*1.5)}if(b.type==='hq'){b.maxHp=Math.round(b.maxHp*1.2);b.hp=Math.round(b.hp*1.2)}specFx();recount();terrUpdate();sfx('built',b);return true}
 const towerSpec=buildSpec;
 function pay(t,c){if(!afford(t,c))return false;RES.forEach(r=>G.res[t][r]-=c[r]||0);return true}
@@ -76,7 +76,7 @@ function eraAnimals(){const me=Math.max(G.epoch[0],G.epoch[1]);
 function step(dt){
   if(!G.mp||!NET.client){G.healT=(G.healT||0)-dt;if(G.healT<=0){G.healT=.5;healAura()}}
   if(!G.mp||!NET.client){G.eraT=(G.eraT||0)-dt;if(G.eraT<=0){G.eraT=2;eraAnimals();wallPosts();specFx();autoRepair();frontLine();autoExpand();autoFinish()}}
-  G.t+=dt;G.pfBudget=12;G.load={};
+  G.t+=dt;G.pfBudget=12;G.load={};if(!G.mp||!NET.client){for(const t of[0,1]){const gg=SF(t).gold;if(gg)G.res[t].gold=(G.res[t].gold||0)+gg*dt}}
   for(const e of G.ents)if(e.kind==='unit'&&!e.dead&&e.state==='gather'&&e.tid)G.load[e.tid]=(G.load[e.tid]||0)+1;
   for(const e of G.ents)if(e.regen&&e.amount<e.maxAmt&&!e.dead)e.amount=Math.min(e.maxAmt,e.amount+e.regen*dt);
   G.rcT=(G.rcT||0)-dt;if(G.rcT<=0||!G.solids){G.rcT=.2;G.solids=G.ents.filter(e=>e.kind!=='unit'&&e.kind!=='animal'&&!e.dead);recount()}
@@ -166,7 +166,7 @@ function updUnit(u,dt){
     if(!canGather(u,n)){u.state='idle';u.tid=null;u.rtype=null;if(u.team===0&&G.t-(G.lvlWarn||-9)>4){G.lvlWarn=G.t;toast(tr('Arbeiter brauchen Stufe {0}, um {1} abzubauen.',LVLN[NODES[n.type].lvl!==undefined?NODES[n.type].lvl:NEED_LVL[n.rt]],tr(NODES[n.type].name)));sfx('error')}break}
     const cap=gc.carry*(1+G.tfx[u.team].carry+(d.naval?G.tfx[u.team].bcarry:0));
     if(u.carry>=cap){u.state='return';break}
-    if(reach(u,n)){u.fa=Math.atan2(n.y-u.y,n.x-u.x);u.gat=G.t;if((u.gt=(u.gt||0)-dt)<=0){u.gt=.75+Math.random()*.2;sfx(n.rt==='wood'?'chop':n.rt==='stone'||n.rt==='iron'||n.rt==='gold'?'mine':'pick',u);if(Math.random()<.22)sfx('grunt',u)}const rate=.85*gc.rate*(1+G.tfx[u.team].gather+G.nfx[u.team].gather+((n.rt==='gold'||n.rt==='oil')?G.nfx[u.team].oilgold:0)+(d.naval?G.tfx[u.team].bgather:0)+SF(u.team).gather)*(NODES[n.type].gm||1)*LVL.gather[u.lvl]*(u.team===1?DIFF[diff].gather:1);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;if(n.amount<=0.001){if(n.regen)n.amount=0;else kill(n)}if(u.carry>=cap)u.state='return'}
+    if(reach(u,n)){u.fa=Math.atan2(n.y-u.y,n.x-u.x);u.gat=G.t;if((u.gt=(u.gt||0)-dt)<=0){u.gt=.75+Math.random()*.2;sfx(n.rt==='wood'?'chop':n.rt==='stone'||n.rt==='iron'||n.rt==='gold'?'mine':'pick',u);if(Math.random()<.22)sfx('grunt',u)}const rate=.85*gc.rate*(1+G.tfx[u.team].gather+G.nfx[u.team].gather+((n.rt==='gold'||n.rt==='oil')?G.nfx[u.team].oilgold:0)+(d.naval?G.tfx[u.team].bgather+SF(u.team).bgather:0)+SF(u.team).gather)*(NODES[n.type].gm||1)*LVL.gather[u.lvl]*(u.team===1?DIFF[diff].gather:1);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;if(n.amount<=0.001){if(n.regen)n.amount=0;else kill(n)}if(u.carry>=cap)u.state='return'}
     else{
       // Absprache: ist der Baum/Busch schon voll besetzt, ein freies Vorkommen in der Nähe suchen
       if((G.load[n.id]||0)>NODES[n.type].cap&&G.t-(u.rs||0)>1.5){u.rs=G.t;const alt=nearestNode(u.rtype||n.rt,u.x,u.y,350,u,true);if(alt&&alt.id!==n.id){G.load[n.id]--;G.load[alt.id]=(G.load[alt.id]||0)+1;u.tid=alt.id;u.pf=null;n=alt}}
@@ -214,7 +214,7 @@ function spawn(b,type){
   let sx=b.x+Math.cos(ang)*(b.r+10),sy=b.y+Math.sin(ang)*(b.r+10);
   if(UNITS[type].naval){let found=false;for(let k=0;k<24&&!found;k++){const a=(b.ang||0)+(k%2?1:-1)*Math.ceil(k/2)*.2618;for(const dd of[b.r+22,b.r+36]){const x=b.x+Math.cos(a)*dd,y=b.y+Math.sin(a)*dd;if(terrAt(x,y)<=1&&navDyn[navCell(x,y)]===0){sx=x;sy=y;found=true;break}}}}
   const u=addUnit(type,b.team,sx,sy);
-  {const ud0=UNITS[type];if(b.type==='barracks'&&b.spec==='drill'&&(ud0.cls==='inf'||ud0.cls==='cav')){u.hp=u.maxHp=Math.round(u.maxHp*1.25)}if(b.type==='barracks'&&b.spec==='range'&&ud0.ranged&&!ud0.siege)u.am=1.25;if(SF(b.team).prod>0&&!ud0.air){u.hp=u.maxHp=Math.round(u.maxHp*1.1)}}
+  {const ud0=UNITS[type];if(b.type==='barracks'&&b.spec==='drill'&&(ud0.cls==='inf'||ud0.cls==='cav')){u.hp=u.maxHp=Math.round(u.maxHp*1.25)}if(b.type==='barracks'&&b.spec==='range'&&ud0.ranged&&!ud0.siege)u.am=1.25;if(b.type==='harbor'&&b.spec==='navy'&&ud0.naval)u.hp=u.maxHp=Math.round(u.maxHp*1.25);if(b.type==='airfield'&&b.spec==='ace')u.am=1.25;if(b.type==='airfield'&&b.spec==='armor')u.hp=u.maxHp=Math.round(u.maxHp*1.3);if(SF(b.team).prod>0&&!ud0.air){u.hp=u.maxHp=Math.round(u.maxHp*1.1)}}
   G.pop[b.team]++;G.stats.trained[b.team]++;if(b.team===0)sfx('ready');
   if(rp){const n=rp.id?get(rp.id):null;
     if(n&&n.kind==='node'&&UNITS[type].gather){u.state='gather';u.tid=n.id;u.rtype=n.rt}
