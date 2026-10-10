@@ -18,7 +18,7 @@ function afford(t,c){return RES.every(r=>(G.res[t][r]||0)>=(c[r]||0))}
 const SF0={gather:0,prod:0,pop:0};
 const SF=t=>(G.sfx&&G.sfx[t])||SF0;
 function specFx(){G.sfx=[{gather:0,prod:0,pop:0},{gather:0,prod:0,pop:0}];for(const b of G.ents){if(b.dead||b.kind!=='bld'||!b.built||b.team<0||!b.spec)continue;const f=G.sfx[b.team];if(b.type==='hq'&&b.spec==='eco'){f.gather+=.2;f.pop+=10}if(b.type==='hq'&&b.spec==='mil')f.prod+=.25}}
-function buildSpec(team,id,kind){if(NET.client&&team===0){NET.send({c:'tspec',id,kind});return true}const b=G.byId.get(id),sp=b&&BSPEC[b.type]&&BSPEC[b.type][kind];if(!b||b.dead||b.team!==team||!b.built||b.spec||!sp)return false;if(!pay(team,sp.cost))return false;b.spec=kind;if(b.type==='tower'&&kind==='def'){b.maxHp=Math.round(b.maxHp*1.5);b.hp=Math.round(b.hp*1.5)}if(b.type==='hq'){b.maxHp=Math.round(b.maxHp*1.2);b.hp=Math.round(b.hp*1.2)}specFx();recount();terrUpdate();sfx('built',b);return true}
+function buildSpec(team,id,kind){if(NET.client&&team===0){NET.send({c:'tspec',id,kind});return true}const b=G.byId.get(id),sp=b&&BSPEC[b.type]&&BSPEC[b.type][kind];if(!b||b.dead||b.team!==team||!b.built||b.spec||!sp||(sp.ep||0)>G.epoch[team])return false;if(!pay(team,sp.cost))return false;b.spec=kind;if(b.type==='tower'&&kind==='def'){b.maxHp=Math.round(b.maxHp*1.5);b.hp=Math.round(b.hp*1.5)}if(b.type==='hq'){b.maxHp=Math.round(b.maxHp*1.2);b.hp=Math.round(b.hp*1.2)}specFx();recount();terrUpdate();sfx('built',b);return true}
 const towerSpec=buildSpec;
 function pay(t,c){if(!afford(t,c))return false;RES.forEach(r=>G.res[t][r]-=c[r]||0);return true}
 function refund(t,c){RES.forEach(r=>G.res[t][r]+=c[r]||0)}

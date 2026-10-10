@@ -724,3 +724,38 @@ function specModel(g,type,kind,R,team){
   else if(type==='barracks'){
     if(kind==='drill'){for(let i=0;i<3;i++){put(g,cyl(.06,.06,1.2,5),wd,-R*1.6,.6,-R*.6+i*.7);put(g,new THREE.SphereGeometry(.2,6,5),m3Plain(0xb8a578,.9),-R*1.6,1.3,-R*.6+i*.7)}}
     else{for(let i=0;i<2;i++){const z=-R*.4+i*.9;put(g,cyl(.4,.4,.06,14),m3Plain(0xeeeeee,.8),-R*1.7,.9,z).rotation.z=Math.PI/2;put(g,cyl(.2,.2,.08,14),m3Plain(0xc8382a,.8),-R*1.68,.9,z).rotation.z=Math.PI/2;put(g,cyl(.04,.04,.9,5),wd,-R*1.7,.45,z)}}}}
+
+/* Hauptlager der Bronzezeit (Lehmziegel, Holzpfosten, Reetdach mit Giebelhörnern, Bronzeschilde) und der Eisenzeit (Stein-Holz-Halle mit Wachturm und Palisade) */
+(()=>{const castle=BLD3.hq;
+  const bronze=m3Plain(0xb87333,.35,{metalness:.8}),mud=m3Mat('planks',0xb89466),thatch=m3Mat('thatch',0xc9a864);
+  function hqBronze(R,st,team){const g=new THREE.Group(),w=R*2.7,d=R*1.6,h=R*.62;
+    put(g,bx(w+1.2,.3,d+1.2,3),m3Mat('stone',0xa89a80),0,.15,0);put(g,bx(w+.6,.3,d+.6,3),m3Mat('stone',0xa89a80),0,.4,0);
+    put(g,bx(w,h,d,2.2),mud,0,.55+h/2,0);
+    for(let i=0;i<9;i++){put(g,cyl(.1,.1,h+.2,6),woodD(),-w/2+i*w/8,.55+h/2,d/2+.02);put(g,cyl(.1,.1,h+.2,6),woodD(),-w/2+i*w/8,.55+h/2,-d/2-.02)}
+    put(g,bx(w+.2,.14,d+.2,1),woodD(),0,.55+h+.05,0);
+    gab(g,0,.55+h,0,w+.3,d+.5,h*1.15,thatch,thatch,.5);
+    for(const s of[-1,1]){for(const k of[-1,1]){put(g,cyl(.07,.07,1.5,5),woodD(),s*(w/2+.3),.55+h+h*1.25,k*.14).rotation.set(0,0,k*.5+s*.0)}}
+    door(g,0,d/2+.02,R*.6,R*.7);
+    for(const s of[-1,1])put(g,cyl(.14,.16,R*.95,7),woodD(),s*R*.55,.55+R*.47,d/2+.5);
+    put(g,bx(R*1.5,.14,.8,1),thatch,0,.55+R*.98,d/2+.3);
+    for(let i=0;i<5;i++)put(g,cyl(.3,.3,.07,14),bronze,-w*.36+i*w*.18,.55+h*.62,d/2+.1).rotation.x=Math.PI/2;
+    for(const s of[-1,1]){const hx=s*(w/2+R*.7),hz=-d*.1;put(g,cyl(R*.42,R*.46,R*.5,10),mud,hx,.35+R*.25,hz);put(g,cone(R*.62,R*.6,10),thatch,hx,.35+R*.5+R*.3,hz)}
+    put(g,cyl(.38,.3,.5,12),bronze,-w*.3,.85,d/2+R*.9);for(let i=0;i<3;i++)put(g,cyl(.04,.04,.7,4),woodD(),-w*.3+(i-1)*.25,.35,d/2+R*.9).rotation.z=(i-1)*.5;
+    flagPole(g,w/2-.3,.55+h*2.1,-d/2+.3,R*2.0,team);flagPole(g,-w/2+.3,.55+h*2.1,-d/2+.3,R*1.7,team);
+    g.userData.h=h*3;return g}
+  function hqIron(R,st,team){const g=new THREE.Group(),w=R*2.6,d=R*1.7,h=R*.8,sm=m3Mat('stone',0x9a968c),th=m3Mat('thatch',0x8a7a56);
+    put(g,bx(w+.8,.4,d+.8,3),sm,0,.2,0);
+    put(g,bx(w,h*.55,d,2),sm,0,.4+h*.275,0);
+    put(g,bx(w*.96,h*.55,d*.96,2),m3Mat('planks',0x7a5a3a),0,.4+h*.55+h*.275,0);
+    for(let i=0;i<7;i++){put(g,bx(.14,h*.58,.14,1),woodD(),-w*.46+i*w*.153,.4+h*.55+h*.29,d*.49);put(g,bx(.14,h*.58,.14,1),woodD(),-w*.46+i*w*.153,.4+h*.55+h*.29,-d*.49)}
+    gab(g,0,.4+h*1.1,0,w,d,h*.85,m3Mat('planks',0x7a5a3a),m3Mat('shingle',0x6a6a68),.35);
+    const tx=0,tz=d/2+R*.45,tw=R*.95;
+    put(g,bx(tw,h*1.9,tw,2),sm,tx,.4+h*.95,tz);put(g,bx(tw*1.2,.35,tw*1.2,1),woodD(),tx,.4+h*1.9,tz);
+    for(const a of[0,1.57,3.14,4.71])put(g,bx(tw*.2,.45,.12,1),woodD(),tx+Math.cos(a)*tw*.62,.4+h*1.9+.4,tz+Math.sin(a)*tw*.62);
+    put(g,cone(tw*.95,h*.8,4),m3Mat('shingle',0x6a6a68),tx,.4+h*1.9+.4+h*.4,tz).rotation.y=.785;
+    door(g,tx,tz+tw/2+.02,R*.5,R*.75);
+    for(let i=-6;i<=6;i++)if(Math.abs(i)>1){put(g,cyl(.1,.12,R*.9,6),wood(),i*w*.085,.4+R*.45,d/2+R*1.15);put(g,cone(.12,.3,6),wood(),i*w*.085,.4+R*.9+.15,d/2+R*1.15)}
+    flagPole(g,w/2-.3,.4+h*1.9,-d/2+.3,R*2.0,team);flagPole(g,-w/2+.3,.4+h*1.9,-d/2+.3,R*1.7,team);
+    g.userData.h=h*3.4;return g}
+  BLD3.hq=(R,st,team)=>st.ep===1?hqBronze(R,st,team):st.ep===2?hqIron(R,st,team):castle(R,st,team);
+})();
