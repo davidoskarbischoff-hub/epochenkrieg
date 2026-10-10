@@ -21,6 +21,7 @@ function genMap(seed){
   for(let pp=700;pp>=0&&!A;pp-=20){const c={x:.17*W+nx*pp,y:.83*H+ny*pp};if(okSpot(c.x,c.y,175))A=c}
   if(!A)A={x:.17*W,y:.83*H};
   const bases=[{x:A.x,y:A.y,s:1},{x:W-A.x,y:H-A.y,s:-1}];
+  genRelief(A,bases[1],seed,curMap);navInit(); // Hügel, Plateaus, Klippen
   if(MAPS[curMap]&&MAPS[curMap].cliff){carveCoast(A.x,A.y,380);carveCoast(W-A.x,H-A.y,380);navInit()}
   const GAP={tree:15,bush:12,stone:12,iron:12,fish:10,dolphin:14,whale:20};
   const free=(x,y,r,type)=>!G.ents.some(e=>Math.hypot(e.x-x,e.y-y)<e.r+r+GAP[type]);
@@ -41,13 +42,14 @@ function genMap(seed){
   nearWater('fish',5,55,180,520);nearWater('fish',4,50,250,650);nearWater('dolphin',3,50,350,900);
   // gespiegelte Mitte
   const feats=[];
-  for(let i=0;i<8;i++)feats.push(['tree',22+Math.floor(R()*12),98,landOk]);
-  for(let i=0;i<3;i++)feats.push(['stone',2,52,landOk]);
-  for(let i=0;i<3;i++)feats.push(['bush',5,44,landOk]);
-  for(let i=0;i<3;i++)feats.push(['iron',2,50,landOk]);
-  for(let i=0;i<10;i++)feats.push(['fish',4+Math.floor(R()*2),55,waterOk.fish]);
-  for(let i=0;i<6;i++)feats.push(['dolphin',2+Math.floor(R()*2),50,waterOk.dolphin]);
-  for(let i=0;i<4;i++)feats.push(['whale',1+Math.floor(R()*2),70,waterOk.whale]);
+  const cnt=n=>Math.round(n*Math.sqrt(AREA)*1.1);
+  for(let i=0;i<cnt(8);i++)feats.push(['tree',22+Math.floor(R()*12),98,landOk]);
+  for(let i=0;i<cnt(3);i++)feats.push(['stone',2,52,landOk]);
+  for(let i=0;i<cnt(3);i++)feats.push(['bush',5,44,landOk]);
+  for(let i=0;i<cnt(3);i++)feats.push(['iron',2,50,landOk]);
+  for(let i=0;i<cnt(10);i++)feats.push(['fish',4+Math.floor(R()*2),55,waterOk.fish]);
+  for(let i=0;i<cnt(6);i++)feats.push(['dolphin',2+Math.floor(R()*2),50,waterOk.dolphin]);
+  for(let i=0;i<cnt(4);i++)feats.push(['whale',1+Math.floor(R()*2),70,waterOk.whale]);
   for(const [t,n,sp,okFn] of feats){
     let x,y,ok=false;
     for(let k=0;k<200&&!ok;k++){x=150+R()*(W-300);y=150+R()*(H-300);ok=okFn(x,y,sp*.5)&&bases.every(b=>Math.hypot(b.x-x,b.y-y)>(NODES[t].sea?150:520))&&Math.hypot(x-W/2,y-H/2)>90}
@@ -68,31 +70,15 @@ function spawnAnimals(R,bases,A){
       if(pts.length<Math.min(n,2))continue;
       for(const q of pts){addAnimal(type,q.x,q.y);if(good(W-q.x,H-q.y))addAnimal(type,W-q.x,H-q.y)}return true}
     return false};
-  for(let i=0;i<4;i++)place('deer',2+Math.floor(R()*3),A,380,850,(x,y)=>farBase(x,y,360));
-  for(let i=0;i<3;i++)place('wolf',3,A,800,1800,(x,y)=>farBase(x,y,700)&&treesNear(x,y,170)>=4);
-  for(let i=0;i<2;i++)place('bear',1,A,1000,2300,(x,y)=>farBase(x,y,900)&&treesNear(x,y,170)>=2);
+  for(let i=0;i<5;i++)place('deer',2+Math.floor(R()*3),A,380,950,(x,y)=>farBase(x,y,360));
+  for(let i=0;i<4;i++)place('wolf',3,A,850,2200,(x,y)=>farBase(x,y,750)&&treesNear(x,y,170)>=4);
+  for(let i=0;i<3;i++)place('bear',1,A,1100,2800,(x,y)=>farBase(x,y,950)&&treesNear(x,y,170)>=2);
   place('tiger',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
 }
-function drawMountains(b,t,tmp,R){
-  const rock=document.createElement('canvas');rock.width=TW;rock.height=TH;const rc=rock.getContext('2d'),im=rc.createImageData(TW,TH);for(let i=0;i<TERR.length;i++){const o=i*4;im.data[o]=im.data[o+1]=im.data[o+2]=255;im.data[o+3]=TERR[i]===3?255:0}rc.putImageData(im,0,0);
-  const cut=(offs)=>{t.globalCompositeOperation='destination-in';t.imageSmoothingEnabled=true;for(const[ox,oy]of offs)t.drawImage(rock,0,0,TW,TH,ox,oy,W,H);t.globalCompositeOperation='source-over'};
-  // Schatten
-  t.clearRect(0,0,W,H);t.fillStyle='rgba(20,20,16,.55)';t.fillRect(0,0,W,H);cut([[5,7],[3,5],[7,5]]);b.drawImage(tmp,0,0);
-  // Felsfläche
-  t.clearRect(0,0,W,H);t.fillStyle='#807c74';t.fillRect(0,0,W,H);
-  for(let i=0;i<500;i++){const x=R()*W,y=R()*H,r=30+R()*70,g=t.createRadialGradient(x,y,0,x,y,r),c=R()<.5?'150,146,136':'92,88,80';g.addColorStop(0,`rgba(${c},.45)`);g.addColorStop(1,`rgba(${c},0)`);t.fillStyle=g;t.fillRect(x-r,y-r,2*r,2*r)}
-  cut([[0,0]]);b.drawImage(tmp,0,0);
-  // Gipfel: kleine Berge mit heller und dunkler Seite, Schnee auf den höchsten
-  const peaks=[];for(let y=0;y<TH;y++)for(let x=0;x<TW;x++)if(TERR[y*TW+x]===3&&R()<.5)peaks.push([(x+.5)*TG+(R()-.5)*14,(y+.5)*TG+(R()-.5)*14,16+R()*20]);
-  b.lineJoin='round';b.lineWidth=1.2;b.strokeStyle='#2a2119';
-  for(const[x,y,h]of peaks){const w=h*.9;
-    b.fillStyle='#b4afa4';b.beginPath();b.moveTo(x,y-h);b.lineTo(x-w,y+h*.35);b.lineTo(x+w*.1,y+h*.35);b.closePath();b.fill();b.stroke();
-    b.fillStyle='#6d695f';b.beginPath();b.moveTo(x,y-h);b.lineTo(x+w,y+h*.35);b.lineTo(x+w*.1,y+h*.35);b.closePath();b.fill();b.stroke();
-    if(h>28){b.fillStyle='#f1f3f5';b.beginPath();b.moveTo(x,y-h);b.lineTo(x-w*.32,y-h*.52);b.lineTo(x,y-h*.64);b.lineTo(x+w*.3,y-h*.5);b.closePath();b.fill()}}
-}
 function renderBg(seed){
-  bg=document.createElement('canvas');bg.width=W;bg.height=H;const b=bg.getContext('2d');const R=mulberry(seed+99);
-  const tmp=document.createElement('canvas');tmp.width=W;tmp.height=H;const t=tmp.getContext('2d');
+  const K=.75; /* Bodentextur in 75 % Auflösung (spart Zeit und Speicher); alle Zeichenbefehle bleiben in Spielpixeln */
+  bg=document.createElement('canvas');bg.width=Math.round(W*K);bg.height=Math.round(H*K);const b=bg.getContext('2d');b.scale(K,K);const R=mulberry(seed+99);
+  const tmp=document.createElement('canvas');tmp.width=Math.round(W*K);tmp.height=Math.round(H*K);const t=tmp.getContext('2d');t.scale(K,K);
   const mask=pred=>{ /* weiche Landform: Gelände glätten, in 4-facher Auflösung abtasten, Kante bei 50 % */
     const K=4,w=TW*K,h=TH*K,g=new Float32Array(TW*TH);for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){let sm=0,n=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const nx=Math.max(0,Math.min(TW-1,x+dx)),ny=Math.max(0,Math.min(TH-1,y+dy)),wt=dx||dy?1:3;sm+=wt*(pred(TERR[ny*TW+nx])?1:0);n+=wt}g[y*TW+x]=sm/n}
     const c=document.createElement('canvas');c.width=w;c.height=h;const cx=c.getContext('2d'),im=cx.createImageData(w,h);
@@ -103,36 +89,41 @@ function renderBg(seed){
   const cut=(m,offs)=>{t.globalCompositeOperation='destination-in';t.imageSmoothingEnabled=true;for(const[ox,oy]of offs)t.drawImage(m,0,0,m.width,m.height,ox,oy,W,H);t.globalCompositeOperation='source-over'};
   // 1) tiefes Wasser
   b.fillStyle='#1a4466';b.fillRect(0,0,W,H);
-  for(let i=0;i<420;i++){const x=R()*W,y=R()*H,r=90+R()*240,g=b.createRadialGradient(x,y,0,x,y,r),c=R()<.5?'14,52,86':'44,110,146';g.addColorStop(0,`rgba(${c},${.18+R()*.22})`);g.addColorStop(1,`rgba(${c},0)`);b.fillStyle=g;b.fillRect(x-r,y-r,2*r,2*r)}
+  for(let i=0;i<Math.round(420*AREA);i++){const x=R()*W,y=R()*H,r=90+R()*240,g=b.createRadialGradient(x,y,0,x,y,r),c=R()<.5?'14,52,86':'44,110,146';g.addColorStop(0,`rgba(${c},${.18+R()*.22})`);g.addColorStop(1,`rgba(${c},0)`);b.fillStyle=g;b.fillRect(x-r,y-r,2*r,2*r)}
   // 2) flaches Wasser
   t.clearRect(0,0,W,H);t.fillStyle='#4aa3b0';t.fillRect(0,0,W,H);
-  for(let i=0;i<500;i++){const x=R()*W,y=R()*H,r=40+R()*120,g=t.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(120,200,200,.28)');g.addColorStop(1,'rgba(120,200,200,0)');t.fillStyle=g;t.fillRect(x-r,y-r,2*r,2*r)}
-  cut(shallowM,[[0,0]]);b.drawImage(tmp,0,0);
+  for(let i=0;i<Math.round(500*AREA);i++){const x=R()*W,y=R()*H,r=40+R()*120,g=t.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(120,200,200,.28)');g.addColorStop(1,'rgba(120,200,200,0)');t.fillStyle=g;t.fillRect(x-r,y-r,2*r,2*r)}
+  cut(shallowM,[[0,0]]);b.drawImage(tmp,0,0,W,H);
   // Wellen
-  b.lineWidth=1.2;{const P=[new Path2D(),new Path2D()];for(let i=0;i<5000;i++){const x=R()*W,y=R()*H,v=terrAt(x,y);if(v>=2)continue;const w=6+R()*10,q=P[v];q.moveTo(x-w,y);q.quadraticCurveTo(x,y-3,x+w,y)}b.strokeStyle='rgba(150,200,230,.14)';b.stroke(P[0]);b.strokeStyle='rgba(235,250,250,.32)';b.stroke(P[1])}
+  b.lineWidth=1.2;{const P=[new Path2D(),new Path2D()];for(let i=0;i<Math.round(5000*AREA);i++){const x=R()*W,y=R()*H,v=terrAt(x,y);if(v>=2)continue;const w=6+R()*10,q=P[v];q.moveTo(x-w,y);q.quadraticCurveTo(x,y-3,x+w,y)}b.strokeStyle='rgba(150,200,230,.14)';b.stroke(P[0]);b.strokeStyle='rgba(235,250,250,.32)';b.stroke(P[1])}
   // 3) Brandung, nasser Sand und Sandstrand rund ums Land (Land nach außen aufgeweitet)
-  const dil=(m,r,col,alpha)=>{t.imageSmoothingEnabled=true;t.clearRect(0,0,W,H);t.globalCompositeOperation='source-over';for(let k=0;k<16;k++){const a=k/16*6.283;t.drawImage(m,0,0,m.width,m.height,Math.cos(a)*r,Math.sin(a)*r,W,H)}t.drawImage(m,0,0,m.width,m.height,0,0,W,H);t.globalCompositeOperation='source-in';t.fillStyle=col;t.fillRect(0,0,W,H);t.globalCompositeOperation='source-over';b.globalAlpha=alpha;b.drawImage(tmp,0,0);b.globalAlpha=1};
+  const dil=(m,r,col,alpha)=>{t.imageSmoothingEnabled=true;t.clearRect(0,0,W,H);t.globalCompositeOperation='source-over';for(let k=0;k<16;k++){const a=k/16*6.283;t.drawImage(m,0,0,m.width,m.height,Math.cos(a)*r,Math.sin(a)*r,W,H)}t.drawImage(m,0,0,m.width,m.height,0,0,W,H);t.globalCompositeOperation='source-in';t.fillStyle=col;t.fillRect(0,0,W,H);t.globalCompositeOperation='source-over';b.globalAlpha=alpha;b.drawImage(tmp,0,0,W,H);b.globalAlpha=1};
   dil(landM,22,'rgb(190,230,225)',.3);dil(landM,15,'rgb(238,246,244)',.4);dil(landM,11,'#bfa874',1);dil(landM,7,'#d9c690',1);
   // 4) Gras auf dem Land
   t.clearRect(0,0,W,H);t.fillStyle='#6c8544';t.fillRect(0,0,W,H);
-  for(let i=0;i<1700;i++){const x=R()*W,y=R()*H,r=30+R()*110,g=t.createRadialGradient(x,y,0,x,y,r),c=R()<.55?'82,110,52':R()<.5?'128,146,76':'140,128,78';g.addColorStop(0,`rgba(${c},${.18+R()*.28})`);g.addColorStop(1,`rgba(${c},0)`);t.fillStyle=g;t.fillRect(x-r,y-r,2*r,2*r)}
+  for(let i=0;i<Math.round(1700*AREA);i++){const x=R()*W,y=R()*H,r=30+R()*110,g=t.createRadialGradient(x,y,0,x,y,r),c=R()<.55?'82,110,52':R()<.5?'128,146,76':'140,128,78';g.addColorStop(0,`rgba(${c},${.18+R()*.28})`);g.addColorStop(1,`rgba(${c},0)`);t.fillStyle=g;t.fillRect(x-r,y-r,2*r,2*r)}
   // Erdflecken und dunklere Wiesenstücke
-  for(let i=0;i<160;i++){const x=R()*W,y=R()*H,r=14+R()*40,g=t.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(120,92,58,.38)');g.addColorStop(1,'rgba(120,92,58,0)');t.fillStyle=g;t.beginPath();t.ellipse(x,y,r*1.4,r,R()*3,0,6.283);t.fill()}
+  for(let i=0;i<Math.round(160*AREA);i++){const x=R()*W,y=R()*H,r=14+R()*40,g=t.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba(120,92,58,.38)');g.addColorStop(1,'rgba(120,92,58,0)');t.fillStyle=g;t.beginPath();t.ellipse(x,y,r*1.4,r,R()*3,0,6.283);t.fill()}
   for(const e of G.ents)if(e.type==='hq'){const g=t.createRadialGradient(e.x,e.y,30,e.x,e.y,210);g.addColorStop(0,'rgba(150,118,76,.7)');g.addColorStop(.6,'rgba(150,118,76,.35)');g.addColorStop(1,'rgba(150,118,76,0)');t.fillStyle=g;t.fillRect(e.x-210,e.y-210,420,420)}
   // feines Korn (Rauschen) über dem Gras
   {const n=document.createElement('canvas');n.width=n.height=160;const nx=n.getContext('2d'),im=nx.createImageData(160,160);for(let i=0;i<160*160;i++){const v=110+R()*60|0;im.data[i*4]=im.data[i*4+1]=im.data[i*4+2]=v;im.data[i*4+3]=255}nx.putImageData(im,0,0);
     t.globalCompositeOperation='soft-light';t.globalAlpha=.55;t.fillStyle=t.createPattern(n,'repeat');t.fillRect(0,0,W,H);t.globalAlpha=1;t.globalCompositeOperation='source-over'}
   // Grashalme, Büschel, Steinchen, Blumen
-  t.lineWidth=1;{const P=[new Path2D(),new Path2D(),new Path2D()];for(let i=0;i<24000;i++){const x=R()*W,y=R()*H;if(terrAt(x,y)<2)continue;const q=P[(R()*3)|0];q.moveTo(x,y);q.lineTo(x+(R()-.5)*4,y-3-R()*4)}t.strokeStyle='rgba(52,76,32,.5)';t.stroke(P[0]);t.strokeStyle='rgba(170,184,104,.4)';t.stroke(P[1]);t.strokeStyle='rgba(98,128,58,.45)';t.stroke(P[2])}
-  for(let i=0;i<5200;i++){const x=R()*W,y=R()*H;if(terrAt(x,y)<2)continue;const r=1.5+R()*2.6;t.fillStyle='rgba(30,40,18,.28)';t.beginPath();t.ellipse(x+1,y+1,r+.6,r*.6,0,0,6.283);t.fill();t.fillStyle=R()<.5?'#8d8a7f':'#a39f92';t.beginPath();t.ellipse(x,y,r,r*.62,0,0,6.283);t.fill();t.fillStyle='rgba(255,255,255,.28)';t.beginPath();t.ellipse(x-r*.25,y-r*.2,r*.4,r*.22,0,0,6.283);t.fill()}
-  {const cols=['#f4e66a','#f7f3ea','#e07a8a','#9f7ad6','#f0a24a'];for(let i=0;i<260;i++){const cx=R()*W,cy=R()*H;if(terrAt(cx,cy)<2)continue;const c=cols[(R()*cols.length)|0],n=3+(R()*7|0);for(let k=0;k<n;k++){const x=cx+(R()-.5)*26,y=cy+(R()-.5)*18;t.fillStyle='rgba(40,60,25,.55)';t.fillRect(x,y,1,3);t.fillStyle=c;t.beginPath();t.arc(x,y,1.5,0,6.283);t.fill()}}}
-  cut(landM,[[0,0]]);b.drawImage(tmp,0,0);
+  t.lineWidth=1;{const P=[new Path2D(),new Path2D(),new Path2D()];for(let i=0;i<Math.round(24000*AREA);i++){const x=R()*W,y=R()*H;if(terrAt(x,y)<2)continue;const q=P[(R()*3)|0];q.moveTo(x,y);q.lineTo(x+(R()-.5)*4,y-3-R()*4)}t.strokeStyle='rgba(52,76,32,.5)';t.stroke(P[0]);t.strokeStyle='rgba(170,184,104,.4)';t.stroke(P[1]);t.strokeStyle='rgba(98,128,58,.45)';t.stroke(P[2])}
+  for(let i=0;i<Math.round(5200*AREA);i++){const x=R()*W,y=R()*H;if(terrAt(x,y)<2)continue;const r=1.5+R()*2.6;t.fillStyle='rgba(30,40,18,.28)';t.beginPath();t.ellipse(x+1,y+1,r+.6,r*.6,0,0,6.283);t.fill();t.fillStyle=R()<.5?'#8d8a7f':'#a39f92';t.beginPath();t.ellipse(x,y,r,r*.62,0,0,6.283);t.fill();t.fillStyle='rgba(255,255,255,.28)';t.beginPath();t.ellipse(x-r*.25,y-r*.2,r*.4,r*.22,0,0,6.283);t.fill()}
+  {const cols=['#f4e66a','#f7f3ea','#e07a8a','#9f7ad6','#f0a24a'];for(let i=0;i<Math.round(260*AREA);i++){const cx=R()*W,cy=R()*H;if(terrAt(cx,cy)<2)continue;const c=cols[(R()*cols.length)|0],n=3+(R()*7|0);for(let k=0;k<n;k++){const x=cx+(R()-.5)*26,y=cy+(R()-.5)*18;t.fillStyle='rgba(40,60,25,.55)';t.fillRect(x,y,1,3);t.fillStyle=c;t.beginPath();t.arc(x,y,1.5,0,6.283);t.fill()}}}
+  cut(landM,[[0,0]]);b.drawImage(tmp,0,0,W,H);
   // dunkler Rand der Wiese an der Küste (Tiefe)
-  {const ec=document.createElement('canvas');ec.width=W;ec.height=H;const ex=ec.getContext('2d');ex.imageSmoothingEnabled=true;t.imageSmoothingEnabled=true;ex.drawImage(landM,0,0,landM.width,landM.height,0,0,W,H);ex.globalCompositeOperation='destination-in';for(let k=0;k<12;k++){const a=k/12*6.283;ex.drawImage(landM,0,0,landM.width,landM.height,Math.cos(a)*9,Math.sin(a)*9,W,H)}
-    t.clearRect(0,0,W,H);t.globalCompositeOperation='source-over';t.drawImage(landM,0,0,landM.width,landM.height,0,0,W,H);t.globalCompositeOperation='destination-out';t.drawImage(ec,0,0);t.globalCompositeOperation='source-in';t.fillStyle='rgba(28,44,18,.38)';t.fillRect(0,0,W,H);t.globalCompositeOperation='source-over';b.drawImage(tmp,0,0)}
+  {const ec=document.createElement('canvas');ec.width=Math.round(W*K);ec.height=Math.round(H*K);const ex=ec.getContext('2d');ex.scale(K,K);ex.imageSmoothingEnabled=true;t.imageSmoothingEnabled=true;ex.drawImage(landM,0,0,landM.width,landM.height,0,0,W,H);ex.globalCompositeOperation='destination-in';for(let k=0;k<12;k++){const a=k/12*6.283;ex.drawImage(landM,0,0,landM.width,landM.height,Math.cos(a)*9,Math.sin(a)*9,W,H)}
+    t.clearRect(0,0,W,H);t.globalCompositeOperation='source-over';t.drawImage(landM,0,0,landM.width,landM.height,0,0,W,H);t.globalCompositeOperation='destination-out';t.drawImage(ec,0,0,W,H);t.globalCompositeOperation='source-in';t.fillStyle='rgba(28,44,18,.38)';t.fillRect(0,0,W,H);t.globalCompositeOperation='source-over';b.drawImage(tmp,0,0,W,H)}
   // Licht von links oben: großflächige Aufhellung und Abdunklung
   {const g=b.createLinearGradient(0,0,W,H);g.addColorStop(0,'rgba(255,240,200,.10)');g.addColorStop(.5,'rgba(255,255,255,0)');g.addColorStop(1,'rgba(10,20,40,.16)');b.fillStyle=g;b.fillRect(0,0,W,H)}
-  if(TERR.some(v=>v===3))drawMountains(b,t,tmp,R);
+  // Fels (Berge, Klippen): graubraune Gesteinsfläche mit Schichten und Flecken; die Form kommt aus dem 3D-Relief
+  if(TERR.some(v=>v===3)){const rockM=mask(v=>v===3);t.clearRect(0,0,W,H);t.fillStyle='#8d8679';t.fillRect(0,0,W,H);
+    for(let i=0;i<Math.round(1800*AREA);i++){const x=R()*W,y=R()*H,r=14+R()*60,g=t.createRadialGradient(x,y,0,x,y,r),c=R()<.5?'60,52,44':'196,186,168';g.addColorStop(0,`rgba(${c},${.12+R()*.2})`);g.addColorStop(1,`rgba(${c},0)`);t.fillStyle=g;t.fillRect(x-r,y-r,2*r,2*r)}
+    t.lineWidth=1.4;t.strokeStyle='rgba(50,44,38,.28)';t.beginPath();for(let i=0;i<Math.round(2600*AREA);i++){const x=R()*W,y=R()*H,l=18+R()*60;t.moveTo(x,y);t.lineTo(x+l,y+(R()-.5)*8)}t.stroke();
+    t.strokeStyle='rgba(235,226,205,.2)';t.beginPath();for(let i=0;i<Math.round(1200*AREA);i++){const x=R()*W,y=R()*H,l=10+R()*40;t.moveTo(x,y);t.lineTo(x+l,y-2-R()*5)}t.stroke();
+    cut(rockM,[[0,0]]);b.drawImage(tmp,0,0,W,H)}
   b.strokeStyle='rgba(30,22,14,.5)';b.lineWidth=6;b.strokeRect(3,3,W-6,H-6);
   bgSmall=document.createElement('canvas');bgSmall.width=240;bgSmall.height=160;bgSmall.getContext('2d').drawImage(bg,0,0,240,160);
 }

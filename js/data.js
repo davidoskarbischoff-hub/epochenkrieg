@@ -1,6 +1,7 @@
 // Spieldaten: Einheiten, Gebäude, Ressourcen, Epochen, Schwierigkeit, Farben.
 // Hier lässt sich das Balancing ändern, ohne die Spiellogik anzufassen.
-const W=3600,H=2400,CARRY=15;
+const W=4800,H=3200,CARRY=15;
+const AREA=W*H/(3600*2400); /* Kartengrösse im Vergleich zur ersten Version (für Anzahlen von Vorkommen, Gras usw.) */
 // Sammeln je Ressource: Tempo-Faktor und Tragekapazität (Beeren bringen mehr, weil Nahrung sonst knapp ist)
 const GATHER={food:{rate:1.5,carry:15},wood:{rate:1.2,carry:12},stone:{rate:.9,carry:10},iron:{rate:.8,carry:8}};
 const UNITS={

@@ -9,12 +9,26 @@ let TERR=null,MAINLAND=null;
 /* ---------- Gelände erzeugen ---------- */
 /* Kartenarten: mid/ends = Breite der Landzunge in der Mitte und an den Enden, amp = Unregelmäßigkeit, full = nur Land, mount = Berge, cliff = Klippen an der Küste (Zugänge nur an Lücken), bank = Sandbänke */
 const MAPS={
-  coast:{name:'Küste und Landzunge',desc:'Zwei Küsten, Landzunge, Fischgründe',mid:250,ends:650,amp:1,bank:.6,mount:0,cliff:0,lakes:1.1},
-  land:{name:'Festland',desc:'Nur Land, kein Wasser',full:1,amp:1,bank:.6,mount:0,cliff:0},
-  lakes:{name:'Seenplatte',desc:'Viele Seen und Teiche, Fische im Binnenland',full:1,amp:1,bank:.6,mount:0,cliff:0,lakes:1.7},
-  mountains:{name:'Bergland',desc:'Berge und Klippen, Häfen nur an Zugängen',mid:260,ends:680,amp:1,bank:.6,mount:1,cliff:1,lakes:.9},
-  bay:{name:'Große Bucht',desc:'Viel Wasser, schmale Landbrücke',mid:175,ends:610,amp:.5,bank:.5,mount:0,cliff:0,lakes:.8}
+  coast:{name:'Küste und Landzunge',desc:'Geschwungene Küste, Hügel, Plateaus, Fischgründe',mid:430,ends:920,amp:1.25,wind:.8,plat:.55,bank:.6,mount:0,cliff:0,lakes:1.1},
+  land:{name:'Festland',desc:'Nur Land mit Hügeln und Plateaus, kein Meer',full:1,amp:1,plat:.65,bank:.6,mount:0,cliff:0},
+  lakes:{name:'Seenplatte',desc:'Viele Seen und Teiche, Fische im Binnenland',full:1,amp:1,plat:.4,bank:.6,mount:0,cliff:0,lakes:1.7},
+  mountains:{name:'Bergland',desc:'Hohe Berge und Klippen, Häfen nur an Zugängen',mid:440,ends:930,amp:1.15,wind:.7,plat:.3,bank:.6,mount:1,cliff:1,lakes:.9},
+  bay:{name:'Große Bucht',desc:'Viel Wasser, breite Landbrücke',mid:320,ends:840,amp:1,wind:1,plat:.45,bank:.5,mount:0,cliff:0,lakes:.8}
 };
+/* Höhenfeld (HL, in Einheiten à 10 px, pro Gelände-Feld), Abstand zur Küste (DSEA), Startpunkt des Hauptlandes (MAINPT) */
+let HL=null,DSEA=null,MAINPT=null;
+const sm3=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
+function vnoise(R,gw,gh){const g=[];for(let i=0;i<(gw+1)*(gh+1);i++)g.push(R());
+  return(x,y)=>{const fx=Math.max(0,Math.min(gw-1e-6,x/W*gw)),fy=Math.max(0,Math.min(gh-1e-6,y/H*gh)),ix=Math.floor(fx),iy=Math.floor(fy);let tx=fx-ix,ty=fy-iy;tx=tx*tx*(3-2*tx);ty=ty*ty*(3-2*ty);
+    const a=g[iy*(gw+1)+ix],b=g[iy*(gw+1)+ix+1],c=g[(iy+1)*(gw+1)+ix],d=g[(iy+1)*(gw+1)+ix+1];return(a*(1-tx)+b*tx)*(1-ty)+(c*(1-tx)+d*tx)*ty}}
+/* nächstes Landfeld zu einem Punkt (Spiralsuche) */
+function walkNear(x,y){const cx=Math.max(0,Math.min(TW-1,(x/TG)|0)),cy=Math.max(0,Math.min(TH-1,(y/TG)|0));
+  for(let r=0;r<60;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0||nx>=TW||ny>=TH)continue;if(TERR[ny*TW+nx]===2)return ny*TW+nx}
+  return cy*TW+cx}
+/* Höhe an einem Spielpunkt (bilinear aus dem Höhenfeld) */
+function hlAt(x,y){if(!HL)return 0;const fx=Math.max(0,Math.min(TW-1.001,x/TG-.5)),fy=Math.max(0,Math.min(TH-1.001,y/TG-.5)),ix=fx|0,iy=fy|0,tx=fx-ix,ty=fy-iy;
+  return(HL[iy*TW+ix]*(1-tx)+HL[iy*TW+ix+1]*tx)*(1-ty)+(HL[(iy+1)*TW+ix]*(1-tx)+HL[(iy+1)*TW+ix+1]*tx)*ty}
+const slopeNear=(x,y,r)=>Math.max(Math.abs(hlAt(x+r,y)-hlAt(x-r,y)),Math.abs(hlAt(x,y+r)-hlAt(x,y-r)));
 function genTerrain(seed,mapId){
   const cfg=MAPS[mapId]||MAPS.coast;
   const R=mulberry(seed+7);
@@ -30,10 +44,10 @@ function genTerrain(seed,mapId){
   const land=new Uint8Array(TW*TH);
   for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){
     const px=(x+.5)*TG,py=(y+.5)*TG;
-    const pp=(H*px+W*py-W*H)/L,t=(px*W+(H-py)*H)/(L*L);
+    const pp0=(H*px+W*py-W*H)/L,t=(px*W+(H-py)*H)/(L*L),pp=pp0-(cfg.wind||0)*(Math.sin((t-.5)*9.42)*430+Math.sin((t-.5)*22)*150);
     const w=cfg.full?3000:cfg.mid+(cfg.ends-cfg.mid)*Math.pow(Math.abs(t-.5)*2,1.4);
-    const noise=((sym(n1,px,py)-.5)*340+(sym(n2,px,py)-.5)*110)*cfg.amp;
-    const edge=Math.min(px,py,W-px,H-py),fall=Math.max(0,170-edge)*3; // Wasserrand rundum
+    const noise=((sym(n1,px,py)-.5)*400+(sym(n2,px,py)-.5)*140)*cfg.amp;
+    const edge=Math.min(px,py,W-px,H-py),fall=Math.max(0,320-edge)*4.5; // Wasserrand rundum
     land[y*TW+x]=w+noise-Math.abs(pp)-fall>0?1:0}
   // Seen und Teiche im Landesinneren (punktsymmetrisch, Basen und Landverbindung bleiben frei)
   if(cfg.lakes){
@@ -55,18 +69,53 @@ function genTerrain(seed,mapId){
     const bank=sym(n3,px,py)>cfg.bank&&dist[i]>=0&&dist[i]<=9;
     TERR[i]=(dist[i]>=0&&dist[i]<=3)||bank?1:0}
   // Berge (unpassierbar) und Klippen an der Küste (Zugang zum Wasser nur an Lücken, dort können Häfen stehen)
+  const cliffMask=new Uint8Array(TW*TH);let mthr=9;
   if(cfg.mount||cfg.cliff){
-    const a0={x:W*.17,y:H*.83},b0={x:W-a0.x,y:H-a0.y},cliffs=new Uint8Array(TW*TH);
+    const a0={x:W*.17,y:H*.83},b0={x:W-a0.x,y:H-a0.y},cliffs=cliffMask;
     if(cfg.cliff)for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const i=y*TW+x;if(TERR[i]!==2)continue;let near=false;for(let dy=-2;dy<=2&&!near;dy++)for(let dx=-2;dx<=2;dx++){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=TW||ny>=TH)continue;if(TERR[ny*TW+nx]<2){near=true;break}}
       if(near&&sym(n5,(x+.5)*TG,(y+.5)*TG)<.58)cliffs[i]=1}
-    const passable=a=>{const seen=new Uint8Array(TW*TH),st=[Math.floor(a0.y/TG)*TW+Math.floor(a0.x/TG)];seen[st[0]]=1;const tgt=Math.floor(b0.y/TG)*TW+Math.floor(b0.x/TG);
+    const passable=a=>{const seen=new Uint8Array(TW*TH),st=[walkNear(a0.x,a0.y)];seen[st[0]]=1;const tgt=walkNear(b0.x,b0.y);
       while(st.length){const i=st.pop();if(i===tgt)return true;const x=i%TW,y=(i/TW)|0;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=TW||ny>=TH)continue;const j=ny*TW+nx;if(!seen[j]&&(a[j]===2||a[j]===1)){seen[j]=1;st.push(j)}}}return false};
     let thr=.54,ok=false;const base=TERR.slice();
     for(let k=0;k<8&&!ok;k++,thr+=.04){const T=base.slice();
       for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const i=y*TW+x;if(T[i]!==2)continue;const px=(x+.5)*TG,py=(y+.5)*TG;
         if(cfg.cliff&&cliffs[i]){T[i]=3;continue}
         if(cfg.mount&&sym(n4,px,py)>thr&&Math.hypot(px-a0.x,py-a0.y)>850&&Math.hypot(px-b0.x,py-b0.y)>850)T[i]=3}
-      if(passable(T)){TERR.set(T);ok=true}}
+      if(passable(T)){TERR.set(T);ok=true;mthr=thr}}
+  }
+  // Höhenfeld: sanfte Hügel im Inland, Berge als breite Rücken, Klippen an der Küste hoch, Strand niedrig
+  DSEA=new Int16Array(TW*TH).fill(99);{const qq=[];for(let i=0;i<TERR.length;i++)if(TERR[i]<2){DSEA[i]=0;qq.push(i)}
+    for(let h=0;h<qq.length;h++){const i=qq[h],x=i%TW,y=(i/TW)|0;if(DSEA[i]>=8)continue;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=TW||ny>=TH)continue;const j=ny*TW+nx;if(DSEA[j]>DSEA[i]+1){DSEA[j]=DSEA[i]+1;qq.push(j)}}}}
+  HL=new Float32Array(TW*TH);
+  {const a0={x:W*.17,y:H*.83},b0={x:W-a0.x,y:H-a0.y};
+    for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const i=y*TW+x;if(TERR[i]<2){HL[i]=.12;continue}
+      const px=(x+.5)*TG,py=(y+.5)*TG,inl=sm3(1,6,DSEA[i]);
+      let h=.12+((sym(n1,px,py)-.5)*2.0+(sym(n2,px,py)-.5)*1.0+(sym(n5,px,py)-.5)*.5)*inl;
+      if(cfg.mount&&Math.hypot(px-a0.x,py-a0.y)>850&&Math.hypot(px-b0.x,py-b0.y)>850)h+=4.6*sm3(mthr-.11,mthr+.07,sym(n4,px,py))*inl;
+      if(cliffMask[i])h+=1.9;
+      HL[i]=h}}
+  computeMainland();
+}
+/* Relief nach der Wahl der Startplätze: abgerundete Hügel unter den Basen, Plateaus mit steilen Klippen (TERR 3) und Rampen dazwischen */
+function genRelief(A,B,seed,mapId){
+  const cfg=MAPS[mapId]||MAPS.coast,R=mulberry(seed+4141),nP=vnoise(R,8,5),nR=vnoise(R,26,17),sym=(f,x,y)=>(f(x,y)+f(W-x,H-y))/2;
+  MAINPT=A;
+  const RD=680;
+  for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const i=y*TW+x;if(TERR[i]<2)continue;const px=(x+.5)*TG,py=(y+.5)*TG,d=Math.min(Math.hypot(px-A.x,py-A.y),Math.hypot(px-B.x,py-B.y));
+    if(d<RD)HL[i]+=2.0*sm3(RD,RD*.38,d)*sm3(1,5,DSEA[i])}
+  if(cfg.plat){
+    const thr=.665-.1*cfg.plat,T0=TERR.slice(),H0=HL.slice();
+    const connected=()=>{const seen=new Uint8Array(TW*TH),st=[walkNear(A.x,A.y)],tgt=walkNear(B.x,B.y);seen[st[0]]=1;
+      while(st.length){const i=st.pop();if(i===tgt)return true;const x=i%TW,y=(i/TW)|0;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=TW||ny>=TH)continue;const j=ny*TW+nx;if(!seen[j]&&TERR[j]>=1&&TERR[j]<=2){seen[j]=1;st.push(j)}}}return false};
+    for(let k=0;k<8;k++){
+      const rampT=.58-.05*k;TERR.set(T0);HL.set(H0);
+      for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const i=y*TW+x;if(T0[i]!==2)continue;const px=(x+.5)*TG,py=(y+.5)*TG;
+        if(Math.hypot(px-A.x,py-A.y)<800||Math.hypot(px-B.x,py-B.y)<800)continue;
+        const P=sym(nP,px,py);if(P<thr-.2)continue;
+        const rn=sym(nR,px,py),w=.016+.15*sm3(rampT-.08,rampT+.1,rn),inl=sm3(1,6,DSEA[i]);
+        HL[i]+=3.0*sm3(thr-w,thr+w,P)*inl;
+        if(w<.05&&Math.abs(P-thr)<.034&&DSEA[i]>=3)TERR[i]=3}
+      if(connected())break}
   }
   computeMainland();
 }
@@ -74,18 +123,17 @@ function genTerrain(seed,mapId){
 const _mpCache={};
 function mapPreview(id){
   if(_mpCache[id])return _mpCache[id];
-  const sT=TERR,sM=MAINLAND;genTerrain(11,id);
+  const sT=TERR,sM=MAINLAND,sH=HL,sD=DSEA,sP=MAINPT;MAINPT=null;genTerrain(11,id);
   const c=document.createElement('canvas');c.width=TW;c.height=TH;const x=c.getContext('2d'),im=x.createImageData(TW,TH);
   const col=[[28,66,98],[62,142,160],[104,142,66],[122,118,110]];
   for(let i=0;i<TW*TH;i++){const k=col[TERR[i]],j=i*4;const sh=TERR[i]===2?((i%TW+((i/TW)|0))%7<1?-8:0):0;im.data[j]=k[0]+sh;im.data[j+1]=k[1]+sh;im.data[j+2]=k[2]+sh;im.data[j+3]=255}
   x.putImageData(im,0,0);
   x.fillStyle='#4a8fe0';x.strokeStyle='#10202f';x.lineWidth=1;for(const[px,py,cl]of[[.17,.83,'#4a8fe0'],[.83,.17,'#e0533c']]){x.fillStyle=cl;x.beginPath();x.arc(px*TW,py*TH,4,0,6.283);x.fill();x.stroke()}
-  TERR=sT;MAINLAND=sM;return _mpCache[id]=c.toDataURL()}
+  TERR=sT;MAINLAND=sM;HL=sH;DSEA=sD;MAINPT=sP;return _mpCache[id]=c.toDataURL()}
 /* Landfelder, die vom Hauptland aus erreichbar sind (kleine Inseln zählen nicht), merken */
 function computeMainland(){
   MAINLAND=new Uint8Array(TW*TH);
-  const sx=Math.floor(W*.17/TG),sy=Math.floor(H*.83/TG);
-  const st=[sy*TW+sx];MAINLAND[st[0]]=1;
+  const p=MAINPT||{x:W*.17,y:H*.83},st=[walkNear(p.x,p.y)];MAINLAND[st[0]]=1;
   while(st.length){const i=st.pop(),x=i%TW,y=(i/TW)|0;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=TW||ny>=TH)continue;const j=ny*TW+nx;if(!MAINLAND[j]&&TERR[j]===2){MAINLAND[j]=1;st.push(j)}}}
 }
 /* Klippen rund um einen Punkt (Basis) öffnen, damit dort immer ein Hafen möglich ist */
@@ -93,7 +141,7 @@ function carveCoast(x,y,r){
   for(let cy=Math.max(0,Math.floor((y-r)/TG));cy<=Math.min(TH-1,Math.floor((y+r)/TG));cy++)for(let cx=Math.max(0,Math.floor((x-r)/TG));cx<=Math.min(TW-1,Math.floor((x+r)/TG));cx++){
     const i=cy*TW+cx;if(TERR[i]!==3||Math.hypot((cx+.5)*TG-x,(cy+.5)*TG-y)>r)continue;let wet=false;
     for(let dy=-3;dy<=3&&!wet;dy++)for(let dx=-3;dx<=3;dx++){const nx=cx+dx,ny=cy+dy;if(nx>=0&&ny>=0&&nx<TW&&ny<TH&&TERR[ny*TW+nx]<2){wet=true;break}}
-    if(wet)TERR[i]=2}
+    if(wet){TERR[i]=2;if(HL)HL[i]=.3}}
   computeMainland()}
 function terrAt(x,y){const cx=Math.max(0,Math.min(TW-1,(x/TG)|0)),cy=Math.max(0,Math.min(TH-1,(y/TG)|0));return TERR[cy*TW+cx]}
 const onLand=(x,y)=>terrAt(x,y)===2;
@@ -127,7 +175,7 @@ function navPath(sx,sy,tx,ty,goalR,naval,seed){
   const pop=()=>{const r=heap[0],lh=heap.pop(),lf=hf.pop();if(heap.length){heap[0]=lh;hf[0]=lf;let k=0;for(;;){let l=2*k+1,rr=l+1,m=k;if(l<heap.length&&hf[l]<hf[m])m=l;if(rr<heap.length&&hf[rr]<hf[m])m=rr;if(m===k)break;[heap[m],heap[k]]=[heap[k],heap[m]];[hf[m],hf[k]]=[hf[k],hf[m]];k=m}}return r};
   navSeen[s]=navGen;navG[s]=0;navPar[s]=-1;push(s,hx(s));
   let goal=-1,n=0,best=s,bestH=hx(s);
-  while(heap.length&&n++<30000){
+  while(heap.length&&n++<90000){
     const i=pop(),x=i%NW,y=(i/NW)|0,h=hx(i);
     if(h<bestH){bestH=h;best=i}
     if(h<=0.5&&(i===s||navOpen(i,naval))){goal=i;break}
@@ -137,7 +185,7 @@ function navPath(sx,sy,tx,ty,goalR,naval,seed){
       let c=k<4?1:1.4142;if(seed)c*=1+((((j*2654435761)^(seed*40503))>>>0)%100)/100*1.4;
       const g=navG[i]+c;if(navSeen[j]!==navGen||g<navG[j]){navSeen[j]=navGen;navG[j]=g;navPar[j]=i;push(j,g+hx(j))}}
   }
-  if(goal<0)return null;
+  if(goal<0){if(best===s)return null;goal=best} // Suchgrenze erreicht: bis zum nächstgelegenen erreichten Punkt laufen, dort neu suchen
   const cells=[];for(let i=goal;i>=0;i=navPar[i])cells.push(i);cells.reverse();
   let pts=cells.map(i=>({x:(i%NW+.5)*NS,y:(((i/NW)|0)+.5)*NS}));
   // Weg glätten: Zwischenpunkte weglassen, wenn man direkt hinüberlaufen kann
