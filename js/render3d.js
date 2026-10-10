@@ -64,10 +64,24 @@ function r3Map(){
     const wc=document.createElement('canvas');wc.width=wc.height=256;const wx=wc.getContext('2d');wx.clearRect(0,0,256,256);wx.strokeStyle='rgba(255,255,255,.9)';wx.lineCap='round';
     for(let i=0;i<70;i++){const px=Math.random()*256,py=Math.random()*256,l=8+Math.random()*22;wx.lineWidth=1+Math.random()*1.5;wx.globalAlpha=.25+Math.random()*.5;for(const[ox,oy]of[[0,0],[256,0],[-256,0],[0,256],[0,-256]]){wx.beginPath();wx.moveTo(px-l+ox,py+oy);wx.quadraticCurveTo(px+ox,py-4+oy,px+l+ox,py+oy);wx.stroke()}}
     r3.waveTex=wc}
-  const mesh=new THREE.Mesh(g,new THREE.MeshStandardMaterial({map:tex,vertexColors:true,roughness:1,metalness:0,bumpMap:r3.detail,bumpScale:.45}));mesh.receiveShadow=true;scene.add(mesh);r3.terrain=mesh;
+  const tm=new THREE.MeshStandardMaterial({map:tex,vertexColors:true,roughness:1,metalness:0,bumpMap:r3.detail,bumpScale:.45});
+  /* großflächige Helligkeits-/Farbschwankung im Boden (bricht die gleichförmigen Flächen auf), per Shader-Zusatz */
+  tm.onBeforeCompile=sh=>{sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vWp;').replace('#include <begin_vertex>','#include <begin_vertex>\nvWp=(modelMatrix*vec4(position,1.0)).xyz;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vWp;\nfloat h21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\nfloat vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}')
+      .replace('#include <map_fragment>','#include <map_fragment>\n{float n=vn(vWp.xz*0.035)*0.55+vn(vWp.xz*0.11)*0.3+vn(vWp.xz*0.4)*0.15;float k=0.86+0.3*n;diffuseColor.rgb*=vec3(k*1.02,k,k*0.97);}')};
+  const mesh=new THREE.Mesh(g,tm);mesh.receiveShadow=true;scene.add(mesh);r3.terrain=mesh;
   if(r3.waves)for(const w of r3.waves)scene.remove(w);r3.waves=[];
   for(const[sp,rep,op]of[[1,SX/9,.32],[-1,SX/5.3,.22]]){const wt=new THREE.CanvasTexture(r3.waveTex);wt.wrapS=wt.wrapT=THREE.RepeatWrapping;wt.repeat.set(rep,rep*SZ/SX);const wm=new THREE.Mesh(new THREE.PlaneGeometry(SX,SZ).rotateX(-Math.PI/2).translate(SX/2,0,SZ/2),new THREE.MeshBasicMaterial({map:wt,transparent:true,opacity:op,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));wm.position.y=-.34;wm.renderOrder=1;wm.userData.sp=sp;scene.add(wm);r3.waves.push(wm)}
   const ovMat=(cv,order,op)=>{const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,fog:false}));m.renderOrder=order;m.material.opacity=op;scene.add(m);return m};
+  /* Küstenschaum: helle, weich verlaufende Linie im flachen Wasser am Ufer; pulsiert wie anlaufende Wellen */
+  if(r3.foam){scene.remove(r3.foam);r3.foam.material.map.dispose()}
+  {const K=4,fc=document.createElement('canvas');fc.width=TW*K;fc.height=TH*K;const fx=fc.getContext('2d');
+    const land=(x,y)=>x>=0&&y>=0&&x<TW&&y<TH&&TERR[y*TW+x]>=2;
+    for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){if(TERR[y*TW+x]!==1)continue;let n1=0,n2=0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){if(!land(x+dx,y+dy))continue;if(Math.abs(dx)<=1&&Math.abs(dy)<=1)n1++;else n2++}
+      const a=n1?.95:n2?.4:0;if(a){fx.fillStyle='rgba(255,255,255,'+a+')';fx.fillRect(x*K,y*K,K,K)}}
+    const f2=document.createElement('canvas');f2.width=fc.width;f2.height=fc.height;const x2=f2.getContext('2d');x2.filter='blur(5px)';x2.drawImage(fc,0,0);
+    const t=new THREE.CanvasTexture(f2);t.colorSpace=THREE.SRGBColorSpace;
+    const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,opacity:.5,fog:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));m.renderOrder=1;scene.add(m);r3.foam=m}
   r3.terrOv=ovMat(terrCv,2,.75);r3.fogOv=ovMat(fogCv,3,1);
   r3NodesInit();R3.bgRef=bg;R3.gRef=G;
 }
@@ -285,6 +299,7 @@ function r3Frame(list,rings,dt){
   const t=(performance.now()-R3.t0)/1000;
   if(R3.bgRef!==bg||R3.gRef!==G)r3Map();
   camUpdate();
+  if(r3.foam)r3.foam.material.opacity=.42+.3*Math.sin(t*1.4)+.1*Math.sin(t*3.1);
   for(const w of r3.waves){const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}
