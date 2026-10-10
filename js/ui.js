@@ -156,3 +156,15 @@ function showEnd(){
   $('againBtn').onclick=showStart;
 }
 
+
+/* ---------- Hinweise: bleibt die Maus kurz auf einem Symbol oder Knopf, erscheint ein erklärender Text ---------- */
+const TIPS={'Nahrung':'Wird für Arbeiter und Truppen gebraucht. Beeren, Felder, Wild und Fische liefern Nahrung.','Holz':'Baumaterial für Gebäude und viele Einheiten. Arbeiter fällen Bäume.','Stein':'Für Türme, Mauern und Aufstiege. Abbau ab der Bronzezeit mit Spitzhacke.','Eisen':'Für Waffen, Rüstungen und Aufstiege. Braucht ab der Eisenzeit eine Mine neben dem Vorkommen.','Gold':'Für späte Einheiten und den Markt. Braucht ab dem Mittelalter eine Mine neben dem Vorkommen.','Bevölkerung':'Belegte Plätze / Gesamtplätze. Hütten und Technologien schaffen mehr Platz.','Spieltempo':'Klicken wechselt zwischen 1×, 2×, 3× und 5×.','Menü (Esc)':'Optionen, Grafik, Ton und Spiel beenden.'};
+{const tip=document.createElement('div');tip.id='tip';tip.hidden=true;document.body.appendChild(tip);let timer=null,cur=null;
+  const content=el=>{
+    if(el.classList&&el.classList.contains('act')){const a=curActs[+el.dataset.i];if(!a)return null;return{h:a.nm,t:[a.sub,a.need,a.lock&&tr('Erst ab der {0} verfügbar.',a.lock)].filter(Boolean).join(' · '),c:a.cost?costHTML(a.cost):''}}
+    const k=el.dataset.tt||el.dataset.tip;if(!k)return null;const base=k.split(' (')[0];return{h:tr(k),t:TIPS[base]?tr(TIPS[base]):'',c:''}};
+  const hide=()=>{clearTimeout(timer);timer=null;tip.hidden=true;cur=null};
+  document.addEventListener('mouseover',e=>{const el=e.target.closest&&e.target.closest('[data-tt],[data-tip],.act');if(el===cur)return;hide();if(!el)return;cur=el;if(el.title)el.title='';
+    timer=setTimeout(()=>{const c=content(el);if(!c||!document.body.contains(el)){return}tip.innerHTML=`<b>${c.h}</b>${c.t?`<p>${c.t}</p>`:''}${c.c?`<div class="tc">${c.c}</div>`:''}`;tip.hidden=false;
+      const r=el.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let x=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2)),y=r.bottom+8;if(y+h>innerHeight-8)y=r.top-h-8;tip.style.left=x+'px';tip.style.top=Math.max(8,y)+'px'},650)});
+  document.addEventListener('mousedown',hide);document.addEventListener('mouseout',e=>{if(!e.relatedTarget)hide()});}

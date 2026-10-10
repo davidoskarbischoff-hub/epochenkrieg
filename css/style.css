@@ -281,3 +281,7 @@ body{background:var(--bg2)}
 #mini{border-width:2px}
 .res,.tbtn,.act,.card,.toast,#advisor{box-shadow:none}
 .act{border-width:1px}
+#tip{position:fixed;z-index:60;max-width:300px;padding:8px 12px 9px;background:linear-gradient(#3a352f,#211f1c);border:1px solid var(--acc);border-radius:4px;box-shadow:0 6px 18px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.05);color:#e9e2d2;font-size:13px;line-height:1.35;pointer-events:none}
+#tip b{color:#f3e2b3;font-family:var(--f-display);letter-spacing:.03em;font-size:14px}
+#tip p{margin:4px 0 0;color:#cfc7b4}
+#tip .tc{margin-top:6px;display:flex;gap:8px;flex-wrap:wrap}

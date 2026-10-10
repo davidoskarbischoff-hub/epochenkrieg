@@ -100,7 +100,8 @@ function genTerrain(seed,mapId){
     for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const i=y*TW+x;if(TERR[i]<2){HL[i]=.12;continue}
       const px=(x+.5)*TG,py=(y+.5)*TG,inl=sm3(1,6,DSEA[i]);
       let h=.12+((sym(n1,px,py)-.5)*2.0+(sym(n2,px,py)-.5)*1.0+(sym(n5,px,py)-.5)*.5)*inl;
-      if(cfg.mount&&Math.hypot(px-a0.x,py-a0.y)>850&&Math.hypot(px-b0.x,py-b0.y)>850){const nv=sym(n4,px,py),mt=sm3(mthr-.11,mthr+.07,nv);h+=(4.6*mt+16*Math.max(0,nv-mthr-.07)+3.4*mt*(1-Math.abs(sym(n6,px,py)*2-1)))*inl}
+      if(cfg.mount&&Math.hypot(px-a0.x,py-a0.y)>850&&Math.hypot(px-b0.x,py-b0.y)>850){const nv=sym(n4,px,py),mt=sm3(mthr-.11,mthr+.07,nv),raw=(4.6*mt+16*Math.max(0,nv-mthr-.07)+3.4*mt*(1-Math.abs(sym(n6,px,py)*2-1))+2.2*mt*(sym(n2,px,py)-.5))*inl,st=2.1,f=Math.floor(raw/st),r=raw/st-f; /* sechs Stufen: Terrassen mit steilen Absätzen */
+      h+=1.5*st*(f+sm3(.62,.95,r))}
       if(cliffMask[i])h+=1.9;
       HL[i]=h}}
   computeMainland();
