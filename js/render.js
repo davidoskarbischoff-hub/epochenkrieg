@@ -7,6 +7,19 @@ function atGround(x,y,zpx,fn){const p=scr(x,y,zpx);if(!p.front)return;ctx.save()
 const lvlDots=(lvl)=>{const n=lvl+1;ctx.fillStyle=LVLC[lvl];ctx.strokeStyle='rgba(20,15,10,.8)';ctx.lineWidth=1;for(let i=0;i<n;i++){ctx.beginPath();ctx.arc((i-(n-1)/2)*5,0,2.1,0,6.283);ctx.fill();ctx.stroke()}};
 function idleMark(){ctx.fillStyle='#d0432c';ctx.strokeStyle='#fff3ea';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,6.5,0,6.283);ctx.fill();ctx.stroke();ctx.fillStyle='#fff3ea';ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('!',0,.5)}
 function hpBar(e){const w=Math.max(18,e.r*2+4),f=Math.max(0,e.hp/e.maxHp);atGround(e.x,e.y,entH(e)+(e.kind==='bld'?10:8),()=>{ctx.fillStyle='rgba(20,15,10,.75)';ctx.fillRect(-w/2-1,-1,w+2,5);ctx.fillStyle=f>.5?'#8fbf63':f>.25?'#e0a24a':'#d0533c';ctx.fillRect(-w/2,0,w*f,3)})}
+/* Fortschrittsbalken über einer Einheit oder einem Gebäude (Upgrade, Forschung) */
+function progBar(e,frac,label,col){atGround(e.x,e.y,entH(e)+(e.kind==='bld'?34:24),()=>{const w=Math.max(40,e.r*2+8);ctx.fillStyle='rgba(20,15,10,.85)';ctx.fillRect(-w/2-1,-1,w+2,9);ctx.fillStyle=col;ctx.fillRect(-w/2,0,w*Math.min(1,frac),7);
+  ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.lineWidth=3;ctx.strokeStyle='rgba(20,15,10,.9)';ctx.strokeText(label,0,-2);ctx.fillStyle='#f3e2b3';ctx.fillText(label,0,-2)})}
+/* Kleine Beschriftung unter dem Mauszeiger: Name, Vorrat/Leben, Hinweis */
+let hoverE=null,hoverT=0;
+function drawTip(e){
+  const l1=nameOf(e);let l2='',l3='';
+  if(e.kind==='node'){l2=rn(e.rt)+': '+Math.ceil(e.amount);if(e.regen)l3=tr('wächst nach');else if(NODES[e.type].cap)l3=tr('bis zu {0} Arbeiter',NODES[e.type].cap)}
+  else if(e.kind==='animal'){const d=ANIMALS[e.type];l2=Math.ceil(e.hp)+' / '+e.maxHp;l3=tr(d.info)}
+  else{l2=Math.ceil(e.hp)+' / '+e.maxHp;if(e.team===1)l3=tr('Gegner')}
+  const lines=[l1,l2,l3].filter(Boolean);ctx.save();ctx.font='bold 12px sans-serif';let w=0;for(const t of lines)w=Math.max(w,ctx.measureText(t).width);w+=16;const h=lines.length*16+8;
+  let x=Math.min(VW-w-6,mouse.x+16),y=Math.min(VH-h-6,mouse.y+18);ctx.fillStyle='rgba(24,26,30,.92)';ctx.strokeStyle='rgba(200,170,110,.7)';ctx.lineWidth=1;ctx.beginPath();ctx.rect(x,y,w,h);ctx.fill();ctx.stroke();
+  ctx.textAlign='left';ctx.textBaseline='top';lines.forEach((t,i)=>{ctx.fillStyle=i===0?'#f3e2b3':'#c9c3b2';ctx.font=(i===0?'bold ':'')+'12px sans-serif';ctx.fillText(t,x+8,y+5+i*16)});ctx.restore()}
 function ovUnit(u){
   const d=UNITS[u.type];
   atGround(u.x,u.y,0,()=>{ctx.translate(0,7);lvlDots(u.lvl)});
@@ -93,6 +106,11 @@ function draw(){
   for(const e of vis)if(e.kind!=='node'&&(s.has(e.id)||e.hp<e.maxHp))hpBar(e);
   for(const e of vis)if(e.kind==='node'&&s.has(e.id))atGround(e.x,e.y,entH(e)+6,()=>{ctx.fillStyle='rgba(20,15,10,.75)';ctx.fillRect(-12,0,24,4);ctx.fillStyle='#ecdfc3';ctx.fillRect(-12,0,24*e.amount/e.maxAmt,4)});
   if(placing&&pw){const d=BLDS[placing];ctx.setLineDash([4,6]);ctx.lineWidth=1;ctx.strokeStyle='rgba(208,83,60,.85)';if(d.shoot)groundCircle(pw.x,pw.y,d.r+d.shoot.rng);ctx.strokeStyle='rgba(143,191,99,.9)';groundCircle(pw.x,pw.y,d.claim);ctx.setLineDash([])}
+  // Upgrade und Forschung: Balken über dem Gebäude bzw. der Einheit
+  for(const e of vis){if(e.upj&&e.team===0){const j=e.upj.time?e.upj:G.jobs[0][0];if(j)progBar(e,j.t/j.time,tr('Upgrade'),'#e0a24a')}}
+  for(const r of G.rs[0]){const t=TECH[r.id];const b=t&&vis.find(e=>e.kind==='bld'&&e.team===0&&e.built&&(e.type===t.bld||(t.blds&&t.blds.includes(e.type))));if(b)progBar(b,r.t/r.time,tr(t.name),'#7fb2e8')}
+  // Hover-Beschriftung
+  if(mouse.in&&mouse.type==='mouse'&&!drag&&!placing&&!armed){hoverT-=dt;if(hoverT<=0){hoverT=.08;hoverE=entityAt(0,0,{x:mouse.x,y:mouse.y})}if(hoverE&&!hoverE.dead&&shown(hoverE))drawTip(hoverE)}else hoverE=null;
   if(drag&&drag.box){ctx.strokeStyle='#f3d48a';ctx.fillStyle='rgba(243,212,138,.08)';ctx.lineWidth=1;const x=Math.min(drag.sx,mouse.x),y=Math.min(drag.sy,mouse.y),w=Math.abs(mouse.x-drag.sx),h=Math.abs(mouse.y-drag.sy);ctx.fillRect(x,y,w,h);ctx.strokeRect(x+.5,y+.5,w,h)}
   if(armed&&mouse.in){ctx.strokeStyle='#e0533c';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(mouse.x,mouse.y,9,0,6.283);ctx.moveTo(mouse.x-14,mouse.y);ctx.lineTo(mouse.x+14,mouse.y);ctx.moveTo(mouse.x,mouse.y-14);ctx.lineTo(mouse.x,mouse.y+14);ctx.stroke()}
   drawMini();

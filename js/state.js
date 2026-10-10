@@ -16,7 +16,7 @@ function sightOf(e){return e.kind==='unit'?UNITS[e.type].sight:e.built?BLDS[e.ty
 const ss=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t)};
 function terrUpdate(){
   terrK.fill(9);terrT.fill(-1);terr.fill(-1);
-  for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const rad=BLDS[e.type].claim;if(!rad)continue;const rc=rad/FC,cx=e.x/FC,cy=e.y/FC,R=rc*1.14;
+  for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const rad=BLDS[e.type].claim*(1+(G.tfx?G.tfx[e.team].claim:0));if(!BLDS[e.type].claim)continue;const rc=rad/FC,cx=e.x/FC,cy=e.y/FC,R=rc*1.14;
     for(let y=Math.max(0,Math.floor(cy-R));y<=Math.min(FH-1,Math.ceil(cy+R));y++)for(let x=Math.max(0,Math.floor(cx-R));x<=Math.min(FW-1,Math.ceil(cx+R));x++){const dx=x+.5-cx,dy=y+.5-cy,k=Math.sqrt(dx*dx+dy*dy)/rc,i=y*FW+x;if(k<=1.14&&k<terrK[i]){terrK[i]=k;terrT[i]=e.team}}}
   for(let i=0;i<terr.length;i++)if(terrK[i]<=1)terr[i]=terrT[i];
 }
@@ -29,7 +29,7 @@ function placeBlock(type,x,y){
   else if(!validSpot(x,y,d.r))return tr('Hier ist kein Platz.');
   if(NET.trust)return null;
   if(!fogEx[fogIdx(x,y)])return tr('Dieses Gebiet ist noch unerkundet.');
-  if(type!=='tower'&&!inOwn(x,y))return tr('Nur im eigenen Gebiet. Ein Wachturm erobert neues Land.');
+  if(terr[fogIdx(x,y)]===1)return tr('Im Gebiet des Gegners kann nicht gebaut werden. Ein Wachturm erobert Land zurück.');
   return null;
 }
 function fogUpdate(){
