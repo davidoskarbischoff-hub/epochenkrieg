@@ -8,28 +8,72 @@ function toggleMenu(){
   if(menuOpen){if(G&&G.running&&!G.paused&&!G.mp){G.paused=true;menuPaused=true}else menuPaused=false;renderMenu();m.hidden=false}
   else{m.hidden=true;if(menuPaused&&G){G.paused=false;menuPaused=false}$('pauseBtn').textContent=G&&G.paused?tr('Weiter'):tr('Pause')}
 }
+/* Pause-Menü im Stil eines PC-Spiels: Hauptmenü links, Optionen mit Reitern (Spiel, Grafik, Ton, Steuerung, KI & Berater) */
+let optTab='game';
 function renderMenu(){
-  const pc=v=>Math.round(v*100)+' %';
-  $('menu').innerHTML=`<div class="card"><h1>${tr('Menü')}</h1>
-  <div class="set"><label for="mv">${tr('Musik')}</label><input type="range" id="mv" min="0" max="100" value="${Math.round(SND.music*100)}"><output id="mvo">${pc(SND.music)}</output></div>
-  <div class="set"><label for="sv">${tr('Ton')}</label><input type="range" id="sv" min="0" max="100" value="${Math.round(SND.sfx*100)}"><output id="svo">${pc(SND.sfx)}</output></div>
-  <div class="set"><label>${tr('Grafik')}</label><div class="diff" role="group" id="gfxRow">${[tr('normal'),tr('hoch'),tr('sehr hoch')].map((n,i)=>`<button data-g="${i}" aria-pressed="${i===gfxQ}">${n}</button>`).join('')}</div></div>
-  <div class="set"><label for="muteChk">${tr('Ton an')}</label><input type="checkbox" id="muteChk" ${SND.muted?'':'checked'} class="chk"><output></output></div>
-  <div class="set"><label for="abChk">${tr('Arbeiter denken mit')}</label><input type="checkbox" id="abChk" ${autoBuildOn?'checked':''} class="chk"><output></output></div>
-  <div class="set"><label for="advChk">${tr('Berater')}</label><input type="checkbox" id="advChk" ${advOn?'checked':''} class="chk"><output></output></div>
-  <div class="langrow"><span>${tr('Sprache')}</span><div class="diff" role="group">${['de','en'].map(l=>`<button data-l="${l}" aria-pressed="${l===LANG}">${l==='de'?'Deutsch':'English'}</button>`).join('')}</div></div>
-  <div class="btnrow"><button class="go" id="mResume">${tr('Spiel fortsetzen')}</button><button class="btn2" id="mMulti">${tr('Mehrspieler')} …</button><button class="btn2" id="mNew">${tr('Neues Spiel')}</button></div></div>`;
-  $('mv').oninput=e=>{SND.init();SND.setMusic(e.target.value/100);$('mvo').textContent=pc(SND.music)};
-  $('sv').oninput=e=>{SND.init();SND.setSfx(e.target.value/100);$('svo').textContent=pc(SND.sfx)};
-  $('sv').onchange=()=>SND.play('select');
-  $('menu').querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{applyLang(b.dataset.l);renderMenu()});
-  $('menu').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{setGfx(+b.dataset.g);$('menu').querySelectorAll('[data-g]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
-  $('muteChk').onchange=e=>SND.setMute(!e.target.checked);
-  $('abChk').onchange=e=>{autoBuildOn=e.target.checked;try{localStorage.setItem('ek-autobuild',autoBuildOn?'1':'0')}catch(_){}};
-  $('advChk').onchange=e=>{advOn=e.target.checked;try{localStorage.setItem('ek-advisor',advOn?'1':'0')}catch(_){}if(!advOn)advisor.cur=null};
-  $('mResume').onclick=toggleMenu;
+  const m=$('menu');
+  m.innerHTML=`<div class="gm"><div class="gm-frame"><div class="gm-crest">⚔</div><h1 class="gm-title">Epochenkrieg</h1><div class="gm-sub">${tr('Pause')}</div><div class="gm-rule"></div>
+  <nav class="gm-nav"><button class="go" id="mResume">${tr('Spiel fortsetzen')}</button><button id="mOpt">${tr('Optionen')}</button><button id="mMulti">${tr('Mehrspieler')}</button><button id="mNew">${tr('Neues Spiel')}</button></nav>
+  <div class="gm-foot">v6 · ${tr('Tipp')}: M = ${tr('Ton')}, F = ${tr('Kampfrausch')}, Esc = ${tr('Menü')}</div></div></div>`;
+  $('mResume').onclick=toggleMenu;$('mOpt').onclick=renderOptions;
   $('mNew').onclick=()=>{toggleMenu();showStart()};
-  if($('mMulti'))$('mMulti').onclick=()=>{toggleMenu();if(window.Lobby)Lobby.open()};
+  $('mMulti').onclick=()=>{toggleMenu();if(window.Lobby)Lobby.open()};
+}
+function renderOptions(){
+  const m=$('menu'),pc=v=>Math.round(v*100)+' %',tabs=[['game','Spiel'],['gfx','Grafik'],['snd','Ton'],['ctl','Steuerung'],['ai','KI & Berater']];
+  const row=(label,ctl,desc)=>`<div class="orow"><div class="ol"><b>${tr(label)}</b>${desc?`<small>${tr(desc)}</small>`:''}</div><div class="oc">${ctl}</div></div>`;
+  const tog=(id,on)=>`<label class="sw"><input type="checkbox" id="${id}" ${on?'checked':''}><span></span></label>`;
+  const seg=(id,vals,cur)=>`<div class="seg" id="${id}">${vals.map(([v,n])=>`<button data-v="${v}" aria-pressed="${String(v)===String(cur)}">${tr(n)}</button>`).join('')}</div>`;
+  const rng=(id,min,max,step,val,out)=>`<div class="rg"><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}"><output id="${id}o">${out}</output></div>`;
+  let body='';
+  if(optTab==='game')body=row('Kamera-Geschwindigkeit',rng('oCam',.4,2.2,.1,OPT.camSpeed,OPT.camSpeed.toFixed(1)+'×'),'Wie schnell die Karte mit Tasten und Bildschirmrand wandert')
+    +row('Bildschirmrand-Scrollen',tog('oEdge',OPT.edgeScroll),'Maus an den Rand schieben, um die Karte zu bewegen')
+    +row('Zoom-Stärke',rng('oZoom',.4,2.5,.1,OPT.zoomSpeed,OPT.zoomSpeed.toFixed(1)+'×'),'Wie stark das Mausrad zoomt')
+    +row('Lebensbalken',seg('oHp',[['hurt','Verletzte'],['all','Alle'],['off','Aus']],OPT.hpBars),'Wann Balken über Einheiten und Gebäuden stehen')
+    +row('Hinweise beim Verweilen',tog('oTips',OPT.tips),'Text erscheint, wenn die Maus kurz auf einem Symbol liegt')
+    +row('Meldungen',tog('oToasts',OPT.toasts),'Kleine Texte am Rand (Warnungen bleiben immer)')
+    +row('Sprache',seg('oLang',[['de','Deutsch'],['en','English']],LANG));
+  if(optTab==='gfx')body=row('Qualität',seg('oGfx',[[0,'normal'],[1,'hoch'],[2,'sehr hoch']],gfxQ),'Auflösung und Schattenschärfe – „sehr hoch“ braucht eine gute Grafikkarte')
+    +row('Schatten',tog('oShadow',OPT.shadows),'Aus macht das Spiel auf schwachen Geräten schneller')
+    +row('Gras und Blumen',tog('oGrass',OPT.grass))
+    +row('Farbfilter',tog('oGrade',OPT.grade),'Etwas kräftigerer Kontrast und kräftigere Farben')
+    +row('Bildrate anzeigen',tog('oFps',OPT.fps));
+  if(optTab==='snd')body=row('Ton an',tog('oMute',!SND.muted),'Taste M schaltet alles stumm')
+    +row('Musik',rng('mv',0,100,1,Math.round(SND.music*100),pc(SND.music)))
+    +row('Effekte',rng('sv',0,100,1,Math.round(SND.sfx*100),pc(SND.sfx)))
+    +row('Kampfmusik',tog('oWar',OPT.combatMusic),'Trommeln und Bläser bei Gefechten')
+    +row('Stimmen',tog('oVoice',OPT.voices),'Brummen der Arbeiter, Kampfschreie, Kriegshorn');
+  if(optTab==='ctl'){const K=[['WASD / Pfeile','Karte bewegen'],['Mausrad','Zoom'],['Linksklick / Rahmen','Auswählen'],['Doppelklick','Alle gleichen im Bild'],['Rechtsklick','Bewegen, sammeln, bauen, angreifen, reparieren'],['Q','Angriffsmarsch'],['F','Kampfrausch'],['H','Zum Hauptlager'],['E','Späher erkunden'],['.','Untätigen Arbeiter wählen'],['Y / X','Berater: annehmen / ablehnen'],['Leertaste','Pause'],['M','Ton an/aus'],['Esc','Menü']];
+    body='<div class="keys">'+K.map(([k,d])=>`<div><kbd>${k}</kbd><span>${tr(d)}</span></div>`).join('')+'</div>'}
+  if(optTab==='ai')body=row('Berater',tog('advChk',advOn),'Schlägt Aktionen vor (Annehmen: Y, Ablehnen: X)')
+    +row('Berater im Auto-Modus',tog('oAuto',advisor.auto),'Der Berater führt seine Vorschläge selbst aus')
+    +row('Taktik des Beraters',seg('oStrat',Object.entries(STRATS).map(([k,v])=>[k,v.name]),advisor.strat),'Ändert, was er zuerst vorschlägt')
+    +row('Arbeiter denken mit',tog('abChk',autoBuildOn),'Arbeiter reparieren, bauen Lager und Türme und machen Gebäude fertig')
+    +row('Gegner-Typ (nächstes Spiel)',seg('oAiS',Object.entries(AI_STYLES).map(([k,v])=>[k,v.name]),aiStyle),'Wirkt beim nächsten „Neues Spiel“')
+    +row('Schwierigkeit (nächstes Spiel)',seg('oDiff',[['leicht','leicht'],['normal','normal'],['schwer','schwer']],diff),'Wirkt beim nächsten „Neues Spiel“');
+  m.innerHTML=`<div class="gm"><div class="gm-frame wide"><h1 class="gm-title sm">${tr('Optionen')}</h1><div class="gm-rule"></div>
+   <div class="otabs" role="tablist">${tabs.map(([k,n])=>`<button data-t="${k}" aria-pressed="${k===optTab}">${tr(n)}</button>`).join('')}</div>
+   <div class="obody">${body}</div><div class="gm-rule"></div>
+   <div class="btnrow"><button class="btn2" id="oReset">${tr('Zurücksetzen')}</button><button class="go" id="oBack">${tr('Zurück')}</button></div></div></div>`;
+  m.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{optTab=b.dataset.t;renderOptions()});
+  const q=id=>document.getElementById(id),bind=(id,fn)=>{const e=q(id);if(e)fn(e)};
+  const segB=(id,fn)=>bind(id,e=>e.querySelectorAll('button').forEach(b=>b.onclick=()=>{fn(b.dataset.v);e.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
+  bind('oCam',e=>e.oninput=()=>{optSet('camSpeed',+e.value);q('oCamo').textContent=(+e.value).toFixed(1)+'×'});
+  bind('oEdge',e=>e.onchange=()=>optSet('edgeScroll',e.checked));
+  bind('oZoom',e=>e.oninput=()=>{optSet('zoomSpeed',+e.value);q('oZoomo').textContent=(+e.value).toFixed(1)+'×'});
+  segB('oHp',v=>optSet('hpBars',v));bind('oTips',e=>e.onchange=()=>optSet('tips',e.checked));bind('oToasts',e=>e.onchange=()=>optSet('toasts',e.checked));
+  segB('oLang',v=>{applyLang(v);renderOptions()});
+  segB('oGfx',v=>setGfx(+v));bind('oShadow',e=>e.onchange=()=>optSet('shadows',e.checked));bind('oGrass',e=>e.onchange=()=>optSet('grass',e.checked));bind('oGrade',e=>e.onchange=()=>optSet('grade',e.checked));bind('oFps',e=>e.onchange=()=>optSet('fps',e.checked));
+  bind('oMute',e=>e.onchange=()=>SND.setMute(!e.checked));
+  bind('mv',e=>e.oninput=()=>{SND.init();SND.setMusic(e.value/100);q('mvo').textContent=pc(SND.music)});
+  bind('sv',e=>{e.oninput=()=>{SND.init();SND.setSfx(e.value/100);q('svo').textContent=pc(SND.sfx)};e.onchange=()=>SND.play('select')});
+  bind('oWar',e=>e.onchange=()=>optSet('combatMusic',e.checked));bind('oVoice',e=>e.onchange=()=>optSet('voices',e.checked));
+  bind('advChk',e=>e.onchange=()=>{advOn=e.checked;try{localStorage.setItem('ek-advisor',advOn?'1':'0')}catch(_){}if(!advOn)advisor.cur=null});
+  bind('oAuto',e=>e.onchange=()=>{advisor.auto=e.checked;advisor.autoAt=(G?G.t:0)+2});
+  segB('oStrat',v=>{advisor.strat=v;advisor.ignore={};advisor.cur=null;advisor.next=0;advisor.reacted=null});
+  bind('abChk',e=>e.onchange=()=>{autoBuildOn=e.checked;try{localStorage.setItem('ek-autobuild',autoBuildOn?'1':'0')}catch(_){}});
+  segB('oAiS',v=>{aiStyle=v});segB('oDiff',v=>{diff=v});
+  q('oReset').onclick=()=>{optReset();setGfx(1);renderOptions()};q('oBack').onclick=renderMenu;
 }
 function applyLang(l){setLang(l);panelSig='';infoCache='';$('speedBtn').textContent=tr('Tempo {0}×',G?G.speed:1);$('pauseBtn').textContent=G&&G.paused?tr('Weiter'):tr('Pause');if(!$('overlay').hidden&&$('overlay').querySelector('[data-l]'))showStart();if(G)updateUI()}
 $('menuBtn').onclick=()=>{SND.init();toggleMenu()};
@@ -39,7 +83,7 @@ $('speedBtn').onclick=()=>{if(!G||G.mp)return;G.speed=G.speed===1?2:G.speed===2?
 $('idleBtn').onclick=()=>{if(G&&G.running)selectIdle()};
 
 /* ---------- UI ---------- */
-function toast(msg,kind){if(NET.cap){NET.cap.push([msg,kind]);return}const el=document.createElement('div');el.className='toast'+(kind?' '+kind:'');el.textContent=msg;const box=$('toasts');box.appendChild(el);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>{el.style.opacity='0';setTimeout(()=>el.remove(),450)},3200)}
+function toast(msg,kind){if(NET.cap){NET.cap.push([msg,kind]);return}if(!OPT.toasts&&kind!=='warn')return;const el=document.createElement('div');el.className='toast'+(kind?' '+kind:'');el.textContent=msg;const box=$('toasts');box.appendChild(el);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>{el.style.opacity='0';setTimeout(()=>el.remove(),450)},3200)}
 const costHTML=c=>RES.filter(r=>c[r]).map(r=>`<span class="c ${(G&&G.res[0][r]||0)>=c[r]?'ok':'bad'}" data-r="${r}" data-n="${c[r]}">${ART.icon(r)}${Math.ceil(c[r])}</span>`).join('');
 function actionsFor(s){
   if(!s.length||s[0].team!==0)return[];const f=s[0],acts=[],ep=G.epoch[0];
@@ -165,6 +209,6 @@ const TIPS={'Nahrung':'Wird für Arbeiter und Truppen gebraucht. Beeren, Felder,
     const k=el.dataset.tt||el.dataset.tip;if(!k)return null;const base=k.split(' (')[0];return{h:tr(k),t:TIPS[base]?tr(TIPS[base]):'',c:''}};
   const hide=()=>{clearTimeout(timer);timer=null;tip.hidden=true;cur=null};
   document.addEventListener('mouseover',e=>{const el=e.target.closest&&e.target.closest('[data-tt],[data-tip],.act');if(el===cur)return;hide();if(!el)return;cur=el;if(el.title)el.title='';
-    timer=setTimeout(()=>{const c=content(el);if(!c||!document.body.contains(el)){return}tip.innerHTML=`<b>${c.h}</b>${c.t?`<p>${c.t}</p>`:''}${c.c?`<div class="tc">${c.c}</div>`:''}`;tip.hidden=false;
+    timer=setTimeout(()=>{if(!OPT.tips)return;const c=content(el);if(!c||!document.body.contains(el)){return}tip.innerHTML=`<b>${c.h}</b>${c.t?`<p>${c.t}</p>`:''}${c.c?`<div class="tc">${c.c}</div>`:''}`;tip.hidden=false;
       const r=el.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let x=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2)),y=r.bottom+8;if(y+h>innerHeight-8)y=r.top-h-8;tip.style.left=x+'px';tip.style.top=Math.max(8,y)+'px'},650)});
   document.addEventListener('mousedown',hide);document.addEventListener('mouseout',e=>{if(!e.relatedTarget)hide()});}

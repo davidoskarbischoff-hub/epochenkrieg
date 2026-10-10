@@ -1,6 +1,6 @@
 /* Epochenkrieg – Klang. Alles wird im Browser erzeugt (Web Audio), keine Audiodateien. */
 const SND=(()=>{
-let cur=null,ac=null,master,sfxG,musG,musBase,musWar,musHi,muted=false,bat=0,noiseBuf,musicV=.7,sfxV=.7,musTimer=null,epoch=0,fight=0,alertV=0,tn=0,mdst=null;
+let flags={war:true,voice:true},cur=null,ac=null,master,sfxG,musG,musBase,musWar,musHi,muted=false,bat=0,noiseBuf,musicV=.7,sfxV=.7,musTimer=null,epoch=0,fight=0,alertV=0,tn=0,mdst=null;
 const last={};
 try{muted=localStorage.getItem('ek-mute')==='1'}catch(_){}
 try{const m=localStorage.getItem('ek-music-v'),f=localStorage.getItem('ek-sfx-v');if(m!==null)musicV=+m;if(f!==null)sfxV=+f}catch(_){}
@@ -88,7 +88,7 @@ const FX={
 };
 const GAP={grunt:.5,yell:1.2,horn:4,growl:.8,deer:.6,chop:.18,mine:.18,pick:.18,hammer:.18,hit:.06,arrow:.06,die:.05,click:.03,select:.05,order:.05,drop:.1,crumble:.2};
 function play(name,pan=0,vol=1){
-  if(!ac||sfxV<=0||!FX[name])return;
+  if(!ac||sfxV<=0||!FX[name])return;if(!flags.voice&&(name==='grunt'||name==='yell'||name==='horn'))return;
   const n=ac.currentTime;if(last[name]&&n-last[name]<(GAP[name]||.02))return;last[name]=n;
   if(name==='hit'||name==='arrow'||name==='die'||name==='crumble')fight=Math.min(1,fight+.3);
   const b=ac.createGain(),pn=ac.createStereoPanner();b.gain.value=vol;pn.pan.value=Math.max(-.9,Math.min(.9,pan));b.connect(pn);pn.connect(sfxG);cur=b;
@@ -237,12 +237,12 @@ function schedule(){
   fight*=.93;const want=Math.max(fight,alertV,bat);tn+=(want-tn)*.18;const n=ac.currentTime;
   if(sfxV>0&&tn<.12&&epoch<4&&Math.random()<.035)chirp(n+.05+Math.random()*.2);
   if(musicV<=0)return;
-  musBase.gain.setTargetAtTime(1-.6*tn,n,.6);musWar.gain.setTargetAtTime(tn>.1?Math.min(1.1,Math.pow(tn,1.15)*1.15):0,n,.5);
+  musBase.gain.setTargetAtTime(1-.6*(flags.war?tn:0),n,.6);musWar.gain.setTargetAtTime(tn>.1&&flags.war?Math.min(1.1,Math.pow(tn,1.15)*1.15):0,n,.5);
   if(base.cur!==epoch){base.cur=epoch;base.loopT=n+.4;base.done=0}
   runLayer(base,PIECES[base.cur],musBase);
-  if(tn>.1){if(war.cur!==epoch){war.cur=epoch;war.loopT=n+.25;war.done=0}runLayer(war,WARPIECES[epoch],musWar)}else war.cur=-1;
-  musHi.gain.setTargetAtTime(tn>.62?Math.min(1,(tn-.5)*2):0,n,.5);
-  if(tn>.62){if(hi.cur!==epoch){hi.cur=epoch;hi.loopT=war.cur===epoch?war.loopT:n+.25;hi.done=0}runLayer(hi,HIPIECES[epoch],musHi)}else hi.cur=-1;
+  if(tn>.1&&flags.war){if(war.cur!==epoch){war.cur=epoch;war.loopT=n+.25;war.done=0}runLayer(war,WARPIECES[epoch],musWar)}else war.cur=-1;
+  musHi.gain.setTargetAtTime(tn>.62&&flags.war?Math.min(1,(tn-.5)*2):0,n,.5);
+  if(tn>.62&&flags.war){if(hi.cur!==epoch){hi.cur=epoch;hi.loopT=war.cur===epoch?war.loopT:n+.25;hi.done=0}runLayer(hi,HIPIECES[epoch],musHi)}else hi.cur=-1;
 }
 
 function applyGains(){
@@ -252,6 +252,7 @@ function applyGains(){
 return{
   init,play,
   setEpoch(e){epoch=Math.max(0,Math.min(PIECES.length-1,e|0))},
+  setFlags(f){Object.assign(flags,f)},
   setBattle(v){bat=Math.max(0,Math.min(1,v))},
   setMute(m){muted=!!m;try{localStorage.setItem('ek-mute',muted?'1':'0')}catch(_){}if(ac)master.gain.setTargetAtTime(muted?0:.8,ac.currentTime,.05)},
   get muted(){return muted},

@@ -55,7 +55,7 @@ function tap(p){
   clickSelect(p,false);
 }
 cv.addEventListener('wheel',e=>{e.preventDefault();if(!G)return;const p=evPos(e);const before=toWorld(p.x,p.y);
-  cam.z=Math.max(.55,Math.min(1.8,cam.z*Math.exp(-e.deltaY*.0015)));camUpdate();const after=toWorld(p.x,p.y);cam.x+=before.x-after.x;cam.y+=before.y-after.y;clampCam()},{passive:false});
+  cam.z=Math.max(.55,Math.min(1.8,cam.z*Math.exp(-e.deltaY*.0015*OPT.zoomSpeed)));camUpdate();const after=toWorld(p.x,p.y);cam.x+=before.x-after.x;cam.y+=before.y-after.y;clampCam()},{passive:false});
 let mmDrag=false;
 function mmGo(e){const r=mm.getBoundingClientRect();centerOn((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H)}
 mm.addEventListener('pointerdown',e=>{if(!G)return;if(e.button===2&&G.running){const r=mm.getBoundingClientRect();command((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H,e.shiftKey);return}mmDrag=true;try{mm.setPointerCapture(e.pointerId)}catch(_){}mmGo(e)});
@@ -84,9 +84,9 @@ addEventListener('keydown',e=>{
 });
 addEventListener('keyup',e=>{keys[e.key]=false;keys[e.key.toLowerCase()]=false});
 function scrollCam(dt){
-  let vx=0,vy=0;const s=700/cam.z;
+  let vx=0,vy=0;const s=700/cam.z*OPT.camSpeed;
   if(keys.ArrowLeft||keys.a)vx-=1;if(keys.ArrowRight||keys.d)vx+=1;if(keys.ArrowUp||keys.w)vy-=1;if(keys.ArrowDown||keys.s)vy+=1;
-  if(mouse.in&&mouse.type==='mouse'&&!drag&&!mmDrag&&G&&G.running){const m=14;if(mouse.x<m)vx-=1;if(mouse.x>VW-m)vx+=1;if(mouse.y<m)vy-=1;if(mouse.y>VH-m)vy+=1}
+  if(OPT.edgeScroll&&mouse.in&&mouse.type==='mouse'&&!drag&&!mmDrag&&G&&G.running){const m=14;if(mouse.x<m)vx-=1;if(mouse.x>VW-m)vx+=1;if(mouse.y<m)vy-=1;if(mouse.y>VH-m)vy+=1}
   if(vx||vy){cam.x+=vx*s*dt;cam.y+=vy*s*dt;clampCam()}
 }
 function togglePause(){if(G.mp)return;G.paused=!G.paused;$('pauseBtn').textContent=G.paused?tr('Weiter'):tr('Pause')}

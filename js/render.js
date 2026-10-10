@@ -103,7 +103,7 @@ function draw(){
     if(p.big||p.gun){ctx.fillStyle=p.big?'#2b2b30':'#46464c';ctx.beginPath();ctx.arc(q.x,q.y,(p.big?4.2:2)*k,0,6.283);ctx.fill();continue}
     const a=scr(p.x-Math.cos(p.a)*7,p.y-Math.sin(p.a)*7,16);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(q.x,q.y);ctx.stroke()}
   for(const e of vis){if(e.kind==='unit')ovUnit(e);else if(e.kind==='bld')ovBld(e)}
-  for(const e of vis)if(e.kind!=='node'&&(s.has(e.id)||e.hp<e.maxHp))hpBar(e);
+  if(OPT.hpBars!=='off')for(const e of vis)if(e.kind!=='node'&&(s.has(e.id)||OPT.hpBars==='all'&&e.kind==='unit'||e.hp<e.maxHp))hpBar(e);
   for(const e of vis)if(e.kind==='node'&&s.has(e.id))atGround(e.x,e.y,entH(e)+6,()=>{ctx.fillStyle='rgba(20,15,10,.75)';ctx.fillRect(-12,0,24,4);ctx.fillStyle='#ecdfc3';ctx.fillRect(-12,0,24*e.amount/e.maxAmt,4)});
   if(placing&&pw){const d=BLDS[placing];ctx.setLineDash([4,6]);ctx.lineWidth=1;ctx.strokeStyle='rgba(208,83,60,.85)';if(d.shoot)groundCircle(pw.x,pw.y,d.r+d.shoot.rng);ctx.strokeStyle='rgba(143,191,99,.9)';groundCircle(pw.x,pw.y,d.claim);ctx.setLineDash([])}
   // Upgrade und Forschung: Balken über dem Gebäude bzw. der Einheit

@@ -211,7 +211,17 @@ function bldDetail(g,type,R,st){
   put(g,new THREE.BoxGeometry(ww*2.06,.2,dd*1.9),st.base,cx,.1,0,false);
   put(g,new THREE.BoxGeometry(.5,.12,R*.9),st.base,cx,.06,dd*.9+.45,false);put(g,new THREE.BoxGeometry(.35,.12,R*.8),st.base,cx,.12,dd*.9+.15,false);
   if(st.ep>=2){put(g,cyl(.03,.03,.5,5),woodD(),cx+R*.5,.75,dd*.95,false);put(g,new THREE.SphereGeometry(.09,6,5),m3Plain(0xffe9a8,.3,{emissive:0xffcc66,emissiveIntensity:.9}),cx+R*.5,1.05,dd*.95,false)}}
-function buildBld(type,R,ep,team){const st=bStyle(ep),g=(ep===0&&PRIM[type]||BLD3[type]||BLD3.house)(R,st,team);if(ep>0)bldDetail(g,type,R,st);if(ep>=4)epExtras(g,type,R,st);setShadows(g);g.userData.flags=[];g.traverse(o=>{if(o.userData.flag)g.userData.flags.push(o)});return g}
+/* Umgebung der Gebäude: Holzstapel, Säcke, Übungspuppe, Waffenständer, Feuerschalen, Zaun */
+function bldDecor(g,type,R,st,team){
+  const wd=woodD(),log=m3Mat('planks',0x8a6a42),straw=m3Plain(0xd9c27a,.95),steel=m3Plain(0x6a6e74,.4,{metalness:.7});
+  if(type==='store'){for(let i=0;i<7;i++){const l=put(g,cyl(.13,.13,1.1,8),log,-R*1.5+(i%4)*.27,.14+Math.floor(i/4)*.24,R*1.1);l.rotation.z=Math.PI/2}for(let i=0;i<3;i++)put(g,new THREE.SphereGeometry(.26,8,6),m3Plain([0xb99a62,0x9d8754,0xc4aa72][i],.95),R*1.3+i*.3,.22,R*1.05).scale.set(1,.85,.9)}
+  if(type==='barracks'){const d=new THREE.Group();d.position.set(-R*1.55,0,R*.9);g.add(d);put(d,cyl(.07,.08,1.5,6),wd,0,.75,0);put(d,cyl(.04,.04,.9,5),wd,0,1.2,0).rotation.x=Math.PI/2;put(d,new THREE.SphereGeometry(.2,8,6),straw,0,1.62,0);put(d,new THREE.CylinderGeometry(.22,.26,.55,8),straw,0,1.0,0);
+    const rk=new THREE.Group();rk.position.set(R*1.5,0,R*.95);g.add(rk);put(rk,cyl(.05,.05,1.3,5),wd,-.4,.65,0);put(rk,cyl(.05,.05,1.3,5),wd,.4,.65,0);put(rk,cyl(.04,.04,.9,5),wd,0,1.0,0).rotation.z=Math.PI/2;for(let i=0;i<3;i++)put(rk,cyl(.025,.025,1.1,5),steel,-.25+i*.25,.85,.08).rotation.z=.12;
+    put(g,rbox(.05,.9,.6,.02),team===undefined?woodD():m3Team(team),R*.55,R*.95,R*.95,false)}
+  if(type==='hq'&&st.ep>=1)for(const s of[-1,1]){const br=new THREE.Group();br.position.set(s*R*.75,0,R*1.05);g.add(br);put(br,cyl(.12,.16,.6,8),m3Plain(0x3a3b42,.5,{metalness:.6}),0,.3,0);put(br,cone(.17,.34,7),m3Plain(0xf08a2c,.5,{emissive:0xe85a10,emissiveIntensity:1}),0,.75,0,false)}
+  if(type==='house'&&st.ep<=3){for(let i=0;i<5;i++){put(g,cyl(.04,.04,.55,5),wd,-R*1.25+i*.28,.28,-R*1.0);}put(g,cyl(.03,.03,1.2,4),wd,-R*.85,.5,-R*1.0).rotation.z=Math.PI/2}
+}
+function buildBld(type,R,ep,team){const st=bStyle(ep),g=(ep===0&&PRIM[type]||BLD3[type]||BLD3.house)(R,st,team);if(ep>0)bldDetail(g,type,R,st);bldDecor(g,type,R,st,team);if(ep>=4)epExtras(g,type,R,st);setShadows(g);g.userData.flags=[];g.traverse(o=>{if(o.userData.flag)g.userData.flags.push(o)});return g}
 
 /* ---------- Figuren ---------- */
 function limbPivot(parent,x,y,z){const p=new THREE.Group();p.position.set(x,y,z);parent.add(p);return p}
@@ -239,6 +249,7 @@ function human(o){
   for(const s of[-1,1]){put(head,new THREE.SphereGeometry(.045,6,6),skin,-.02,-.02,s*.225,false).scale.set(.6,1.1,.5);
     put(head,new THREE.SphereGeometry(.04,6,6),m3Plain(0xf2eee4,.5),.2,.04,s*.085,false);put(head,new THREE.SphereGeometry(.022,6,6),m3Plain(0x15110c),.235,.04,s*.085,false);
     put(head,new THREE.BoxGeometry(.04,.025,.1),m3Plain(HAIRS[(id*7)%5],.95),.215,.1,s*.085,false)}
+  if(id%3===0&&!o.noBeard){const bd=put(head,new THREE.SphereGeometry(.17,10,8,0,6.283,1.2,1.7),m3Plain(HAIRS[(id*7)%5],.95),.09,-.16,0,false);bd.scale.set(.9,1.1,1.15)}
   const hr=put(head,new THREE.SphereGeometry(.25,12,10,0,6.283,0,1.75),o.hairM||m3Plain(HAIRS[(id*7)%5],.95),-.03,.03,0);hr.scale.set(1.02,1.05,.98);
   /* Arme: Schulter, Oberarm, Ellbogen, Unterarm, Hand */
   for(const s of[-1,1]){const p=limbPivot(g,0,1.72,s*.4);put(p,new THREE.SphereGeometry(.11,8,6),sleeve,0,0,0,false);put(p,cyl(.088,.074,.37,9),sleeve,0,-.18,0);
@@ -267,6 +278,7 @@ function dress(rig,t,type,tm){
   const g=rig.g,war=type!=='worker'&&type!=='scout';
   /* Teamfarbe gut erkennbar: Schärpe über der Brust (Kämpfer) bzw. Stirnband (Arbeiter, Späher) */
   if(t!==4){if(war){const sh=put(g,new THREE.BoxGeometry(.09,.85,.62),tm,.27,1.45,0,false);sh.rotation.x=.55;put(g,new THREE.BoxGeometry(.5,.14,.7),tm,0,1.78,0,false)}else{const hb=put(g,new THREE.TorusGeometry(.255,.035,6,14),tm,.02,2.1,0,false);hb.rotation.x=Math.PI/2}}
+  if(war&&t>=3){const cp=put(g,rbox(.05,.95,.74,.025),tm,-.34,1.32,0,false);cp.rotation.z=.08;put(g,new THREE.SphereGeometry(.07,6,5),metT(t),-.3,1.74,.28,false);put(g,new THREE.SphereGeometry(.07,6,5),metT(t),-.3,1.74,-.28,false)}
   if(war&&(t===2||t===3)){const mt=metT(t);const cu=put(g,rbox(.36,.62,.66,.07),mt,.07,1.5,0);cu.scale.set(.9,1,1);put(g,rbox(.4,.12,.7,.05),mt,.02,1.2,0);
     if(t===3)for(const s of[-1,1]){const pd=put(g,new THREE.SphereGeometry(.17,10,8,0,6.283,0,1.6),mt,0,1.78,s*.43);pd.scale.set(1.1,.8,1)}}
   if(t===0){put(g,cyl(.33,.4,.3,10),furM(0x7a5a38),0,1.02,0);const p=put(g,new THREE.SphereGeometry(.26,8,6),furM(0x9a7a50),0,1.82,-.3);p.scale.set(1,.7,1.1);const bn=put(g,new THREE.TorusGeometry(.2,.028,6,12),m3Plain(0xe8dfc8,.7),.03,1.84,0,false);bn.rotation.x=1.45}

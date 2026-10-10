@@ -25,7 +25,7 @@ function r3Init(){
     const pm=new THREE.PMREMGenerator(rd);M3.env=pm.fromScene(es,.04).texture;pm.dispose()}catch(err){console.warn('env',err)}
   const gEnt=new THREE.Group();scene.add(gEnt);
   r3={rd,scene,camera,sun,hemi,sea,gEnt,vec:_v(),ray:new THREE.Raycaster(),maxTex:rd.capabilities.maxTextureSize};
-  R3.ok=true;R3.t0=performance.now();setGfx(gfxQ);try{const st=document.createElement('style');st.textContent='#gl{filter:contrast(1.07) saturate(1.1)}';document.head.appendChild(st)}catch(_){}
+  R3.ok=true;R3.t0=performance.now();setGfx(gfxQ);if(typeof optApply==='function')optApply();
 }
 /* Grafikqualität (Menü): 0 normal, 1 hoch (Standard), 2 sehr hoch = schärfer durch höhere Auflösung und feinere Schatten */
 let gfxQ=1;try{const q=localStorage.getItem('ek-gfx');if(q!==null)gfxQ=Math.max(0,Math.min(2,+q||0))}catch(_){}
