@@ -15,7 +15,7 @@ function r3Init(){
   const scene=new THREE.Scene(),SKY=0x16384f;scene.background=new THREE.Color(SKY);scene.fog=new THREE.Fog(0x9db8c4,260,620);
   const camera=new THREE.PerspectiveCamera(R3.FOV,1,2,1400);
   const sun=new THREE.DirectionalLight(0xffe2b8,3.1);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-.0004;sun.shadow.normalBias=.35;scene.add(sun,sun.target);
-  const hemi=new THREE.HemisphereLight(0xbcd2ee,0x4a5230,1.2);scene.add(hemi);
+  const hemi=new THREE.HemisphereLight(0xbcd2ee,0x4a5230,1.0);scene.add(hemi);
   const fill=new THREE.DirectionalLight(0x9db8ff,.38);fill.position.set(60,40,70);scene.add(fill); /* kühles Gegenlicht: Schattenseiten bekommen Farbe statt Grau */
   const sea=new THREE.Mesh(new THREE.PlaneGeometry(3600,3600).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0x17405c,fog:false}));sea.position.set(W/R3.S/2,-.8,H/R3.S/2);scene.add(sea);
   /* Umgebungslicht für Metall: ein kleiner gemalter Himmel (blau oben, warm am Horizont, dunkler Boden, helle Sonne) wird zur Spiegelung für Helme, Panzer, Waffen */
@@ -23,7 +23,7 @@ function r3Init(){
     for(let i=0;i<pa.count;i++){const y=pa.getY(i)/50;if(y>0)c.setRGB(.55-.25*y,.7-.2*y,.95-.1*y).multiplyScalar(1.6);else c.setRGB(.34,.3,.22).multiplyScalar(.6+y*.3);ec.push(c.r,c.g,c.b)}
     eg.setAttribute('color',new THREE.Float32BufferAttribute(ec,3));es.add(new THREE.Mesh(eg,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide})));
     const sd=new THREE.Mesh(new THREE.SphereGeometry(6,12,8),new THREE.MeshBasicMaterial({color:0xfff3d6}));sd.material.color.multiplyScalar(14);sd.position.set(-25,32,-20);es.add(sd);
-    const pm=new THREE.PMREMGenerator(rd);M3.env=pm.fromScene(es,.04).texture;pm.dispose()}catch(err){console.warn('env',err)}
+    const pm=new THREE.PMREMGenerator(rd);M3.env=pm.fromScene(es,.04).texture;pm.dispose();scene.environment=M3.env}catch(err){console.warn('env',err)}
   const gEnt=new THREE.Group();scene.add(gEnt);
   r3={rd,scene,camera,sun,hemi,sea,gEnt,vec:_v(),ray:new THREE.Raycaster(),maxTex:rd.capabilities.maxTextureSize};
   R3.ok=true;R3.t0=performance.now();setGfx(gfxQ);if(typeof optApply==='function')optApply();
