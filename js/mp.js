@@ -25,16 +25,16 @@ function encodeSnap(){
     U,B,N,A,bn:G.bones||[],P:G.proj.map(p=>[Math.round(p.x),Math.round(p.y),Math.round(p.a*100)/100,p.big?1:0,p.gun?1:0])}}
 /* Nur Geändertes senden: Einheiten/Gebäude/Tiere, die sich seit dem letzten Stand nicht verändert haben, entfallen (alle 3 s ein voller Stand zum Abgleich). Sendetakt passt sich der Datenmenge an. */
 function sendSnap(){if(!NET.send)return;flipTeams();let snap;try{snap=encodeSnap()}finally{flipTeams()}snap.ev=G.ev;G.ev=[];
-  const full=!NET.prev||G.t-(NET.fullT||0)>3,cur=new Map();
-  for(const k of['U','B','A'])snap[k]=snap[k].filter(r=>{const s=k+JSON.stringify(r);cur.set(r.i,s);return full||NET.prev.get(r.i)!==s});
+  const full=!NET.prev||G.t-(NET.fullT||0)>3,cur=new Map();let len=700;
+  for(const k of['U','B','A'])snap[k]=snap[k].filter(r=>{const s=k+JSON.stringify(r);cur.set(r.i,s);const keep=full||NET.prev.get(r.i)!==s;if(keep)len+=s.length;return keep});
   snap.d=full?0:1;if(full)NET.fullT=G.t;else snap.X=[...NET.prev.keys()].filter(id=>!cur.has(id));NET.prev=cur;
-  let len=0;try{len=JSON.stringify(snap).length}catch(_){}
+  snap.hs=[Math.round(len/102.4)/10,NetLog.S.hostStepMs==null?null:Math.round(NetLog.S.hostStepMs*10)/10,NetLog.S.hostFps==null?null:Math.round(NetLog.S.hostFps)];NetLog.onSnap(len/1024);
   NET.interval=Math.min(.4,Math.max(.1,len/150000+(NET.backlog>65536?.1:0)));
   NET.send({t:'snap',s:snap})}
 function removeEnt(e){if(e.dead)return;e.dead=true;if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea))navStamp(e,-1);sel.delete(e.id)}
 function applySnap(s){
   if(!G||!NET.client)return;
-  NET.lastSnap=performance.now();
+  NET.lastSnap=performance.now();if(s.hs){NetLog.onSnap(s.hs[0]);NetLog.S.hostStepMs=s.hs[1];NetLog.S.hostFps=s.hs[2]}
   G.t=s.t;G.over=s.over;G.res=s.res;G.epoch=s.epoch;if(s.nat){G.nation=s.nat;G.nfx=s.nat.map(nationFx)}G.adv=s.adv;G.tech=s.tech.map(a=>new Set(a));G.tfx=G.tech.map(techFx);G.rs=s.rs;
   G.jobs=s.jobs.map(a=>a.map(j=>({...j,ids:[],done:false})));G.stats=s.stats;G.bones=s.bn||[];
   const seen=new Set();

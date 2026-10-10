@@ -16,7 +16,11 @@ const Lobby=(()=>{
   function loadPeerJS(){return new Promise((res,rej)=>{if(window.Peer)return res();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';s.onload=res;s.onerror=()=>rej(new Error('peerjs'));document.head.appendChild(s)})}
   function close(){clearInterval(helloTimer);clearInterval(pingTimer);try{if(conn)conn.close()}catch(_){}try{if(peer)peer.destroy()}catch(_){}try{if(bc)bc.close()}catch(_){}conn=peer=bc=raw=null;st.connected=false}
 
-  function onClosed(){if(inGame){EKG.peerLeft&&EKG.peerLeft();return}st.connected=false;st.status='Verbindung getrennt.';render()}
+  let iceTimer=null;
+  /* ICE-Zustand der WebRTC-Verbindung mitschreiben (zeigt, ob Router/Firewall die Verbindung blockieren) */
+  function watchConn(c){clearInterval(iceTimer);iceTimer=setInterval(()=>{try{const pc=c&&c.peerConnection;if(pc)NetLog.set('ice',pc.iceConnectionState)}catch(_){}},1000);
+    try{c.on('iceStateChanged',s=>NetLog.log('ICE',String(s)))}catch(_){}}
+  function onClosed(){NetLog.log('NET','Verbindung geschlossen');NetLog.set('state','getrennt');if(inGame){EKG.peerLeft&&EKG.peerLeft();return}st.connected=false;st.status='Verbindung getrennt.';render()}
   function onData(m){
     if(!m||!m.t)return;
     switch(m.t){
@@ -24,8 +28,9 @@ const Lobby=(()=>{
       case'lobby':if(role==='client'){clearInterval(helloTimer);st.cfg=m.cfg;st.prop=m.prop||{};st.connected=true;render()}break;
       case'prop':if(role==='host'){Object.assign(st.prop,m.p);pushLobby();render()}break;
       case'col':if(role==='host'&&m.c!==st.cfg.colH){st.cfg.colG=m.c;pushLobby();render()}break;
-      case'start':if(role==='client'){inGame=true;clearInterval(pingTimer);pingTimer=setInterval(()=>{if(raw)raw({t:'ping'})},3000);EKG.startMP({role:'client',seed:m.seed,map:m.map,side:m.side,cfg:m.cfg,send:msg=>raw&&raw({t:'cmd',m:msg})})}break;
-      case'ping':break;
+      case'start':if(role==='client'){inGame=true;clearInterval(pingTimer);pingTimer=setInterval(()=>{if(raw)raw({t:'ping',ts:performance.now()})},2000);NetLog.reset();NetLog.set('state','verbunden');EKG.startMP({role:'client',seed:m.seed,map:m.map,side:m.side,cfg:m.cfg,send:msg=>raw&&raw({t:'cmd',m:msg})})}break;
+      case'ping':if(role==='host'&&raw)raw({t:'pong',ts:m.ts});break;
+      case'pong':if(role==='client'&&m.ts)NetLog.rtt(performance.now()-m.ts);break;
       case'cmd':if(role==='host'&&inGame){try{EKG.execRemote(m.m)}catch(e){console.warn('cmd',e)}}break;
       case'snap':if(role==='client'){try{EKG.applySnap(m.s)}catch(e){console.warn('snap',e)}}break;
       case'msgs':if(role==='client')(m.list||[]).forEach(([t,k])=>EKG.toast(t,k));break;
@@ -39,8 +44,8 @@ const Lobby=(()=>{
     try{await loadPeerJS()}catch(_){st.error='Der Vermittlungsdienst (PeerJS) ist nicht erreichbar. Prüfe deine Internetverbindung – oder nutze „Lokal testen“.';render();return}
     peer=new Peer(undefined,{config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}});peer.on('disconnected',()=>{try{peer.reconnect()}catch(_){}});
     peer.on('open',id=>{link=baseUrl()+'?join='+id;st.status='Warte auf Mitspieler …';render()});
-    peer.on('connection',c=>{if(conn&&conn.open){c.close();return}conn=c;raw=m=>{if(!(conn&&conn.open))return;if(m&&m.t==='snap'){const bf=conn.dataChannel?conn.dataChannel.bufferedAmount:0;if(bf>262144){NET.prev=null;return}NET.backlog=bf}conn.send(m)};c.on('data',onData);c.on('close',onClosed);c.on('error',()=>{})});
-    peer.on('error',e=>{st.error='Verbindungsfehler ('+(e.type||'?')+').';render()});
+    peer.on('connection',c=>{if(conn&&conn.open){c.close();return}conn=c;raw=m=>{if(!(conn&&conn.open))return;if(m&&m.t==='snap'){const bf=conn.dataChannel?conn.dataChannel.bufferedAmount:0;if(bf>262144){NET.prev=null;return}NET.backlog=bf}conn.send(m)};c.on('data',onData);c.on('close',onClosed);c.on('error',e=>NetLog.log('ERR','Verbindung: '+e));watchConn(c);NetLog.log('NET','Gast verbunden')});
+    peer.on('error',e=>{NetLog.log('ERR','Vermittler: '+(e&&e.type));st.error='Verbindungsfehler ('+(e.type||'?')+').';render()});
   }
   /* ---- Gast ---- */
   async function join(target){
@@ -51,12 +56,12 @@ const Lobby=(()=>{
       raw({t:'hello'});let tries=0;helloTimer=setInterval(()=>{if(!raw||st.connected)return;raw({t:'hello'});if(++tries===6){st.error='Kein Gastgeber gefunden. Der Gastgeber-Tab muss in DIESEM Browser (kein privates Fenster) offen bleiben und in der Lobby warten. Am besten das Spiel mit „npx serve .“ starten und beide Tabs über http://localhost:… öffnen.';render()}},1000);return}
     try{await loadPeerJS()}catch(_){st.error='Der Vermittlungsdienst (PeerJS) ist nicht erreichbar. Prüfe deine Internetverbindung.';render();return}
     peer=new Peer(undefined,{config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}});peer.on('disconnected',()=>{try{peer.reconnect()}catch(_){}});
-    peer.on('open',()=>{conn=peer.connect(target,{reliable:true});conn.on('open',()=>{raw=m=>{if(conn&&conn.open)conn.send(m)};st.status='Verbunden – warte auf den Gastgeber …';raw({t:'hello'});render()});conn.on('data',onData);conn.on('close',onClosed);conn.on('error',()=>{})});
-    peer.on('error',e=>{st.error=e.type==='peer-unavailable'?'Den Gastgeber gibt es nicht (mehr). Ist der Link noch aktuell?':'Verbindungsfehler ('+(e.type||'?')+').';render()});
+    peer.on('open',()=>{conn=peer.connect(target,{reliable:true});conn.on('open',()=>{raw=m=>{if(conn&&conn.open)conn.send(m)};st.status='Verbunden – warte auf den Gastgeber …';raw({t:'hello'});render()});conn.on('data',onData);conn.on('close',onClosed);conn.on('error',e=>NetLog.log('ERR','Verbindung: '+e));watchConn(conn);NetLog.log('NET','Mit Gastgeber verbunden')});
+    peer.on('error',e=>{NetLog.log('ERR','Vermittler: '+(e&&e.type));st.error=e.type==='peer-unavailable'?'Den Gastgeber gibt es nicht (mehr). Ist der Link noch aktuell?':'Verbindungsfehler ('+(e.type||'?')+').';render()});
   }
   function start(){
     if(role!=='host'||!st.connected)return;
-    const seed=(Math.random()*1e9)|0;inGame=true;raw({t:'start',seed,map:st.cfg.map,side:st.cfg.side,cfg:st.cfg});
+    const seed=(Math.random()*1e9)|0;inGame=true;NetLog.reset();NetLog.set('state','verbunden');raw({t:'start',seed,map:st.cfg.map,side:st.cfg.side,cfg:st.cfg});
     EKG.startMP({role:'host',seed,map:st.cfg.map,side:st.cfg.side,cfg:st.cfg,send:msg=>raw&&raw(msg)});
   }
   function leave(){close();role=null;view='menu';inGame=false}
