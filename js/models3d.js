@@ -109,9 +109,79 @@ const BLD3={
     put(g,cyl(.08,.08,R*1.9,6),woodD(),R*1.4,R*.95,0);const arm=put(g,cyl(.05,.05,R*1.1,6),woodD(),R*1.0,R*1.8,0);arm.rotation.z=Math.PI/2-.2;put(g,cyl(.01,.01,R*.7,4),m3Plain(0xcbb88f),R*.5,R*1.45,0,false);
     put(g,cyl(.22,.22,.45,8),m3Mat('planks',0x8d6a3e),R*2.2,.55,R*.25);
     flagPole(g,-R*.9,R*.8,-R*.3,R*1.0,team);g.userData.h=R*2;return g},
+  mine(R,st,team){const g=new THREE.Group(),rock=m3Mat('stone',0x7a766c);
+    const m=put(g,new THREE.SphereGeometry(R*1.2,10,8,0,6.283,0,1.57),rock,0,0,-R*.3);m.scale.set(1.2,.9,1);
+    put(g,new THREE.BoxGeometry(R*.18,R*.9,R*.18),woodD(),-R*.45,R*.45,R*.62);put(g,new THREE.BoxGeometry(R*.18,R*.9,R*.18),woodD(),R*.45,R*.45,R*.62);put(g,new THREE.BoxGeometry(R*1.2,R*.18,R*.2),woodD(),0,R*.95,R*.62);
+    put(g,new THREE.BoxGeometry(R*.7,R*.8,.1),m3Plain(0x120d08),0,R*.4,R*.55,false);
+    for(const z of[-.6,.6])put(g,new THREE.BoxGeometry(.08,.06,R*1.6),m3Plain(0x3a3b42,.5,{metalness:.5}),z*R*.3,.05,R*1.4);
+    const c=put(g,new THREE.BoxGeometry(R*.6,R*.35,R*.4),m3Mat('planks',0x8a6a42),R*.1,R*.28,R*1.5);put(c,new THREE.DodecahedronGeometry(R*.2,0),m3Plain(st.ep>=3?0xf7d64a:0x5a6780,.5),0,R*.22,0);
+    flagPole(g,R*.9,R*.4,0,R*1.1,team);g.userData.h=R*1.6;return g},
+  market(R,st,team){const g=new THREE.Group();
+    put(g,bx(R*2.4,.18,R*1.8,2),st.base,0,.09,0);
+    const cols=[0xc84b3a,0xe8dfc8,0x3d72b8];
+    for(let i=0;i<3;i++){const x=(i-1)*R*.8;
+      for(const dx of[-1,1])put(g,cyl(.05,.05,R*.9,5),woodD(),x+dx*R*.34,R*.5,-R*.3);
+      const aw=put(g,new THREE.BoxGeometry(R*.76,.08,R*.8),m3Plain(cols[i],.8),x,R*.95,-R*.05);aw.rotation.x=.25;
+      put(g,new THREE.BoxGeometry(R*.7,R*.35,R*.4),m3Mat('planks',0x8a6a42),x,R*.2,-R*.1);
+      put(g,new THREE.SphereGeometry(R*.14,8,6),m3Plain([0xd9a441,0xc84b3a,0x8aa84a][i],.6),x-R*.15,R*.43,-R*.1);put(g,new THREE.SphereGeometry(R*.12,8,6),m3Plain([0xe6c35a,0xe6c35a,0xf1e7cf][i],.4),x+R*.15,R*.42,-R*.1)}
+    for(let i=0;i<2;i++)put(g,cyl(R*.2,R*.2,R*.4,10),m3Mat('planks',0x8d6a3e),-R*1.0+i*.2,R*.2,R*.6);
+    put(g,cyl(.18,.18,.12,10),goldM(),R*1.0,R*.35,R*.6);put(g,cyl(.18,.18,.12,10),goldM(),R*1.0,R*.47,R*.6);put(g,cyl(.18,.18,.12,10),goldM(),R*1.0,R*.59,R*.6);
+    flagPole(g,0,R*.9,R*.5,R*1.2,team);g.userData.h=R*1.8;return g},
   wall(R,st,team){const g=new THREE.Group(),sm=m3Mat('stone',MAT[Math.max(2,st.ep)].wall);put(g,bx(R*2,R*1.5,R*1.2,1.4),sm,0,R*.75,0);for(let i=0;i<3;i++)put(g,new THREE.BoxGeometry(R*.5,R*.4,R*.5),sm,(i-1)*R*.7,R*1.7,0);g.userData.h=R*2;return g}
 };
-function buildBld(type,R,ep,team){const st=bStyle(ep),g=(BLD3[type]||BLD3.house)(R,st,team);setShadows(g);g.userData.flags=[];g.traverse(o=>{if(o.userData.flag)g.userData.flags.push(o)});return g}
+/* Steinzeit: ganz einfache Bauten aus Fell, Holz und Stein */
+const PRIM={
+  hq(R,st,team){const g=new THREE.Group(),hide=m3Mat('fur',0xa07a50),hide2=m3Mat('fur',0x7a5a38);
+    const t=put(g,cone(R*1.25,R*1.9,10),hide,0,R*.95,0);t.scale.set(1.2,1,.9);
+    for(let i=0;i<6;i++){const a=i/6*6.283;put(g,cyl(.06,.06,R*2.1,5),woodD(),Math.cos(a)*R*.18,R*1.9,Math.sin(a)*R*.14).rotation.set(Math.sin(a)*.12,0,-Math.cos(a)*.12)}
+    put(g,new THREE.BoxGeometry(R*.5,R*.8,.1),m3Plain(0x1c140c),0,R*.4,R*.82*.9,false);
+    for(const s of[-1,1]){const tk=put(g,new THREE.TorusGeometry(R*.4,.07,6,12,Math.PI*.9),m3Plain(0xece4cf,.7),s*R*1.1,R*.4,R*.9);tk.rotation.set(0,0,s>0?1.2:1.9)}
+    const tot=new THREE.Group();tot.position.set(-R*1.35,0,R*.6);g.add(tot);put(tot,cyl(.16,.2,R*2.2,8),m3Mat('planks',0x6a4a2a),0,R*1.1,0);
+    for(const[y,c]of[[R*.55,0xc84b3a],[R*1.0,0xe8dfc8],[R*1.45,0x3d72b8]]){put(tot,new THREE.BoxGeometry(.55,.32,.4),m3Plain(c),0,y,0);put(tot,new THREE.BoxGeometry(.9,.1,.1),m3Plain(c),0,y+.05,0)}
+    put(tot,new THREE.SphereGeometry(.22,8,6),m3Plain(0xe8dfc8),0,R*2.3,0);
+    put(g,cyl(R*.35,R*.4,.12,10),m3Plain(0x4a443d,.95),R*.9,.06,R*1.1);for(let i=0;i<7;i++){const a=i/7*6.283;put(g,new THREE.DodecahedronGeometry(.16,0),m3Plain(0x8d8a80,.95),R*.9+Math.cos(a)*R*.38,.14,R*1.1+Math.sin(a)*R*.38)}
+    put(g,cone(.18,.5,6),m3Plain(0xf08a2c,.5,{emissive:0xd45a10,emissiveIntensity:.8}),R*.9,.4,R*1.1);
+    flagPole(g,R*.3,R*1.9,0,R*1.3,team);g.userData.h=R*3.2;return g},
+  house(R,st,team){const g=new THREE.Group(),hide=m3Mat('fur',0xa98558);
+    const t=put(g,cone(R*.95,R*1.5,7),hide,0,R*.75,0);
+    for(let i=0;i<5;i++){const a=i/5*6.283+.3;put(g,cyl(.05,.05,R*.5,5),woodD(),Math.cos(a)*R*.1,R*1.6,Math.sin(a)*R*.1).rotation.set(Math.sin(a)*.2,0,-Math.cos(a)*.2)}
+    put(g,new THREE.BoxGeometry(R*.4,R*.55,.1),m3Plain(0x1c140c),0,R*.28,R*.86,false);
+    put(g,new THREE.DodecahedronGeometry(.3,0),m3Plain(0x8d8a80,.95),R*.95,.25,R*.3);g.userData.h=R*1.8;return g},
+  store(R,st,team){const g=new THREE.Group();
+    for(const x of[-1,1])for(const z of[-1,1])put(g,cyl(.07,.08,R*1.5,6),wood(),x*R*.9,R*.75,z*R*.5).rotation.z=x*.08;
+    for(const y of[R*1.2,R*.8])for(const z of[-1,1])put(g,cyl(.05,.05,R*1.9,5),woodD(),0,y,z*R*.5).rotation.z=Math.PI/2;
+    for(let i=0;i<4;i++){const h=put(g,new THREE.PlaneGeometry(R*.38,R*.7,1,1),m3Mat('fur',[0xa98558,0x7a5a38,0xc9a878,0x8f6c44][i]),-R*.7+i*R*.47,R*.8,R*.5);h.material=h.material.clone();h.material.side=THREE.DoubleSide}
+    put(g,new THREE.SphereGeometry(R*.5,8,6),m3Mat('fur',0x7a5a38),R*.3,R*.22,-R*.5).scale.set(1.3,.45,1);
+    for(const[x,z]of[[R*1.1,R*.1],[R*1.2,-R*.3]]){put(g,new THREE.SphereGeometry(.38,8,6),m3Plain(0xb88a4e),x,.3,z).scale.set(1,.9,1)}
+    for(let i=0;i<3;i++)put(g,new THREE.DodecahedronGeometry(.22,0),m3Plain(0x8d8a80,.95),-R*1.1+i*.1,.2,R*.7-i*.18);
+    g.userData.h=R*1.8;return g},
+  barracks(R,st,team){const g=new THREE.Group(),sm=m3Plain(0x8d8a80,.95);
+    const n=8;for(let i=0;i<n;i++){const a=i/n*6.283,h=R*(.9+.5*((i*37)%5)/4);const m=put(g,new THREE.BoxGeometry(.6,h,.35),sm,Math.cos(a)*R*1.15,h/2,Math.sin(a)*R*.8);m.rotation.y=-a;m.rotation.z=((i*13)%5-2)*.02}
+    put(g,cyl(R*.3,R*.35,.1,10),m3Plain(0x4a443d,.95),0,.05,0);put(g,cone(.16,.45,6),m3Plain(0xf08a2c,.5,{emissive:0xd45a10,emissiveIntensity:.8}),0,.35,0);
+    for(let i=0;i<4;i++){const c=put(g,cyl(.05,.07,R*1.0,6),wood(),R*.3+i*.22,R*.5,-R*.2);c.rotation.z=-.25;put(g,new THREE.DodecahedronGeometry(.13,0),sm,R*.3+i*.22+R*.12,R*1.0,-R*.2)}
+    for(let i=0;i<3;i++){const sk=put(g,new THREE.SphereGeometry(.14,8,6),m3Plain(0xe8dfc8),-R*.3+i*.3,.14,R*.4)}
+    flagPole(g,0,R*1.4,0,R*1.2,team);g.userData.h=R*2.4;return g}
+};
+/* Neuzeit-Merkmale: Renaissance (Kuppel, Säulen, Kanone), Industriezeit (Schornsteine, Eisenträger, Gleis) */
+function epExtras(g,type,R,st){
+  const ep=st.ep;if(ep<4)return;const iron=m3Plain(0x3a3b42,.5,{metalness:.6}),gold=goldM(),pale=m3Plain(0xece6d6,.6);
+  if(ep===4){
+    if(type==='hq'){for(const x of[-.5,-.2,.2,.5])put(g,cyl(.14,.16,R*1.1,10),pale,x*R*1.6,R*.6,R*.95);put(g,new THREE.BoxGeometry(R*2.6,.22,.5),pale,0,R*1.2,R*.95);const d=put(g,new THREE.SphereGeometry(R*.45,14,10,0,6.283,0,1.6),gold,0,R*2.15,0);put(g,cyl(.05,.05,.5,5),gold,0,R*2.75,0)}
+    if(type==='house'){for(const x of[-.5,.5])put(g,new THREE.BoxGeometry(.16,.55,.08),m3Plain(0x4a6a52),x*R*.8,R*.5,R*.88);put(g,new THREE.BoxGeometry(R*.9,.1,.2),m3Plain(0x4a6a52),R*.5,R*.28,R*.9)}
+    if(type==='store'){const c=put(g,cyl(.06,.06,R*1.6,6),woodD(),R*1.2,R*.8,-R*.4);const a=put(g,cyl(.05,.05,R*1.1,6),woodD(),R*.7,R*1.55,-R*.4);a.rotation.z=Math.PI/2;put(g,new THREE.BoxGeometry(.4,.3,.4),m3Mat('planks',0xa9834f),R*.25,R*.95,-R*.4)}
+    if(type==='barracks'){const cg=new THREE.Group();cg.position.set(R*1.3,0,R*.5);g.add(cg);put(cg,cyl(.4,.4,.14,10),woodD(),0,.4,.4).rotation.x=Math.PI/2;put(cg,cyl(.4,.4,.14,10),woodD(),0,.4,-.4).rotation.x=Math.PI/2;put(cg,new THREE.BoxGeometry(1.4,.18,.8),woodD(),0,.7,0);put(cg,cyl(.2,.26,1.5,10),iron,.3,.95,0).rotation.z=-1.35}
+    if(type==='tower'){put(g,new THREE.SphereGeometry(R*.5,10,8,0,6.283,0,1.6),gold,0,R*3.4,0)}
+  }else{
+    const smoke=(x,y,z,h)=>{put(g,cyl(.22,.3,h,10),m3Mat('brick',0x8a4a38),x,y+h/2,z);put(g,cyl(.3,.24,.2,10),iron,x,y+h,z)};
+    if(type==='hq'){smoke(-R*.9,R*1.0,-R*.4,R*1.6);smoke(R*.9,R*1.0,-R*.4,R*1.3);for(const x of[-1.2,0,1.2])put(g,new THREE.BoxGeometry(.12,R*.6,.12),iron,x*R*.5,R*1.0,R*.95)}
+    if(type==='house'){smoke(R*.5,R*.9,-R*.2,R*.9);put(g,cyl(.04,.04,R*1.5,5),woodD(),-R*1.1,R*.75,R*.5);put(g,new THREE.BoxGeometry(.6,.05,.05),woodD(),-R*1.1,R*1.4,R*.5)}
+    if(type==='store'){for(const z of[-.5,.5])put(g,new THREE.BoxGeometry(R*3.2,.08,.1),iron,0,.1,R*.9+z*.45);for(let i=0;i<8;i++)put(g,new THREE.BoxGeometry(.08,.05,.7),woodD(),-R*1.5+i*R*.42,.06,R*.9+.0);const cart=put(g,new THREE.BoxGeometry(.9,.4,.6),iron,R*.8,.4,R*1.15)}
+    if(type==='barracks'){for(let i=0;i<5;i++)put(g,new THREE.SphereGeometry(.28,6,5),m3Plain(0xb8a578,.95),-R*1.2+i*.5,.25,R*.95).scale.set(1,.8,.8);for(let i=0;i<3;i++)put(g,cyl(.03,.03,1.2,5),iron,R*.3+i*.25,.8,R*.9)}
+    if(type==='tower'){const l=put(g,new THREE.SphereGeometry(.3,8,6),m3Plain(0xfff2b0,.2,{emissive:0xffe28a,emissiveIntensity:.9}),0,R*3.1+.4,R*.2)}
+    if(type==='harbor'){smoke(R*.3,R*.8,-R*.3,R*1.4)}
+    if(type==='castle'){smoke(0,R*1.8,0,R*1.2)}
+  }}
+function buildBld(type,R,ep,team){const st=bStyle(ep),g=(ep===0&&PRIM[type]||BLD3[type]||BLD3.house)(R,st,team);if(ep>=4)epExtras(g,type,R,st);setShadows(g);g.userData.flags=[];g.traverse(o=>{if(o.userData.flag)g.userData.flags.push(o)});return g}
 
 /* ---------- Figuren ---------- */
 function limbPivot(parent,x,y,z){const p=new THREE.Group();p.position.set(x,y,z);parent.add(p);return p}
@@ -126,7 +196,6 @@ function human(o){
   for(const s of[-1,1]){const p=limbPivot(g,0,1.7,s*.38);put(p,cyl(.09,.08,.7,8),o.arm||o.body,0,-.34,0);put(p,new THREE.SphereGeometry(.09,8,8),skin,0,-.72,0);rig.arms.push(p)}
   return rig}
 const armHand=(rig,i)=>{const p=new THREE.Group();p.position.set(0,-.72,0);rig.arms[i].add(p);return p};
-function hat(rig,geo,mat,y=2.2,x=0){return put(rig.g,geo,mat,x,y,0)}
 
 /* ---------- Ausrüstung je Zeitalter ----------
    Die Stufe der Einheit (u.lvl, steigt mit dem Zeitalter) bestimmt den Look: 0 Steinzeit (Fell, Stein), 1 Bronze, 2 Eisen, 3 Kettenhemd/Mittelalter,
@@ -297,6 +366,10 @@ function quad(o){
   const sn=put(head,new THREE.BoxGeometry(o.hr*1.5*(o.snout||1),o.hr*.7,o.hr*.8),o.snoutCol?m3Plain(o.snoutCol):m,o.hr*1.0*(o.snout||1),-o.hr*.2,0);put(head,new THREE.SphereGeometry(o.hr*.2,6,6),dk,o.hr*1.7*(o.snout||1),-o.hr*.15,0);
   for(const z of[-1,1]){put(head,new THREE.SphereGeometry(o.hr*.11,6,6),m3Plain(0x15110c),o.hr*.7,o.hr*.25,z*o.hr*.45,false);put(head,cone(o.hr*.35,o.hr*(o.earLen||.9),5),o.earCol?m3Plain(o.earCol):m,-o.hr*.2,o.hr*.95,z*o.hr*.55).rotation.x=z*.2}
   if(o.antlers)for(const z of[-1,1]){const base=put(head,cyl(.03,.04,o.hr*1.8,5),m3Plain(0xc9b690),-o.hr*.1,o.hr*1.9,z*o.hr*.5);base.rotation.x=z*.35;for(const k of[.4,.8]){const br=put(head,cyl(.025,.03,o.hr*1.1,5),m3Plain(0xc9b690),o.hr*(k*.2),o.hr*(1.3+k),z*o.hr*(.6+k*.5));br.rotation.z=-.7;br.rotation.x=z*.5}}
+  if(o.trunk){const tk=put(head,cyl(o.hr*.38,o.hr*.22,o.hr*3.2,8),m,o.hr*1.2,-o.hr*1.2,0);tk.rotation.z=.25;put(head,cyl(o.hr*.22,o.hr*.16,o.hr*1.2,8),m,o.hr*1.65,-o.hr*2.6,0).rotation.z=-.5}
+  if(o.tusks)for(const z of[-1,1]){const t=put(head,new THREE.TorusGeometry(o.hr*1.1,o.hr*.09,6,12,2.3),m3Plain(0xf1ead2,.6),o.hr*1.0,-o.hr*.9,z*o.hr*.55);t.rotation.set(0,0,-1.3)}
+  if(o.fangs)for(const z of[-1,1])put(head,cone(o.hr*.12,o.hr*1.0,5),m3Plain(0xf1ead2,.6),o.hr*1.5,-o.hr*.95,z*o.hr*.25).rotation.x=Math.PI;
+  if(o.shaggy)put(g,new THREE.SphereGeometry(o.br*1.05,10,8),m3Mat('fur',0x5a3c28),0,o.legH+o.br*.7,0).scale.set(1.5,.55,1);
   const tl=put(g,cone(o.br*.35,o.bl*(o.tail||.5),6),o.tailCol?m3Plain(o.tailCol):m,-o.bl/2-o.br*.7,by+o.br*.15,0);tl.rotation.z=Math.PI/2+.5;
   if(o.stripes)for(let i=0;i<7;i++){const x=-o.bl*.45+i*(o.bl*.9/6);put(g,new THREE.BoxGeometry(o.br*.28,o.br*1.5,o.br*2.1),dk,x,by+o.br*.05,0,false).rotation.z=(i%2?.12:-.12)}
   if(o.spots)for(let i=0;i<8;i++){put(g,new THREE.SphereGeometry(o.br*.16,6,5),m3Plain(0xe8dcc0),-o.bl*.4+(i%4)*o.bl*.27,by+o.br*.7,(i<4?-1:1)*o.br*.3,false)}
@@ -305,13 +378,15 @@ const ANI3={
   deer:{col:0xa87a4b,belly:0xd8c19a,dark:0x3a2a1a,br:.34,bl:.85,legH:.85,lw:.075,hr:.2,neck:[.45,.85],snout:1.2,earLen:.8,antlers:true,spots:true,tail:.18,tailCol:0xf3ead6,earCol:0xc39b6a},
   wolf:{col:0x7d7f84,belly:0xc9c9c6,dark:0x222428,br:.29,bl:.75,legH:.52,lw:.07,hr:.2,neck:[.35,.3],snout:1.3,earLen:.7,tail:.8,tailCol:0x6a6c70},
   bear:{col:0x5b3f2a,belly:0x4a3322,dark:0x1c130c,br:.55,bl:1.0,legH:.5,lw:.14,hr:.31,neck:[.5,.3],snout:.8,earLen:.4,hump:true,tail:.15,snoutCol:0x8a6a4a},
+  mammoth:{col:0x6b4a30,belly:0x5a3c28,dark:0x2a1c12,br:.95,bl:1.7,legH:.95,lw:.26,hr:.5,neck:[.75,.25],snout:.5,earLen:.5,hump:true,tail:.2,trunk:true,tusks:true,shaggy:true},
+  sabertooth:{col:0xc99a5a,belly:0xe8d4a8,dark:0x2a1c10,br:.4,bl:1.2,legH:.55,lw:.13,hr:.28,neck:[.5,.28],snout:.8,earLen:.45,tail:.25,tailCol:0xc99a5a,fangs:true,spots:true},
   tiger:{col:0xd9822b,belly:0xf1dcb5,dark:0x1d1510,br:.34,bl:1.1,legH:.58,lw:.1,hr:.25,neck:[.45,.28],snout:.9,earLen:.5,stripes:true,tail:.9,tailCol:0xd9822b}
 };
 /* Stromlinienkörper für Wale und Delfine: Drehkörper mit dickem Kopf und dünnem Schwanz, oben dunkel, unten hell. Nase zeigt nach +x. */
 function swimBody(L,R,topC,botC){const N=20,pts=[];for(let i=N;i>=0;i--){const u=i/N,y=L/2-u*L;pts.push(new THREE.Vector2(R*Math.pow(Math.sin(Math.PI*Math.pow(u,.7)),.75)*(1-.45*u)+.002,y))}
   const g=new THREE.LatheGeometry(pts,16);g.rotateZ(-Math.PI/2);const n=g.attributes.normal,col=new Float32Array(n.count*3),a=new THREE.Color(topC),b=new THREE.Color(botC),c=new THREE.Color();
   for(let i=0;i<n.count;i++){c.copy(a).lerp(b,Math.max(0,Math.min(1,.35-n.getY(i)*1.4)));col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b}g.setAttribute('color',new THREE.BufferAttribute(col,3));return g}
-function buildAnimal(e){const rig=quad(ANI3[e.type]||ANI3.deer);setShadows(rig.g);rig.g.scale.setScalar(e.type==='bear'?1.15:1.1);return rig}
+function buildAnimal(e){const rig=quad(ANI3[e.type]||ANI3.deer);setShadows(rig.g);rig.g.scale.setScalar(e.type==='bear'?1.15:e.type==='mammoth'?1.25:1.1);return rig}
 function buildUnit(u){const f=UNIT3[u.type]||UNIT3.worker,tm=m3Team(u.team),rig=f(u,tm);setShadows(rig.g);return rig}
 
 /* ---------- Ressourcen ---------- */
@@ -328,11 +403,11 @@ function treeGeo(pine){
   return mergeColored([[T,0x5b4228],bl(1.6,0,3.5,0,1,0x2e6b33),bl(1.15,.9,2.9,.5,2,0x3a7d3b),bl(1.1,-.8,3.0,-.5,3,0x2e6b33),bl(1.0,.1,4.6,.2,4,0x58a04a)])}
 function bushGeoC(){const bl=(r,x,y,z,c)=>{const b=new THREE.IcosahedronGeometry(r,1);b.translate(x,y,z);return[b,c]};const parts=[bl(.8,-.5,.55,0,0x3a6a2c),bl(.8,.5,.55,.2,0x3a6a2c),bl(.9,0,.95,-.2,0x467c33)];
   for(let i=0;i<13;i++){const a=i*2.4;parts.push(bl(.17,Math.cos(a)*(.7+(i%3)*.12),.45+(i%4)*.22,Math.sin(a)*(.65+(i%3)*.1),i%5===0?0xf5d54a:0xee2d45))}return mergeColored(parts)}
-function rockGeoC(iron,seed){const g=rockGeo(seed).toNonIndexed();g.computeVertexNormals();const p=g.attributes.position,col=new Float32Array(p.count*3),base=new THREE.Color(iron?0x5a6780:0x9d998e),moss=new THREE.Color(iron?0x4b5870:0x7f8a62),c=new THREE.Color();
+function rockGeoC(iron,seed,gold){const g=rockGeo(seed).toNonIndexed();g.computeVertexNormals();const p=g.attributes.position,col=new Float32Array(p.count*3),base=new THREE.Color(gold?0x8a7d5c:iron?0x5a6780:0x9d998e),moss=new THREE.Color(gold?0x7a6e4a:iron?0x4b5870:0x7f8a62),c=new THREE.Color();
   for(let i=0;i<p.count;i++){const y=p.getY(i),n=.86+.2*Math.sin(p.getX(i)*5+p.getZ(i)*3+seed*4);c.copy(base).multiplyScalar(n);if(y>.45)c.lerp(moss,Math.min(1,(y-.45)*1.3)*.55);col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b}
   g.setAttribute('color',new THREE.BufferAttribute(col,3));
   if(!iron)return g;
   const parts=[[g,0xffffff]],out=[g];for(let i=0;i<7;i++){const a=i*1.9+seed*9,b=new THREE.IcosahedronGeometry(.12,0);b.translate(Math.cos(a)*.78,.3+((i*37)%10)/14,Math.sin(a)*.78);out.push(b)}
-  const ore=mergeColored(out.slice(1).map(b=>[b,0xf0903a])),all=new THREE.BufferGeometry(),pa=[g.attributes.position.array,ore.attributes.position.array],na=[g.attributes.normal.array,ore.attributes.normal.array],ca=[g.attributes.color.array,ore.attributes.color.array];
+  const ore=mergeColored(out.slice(1).map(b=>[b,gold?0xf7d64a:0xf0903a])),all=new THREE.BufferGeometry(),pa=[g.attributes.position.array,ore.attributes.position.array],na=[g.attributes.normal.array,ore.attributes.normal.array],ca=[g.attributes.color.array,ore.attributes.color.array];
   const cat=arr=>{let n=0;arr.forEach(a=>n+=a.length);const r=new Float32Array(n);let o=0;arr.forEach(a=>{r.set(a,o);o+=a.length});return r};
   all.setAttribute('position',new THREE.BufferAttribute(cat(pa),3));all.setAttribute('normal',new THREE.BufferAttribute(cat(na),3));all.setAttribute('color',new THREE.BufferAttribute(cat(ca),3));return all}

@@ -68,6 +68,7 @@ addEventListener('keydown',e=>{
   if(menuOpen||!G||!G.running)return;
   if(e.key===' '){e.preventDefault();togglePause()}
   else if(e.key==='Escape'){if(placing||armed){placing=null;armed=false}else toggleMenu()}
+  else if(e.key==='m'||e.key==='M'){SND.setMute(!SND.muted);toast(SND.muted?tr('Ton aus'):tr('Ton an'))}
   else if(e.key==='q'||e.key==='Q'){if(ownSel().some(u=>u.kind==='unit'&&!UNITS[u.type].passive)){armed=true;placing=null}}
   else if(e.key==='h'||e.key==='H'){const hq=G.ents.find(o=>o.type==='hq'&&o.team===0&&!o.dead);if(hq){sel.clear();sel.add(hq.id);centerOn(hq.x,hq.y);panelSig=''}}
   else if(e.key==='.'){selectIdle()}

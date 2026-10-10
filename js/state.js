@@ -27,6 +27,7 @@ function placeBlock(type,x,y){
   const d=BLDS[type];
   if(type==='harbor'){if(!validSpot(x,y,d.r,true))return tr('Hier ist kein Platz.');if(!harborOk(x,y,d.r))return tr('Der Hafen muss zwischen Land und flachem Wasser stehen.')}
   else if(!validSpot(x,y,d.r))return tr('Hier ist kein Platz.');
+  if(type==='mine'&&!G.ents.some(n=>n.kind==='node'&&!n.dead&&MINE_RT[n.rt]&&Math.hypot(n.x-x,n.y-y)<MINE_RNG*.85))return tr('Eine Mine muss in der Nähe von Eisen oder Gold stehen.');
   if(NET.trust)return null;
   if(!fogEx[fogIdx(x,y)])return tr('Dieses Gebiet ist noch unerkundet.');
   if(terr[fogIdx(x,y)]===1)return tr('Im Gebiet des Gegners kann nicht gebaut werden. Ein Wachturm erobert Land zurück.');
@@ -53,10 +54,10 @@ function fogUpdate(){
 /* Die Karte ist überall zu sehen (grau abgedunkelt). Gegnerische Einheiten nur im hellen Bereich, gegnerische Gebäude erst nach dem Erkunden */
 const shown=e=>{if(e.kind==='animal')return fogVis[fogIdx(e.x,e.y)]===1;if(e.team!==1)return true;const i=fogIdx(e.x,e.y);return e.kind==='unit'?fogVis[i]===1:fogEx[i]===1};
 function sfx(name,e){if(NET.cap)return;if(NET.host&&e&&G&&G.ev&&G.ev.length<14&&SFXNET.has(name))G.ev.push({t:'s',n:name,x:Math.round(e.x),y:Math.round(e.y)});if(typeof SND==='undefined')return;if(e&&!shown(e))return;if(e&&R3.ok){const q=scr(e.x,e.y,0);if(!q.front||q.x<-40||q.y<-40||q.x>VW+40||q.y>VH+40)return}SND.play(name)}
-let G=null,bg=null,bgSmall=null,diff='normal';
+let G=null,bg=null,bgSmall=null,diff='normal',aiStyle='balanced';
 /* Mehrspieler: host = rechnet das Spiel, client = zeigt den Stand und schickt Befehle. send = Funktion zum anderen Spieler. */
 const NET={mp:false,host:false,client:false,send:null,cap:null,tgtSet:false,tgt:null,trust:false,acc:0,lastSnap:0};
-const SFXNET=new Set(['hit','arrow','boom','shot','die','crumble','chop','mine','pick','hammer']);
+const SFXNET=new Set(['grunt','yell','hit','arrow','boom','shot','die','crumble','chop','mine','pick','hammer']);
 const sel=new Set();
 let placing=null,armed=false,drag=null,panelSig='',uiT=0,lastClick={t:0,id:-1};
 const mouse={x:0,y:0,in:false,type:'mouse'};

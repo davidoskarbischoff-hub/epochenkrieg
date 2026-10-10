@@ -4,8 +4,8 @@
 /* ---------- game ---------- */
 let mapSeed=0,mapFresh=false,mapKey='',curMap='coast';
 function newGame(d,reuse,opts){
-  opts=opts||{};diff=d;if(opts.map)curMap=opts.map;else if(typeof window.__map==='string')curMap=window.__map;
-  G={t:0,ents:[],byId:new Map(),nid:1,res:[{food:200,wood:200,stone:100,iron:0},{food:200,wood:200,stone:100,iron:0}],epoch:[0,0],adv:[null,null],jobs:[[],[]],tech:[new Set(),new Set()],rs:[[],[]],tfx:[techFx(new Set()),techFx(new Set())],pop:[0,0],cap:[0,0],speed:1,paused:false,running:false,over:null,overShown:false,proj:[],fx:[],aiT:1,alertT:-99,ping:null,ev:[],alertT1:-99,mem:new Map(),ai:{next:DIFF[d].first,wave:DIFF[d].wave,ex:new Uint8Array(FW*FH),seen:new Map(),attack:false,towT:0,shipNext:200,exPt:null},stats:{lost:[0,0],trained:[0,0]}};
+  opts=opts||{};diff=d;if(opts.aiStyle)aiStyle=opts.aiStyle;if(opts.map)curMap=opts.map;else if(typeof window.__map==='string')curMap=window.__map;
+  G={late:[],t:0,ents:[],byId:new Map(),nid:1,res:[{food:200,wood:200,stone:100,iron:0,gold:0},{food:200,wood:200,stone:100,iron:0,gold:0}],epoch:[0,0],adv:[null,null],jobs:[[],[]],tech:[new Set(),new Set()],rs:[[],[]],tfx:[techFx(new Set()),techFx(new Set())],pop:[0,0],cap:[0,0],speed:1,paused:false,running:false,over:null,overShown:false,proj:[],fx:[],aiT:1,alertT:-99,ping:null,ev:[],alertT1:-99,mem:new Map(),ai:{style:opts.aiStyle||aiStyle,next:DIFF[d].first*AI_STYLES[opts.aiStyle||aiStyle].first,wave:DIFF[d].wave*AI_STYLES[opts.aiStyle||aiStyle].wave,ex:new Uint8Array(FW*FH),seen:new Map(),attack:false,towT:0,shipNext:200,exPt:null},stats:{lost:[0,0],trained:[0,0]}};
   sel.clear();placing=null;armed=false;panelSig='';advisor.cur=null;advisor.ignore={};advisor.next=8;advisor.last=-9;if(typeof SND!=='undefined')SND.setEpoch(0);
   const want=opts.seed!==undefined?opts.seed:(typeof window.__seed==='number'?window.__seed:undefined),keep=reuse&&mapFresh&&bg&&mapKey===curMap&&want===undefined,seed=keep?mapSeed:(want!==undefined?want:(Math.random()*1e9)|0);mapSeed=seed;mapFresh=true;mapKey=curMap;genTerrain(seed,curMap);navInit();genMap(seed);if(!keep)renderBg(seed);
   if(opts.flip)flipTeams();G.mp=!!opts.mp;if(G.mp)G.speed=1;
@@ -19,7 +19,12 @@ function pay(t,c){if(!afford(t,c))return false;RES.forEach(r=>G.res[t][r]-=c[r]|
 function refund(t,c){RES.forEach(r=>G.res[t][r]+=c[r]||0)}
 function missing(t,c){const m=RES.filter(r=>(G.res[t][r]||0)<(c[r]||0)).map(r=>rn(r));return tr('Nicht genug {0}',m.join(tr(' und ')))}
 
+/* Tiere je Zeitalter: Mammut und Säbelzahntiger sterben aus, sobald jemand die Eisenzeit erreicht; Wölfe, Bären und Tiger kommen erst später ins Land */
+function eraAnimals(){const me=Math.max(G.epoch[0],G.epoch[1]);
+  if(me>=2)for(const e of G.ents)if(e.kind==='animal'&&!e.dead&&ANIMALS[e.type].ext&&me>=ANIMALS[e.type].ext)removeEnt(e);
+  if(G.late.length)G.late=G.late.filter(p=>{if(me<ANIMALS[p.type].from)return true;addAnimal(p.type,p.x,p.y);return false})}
 function step(dt){
+  if(!G.mp||!NET.client){G.eraT=(G.eraT||0)-dt;if(G.eraT<=0){G.eraT=2;eraAnimals()}}
   G.t+=dt;G.pfBudget=12;G.load={};
   for(const e of G.ents)if(e.kind==='unit'&&!e.dead&&e.state==='gather'&&e.tid)G.load[e.tid]=(G.load[e.tid]||0)+1;
   for(const e of G.ents)if(e.regen&&e.amount<e.maxAmt&&!e.dead)e.amount=Math.min(e.maxAmt,e.amount+e.regen*dt);
@@ -53,7 +58,7 @@ function moveToward(u,tx,ty,dt,ignore){
   if(d>26&&!navLos(u.x,u.y,tx,ty,naval,Math.max(0,d-stopR))){
     let pf=u.pf;
     if(!pf||Math.hypot(pf.tx-tx,pf.ty-ty)>28||(pf.fail&&G.t-pf.t>1.2)){
-      if(G.pfBudget>0&&(!pf||G.t-pf.t>.35)){G.pfBudget--;const path=navPath(u.x,u.y,tx,ty,stopR,naval,u.seed||0);u.pf=pf={tx,ty,path,i:0,t:G.t,fail:!path}}}
+      if(G.pfBudget>0&&(!pf||G.t-pf.t>.35)){G.pfBudget--;const path=navPath(u.x,u.y,tx,ty,stopR,naval,u.seed||0);u.pf=pf={tx,ty,path,i:0,t:G.t,fail:!(path&&path.length)}}}
     if(pf&&pf.fail)return true; // kein Weg: aufgeben (Aufrufer sieht u.pf.fail)
     if(pf&&pf.path){
       while(pf.i<pf.path.length-1&&Math.hypot(pf.path[pf.i].x-u.x,pf.path[pf.i].y-u.y)<9)pf.i++;
@@ -66,7 +71,9 @@ function moveToward(u,tx,ty,dt,ignore){
   if(terrOk(nx,ny,naval)){u.x=nx;u.y=ny;u.mvT=G.t}
   u.fa=Math.atan2(ey,ex);return d<=step;
 }
-function nearestNode(rt,x,y,max,u,free){const naval=!!(u&&UNITS[u.type].naval);let best=null,bd=max;for(const e of G.solids){if(e.kind!=='node'||e.dead||(rt&&e.rt!==rt)||!!e.sea!==naval||(e.regen&&e.amount<30))continue;if(u&&u.bad&&u.bad[e.id]&&G.t-u.bad[e.id]<40)continue;if(free&&(G.load[e.id]||0)>=NODES[e.type].cap)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
+/* Eisen und Gold lassen sich nur abbauen, wenn eine eigene, fertige Mine in der Nähe steht */
+function minedBy(team,n){if(!MINE_RT[n.rt]||team<0)return true;for(const b of G.ents)if(b.kind==='bld'&&b.type==='mine'&&b.built&&!b.dead&&b.team===team&&Math.hypot(b.x-n.x,b.y-n.y)<MINE_RNG)return true;return false}
+function nearestNode(rt,x,y,max,u,free){const naval=!!(u&&UNITS[u.type].naval);let best=null,bd=max;for(const e of G.solids){if(e.kind!=='node'||e.dead||(rt&&e.rt!==rt)||!!e.sea!==naval||(e.regen&&e.amount<30))continue;if(u&&!minedBy(u.team,e))continue;if(u&&u.bad&&u.bad[e.id]&&G.t-u.bad[e.id]<40)continue;if(free&&(G.load[e.id]||0)>=NODES[e.type].cap)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
 function nearestDrop(t,x,y,naval){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='bld'||e.team!==t||!e.built||!BLDS[e.type].drop||(naval&&e.type!=='harbor')||e.dead)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
 function findEnemy(s,rad,unitsOnly){let best=null,bd=1e9;for(const e of G.ents){if(e.dead||e.team===s.team)continue;if(e.team<0&&!(e.kind==='animal'&&e.state==='chase'))continue;if(unitsOnly&&e.kind!=='unit'&&e.kind!=='animal')continue;const d=Math.hypot(e.x-s.x,e.y-s.y)-e.r-s.r;if(d>rad)continue;const sc=d+(e.kind==='bld'?80:0);if(sc<bd){bd=sc;best=e}}return best}
 const reach=(u,t)=>dist(u,t)<=u.r+t.r+5;
@@ -101,7 +108,7 @@ function updUnit(u,dt){
     if(!canGather(u,n)){u.state='idle';u.tid=null;u.rtype=null;if(u.team===0&&G.t-(G.lvlWarn||-9)>4){G.lvlWarn=G.t;toast(tr('Arbeiter brauchen Stufe {0}, um {1} abzubauen.',LVLN[NODES[n.type].lvl!==undefined?NODES[n.type].lvl:NEED_LVL[n.rt]],tr(NODES[n.type].name)));sfx('error')}break}
     const cap=gc.carry*(1+G.tfx[u.team].carry+(d.naval?G.tfx[u.team].bcarry:0));
     if(u.carry>=cap){u.state='return';break}
-    if(reach(u,n)){u.fa=Math.atan2(n.y-u.y,n.x-u.x);u.gat=G.t;if((u.gt=(u.gt||0)-dt)<=0){u.gt=.75+Math.random()*.2;sfx(n.rt==='wood'?'chop':n.rt==='stone'||n.rt==='iron'?'mine':'pick',u)}const rate=.85*gc.rate*(1+G.tfx[u.team].gather+(d.naval?G.tfx[u.team].bgather:0))*(NODES[n.type].gm||1)*LVL.gather[u.lvl]*(u.team===1?DIFF[diff].gather:1);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;if(n.amount<=0.001){if(n.regen)n.amount=0;else kill(n)}if(u.carry>=cap)u.state='return'}
+    if(reach(u,n)){u.fa=Math.atan2(n.y-u.y,n.x-u.x);u.gat=G.t;if((u.gt=(u.gt||0)-dt)<=0){u.gt=.75+Math.random()*.2;sfx(n.rt==='wood'?'chop':n.rt==='stone'||n.rt==='iron'||n.rt==='gold'?'mine':'pick',u);if(Math.random()<.22)sfx('grunt',u)}const rate=.85*gc.rate*(1+G.tfx[u.team].gather+(d.naval?G.tfx[u.team].bgather:0))*(NODES[n.type].gm||1)*LVL.gather[u.lvl]*(u.team===1?DIFF[diff].gather:1);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;if(n.amount<=0.001){if(n.regen)n.amount=0;else kill(n)}if(u.carry>=cap)u.state='return'}
     else{
       // Absprache: ist der Baum/Busch schon voll besetzt, ein freies Vorkommen in der Nähe suchen
       if((G.load[n.id]||0)>NODES[n.type].cap&&G.t-(u.rs||0)>1.5){u.rs=G.t;const alt=nearestNode(u.rtype||n.rt,u.x,u.y,350,u,true);if(alt&&alt.id!==n.id){G.load[n.id]--;G.load[alt.id]=(G.load[alt.id]||0)+1;u.tid=alt.id;u.pf=null;n=alt}}
@@ -112,12 +119,12 @@ function updUnit(u,dt){
     if(reach(u,dp)){G.res[u.team][u.ctype]+=u.carry;if(u.team===0)sfx('drop',u);u.carry=0;if(!(u.q&&u.q.length&&nextOrder(u)))u.state='gather'}else moveToward(u,dp.x,dp.y,dt,dp.id);break}
   case 'build':{const b=get(u.tid);
     if(!b||b.built){u.state='idle';if(b&&b.built&&BLDS[b.type].drop&&!(u.q&&u.q.length)){const n=nearestNode(null,b.x,b.y,260);if(n){u.tid=n.id;u.rtype=n.rt;u.state='gather'}}break}
-    if(reach(u,b)){u.fa=Math.atan2(b.y-u.y,b.x-u.x);u.gat=G.t;if((u.bt=(u.bt||0)-dt)<=0){u.bt=.6;sfx('hammer',u)}const inc=dt/BLDS[b.type].time;b.prog=Math.min(1,b.prog+inc);b.hp=Math.min(b.maxHp,b.hp+inc*b.maxHp);
+    if(reach(u,b)){u.fa=Math.atan2(b.y-u.y,b.x-u.x);u.gat=G.t;if((u.bt=(u.bt||0)-dt)<=0){u.bt=.6;sfx('hammer',u);if(Math.random()<.2)sfx('grunt',u)}const inc=dt/BLDS[b.type].time;b.prog=Math.min(1,b.prog+inc);b.hp=Math.min(b.maxHp,b.hp+inc*b.maxHp);
       if(b.prog>=1){b.built=true;panelSig='';if(b.team===0){toast(tr('{0} fertiggestellt.',tr(BLDS[b.type].name)));sfx('built');if(BLDS[b.type].claim>150){fogT=1;toast(tr('Neues Gebiet erobert!'),'good')}}}}
     else moveToward(u,b.x,b.y,dt,b.id);break}
   }
 }
-function hit(u,t){const d=UNITS[u.type];sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);const mult=(t.kind==='bld'?(d.siege?1.8:d.ranged?.3:1):(d.siege&&!d.ranged?.35:1))*(1+(d.ranged?G.tfx[u.team].ratk:G.tfx[u.team].matk));
+function hit(u,t){const d=UNITS[u.type];if(!u.yl||G.t-u.yl>25){u.yl=G.t;if(Math.random()<.5)sfx('yell',u)}sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);const mult=(t.kind==='bld'?(d.siege?1.8:d.ranged?.3:1):(d.siege&&!d.ranged?.35:1))*(1+(d.ranged?G.tfx[u.team].ratk:G.tfx[u.team].matk));
   if(d.ranged)G.proj.push({x:u.x,y:u.y,tid:t.id,dmg:d.atk*mult*LVL.atk[u.lvl],src:u.id,a:0,big:!!d.siege,gun:!!d.gun});else damage(t,d.atk*mult*LVL.atk[u.lvl],u)}
 function damage(t,amt,src){
   t.hp-=amt;

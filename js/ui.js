@@ -13,6 +13,7 @@ function renderMenu(){
   $('menu').innerHTML=`<div class="card"><h1>${tr('Menü')}</h1>
   <div class="set"><label for="mv">${tr('Musik')}</label><input type="range" id="mv" min="0" max="100" value="${Math.round(SND.music*100)}"><output id="mvo">${pc(SND.music)}</output></div>
   <div class="set"><label for="sv">${tr('Ton')}</label><input type="range" id="sv" min="0" max="100" value="${Math.round(SND.sfx*100)}"><output id="svo">${pc(SND.sfx)}</output></div>
+  <div class="set"><label for="muteChk">${tr('Ton an')}</label><input type="checkbox" id="muteChk" ${SND.muted?'':'checked'} class="chk"><output></output></div>
   <div class="set"><label for="advChk">${tr('Berater')}</label><input type="checkbox" id="advChk" ${advOn?'checked':''} class="chk"><output></output></div>
   <div class="langrow"><span>${tr('Sprache')}</span><div class="diff" role="group">${['de','en'].map(l=>`<button data-l="${l}" aria-pressed="${l===LANG}">${l==='de'?'Deutsch':'English'}</button>`).join('')}</div></div>
   <div class="btnrow"><button class="go" id="mResume">${tr('Spiel fortsetzen')}</button><button class="btn2" id="mMulti">${tr('Mehrspieler')} …</button><button class="btn2" id="mNew">${tr('Neues Spiel')}</button></div></div>`;
@@ -20,16 +21,17 @@ function renderMenu(){
   $('sv').oninput=e=>{SND.init();SND.setSfx(e.target.value/100);$('svo').textContent=pc(SND.sfx)};
   $('sv').onchange=()=>SND.play('select');
   $('menu').querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{applyLang(b.dataset.l);renderMenu()});
+  $('muteChk').onchange=e=>SND.setMute(!e.target.checked);
   $('advChk').onchange=e=>{advOn=e.target.checked;try{localStorage.setItem('ek-advisor',advOn?'1':'0')}catch(_){}if(!advOn)advisor.cur=null};
   $('mResume').onclick=toggleMenu;
   $('mNew').onclick=()=>{toggleMenu();showStart()};
   if($('mMulti'))$('mMulti').onclick=()=>{toggleMenu();if(window.Lobby)Lobby.open()};
 }
-function applyLang(l){setLang(l);panelSig='';infoCache='';$('speedBtn').textContent=tr('Tempo {0}×',G?G.speed:1);$('pauseBtn').textContent=G&&G.paused?tr('Weiter'):tr('Pause');if(!$('overlay').hidden&&G&&!G.running&&!G.overShown)showStart();if(G)updateUI()}
+function applyLang(l){setLang(l);panelSig='';infoCache='';$('speedBtn').textContent=tr('Tempo {0}×',G?G.speed:1);$('pauseBtn').textContent=G&&G.paused?tr('Weiter'):tr('Pause');if(!$('overlay').hidden&&$('overlay').querySelector('[data-l]'))showStart();if(G)updateUI()}
 $('menuBtn').onclick=()=>{SND.init();toggleMenu()};
 ['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>{if(typeof SND!=='undefined')SND.init()},{once:true}));
 $('pauseBtn').onclick=()=>{if(G&&G.running)togglePause()};
-$('speedBtn').onclick=()=>{if(!G||G.mp)return;G.speed=G.speed===1?2:G.speed===2?3:1;$('speedBtn').textContent=tr('Tempo {0}×',G.speed)};
+$('speedBtn').onclick=()=>{if(!G||G.mp)return;G.speed=G.speed===1?2:G.speed===2?3:G.speed===3?5:1;$('speedBtn').textContent=tr('Tempo {0}×',G.speed)};
 $('idleBtn').onclick=()=>{if(G&&G.running)selectIdle()};
 
 /* ---------- UI ---------- */
@@ -38,7 +40,7 @@ const costHTML=c=>RES.filter(r=>c[r]).map(r=>`<span class="c ${(G&&G.res[0][r]||
 function actionsFor(s){
   if(!s.length||s[0].team!==0)return[];const f=s[0],acts=[],ep=G.epoch[0];
   if(f.kind==='unit'){
-    if(s.some(u=>u.type==='worker'))for(const k of ['house','store','barracks','harbor','tower','castle','wall'].filter(k=>BLDS[k].ep<=ep)){const d=BLDS[k];acts.push({key:'b'+k,nm:tr(d.name),cost:d.cost,sub:tr(d.sub),lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>startPlace(k)})}
+    if(s.some(u=>u.type==='worker'))for(const k of ['house','store','barracks','mine','market','harbor','tower','castle','wall'].filter(k=>BLDS[k].ep<=ep)){const d=BLDS[k];acts.push({key:'b'+k,nm:tr(d.name),cost:d.cost,sub:tr(d.sub),lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>startPlace(k)})}
     if(s.some(u=>u.kind==='unit'&&!UNITS[u.type].passive))acts.push({key:'am',nm:tr('Angriffsmarsch'),sub:tr('Taste Q, dann Ziel'),run:()=>{armed=true;placing=null}});
     if(s.some(u=>u.type==='scout'))acts.push({key:'exp',nm:tr('Erkunden'),sub:tr('Taste E: automatisch'),run:()=>{if(NET.client)NET.send({c:'explore',ids:s.map(u=>u.id)});else doExplore()}});
     acts.push({key:'stop',nm:tr('Halt'),sub:tr('Befehle abbrechen'),run:()=>{if(NET.client){NET.send({c:'halt',ids:s.map(u=>u.id)});return}s.forEach(u=>{if(u.kind==='unit'){u.state='idle';u.amove=null;u.q=[];u.loop=null}})}});
@@ -46,6 +48,8 @@ function actionsFor(s){
   }
   if(f.kind==='bld'&&f.built){
     for(const [k,d] of Object.entries(UNITS))if(d.from===f.type&&d.ep<=ep){const nt=d.tech&&!G.tech[0].has(d.tech);acts.push({key:'t'+k,nm:tr(d.name),cost:d.cost,need:nt?tr('Technologie nötig: {0}',tr(TECH[d.tech].name)):null,sub:nt?tr('Technologie nötig'):null,run:()=>enqueue(f,k,0),unit:k})}
+    if(f.type==='market')for(const rt of['food','wood','stone','iron'])for(const dir of['sell','buy']){const lot=TRADE.lot,g=Math.round(lot*TRADE.sell),c=Math.round(lot*TRADE.buy);
+      acts.push({key:'tr'+dir+rt,nm:dir==='sell'?tr('{0} → Gold',lot+' '+rn(rt)):tr('Gold → {0}',lot+' '+rn(rt)),cost:dir==='sell'?{[rt]:lot}:{gold:c},sub:dir==='sell'?tr('Du erhältst {0} Gold',g):tr('Du erhältst {0}',lot+' '+rn(rt)),run:()=>{if(NET.client)NET.send({c:'trade',rt,dir});else if(!trade(0,rt,dir))toast(tr('Nicht genug Rohstoffe.'),'warn')}})}
     if(f.type==='hq'&&f.team===0){const pd=pending(0);
       if(pd.n)acts.push({key:'upg',nm:tr('Alle upgraden'),cost:pd.cost,adv:true,sub:tr('{0} Gebäude · {1} Truppen',pd.nb,pd.nu),run:()=>startUpgrade(0,'all')});
       if(ep<EPOCHS.length-1)acts.push({key:'adv',nm:tr('Aufstieg: {0}',tr(EPOCHS[ep+1].name)),cost:EPOCHS[ep].cost,adv:true,need:wkCount(0)<wkNeed(ep)?tr('Für den Aufstieg brauchst du {0} Arbeiter.',wkNeed(ep)):pd.n?tr('Erst alle Gebäude und Truppen auf Stufe {0} bringen.',LVLN[ep]):null,sub:wkCount(0)<wkNeed(ep)?wkCount(0)+'/'+wkNeed(ep)+' '+tr('Arbeiter').toLowerCase()+'':pd.n?tr('Erst upgraden'):null,run:()=>advance(0)})}
@@ -94,8 +98,8 @@ function infoHTML(s){
   return h;
 }
 function updateUI(){
-  if(typeof SND!=='undefined')SND.setAlert(G.t-G.alertT<22?.85:0);
-  const r=G.res[0];$('v-food').textContent=Math.floor(r.food);$('v-wood').textContent=Math.floor(r.wood);$('v-stone').textContent=Math.floor(r.stone);$('v-iron').textContent=Math.floor(r.iron);$('res-iron').hidden=G.epoch[0]<2&&r.iron<=0;
+  if(typeof SND!=='undefined'){SND.setAlert(G.t-G.alertT<22?.85:0);if(G.t-(G.batT||-9)>.5){G.batT=G.t;let n=0;for(const e of G.ents)if(!e.dead&&e.kind==='unit'&&e.state==='attack'&&G.t-(e.swing||-9)<3&&shown(e))n++;SND.setBattle(Math.min(1,n/16))}}
+  const r=G.res[0];$('v-food').textContent=Math.floor(r.food);$('v-wood').textContent=Math.floor(r.wood);$('v-stone').textContent=Math.floor(r.stone);$('v-iron').textContent=Math.floor(r.iron);$('res-iron').hidden=G.epoch[0]<2&&r.iron<=0;$('v-gold').textContent=Math.floor(r.gold||0);$('res-gold').hidden=G.epoch[0]<3&&!(r.gold>0);
   {const w=wkCount(0),nd=wkNeed(G.epoch[0]),last=G.epoch[0]>=EPOCHS.length-1;$('v-wk').textContent=w+(last?'':'/'+nd);$('v-wk').style.color=!last&&w<nd?'':'#a9e283';let tr_=0;for(const e of G.ents)if(!e.dead&&e.team===0&&e.kind==='unit'&&e.type!=='worker')tr_++;$('v-troop').textContent=tr_}
   if(document.body.dataset.ep!==String(G.epoch[0]))document.body.dataset.ep=G.epoch[0];
   const pe=$('v-pop');pe.textContent=G.pop[0]+'/'+G.cap[0];pe.style.color=G.pop[0]>=G.cap[0]?'var(--warn)':'';
@@ -125,6 +129,7 @@ function showStart(){
   <p>${tr('Führe deinen Stamm durch fünf Zeitalter. Sammle Nahrung, Holz und Stein, baue deine Siedlung aus und zerstöre das Hauptlager des Gegners, bevor er deins erreicht.')}</p>
   <div class="eras">${EPOCHS.map(e=>`<span>${tr(e.name)}</span>`).join('')}</div>
   <div class="diff" role="group" aria-label="${tr('Schwierigkeit')}">${['leicht','normal','schwer'].map(d=>`<button data-d="${d}" aria-pressed="${d===diff}">${tr(d)}</button>`).join('')}</div>
+  <div class="diff aist" role="group" aria-label="${tr('Gegner')}">${Object.entries(AI_STYLES).map(([k,v])=>`<button data-as="${k}" aria-pressed="${k===aiStyle}" title="${tr(v.desc)}">${tr(v.name)}</button>`).join('')}</div>
   <div class="maps" role="group" aria-label="${tr('Karte')}">${Object.entries(MAPS).map(([k,m])=>`<button data-map="${k}" aria-pressed="${k===curMap}"><b>${tr(m.name)}</b><img src="${mapPreview(k)}" alt="" title="${tr(m.desc)}"></button>`).join('')}</div>
   <dl class="ctl"><dt>${tr('Auswählen')}</dt><dd>${tr('Linksklick, Rahmen ziehen, Doppelklick für alle gleichen')}</dd><dt>${tr('Befehl')}</dt><dd>${tr('Rechtsklick: bewegen, sammeln, bauen, angreifen, Sammelpunkt')}</dd><dt>${tr('Kamera')}</dt><dd>${tr('WASD oder Pfeiltasten, Bildschirmrand, Minikarte, Mausrad zoomt')}</dd><dt>${tr('Tasten')}</dt><dd>${tr('Q Angriffsmarsch · H Hauptlager · . untätiger Arbeiter · Leertaste Pause · Esc Menü')}</dd><dt>${tr('Touch')}</dt><dd>${tr('Tippen wählt aus, mit Auswahl tippen gibt Befehl, Wischen bewegt die Karte')}</dd></dl>
   <div class="langrow"><span>${tr('Sprache')}</span><div class="diff" role="group">${['de','en'].map(l=>`<button data-l="${l}" aria-pressed="${l===LANG}">${l==='de'?'Deutsch':'English'}</button>`).join('')}</div></div>
@@ -132,8 +137,9 @@ function showStart(){
   ov.querySelectorAll('[data-map]').forEach(b=>b.onclick=()=>{curMap=b.dataset.map;ov.querySelectorAll('[data-map]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
   $('mpBtn').onclick=()=>{if(typeof SND!=='undefined')SND.init();if(window.Lobby)Lobby.open()};
   ov.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>applyLang(b.dataset.l));
+  ov.querySelectorAll('[data-as]').forEach(b=>b.onclick=()=>{aiStyle=b.dataset.as;ov.querySelectorAll('[data-as]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
   ov.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{diff=b.dataset.d;ov.querySelectorAll('[data-d]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
-  $('goBtn').onclick=()=>{if(typeof SND!=='undefined')SND.init();newGame(diff,!!(G&&!G.started),{map:curMap});G.running=true;G.started=true;ov.hidden=true;toast(tr('Tipp: Wähle deine Arbeiter aus und schick sie per Rechtsklick zu Beeren oder Bäumen.'))};
+  $('goBtn').onclick=()=>{if(typeof SND!=='undefined')SND.init();newGame(diff,!!(G&&!G.started),{map:curMap,aiStyle});G.running=true;G.started=true;ov.hidden=true;toast(tr('Tipp: Wähle deine Arbeiter aus und schick sie per Rechtsklick zu Beeren oder Bäumen.'))};
 }
 function showEnd(){
   G.overShown=true;G.running=false;const win=G.over==='win';sfx(win?'win':'lose');const m=Math.floor(G.t/60),s=Math.floor(G.t%60);

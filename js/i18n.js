@@ -205,7 +205,12 @@ const EN={
   'Kein Gastgeber gefunden. Der Gastgeber-Tab muss in DIESEM Browser (kein privates Fenster) offen bleiben und in der Lobby warten. Am besten das Spiel mit „npx serve .“ starten und beide Tabs über http://localhost:… öffnen.':'No host found. The host tab must stay open in THIS browser (no private window) and wait in the lobby. Best start the game with "npx serve ." and open both tabs via http://localhost:…',
   // Gebiet
   'Neues Gebiet erobert!':'New territory claimed!',
-  'Nur im eigenen Gebiet. Ein Wachturm erobert neues Land.':'Only inside your territory. A watchtower claims new land.'
+  'Nur im eigenen Gebiet. Ein Wachturm erobert neues Land.':'Only inside your territory. A watchtower claims new land.',
+  'Gegner':'Opponent','Turtle':'Turtle','Rush':'Rush','Baut viele Türme, verteidigt, greift spät an':'Builds many towers, defends, attacks late','Früh viele Truppen und frühe Angriffe, kaum Wirtschaft':'Many troops and early attacks, weak economy','Viele Arbeiter, große Vorräte, späte Armee':'Many workers, big stockpiles, late army','Steigt so schnell wie möglich auf':'Advances as fast as possible',
+  'Angriff! {0} Feinde bei deiner Siedlung – alle Truppen zur Verteidigung schicken':'Attack! {0} enemies at your settlement – send all troops to defend','{0} ist knapp ({1}) – 3 Arbeiter von {2} auf {0} umstellen':'{0} is running low ({1}) – move 3 workers from {2} to {0}',
+  'Mammut':'Mammoth','Säbelzahntiger':'Saber-toothed tiger','Riesig und friedlich, wehrt sich aber – viel Nahrung. Stirbt nach der Steinzeit aus':'Huge and peaceful, but fights back – lots of food. Dies out after the Stone Age','Schnell und tödlich. Stirbt nach der Steinzeit aus':'Fast and deadly. Dies out after the Stone Age',
+  'Gold':'Gold','Goldvorkommen':'Gold Deposit','Mine':'Mine','Markt':'Market','Nötig für Eisen und Gold':'Needed for iron and gold','Rohstoffe gegen Gold tauschen':'Trade resources for gold','Für {0} brauchst du eine fertige Mine in der Nähe.':'You need a finished mine nearby for {0}.','Eine Mine muss in der Nähe von Eisen oder Gold stehen.':'A mine must stand near iron or gold.','{0} → Gold':'{0} → Gold','Gold → {0}':'Gold → {0}','Du erhältst {0} Gold':'You get {0} gold','Du erhältst {0}':'You get {0}','Nicht genug Rohstoffe.':'Not enough resources.',
+  'Ton an':'Sound on','Ton aus':'Sound off'
 };
 let LANG='de';try{LANG=localStorage.getItem('ek-lang')==='en'?'en':'de'}catch(_){}
 function tr(de,...a){let s=LANG==='en'&&EN[de]!==undefined?EN[de]:de;a.forEach((v,i)=>{s=s.split('{'+i+'}').join(v)});return s}
