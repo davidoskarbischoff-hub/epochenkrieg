@@ -315,7 +315,7 @@ function r3Frame(list,rings,dt){
   r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;
-  r3.rd.render(r3.scene,r3.camera);R3.ghostOn=false;
+  r3.rd.render(r3.scene,r3.camera);R3.ghostOn=false;r3Bloom();
 }
 /* Höhe einer Figur/eines Gebäudes über dem Boden in Spielpixeln (für Lebensbalken, Marker) */
 function entH(e){
@@ -363,3 +363,12 @@ function r3Smoke(dt,t){
     q.sp.position.set(e.x/Sc+d.o[0]*R,hAt(e.x,e.y)+top*d.o[1],e.y/Sc+d.o[2]*R);q.sp.visible=true}}
   for(const q of S.pool){if(!q.on)continue;q.age+=dt;if(q.age>=q.life){q.on=false;q.sp.visible=false;continue}
     const u=q.age/q.life,p=q.sp.position;p.x+=(q.vx+Math.sin(t*.7+p.z)*.1)*dt;p.y+=q.vy*(1-u*.5)*dt;p.z+=q.vz*dt;const s=q.s0+(q.s1-q.s0)*u;q.sp.scale.set(s,s,1);q.m.opacity=q.a0*Math.min(1,u*8)*(1-u)}}
+
+
+/* Leuchten (Bloom): verkleinerte Kopie des Bildes liegt weichgezeichnet und aufgehellt per „Bildschirm“-Überblendung über der Welt – helle Stellen (Sonnenlicht auf Wasser, Fenster, Feuer) strahlen sanft nach.
+   Billiger Ersatz für eine echte Nachbearbeitung; abschaltbar im Menü (Grafik). */
+function r3Bloom(){
+  if(!OPT.bloom||R3.saverOn)return;const c=document.getElementById('bloom');if(!c||c.hidden)return;
+  R3.bloomN=(R3.bloomN||0)+1;if(R3.bloomN%2)return;
+  const w=Math.max(160,Math.round(r3.rd.domElement.width/5)),h=Math.max(90,Math.round(r3.rd.domElement.height/5));if(c.width!==w||c.height!==h){c.width=w;c.height=h}
+  const x=c.getContext('2d');x.globalCompositeOperation='copy';x.drawImage(r3.rd.domElement,0,0,w,h)}
