@@ -1,0 +1,74 @@
+# Baut die Desktop-App, sobald auf GitHub ein Release veröffentlicht wird, und hängt die Installationsdateien an dieses Release.
+# Brauchst du: Release mit Tag wie v1.2.3 anlegen und "Publish release" klicken. Keine eigenen Schlüssel nötig (nur der automatische GITHUB_TOKEN).
+name: Desktop-App bauen
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write   # damit die Installationsdateien ans Release angehängt werden dürfen
+
+jobs:
+  windows:
+    name: Windows-Installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - name: Versionsnummer aus dem Tag lesen
+        shell: bash
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$ ]]; then
+            echo "::error::Der Tag '$TAG' ist ungültig. Er muss so aussehen: v1.2.3"
+            exit 1
+          fi
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
+      - name: Abhängigkeiten installieren
+        working-directory: desktop
+        run: npm ci
+      - name: Spiel kopieren
+        working-directory: desktop
+        run: npm run prepare-game
+      - name: Installer bauen und ans Release hängen
+        working-directory: desktop
+        run: npx electron-builder --win --publish always "-c.extraMetadata.version=$env:VERSION"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  mac:
+    name: Mac (optional, ohne Auto-Update)
+    runs-on: macos-latest
+    continue-on-error: true   # ein Fehler beim Mac stoppt den Windows-Bau nicht
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - name: Versionsnummer aus dem Tag lesen
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$ ]]; then
+            echo "::error::Der Tag '$TAG' ist ungültig. Er muss so aussehen: v1.2.3"
+            exit 1
+          fi
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
+      - name: Abhängigkeiten installieren
+        working-directory: desktop
+        run: npm ci
+      - name: Spiel kopieren
+        working-directory: desktop
+        run: npm run prepare-game
+      - name: Mac-Dateien bauen und ans Release hängen
+        working-directory: desktop
+        run: npx electron-builder --mac --x64 --arm64 --publish always "-c.extraMetadata.version=$VERSION"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"   # ohne Apple-Zertifikat bauen
