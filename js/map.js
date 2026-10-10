@@ -1,3 +1,4 @@
+let startK=1;
 /* Epochenkrieg – Entitäten (Einheiten, Gebäude, Ressourcen) und Kartengenerierung.
    (Teil des Spiels; alle game-Dateien teilen sich die globalen Namen, Ladereihenfolge siehe index.html.) */
 'use strict';
@@ -19,8 +20,8 @@ function genMap(seed){
   const okSpot=(x,y,r)=>{if(x<24||y<24||x>W-24||y>H-24)return false;for(let k=0;k<8;k++){const a=k*.785,px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;if(px<10||py<10||px>W-10||py>H-10||!onLand(px,py))return false}const c=Math.max(0,Math.min(TH-1,(y/TG)|0))*TW+Math.max(0,Math.min(TW-1,(x/TG)|0));return MAINLAND[c]===1};
   // Basis A: auf der Diagonale, möglichst nah an der Küste (Hafen soll früh erreichbar sein)
   const Ld=Math.hypot(W,H),nx=H/Ld,ny=W/Ld;let A=null;
-  for(let pp=700;pp>=0&&!A;pp-=20){const c={x:.17*W+nx*pp,y:.83*H+ny*pp};if(okSpot(c.x,c.y,175))A=c}
-  if(!A)A={x:.17*W,y:.83*H};
+  for(let pp=700;pp>=0&&!A;pp-=20){const c={x:W/2+(.17*W+nx*pp-W/2)*startK,y:H/2+(.83*H+ny*pp-H/2)*startK};if(okSpot(c.x,c.y,175))A=c}
+  if(!A)A={x:W/2+(.17*W-W/2)*startK,y:H/2+(.83*H-H/2)*startK};
   const bases=[{x:A.x,y:A.y,s:1},{x:W-A.x,y:H-A.y,s:-1}];
   genRelief(A,bases[1],seed,curMap);navInit(); // Hügel, Plateaus, Klippen
   if(MAPS[curMap]&&MAPS[curMap].cliff){carveCoast(A.x,A.y,380);carveCoast(W-A.x,H-A.y,380);navInit()}

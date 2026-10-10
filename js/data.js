@@ -52,7 +52,12 @@ const UNITS={
   sword:{cls:'inf',tech:'smithy',name:'Schwertkämpfer',sight:150,hp:150,spd:52,atk:15,rng:5,cd:1.1,r:9,cost:{food:80,iron:40},time:18,ep:2,from:'barracks'}
 };
 /* Turm-Ausbau: Verteidigung (stärker schiessen, mehr Leben) oder Aussicht (Sicht und Gebiet) */
-const TSPEC={def:{name:'Wehrturm',cost:{wood:120,stone:140,iron:60},sub:'Schiesst stärker und weiter, hält mehr aus'},obs:{name:'Aussichtsturm',cost:{wood:100,stone:80},sub:'Doppelte Sicht, grösseres Gebiet'}};
+const BSPEC={
+  tower:{def:{name:'Wehrturm',cost:{wood:120,stone:140,iron:60},sub:'Schiesst stärker und weiter, hält mehr aus'},obs:{name:'Aussichtsturm',cost:{wood:100,stone:80},sub:'Doppelte Sicht, grösseres Gebiet'}},
+  hq:{eco:{name:'Handelshof',cost:{wood:250,stone:200,gold:60},sub:'Arbeiter sammeln 20 % schneller, +10 Bevölkerung'},mil:{name:'Kommandozentrale',cost:{wood:250,stone:200,iron:100},sub:'Ausbildung 25 % schneller, neue Truppen +10 % Leben'}},
+  barracks:{drill:{name:'Drillplatz',cost:{wood:150,iron:80},sub:'Nahkämpfer und Reiter dieser Kaserne +25 % Leben'},range:{name:'Schiessstand',cost:{wood:150,iron:80},sub:'Fernkämpfer dieser Kaserne +25 % Schaden'}}
+};
+const TSPEC=BSPEC.tower;
 const BLDS={
   hq:{name:'Hauptlager',sight:280,claim:260,hp:1400,r:36,pop:10,drop:true,shoot:{rng:150,atk:6,cd:1.8}},
   house:{name:'Hütte',sight:150,claim:100,hp:250,r:16,pop:5,cost:{wood:50},time:14,ep:0,sub:'+5 Bevölkerung'},
@@ -124,6 +129,10 @@ const AI_STYLES={
 };
 const AI_MINT=[230,520,900,1320,1800,2300]; /* früheste Zeit (s), zu der die KI in die nächste Epoche steigen darf (normal) */
 const TC=['#3d72b8','#b9442f'],TCD=['#1f3f6b','#6e2215'],TCL=['#8fb4e6','#ef9b86'];
+/* Teamfarben zur Auswahl (Mehrspieler) */
+const PALETTE=[['Blau','#3d72b8'],['Rot','#b9442f'],['Grün','#4a8a3a'],['Gelb','#d1a82c'],['Violett','#7a4aa8'],['Orange','#d27a2a'],['Türkis','#2a9a9a'],['Weiss','#d8d8d0']];
+function shadeHex(h,k){const n=parseInt(h.slice(1),16),f=c=>Math.max(0,Math.min(255,Math.round(k>=0?c+(255-c)*k:c*(1+k))));return'#'+[(n>>16)&255,(n>>8)&255,n&255].map(f).map(v=>v.toString(16).padStart(2,'0')).join('')}
+function setTeamColors(a,b){[a,b].forEach((c,i)=>{TC[i]=c;TCD[i]=shadeHex(c,-.45);TCL[i]=shadeHex(c,.5)})}
 const MAT=[{wall:'#7d5f3b',roof:'#a8834f',line:'#4f3a22'},{wall:'#b48a5a',roof:'#cfa66e',line:'#6f5131'},{wall:'#86837c',roof:'#aaa69d',line:'#55524c'},{wall:'#a29d94',roof:'#9a4a38',line:'#4a443d'},{wall:'#c0b4a0',roof:'#58708a',line:'#3a3d46'},{wall:'#a8503f',roof:'#3e444d',line:'#2d2926'},{wall:'#8a8f86',roof:'#4a4f4a',line:'#2a2d2a'}];
 const STATE={idle:'Wartet',move:'Unterwegs',amove:'Angriffsmarsch',attack:'Kämpft',build:'Baut',explore:'Erkundet'};
 

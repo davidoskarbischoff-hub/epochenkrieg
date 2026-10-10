@@ -711,3 +711,16 @@ UNIT3.bersag=natInf(0x5a6a3a,(g)=>{for(let i=0;i<4;i++)put(g,cone(.03,.45,4),m3P
 UNIT3.banzai=natInf(0x7a6a3a,(g)=>{put(g,new THREE.BoxGeometry(.03,.5,.5),m3Plain(0xeeeeee,.8),0,2.0,-.3)});
 UNIT3.carro=viaGun('tank',.6);
 UNIT3.zero=(u,tm)=>jetBody(u,tm,{col:0xb8c0b0,wcol:0xc8d0c0});
+
+/* Ausbau-Zusätze je Gebäude und Richtung */
+function specModel(g,type,kind,R,team){
+  if(type==='tower')return towerSpecModel(g,kind,R,team);
+  const T=new THREE.Box3().setFromObject(g).max.y,tm=m3Team(team),wd=m3Plain(0x7a5a3a,.9);
+  if(type==='hq'){
+    if(kind==='eco'){for(let i=0;i<4;i++){const a=i*1.57+.8,x=Math.cos(a)*R*1.5,z=Math.sin(a)*R*1.5;put(g,new THREE.BoxGeometry(.9,.5,.7),wd,x,.25,z);put(g,cyl(.02,.02,.9,4),wd,x-.35,.9,z);put(g,new THREE.BoxGeometry(1.0,.05,.8),m3Plain([0xd8b84a,0xc8483a,0x3d72b8,0x5a9a4a][i],.8),x,1.35,z)}
+      put(g,new THREE.SphereGeometry(.4,10,8),m3Plain(0xf0c040,.3,{metalness:.8}),0,T+.5,0)}
+    else{for(const s of[-1,1]){put(g,cyl(.04,.04,R*2.2,5),wd,s*R*1.6,R*1.1,R*1.2);const f=put(g,new THREE.BoxGeometry(.03,.6,.9),m3Plain(0xb02a22,.8),s*R*1.6,R*2.0,R*1.2+.45)}
+      for(let i=0;i<3;i++){put(g,cyl(.18,.22,1.0,8),m3Plain(0x2c2c2c,.5,{metalness:.7}),-R*1.4+i*.6,.3,R*1.8).rotation.z=Math.PI/2-.2}}}
+  else if(type==='barracks'){
+    if(kind==='drill'){for(let i=0;i<3;i++){put(g,cyl(.06,.06,1.2,5),wd,-R*1.6,.6,-R*.6+i*.7);put(g,new THREE.SphereGeometry(.2,6,5),m3Plain(0xb8a578,.9),-R*1.6,1.3,-R*.6+i*.7)}}
+    else{for(let i=0;i<2;i++){const z=-R*.4+i*.9;put(g,cyl(.4,.4,.06,14),m3Plain(0xeeeeee,.8),-R*1.7,.9,z).rotation.z=Math.PI/2;put(g,cyl(.2,.2,.08,14),m3Plain(0xc8382a,.8),-R*1.68,.9,z).rotation.z=Math.PI/2;put(g,cyl(.04,.04,.9,5),wd,-R*1.7,.45,z)}}}}
