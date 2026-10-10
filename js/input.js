@@ -50,7 +50,7 @@ function tap(p){
   if(armed){attackMove(w.x,w.y);return}
   const e=entityAt(0,0,p),s=ownSel();
   if(s.length){const workers=s.some(u=>UNITS[u.type].gather);
-    const cmd=!e||e.team===1||(e.kind==='node'&&workers)||(e.kind==='node'&&s[0].kind==='bld')||(e.team===0&&e.kind==='bld'&&s[0].kind==='unit'&&workers&&(!e.built||(BLDS[e.type].drop&&s.some(u=>u.carry>0))));
+    const cmd=!e||e.team===1||(e.kind==='node'&&workers)||(e.kind==='node'&&s[0].kind==='bld')||(e.team===0&&e.kind==='bld'&&s[0].kind==='unit'&&workers&&(!e.built||e.hp<e.maxHp-1||(BLDS[e.type].drop&&s.some(u=>u.carry>0))));
     if(cmd){command(w.x,w.y,false,p);return}}
   clickSelect(p,false);
 }

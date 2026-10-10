@@ -9,13 +9,13 @@ let TERR=null,MAINLAND=null;
 /* ---------- Gelände erzeugen ---------- */
 /* Kartenarten: mid/ends = Breite der Landzunge in der Mitte und an den Enden, amp = Unregelmäßigkeit, full = nur Land, mount = Berge, cliff = Klippen an der Küste (Zugänge nur an Lücken), bank = Sandbänke */
 const MAPS={
-  coast:{name:'Küste und Landzunge',desc:'Geschwungene Küste, Hügel, Plateaus, Fischgründe',mid:430,ends:920,amp:1.25,wind:.8,plat:.55,bank:.6,mount:0,cliff:0,lakes:1.1},
-  land:{name:'Festland',desc:'Nur Land mit Hügeln und Plateaus, kein Meer',full:1,amp:1,plat:.65,bank:.6,mount:0,cliff:0},
-  lakes:{name:'Seenplatte',desc:'Viele Seen und Teiche, Fische im Binnenland',full:1,amp:1,plat:.4,bank:.6,mount:0,cliff:0,lakes:1.7},
+  coast:{name:'Küste und Landzunge',desc:'Geschwungene Küste, Hügel, Plateaus, Fischgründe',mid:430,ends:920,amp:1.25,wind:.8,plat:.55,bank:.6,mount:1,cliff:0,lakes:1.1,mthr0:0.62},
+  land:{name:'Festland',desc:'Nur Land mit Hügeln und Plateaus, kein Meer',full:1,amp:1,plat:.65,bank:.6,mount:1,cliff:0,mthr0:0.58},
+  lakes:{name:'Seenplatte',desc:'Viele Seen und Teiche, Fische im Binnenland',full:1,amp:1,plat:.4,bank:.6,mount:1,cliff:0,lakes:1.7,mthr0:0.62},
   mountains:{name:'Bergland',desc:'Hohe Berge und Klippen, Häfen nur an Zugängen',mid:440,ends:930,amp:1.15,wind:.7,plat:.3,bank:.6,mount:1,cliff:1,lakes:.9},
-  river:{name:'Flusstal',desc:'Ein Fluss trennt die Basen, nur wenige Furten führen hinüber',full:1,amp:1,plat:.5,bank:.6,mount:0,cliff:0,river:1},
+  river:{name:'Flusstal',desc:'Ein Fluss trennt die Basen, nur wenige Furten führen hinüber',full:1,amp:1,plat:.5,bank:.6,mount:1,cliff:0,river:1,mthr0:0.62},
   pass:{name:'Gebirgspass',desc:'Bergmassiv mit engen Pässen als Engstellen',full:1,amp:1,plat:.2,bank:.6,mount:1,cliff:0,mthr0:.4},
-  bay:{name:'Große Bucht',desc:'Viel Wasser, breite Landbrücke',mid:320,ends:840,amp:1,wind:1,plat:.45,bank:.5,mount:0,cliff:0,lakes:.8}
+  bay:{name:'Große Bucht',desc:'Viel Wasser, breite Landbrücke',mid:320,ends:840,amp:1,wind:1,plat:.45,bank:.5,mount:1,cliff:0,lakes:.8,mthr0:0.62},
 };
 /* Höhenfeld (HL, in Einheiten à 10 px, pro Gelände-Feld), Abstand zur Küste (DSEA), Startpunkt des Hauptlandes (MAINPT) */
 let HL=null,DSEA=null,MAINPT=null;
@@ -100,7 +100,7 @@ function genTerrain(seed,mapId){
     for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const i=y*TW+x;if(TERR[i]<2){HL[i]=.12;continue}
       const px=(x+.5)*TG,py=(y+.5)*TG,inl=sm3(1,6,DSEA[i]);
       let h=.12+((sym(n1,px,py)-.5)*2.0+(sym(n2,px,py)-.5)*1.0+(sym(n5,px,py)-.5)*.5)*inl;
-      if(cfg.mount&&Math.hypot(px-a0.x,py-a0.y)>850&&Math.hypot(px-b0.x,py-b0.y)>850)h+=4.6*sm3(mthr-.11,mthr+.07,sym(n4,px,py))*inl;
+      if(cfg.mount&&Math.hypot(px-a0.x,py-a0.y)>850&&Math.hypot(px-b0.x,py-b0.y)>850){const nv=sym(n4,px,py),mt=sm3(mthr-.11,mthr+.07,nv);h+=(4.6*mt+16*Math.max(0,nv-mthr-.07)+3.4*mt*(1-Math.abs(sym(n6,px,py)*2-1)))*inl}
       if(cliffMask[i])h+=1.9;
       HL[i]=h}}
   computeMainland();
