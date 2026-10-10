@@ -71,7 +71,7 @@ function eraAnimals(){const me=Math.max(G.epoch[0],G.epoch[1]);
   if(G.late.length)G.late=G.late.filter(p=>{if(me<ANIMALS[p.type].from)return true;addAnimal(p.type,p.x,p.y);return false})}
 function step(dt){
   if(!G.mp||!NET.client){G.healT=(G.healT||0)-dt;if(G.healT<=0){G.healT=.5;healAura()}}
-  if(!G.mp||!NET.client){G.eraT=(G.eraT||0)-dt;if(G.eraT<=0){G.eraT=2;eraAnimals();autoRepair();frontLine();autoExpand();autoFinish()}}
+  if(!G.mp||!NET.client){G.eraT=(G.eraT||0)-dt;if(G.eraT<=0){G.eraT=2;eraAnimals();wallPosts();autoRepair();frontLine();autoExpand();autoFinish()}}
   G.t+=dt;G.pfBudget=12;G.load={};
   for(const e of G.ents)if(e.kind==='unit'&&!e.dead&&e.state==='gather'&&e.tid)G.load[e.tid]=(G.load[e.tid]||0)+1;
   for(const e of G.ents)if(e.regen&&e.amount<e.maxAmt&&!e.dead)e.amount=Math.min(e.maxAmt,e.amount+e.regen*dt);
@@ -123,7 +123,7 @@ function moveToward(u,tx,ty,dt,ignore){
 function minedBy(team,n){if(!MINE_RT[n.rt]||team<0)return true;for(const b of G.ents)if(b.kind==='bld'&&b.type===MINE_RT[n.rt]&&b.built&&!b.dead&&b.team===team&&Math.hypot(b.x-n.x,b.y-n.y)<MINE_RNG)return true;return false}
 function nearestNode(rt,x,y,max,u,free){const naval=!!(u&&UNITS[u.type].naval);let best=null,bd=max;for(const e of G.solids){if(e.kind!=='node'||e.dead||(rt&&e.rt!==rt)||!!e.sea!==naval||(e.regen&&e.amount<30))continue;if(u&&!minedBy(u.team,e))continue;if(u&&u.team===0&&!G.mp&&!nodeKnown(e))continue;if(u&&u.bad&&u.bad[e.id]&&G.t-u.bad[e.id]<40)continue;if(free&&(G.load[e.id]||0)>=NODES[e.type].cap)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
 function nearestDrop(t,x,y,naval,rt){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='bld'||e.team!==t||!e.built||e.dead)continue;if(rt==='oil'?!BLDS[e.type].dropOil:!BLDS[e.type].drop)continue;if(naval&&e.type!=='harbor')continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
-function findEnemy(s,rad,unitsOnly){let best=null,bd=1e9;for(const e of G.ents){if(e.dead||e.team===s.team)continue;if(e.team<0&&!(e.kind==='animal'&&e.state==='chase'))continue;if(unitsOnly&&e.kind!=='unit'&&e.kind!=='animal')continue;if(UNITS[e.type]&&UNITS[e.type].air&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;const d=Math.hypot(e.x-s.x,e.y-s.y)-e.r-s.r;if(d>rad)continue;const sc=d+(e.kind==='bld'?80:0);if(sc<bd){bd=sc;best=e}}return best}
+function findEnemy(s,rad,unitsOnly){let best=null,bd=1e9;for(const e of G.ents){if(e.dead||e.team===s.team)continue;if(e.team<0&&!(e.kind==='animal'&&e.state==='chase'))continue;if(unitsOnly&&e.kind!=='unit'&&e.kind!=='animal')continue;if(e.gar&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;if(UNITS[e.type]&&UNITS[e.type].air&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;const d=Math.hypot(e.x-s.x,e.y-s.y)-e.r-s.r;if(d>rad)continue;const sc=d+(e.kind==='bld'?80:0);if(sc<bd){bd=sc;best=e}}return best}
 const reach=(u,t)=>dist(u,t)<=u.r+t.r+5;
 
 /* Erkunden: ein freies, unerkundetes Gebiet in der Nähe aussuchen und hinlaufen (Späher; auch für die KI) */
@@ -138,6 +138,13 @@ function updUnit(u,dt){
   if(u.state==='idle'&&u.loop&&!(u.q&&u.q.length)){u.q=u.loop.map(o=>({...o}))}
   if(u.state==='idle'&&u.q&&u.q.length)nextOrder(u);
   switch(u.state){
+  case 'garrison':{const b=get(u.tid);
+    if(!b||b.dead||!b.built){if(u.gar){u.x=u.gx||u.x;u.y=(u.gy||u.y)+16}u.gar=null;u.state='idle';break}
+    if(u.gar!==b.id){const cap=b.type==='tower'?4:2,n=G.ents.filter(o=>!o.dead&&o.gar===b.id).length;
+      if(reach(u,b)){if(n>=cap){toast(tr('Dort ist kein Platz mehr.'));u.state='idle';break}u.gar=b.id;u.gi=n;u.pf=null}else{moveToward(u,b.x,b.y,dt);break}}
+    {const a=b.ang||0,off=b.type==='tower'?[[-5,-5],[5,-5],[-5,5],[5,5]][u.gi%4]:[[-6,0],[6,0]][u.gi%2];const ca=Math.cos(a),sa=Math.sin(a);u.gx=u.x=b.x+off[0]*ca-off[1]*sa;u.gy=u.y=b.y+off[0]*sa+off[1]*ca;
+     const t=findEnemy(u,d.rng*1.3,false);if(t&&t.kind!=='node'){u.fa=Math.atan2(t.y-u.y,t.x-u.x);if(u.cd<=0){u.cd=d.cd;u.swing=G.t;hit(u,t)}}}
+    break}
   case 'idle':
     if(!d.passive){const t=findEnemy(u,150);if(t){u.tid=t.id;u.state='attack'}}
     break;
@@ -179,6 +186,7 @@ function hit(u,t){const d=UNITS[u.type];if(!u.yl||G.t-u.yl>25){u.yl=G.t;if(Math.
 function damage(t,amt,src){
   if(t.kind==='unit'&&G.ents.some(b=>b.kind==='bld'&&b.type==='trench'&&b.built&&!b.dead&&b.team===t.team&&Math.hypot(b.x-t.x,b.y-t.y)<30))amt*=.65;
   if(!(t.hp>=0))t.hp=t.maxHp||1;
+  if(t.gar)amt*=.5;
   t.hp-=amt;
   if(t.kind==='animal'&&src&&src.team>=0&&t.hp>0){const d=ANIMALS[t.type];if(d.agg){if(t.state!=='chase'){t.tid=src.id;t.state='chase'}}else{t.state='flee';t.thr={x:src.x,y:src.y};t.until=G.t+4}}
   if(src&&t.kind==='unit'&&!UNITS[t.type].passive&&t.state==='idle'){t.tid=src.id;t.state='attack'}
@@ -274,7 +282,7 @@ function advance(team,nat){
 }
 function validSpot(x,y,r,anyTerrain){if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)return false;if(!anyTerrain&&(!onLand(x,y)||!onLand(x+r,y)||!onLand(x-r,y)||!onLand(x,y+r)||!onLand(x,y-r)))return false;if(!anyTerrain&&slopeNear(x,y,r)>.9)return false;for(const e of G.ents){if(e.dead||e.kind==='unit')continue;if(Math.hypot(e.x-x,e.y-y)<e.r+r+5)return false}return true}
 function separate(){
-  const us=G.ents.filter(e=>e.kind==='unit'&&!e.dead);
+  const us=G.ents.filter(e=>e.kind==='unit'&&!e.dead&&!e.gar&&!UNITS[e.type].air);
   for(let i=0;i<us.length;i++){const a=us[i];for(let j=i+1;j<us.length;j++){const b=us[j];let dx=b.x-a.x,dy=b.y-a.y;const m=a.r+b.r;if(Math.abs(dx)>m||Math.abs(dy)>m)continue;let d=Math.hypot(dx,dy);if(d>=m)continue;if(d<.01){dx=Math.random()-.5;dy=Math.random()-.5;d=Math.hypot(dx,dy)}const p=(m-d)/2*.8;a.x-=dx/d*p;a.y-=dy/d*p;b.x+=dx/d*p;b.y+=dy/d*p}}
   for(const u of us){const nav=!!UNITS[u.type].naval;for(const o of G.solids){if(o.dead||(o.sea&&!nav)||(o.kind==='bld'&&BLDS[o.type].passable))continue;let dx=u.x-o.x,dy=u.y-o.y;const R=o.r+u.r;if(Math.abs(dx)>R||Math.abs(dy)>R)continue;let d=Math.hypot(dx,dy);if(d>=R)continue;if(d<.01){dx=1;dy=0;d=1}u.x=o.x+dx/d*R;u.y=o.y+dy/d*R}
     u.x=Math.max(u.r,Math.min(W-u.r,u.x));u.y=Math.max(u.r,Math.min(H-u.r,u.y));
@@ -312,3 +320,12 @@ function updAnimal(a,dt){
   case'return':if(animalMove(a,a.home.x,a.home.y,dt,d.spd*.7)||Math.hypot(a.home.x-a.x,a.home.y-a.y)<24||a.stk>1.5){a.state='idle';a.wt=2;a.stk=0}break;
   }
 }
+
+/* Mauer-Pfosten: Mauerenden und Ecken bekommen einen höheren Turmpfosten (e.pc = "ab", je Ende 0/1) */
+function wallPosts(){
+  const ws=G.ents.filter(e=>!e.dead&&e.kind==='bld'&&(e.type==='wall'||e.type==='gate'));
+  for(const e of ws){const a=e.ang||0;let pc='';
+    for(const s of[-1,1]){const ex=e.x+Math.cos(a)*WALLHALF*s,ey=e.y+Math.sin(a)*WALLHALF*s;let post=1;
+      for(const o of ws){if(o===e)continue;if(Math.hypot(o.x-ex,o.y-ey)<WALLHALF*1.35){const da=Math.abs(Math.atan2(Math.sin((o.ang||0)-a),Math.cos((o.ang||0)-a)));post=(da>.3&&da<Math.PI-.3)?1:0;if(!post)break}}
+      pc+=post}
+    e.pc=pc}}

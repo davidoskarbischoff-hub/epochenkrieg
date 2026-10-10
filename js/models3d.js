@@ -699,3 +699,11 @@ function towerSpecModel(g,kind,R,team){const st=m3Plain(0x8d8a80,.9),tm=m3Team(t
     for(const a of[0,1.57,3.14,4.71])put(bl,cyl(.02,.02,R*3,4),m3Plain(0xdddddd,.8),Math.cos(a)*R*.9,-R*1.7,Math.sin(a)*R*.9).rotation.z=Math.cos(a)*.3;
     put(bl,new THREE.BoxGeometry(.7,.45,.7),m3Plain(0x7a5a3a,.9),0,-R*3.2,0);
     put(g,cyl(.03,.03,R*4,4),m3Plain(0xdddddd,.8),0,T+R*2.5,0)}}
+
+/* Mauer-Pfosten an Enden/Ecken: höherer Turm je Epoche */
+function wallPostModel(g,pc,R,ep,team){const L=R*2.3,H0=g.userData.h||R*1.8,H=H0*1.55,tm=m3Team(team);
+  const mat=ep<=2?m3Mat('planks',0x6a4a2a):ep===3?m3Mat('stone',MAT[3].wall):ep===4?m3Mat('brick',0x9a4a3a):m3Mat('scratch',0x6a6e74,{roughness:.5,metalness:.7});
+  [-1,1].forEach((s,i)=>{if(pc[i]!=='1')return;const x=s*L/2;
+    put(g,cyl(.3,.36,H,ep<=2?7:10),mat,x,H/2,0);put(g,cyl(.42,.34,.22,10),mat,x,H,0);
+    if(ep<=2)put(g,cone(.34,.5,7),mat,x,H+.35,0);else{for(let k=0;k<4;k++)put(g,new THREE.BoxGeometry(.2,.22,.2),mat,x+Math.cos(k*1.57)*.3,H+.2,Math.sin(k*1.57)*.3)}
+    const f=put(g,new THREE.BoxGeometry(.02,.28,.4),tm,x,H+.65,.2);f.userData.flag=true})}

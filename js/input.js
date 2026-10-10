@@ -1,7 +1,7 @@
 /* Epochenkrieg – Kamera und Eingabe (Maus, Touch, Tastatur).
    (Teil des Spiels; alle game-Dateien teilen sich die globalen Namen, Ladereihenfolge siehe index.html.) */
 'use strict';
-let wallDrag=null;addEventListener('pointerup',()=>{wallDrag=null});
+let wallDrag=null;addEventListener('pointerup',()=>{wallDrag=null;wallAng=null});
 /* ---------- camera & input ---------- */
 function resize(){const r=view.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);VW=r.width;VH=r.height;cv.width=Math.round(VW*dpr);cv.height=Math.round(VH*dpr);
   const mr=mm.getBoundingClientRect();MW=mr.width;MH=mr.height;mm.width=Math.round(MW*dpr);mm.height=Math.round(MH*dpr);if(typeof r3Resize==='function')r3Resize();clampCam()}
@@ -18,11 +18,11 @@ cv.addEventListener('pointerdown',e=>{
   const w=toWorld(p.x,p.y);
   if(e.button===2){if(placing||armed){placing=null;armed=false;return}command(w.x,w.y,e.shiftKey,{x:p.x,y:p.y});if(ownSel().length)sfx('order');return}
   if(e.button===1){drag={pan:true,lx:p.x,ly:p.y};e.preventDefault();return}
-  if(e.button===0){if(placing){const wl=placing==='wall';tryPlace(w.x,w.y,e.shiftKey||wl);if(wl&&placing==='wall')wallDrag={x:w.x,y:w.y};return}if(armed){attackMove(w.x,w.y,e.shiftKey);return}drag={sx:p.x,sy:p.y,box:false,shift:e.shiftKey}}
+  if(e.button===0){if(placing){const wl=placing==='wall';tryPlace(w.x,w.y,e.shiftKey||wl);if(wl&&placing==='wall')wallDrag={x:w.x,y:w.y,first:true};return}if(armed){attackMove(w.x,w.y,e.shiftKey);return}drag={sx:p.x,sy:p.y,box:false,shift:e.shiftKey}}
 });
 cv.addEventListener('pointermove',e=>{
   const p=evPos(e);mouse.x=p.x;mouse.y=p.y;mouse.in=true;mouse.type=e.pointerType;
-  if(wallDrag&&placing==='wall'){const w=toWorld(p.x,p.y),d=BLDS.wall.r*2+1;let dx=w.x-wallDrag.x,dy=w.y-wallDrag.y,L=Math.hypot(dx,dy),n=0;while(L>=d&&placing==='wall'&&n++<12){const k=d/L;wallDrag.x+=dx*k;wallDrag.y+=dy*k;tryPlace(wallDrag.x,wallDrag.y,true);dx=w.x-wallDrag.x;dy=w.y-wallDrag.y;L=Math.hypot(dx,dy)}return}
+  if(wallDrag&&placing==='wall'){const w=toWorld(p.x,p.y),d=BLDS.wall.r*2+1;let dx=w.x-wallDrag.x,dy=w.y-wallDrag.y,L=Math.hypot(dx,dy),n=0;while(L>=d&&placing==='wall'&&n++<12){wallAng=Math.atan2(dy,dx);if(wallDrag.first&&lastPlaced&&!lastPlaced.built){lastPlaced.ang=wallAng;wallDrag.first=false}const k=d/L;wallDrag.x+=dx*k;wallDrag.y+=dy*k;tryPlace(wallDrag.x,wallDrag.y,true);dx=w.x-wallDrag.x;dy=w.y-wallDrag.y;L=Math.hypot(dx,dy)}return}
   if(!drag)return;
   if(drag.pan||drag.touch){if(drag.touch&&!drag.moved&&Math.hypot(p.x-drag.sx,p.y-drag.sy)<9)return;if(drag.touch)drag.moved=true;{const a=toWorld(drag.lx,drag.ly),b=toWorld(p.x,p.y);cam.x+=a.x-b.x;cam.y+=a.y-b.y}drag.lx=p.x;drag.ly=p.y;clampCam();return}
   if(Math.hypot(p.x-drag.sx,p.y-drag.sy)>5)drag.box=true;

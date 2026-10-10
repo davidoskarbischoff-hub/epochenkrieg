@@ -88,3 +88,6 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
 - Weltkriegszeit (Epoche 6): Sturmsoldat/MG/Panzer, Flugzeuge (`air:true`, fliegen direkt, nur Fernkämpfer/Flieger treffen sie, Bau im `airfield`, Modelle `jetBody` in `models3d.js`, Höhe 5 und Propeller in `r3Unit`).
 - Mauern/Tore/Gräben (`wall`,`gate`,`trench`), Öl (`derrick`,`refinery`), verborgene Erze (`HIDDEN_NODES`), Formationen (`FORMS`), Sanitäter-Reihe, Ingenieur: siehe jeweilige Abschnitte in `data.js`/`commands.js`.
 - Grenzen: Modelle sind einfache Formen; Gruppe „Diktaturen" und Asien fehlen noch; Mehrspieler kennt Nationen nur grob.
+- Turm-Ausbau: `TSPEC` (data.js), `towerSpec` (sim.js, Mehrspieler `case'tspec'`): Wehrturm (`e.spec='def'`, stärker schiessen, +50 % Leben) oder Aussichtsturm (`'obs'`, doppelte Sicht, Gebiet ×1,7, Ballon); Modell `towerSpecModel`. Spec wird noch nicht im Mehrspieler-Stand übertragen.
+- Mauern: rasten per `wallSnap` (commands.js) an Mauerenden und grosse Vorkommen ein, drehen sich in Zugrichtung (`e.ang`); `wallPosts` (1×/2 s) setzt Eck-/Endpfosten (`e.pc`, Modell `wallPostModel`). Fernkämpfer besetzen Mauern/Türme per Rechtsklick (`garrison`, `u.gar`, Mauer 2, Turm 4 Plätze, Schaden ×.5, Nahkämpfer können sie nicht anvisieren).
+- Fehler behoben: Reparatur von Gebäuden ohne `time` (Hauptlager) ergab NaN-Leben = unsterblich.

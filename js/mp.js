@@ -61,7 +61,7 @@ function execRemote(m){
       case'amove':attackMove(m.x,m.y,!!m.append);break;
       case'rage':useRage(0,(m.ids||[]).slice(0,80));break;
       case'trade':if(RES.includes(m.rt)&&m.rt!=='gold')trade(0,m.rt,m.dir==='buy'?'buy':'sell');break;
-      case'place':placing=m.type;if(BLDS[m.type]&&BLDS[m.type].ep<=G.epoch[0])tryPlace(m.x,m.y,!!m.keep);break;
+      case'place':placing=m.type;wallAng=typeof m.ang==='number'?m.ang:null;if(BLDS[m.type]&&BLDS[m.type].ep<=G.epoch[0])tryPlace(m.x,m.y,!!m.keep);break;
       case'train':{const b=get(m.b);if(b&&b.team===0&&b.built&&UNITS[m.type]&&UNITS[m.type].from===b.type)enqueue(b,m.type,0);break}
       case'adv':advance(0,m.nation);break;
       case'upg':startUpgrade(0,m.key);break;
