@@ -13,7 +13,7 @@ function flipTeams(){
   if(G.over)G.over=G.over==='win'?'lose':'win'}
 const r1=v=>Math.round(v*10)/10;
 function encodeSnap(){
-  const U=[],B=[],N=[],A=[],rel=v=>v?r1(G.t-v):-1;
+  const U=[],B=[],N=[],A=[],rel=v=>v&&G.t-v<1?r1(G.t-v):-1;
   for(const e of G.ents){if(e.dead)continue;
     if(e.kind==='unit')U.push({i:e.id,ty:e.type,m:e.team,x:r1(e.x),y:r1(e.y),a:Math.round(e.fa*100)/100,h:Math.round(e.hp),H:e.maxHp,l:e.lvl,s:e.state,c:r1(e.carry||0),ct:e.ctype||0,rt:e.rtype||0,td:e.tid||0,sw:rel(e.swing),ga:rel(e.gat),mv:rel(e.mvT),u:e.upj?1:0,cd:r1(e.cd||0),q:e.team===0&&e.q&&e.q.length?e.q:0,lp:e.loop?1:0,gr:e.gar||0});
     else if(e.kind==='bld')B.push({i:e.id,ty:e.type,m:e.team,x:r1(e.x),y:r1(e.y),h:Math.round(e.hp),H:e.maxHp,l:e.lvl,b:e.built?1:0,p:Math.round(e.prog*1000)/1000,an:e.ang||0,sp:e.spec||0,pc:e.pc||0,u:e.upj?1:0,qu:e.team===0?e.queue.map(q=>({type:q.type,t:r1(q.t),blocked:q.blocked?1:0})):0,r:e.team===0&&e.rally?e.rally:0});
@@ -23,7 +23,14 @@ function encodeSnap(){
     adv:G.adv.map(a=>a?{t:r1(a.t),time:a.time}:null),tech:G.tech.map(t=>[...t]),rs:G.rs.map(a=>a.map(r=>({id:r.id,t:r1(r.t),time:r.time}))),
     jobs:G.jobs.map(a=>a.map(j=>({label:j.label,t:r1(j.t),time:j.time,to:j.to,n:j.n,team:j.team}))),stats:{lost:G.stats.lost.slice(),trained:G.stats.trained.slice()},
     U,B,N,A,bn:G.bones||[],P:G.proj.map(p=>[Math.round(p.x),Math.round(p.y),Math.round(p.a*100)/100,p.big?1:0,p.gun?1:0])}}
-function sendSnap(){if(!NET.send)return;flipTeams();let snap;try{snap=encodeSnap()}finally{flipTeams()}snap.ev=G.ev;G.ev=[];NET.send({t:'snap',s:snap})}
+/* Nur Geändertes senden: Einheiten/Gebäude/Tiere, die sich seit dem letzten Stand nicht verändert haben, entfallen (alle 3 s ein voller Stand zum Abgleich). Sendetakt passt sich der Datenmenge an. */
+function sendSnap(){if(!NET.send)return;flipTeams();let snap;try{snap=encodeSnap()}finally{flipTeams()}snap.ev=G.ev;G.ev=[];
+  const full=!NET.prev||G.t-(NET.fullT||0)>3,cur=new Map();
+  for(const k of['U','B','A'])snap[k]=snap[k].filter(r=>{const s=k+JSON.stringify(r);cur.set(r.i,s);return full||NET.prev.get(r.i)!==s});
+  snap.d=full?0:1;if(full)NET.fullT=G.t;else snap.X=[...NET.prev.keys()].filter(id=>!cur.has(id));NET.prev=cur;
+  let len=0;try{len=JSON.stringify(snap).length}catch(_){}
+  NET.interval=Math.min(.4,Math.max(.1,len/150000+(NET.backlog>65536?.1:0)));
+  NET.send({t:'snap',s:snap})}
 function removeEnt(e){if(e.dead)return;e.dead=true;if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea))navStamp(e,-1);sel.delete(e.id)}
 function applySnap(s){
   if(!G||!NET.client)return;
@@ -37,7 +44,8 @@ function applySnap(s){
   for(const r of s.B){seen.add(r.i);let e=G.byId.get(r.i);if(!e||e.dead){e=addBld(r.ty,r.m,r.x,r.y,!!r.b,r.i)}
     e.team=r.m;e.x=r.x;e.y=r.y;e.hp=r.h;e.maxHp=r.H;e.lvl=r.l;e.built=!!r.b;e.prog=r.p;e.ang=r.an;e.spec=r.sp||undefined;e.pc=r.pc||undefined;e.upj=r.u?{}:null;e.queue=r.qu||[];e.rally=r.r||null}
   for(const r of s.A||[]){seen.add(r.i);let e=G.byId.get(r.i);if(!e||e.dead)e=addAnimal(r.ty,r.x,r.y,r.i);e.tx=r.x;e.ty=r.y;e.fa=r.a;e.hp=r.h;e.state=r.s;e.swing=r.sw>=0?G.t-r.sw:undefined;e.mvT=r.mv>=0?G.t-r.mv:undefined}
-  for(const e of G.ents)if(!e.dead&&(e.kind==='unit'||e.kind==='bld'||e.kind==='animal')&&!seen.has(e.id))removeEnt(e);
+  if(s.d){for(const id of s.X||[]){const e=G.byId.get(id);if(e&&!e.dead)removeEnt(e)}}
+  else for(const e of G.ents)if(!e.dead&&(e.kind==='unit'||e.kind==='bld'||e.kind==='animal')&&!seen.has(e.id))removeEnt(e);
   for(const [id,amt] of s.N){const n=G.byId.get(id);if(n&&!n.dead){n.amount=amt;if(amt<=.5&&!n.regen)removeEnt(n)}}
   G.proj=s.P.map(([x,y,a,big,gun])=>({x,y,a,big:!!big,gun:!!gun,dead:false}));
   for(const ev of s.ev||[]){
@@ -76,7 +84,7 @@ function execRemote(m){
   finally{NET.cap=null;NET.tgtSet=false;NET.tgt=null;NET.trust=false;placing=savePl;flipTeams();sel.clear();saveSel.forEach(id=>sel.add(id));panelSig='';infoCache=''}
   if(msgs.length&&NET.send)NET.send({t:'msgs',list:msgs.slice(0,4)})}
 function startMP(o){
-  NET.mp=true;NET.host=o.role==='host';NET.client=o.role==='client';NET.send=o.send;NET.acc=0;NET.lastSnap=performance.now();
+  NET.prev=null;NET.interval=.1;NET.mp=true;NET.host=o.role==='host';NET.client=o.role==='client';NET.send=o.send;NET.acc=0;NET.lastSnap=performance.now();
   const flip=NET.host?o.side==='B':o.side!=='B';
   const cf=o.cfg||{};if(cf.colH&&cf.colG){NET.host?setTeamColors(cf.colH,cf.colG):setTeamColors(cf.colG,cf.colH)}
   newGame('normal',false,{map:o.map,seed:o.seed,flip,mp:true,size:cf.size,speed:cf.speed});$('speedBtn').textContent=tr('Tempo {0}×',G.speed);

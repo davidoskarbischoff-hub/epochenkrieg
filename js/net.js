@@ -4,7 +4,7 @@
    2) Lokal testen: zwei Tabs im selben Browser sprechen über einen BroadcastChannel (Link …?join=local:CODE).
    Das Spiel selbst (Spielstand, Befehle) steckt in game.js (EKG.startMP, applySnap, execRemote). */
 const Lobby=(()=>{
-  let role=null,view='menu',peer=null,conn=null,bc=null,raw=null,link='',helloTimer=null,inGame=false;
+  let pingTimer=null,role=null,view='menu',peer=null,conn=null,bc=null,raw=null,link='',helloTimer=null,inGame=false;
   const SIZES={S:{n:'Klein',maps:['pass','river','lakes']},M:{n:'Mittel',maps:['land','coast','bay']},L:{n:'Gross',maps:['mountains','coast','land']}};
   const SPEEDS=[[1,'Normal (1×)'],[2,'Schnell (2×)'],[3,'Superschnell (3×)']];
   const st={cfg:{size:'M',map:'land',speed:1,side:'A',colH:PALETTE[0][1],colG:PALETTE[1][1]},prop:{},connected:false,status:'',error:''};
@@ -14,7 +14,7 @@ const Lobby=(()=>{
   const T=(...a)=>tr(...a);
 
   function loadPeerJS(){return new Promise((res,rej)=>{if(window.Peer)return res();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';s.onload=res;s.onerror=()=>rej(new Error('peerjs'));document.head.appendChild(s)})}
-  function close(){clearInterval(helloTimer);try{if(conn)conn.close()}catch(_){}try{if(peer)peer.destroy()}catch(_){}try{if(bc)bc.close()}catch(_){}conn=peer=bc=raw=null;st.connected=false}
+  function close(){clearInterval(helloTimer);clearInterval(pingTimer);try{if(conn)conn.close()}catch(_){}try{if(peer)peer.destroy()}catch(_){}try{if(bc)bc.close()}catch(_){}conn=peer=bc=raw=null;st.connected=false}
 
   function onClosed(){if(inGame){EKG.peerLeft&&EKG.peerLeft();return}st.connected=false;st.status='Verbindung getrennt.';render()}
   function onData(m){
@@ -24,9 +24,10 @@ const Lobby=(()=>{
       case'lobby':if(role==='client'){clearInterval(helloTimer);st.cfg=m.cfg;st.prop=m.prop||{};st.connected=true;render()}break;
       case'prop':if(role==='host'){Object.assign(st.prop,m.p);pushLobby();render()}break;
       case'col':if(role==='host'&&m.c!==st.cfg.colH){st.cfg.colG=m.c;pushLobby();render()}break;
-      case'start':if(role==='client'){inGame=true;EKG.startMP({role:'client',seed:m.seed,map:m.map,side:m.side,cfg:m.cfg,send:msg=>raw&&raw({t:'cmd',m:msg})})}break;
-      case'cmd':if(role==='host'&&inGame)EKG.execRemote(m.m);break;
-      case'snap':if(role==='client')EKG.applySnap(m.s);break;
+      case'start':if(role==='client'){inGame=true;clearInterval(pingTimer);pingTimer=setInterval(()=>{if(raw)raw({t:'ping'})},3000);EKG.startMP({role:'client',seed:m.seed,map:m.map,side:m.side,cfg:m.cfg,send:msg=>raw&&raw({t:'cmd',m:msg})})}break;
+      case'ping':break;
+      case'cmd':if(role==='host'&&inGame){try{EKG.execRemote(m.m)}catch(e){console.warn('cmd',e)}}break;
+      case'snap':if(role==='client'){try{EKG.applySnap(m.s)}catch(e){console.warn('snap',e)}}break;
       case'msgs':if(role==='client')(m.list||[]).forEach(([t,k])=>EKG.toast(t,k));break;
     }}
   function pushLobby(){if(role==='host'&&raw&&st.connected)raw({t:'lobby',cfg:st.cfg,prop:st.prop})}
@@ -36,9 +37,9 @@ const Lobby=(()=>{
     close();role='host';view='host';st.error='';st.status=local?'Lokaler Test: Öffne den Link in einem zweiten Tab.':'Verbinde mit dem Vermittler …';link='';render();
     if(local){const code=rid();bc=new BroadcastChannel('ek-'+code);link=baseUrl()+'?join=local:'+code;bc.onmessage=e=>{if(e.data&&e.data.to==='h')onData(e.data.msg)};raw=m=>bc.postMessage({to:'c',msg:m});st.status='Warte auf Mitspieler …';render();return}
     try{await loadPeerJS()}catch(_){st.error='Der Vermittlungsdienst (PeerJS) ist nicht erreichbar. Prüfe deine Internetverbindung – oder nutze „Lokal testen“.';render();return}
-    peer=new Peer();
+    peer=new Peer(undefined,{config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}});peer.on('disconnected',()=>{try{peer.reconnect()}catch(_){}});
     peer.on('open',id=>{link=baseUrl()+'?join='+id;st.status='Warte auf Mitspieler …';render()});
-    peer.on('connection',c=>{if(conn&&conn.open){c.close();return}conn=c;raw=m=>{if(conn&&conn.open)conn.send(m)};c.on('data',onData);c.on('close',onClosed);c.on('error',()=>{})});
+    peer.on('connection',c=>{if(conn&&conn.open){c.close();return}conn=c;raw=m=>{if(!(conn&&conn.open))return;if(m&&m.t==='snap'){const bf=conn.dataChannel?conn.dataChannel.bufferedAmount:0;if(bf>262144){NET.prev=null;return}NET.backlog=bf}conn.send(m)};c.on('data',onData);c.on('close',onClosed);c.on('error',()=>{})});
     peer.on('error',e=>{st.error='Verbindungsfehler ('+(e.type||'?')+').';render()});
   }
   /* ---- Gast ---- */
@@ -49,7 +50,7 @@ const Lobby=(()=>{
     if(target.startsWith('local:')){const code=target.slice(6);bc=new BroadcastChannel('ek-'+code);bc.onmessage=e=>{if(e.data&&e.data.to==='c')onData(e.data.msg)};raw=m=>bc.postMessage({to:'h',msg:m});
       raw({t:'hello'});let tries=0;helloTimer=setInterval(()=>{if(!raw||st.connected)return;raw({t:'hello'});if(++tries===6){st.error='Kein Gastgeber gefunden. Der Gastgeber-Tab muss in DIESEM Browser (kein privates Fenster) offen bleiben und in der Lobby warten. Am besten das Spiel mit „npx serve .“ starten und beide Tabs über http://localhost:… öffnen.';render()}},1000);return}
     try{await loadPeerJS()}catch(_){st.error='Der Vermittlungsdienst (PeerJS) ist nicht erreichbar. Prüfe deine Internetverbindung.';render();return}
-    peer=new Peer();
+    peer=new Peer(undefined,{config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}});peer.on('disconnected',()=>{try{peer.reconnect()}catch(_){}});
     peer.on('open',()=>{conn=peer.connect(target,{reliable:true});conn.on('open',()=>{raw=m=>{if(conn&&conn.open)conn.send(m)};st.status='Verbunden – warte auf den Gastgeber …';raw({t:'hello'});render()});conn.on('data',onData);conn.on('close',onClosed);conn.on('error',()=>{})});
     peer.on('error',e=>{st.error=e.type==='peer-unavailable'?'Den Gastgeber gibt es nicht (mehr). Ist der Link noch aktuell?':'Verbindungsfehler ('+(e.type||'?')+').';render()});
   }

@@ -7,7 +7,7 @@ let last=0;
 function simAdvance(raw){
   if(G&&G.running&&!G.over){
     if(NET.client){clientStep(raw);if(performance.now()-NET.lastSnap>8000&&!G.leftMsg){G.leftMsg=true;toast(tr('Keine Daten vom Gastgeber – Verbindung verloren?'),'warn')}}
-    else if(!G.paused){let t=raw*G.speed;while(t>0){const s=Math.min(t,.04);step(s);t-=s}if(NET.host){NET.acc+=raw;if(NET.acc>=.1){NET.acc=0;sendSnap()}}}}}
+    else if(!G.paused){let t=raw*G.speed;while(t>0){const s=Math.min(t,.04);step(s);t-=s}if(NET.host){NET.acc+=raw;if(NET.acc>=(NET.interval||.1)){NET.acc=0;sendSnap()}}}}}
 let bgLast=performance.now();
 try{const w=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(0),50)'],{type:'text/javascript'})));
   w.onmessage=()=>{const now=performance.now(),raw=Math.min(.25,(now-bgLast)/1000);bgLast=now;if(document.hidden&&NET.mp)simAdvance(raw)}}catch(_){}
