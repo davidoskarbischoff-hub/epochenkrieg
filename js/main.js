@@ -28,4 +28,4 @@ new ResizeObserver(resize).observe(view);new ResizeObserver(resize).observe(mm);
 window.EKG={startMP,endMP,execRemote,applySnap,peerLeft,toast,tr:(...a)=>tr(...a),get G(){return G},showStart:()=>showStart(),NET,setMap:m=>{curMap=m}};
 window.__ek={terrOk,navOpen,navCell,navLos,flipTeams,encodeSnap,applySnap,execRemote,startMP,NET,bgCanvas:()=>bg,fogEx:()=>fogEx,grantAiTechs,startResearch,get G(){return G},applyLevels,pending,addUnit,addBld,placeBlock,spawn,nearestNode,centerOn,terrAt,cam};
 document.querySelectorAll('[data-ic]').forEach(el=>{el.innerHTML=ART.icon(el.dataset.ic)});
-setLang(LANG);resize();newGame('normal');updateUI();showStart();requestAnimationFrame(frame);
+setLang(LANG);resize();newGame('normal');updateUI();showStart();requestAnimationFrame(frame);EKMODELS.init();

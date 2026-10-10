@@ -119,3 +119,7 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
 Idee für später: echte Nachbearbeitung (SSAO, Bloom mit Render-Target) braucht Three.js-Zusätze; Wasserspiegelung; Tag/Nacht.
 - Mac-Bau: `desktop/scripts/adhoc-sign.js` (afterPack) setzt eine Eigen-Signatur gegen die Meldung „beschädigt“.
 - Vorkommen: Stein/Eisen in mittlerer und grosser Entfernung zahlreicher (`near(...)` Ringe und `feats` in `map.js`), `NODES` stone 2400, iron 3000; am Start bleibt es klein.
+
+## Echte 3D-Modelle (glTF) – vorbereitet
+- `js/gltfmodels.js` (`EKMODELS`): liest `models/manifest.json`, lädt `.glb` (GLTFLoader aus `js/vendor/gltf-bundle.js`, gebaut aus Three.js r160 – Bauanleitung in `tools/gltf-bundle/`), hängt sich in `buildUnit`/`buildBld` ein (Rückfall auf die Code-Modelle). Einheiten: Skelett-Klon (`SkeletonUtils.clone`), Animationen Idle/Walk/Attack/Work per `EKMODELS.animate` (aufgerufen in `r3Unit`, `rig.gltf`), automatische Skalierung auf die Grösse des Code-Modells (`refSize`), Blickrichtung +Z (Standard-Drehung 90°), Material mit „team|farbe“ im Namen → `TC[team]`. Gebäude: Grundfläche `R*2.5*fit`, `userData.h`. Signatur in `r3Sync` enthält `EKMODELS.tag(e)`, damit beim Laden neu gebaut wird. Noch nicht: Tiere, Bäume/Felsen (Instanzen), Mauern, Sterbe-Animation.
+- Vorschau-Werkzeug `tools/model-viewer.html`, Anleitung `MODELLE.md`, Lizenzliste `models/CREDITS.md`, Beispiel `models/_beispiel/` (Testfigur, Testhaus; Test: `EKMODELS.init('models/_beispiel/test-manifest.json')`). Desktop-App kopiert `models/` mit (`copy-game.js`).

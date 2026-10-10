@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Epochenkrieg – Modell-Vorschau</title>
+<style>
+:root{color-scheme:dark}
+body{margin:0;font:14px/1.4 system-ui,sans-serif;background:#14161b;color:#e8e0cc;display:grid;grid-template-columns:1fr 340px;height:100vh}
+#view{position:relative}canvas{display:block;width:100%;height:100%}
+#drop{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#a8a291;pointer-events:none;text-align:center;padding:30px}
+aside{overflow:auto;padding:14px;border-left:1px solid #3a2d21;background:#1c1f26}
+h1{font-size:17px;margin:0 0 8px}h2{font-size:14px;margin:16px 0 6px;color:#e3b66a}
+button,select,input{font:inherit;background:#2b2f38;color:#e8e0cc;border:1px solid #6a5436;border-radius:4px;padding:4px 8px}
+button{cursor:pointer}button:hover{border-color:#e3b66a}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0}
+.ok{color:#9fe08a}.warn{color:#ffd166}.bad{color:#ff8a7a}
+pre{background:#0f1114;border:1px solid #3a2d21;border-radius:4px;padding:8px;white-space:pre-wrap;font-size:12px}
+small{color:#a8a291}
+</style></head><body>
+<div id="view"><canvas id="c"></canvas><div id="drop">Ziehe eine <b>.glb</b>-Datei hierher<br>(oder rechts „Datei wählen“)</div></div>
+<aside>
+<h1>Modell-Vorschau</h1>
+<small>Prüft, ob dein 3D-Modell zum Spiel passt: Größe, Team-Farbe, Animationen, Dreiecke.</small>
+<h2>1 · Datei</h2>
+<div class="row"><input type="file" id="file" accept=".glb,.gltf"></div>
+<h2>2 · Ansicht</h2>
+<div class="row"><button id="tcB">Team Blau</button><button id="tcR">Team Rot</button><button id="spin">Drehen an/aus</button><button id="refB">Mensch-Maßstab an/aus</button></div>
+<div id="anims"></div>
+<h2>3 · Prüfung</h2><div id="report"><small>noch kein Modell</small></div>
+<h2>4 · Eintrag für manifest.json</h2>
+<div class="row"><select id="kind"><option value="units">Einheit</option><option value="buildings">Gebäude</option></select><select id="type"></select></div>
+<div class="row" id="eps"></div>
+<pre id="snip">–</pre>
+<div class="row"><button id="copy">Kopieren</button></div>
+<small>Den Eintrag in <code>models/manifest.json</code> beim passenden Bereich einfügen und die Datei nach <code>models/units/</code> bzw. <code>models/buildings/</code> legen. Siehe MODELLE.md.</small>
+</aside>
+<script src="../js/vendor/three.min.js"></script>
+<script src="../js/vendor/gltf-bundle.js"></script>
+<script src="../js/data.js"></script>
+<script>
+(()=>{
+const $=id=>document.getElementById(id),T=THREE;
+const cv=$('c'),rd=new T.WebGLRenderer({canvas:cv,antialias:true});rd.outputColorSpace=T.SRGBColorSpace;rd.toneMapping=T.ACESFilmicToneMapping;rd.toneMappingExposure=1.1;rd.shadowMap.enabled=true;
+const scene=new T.Scene();scene.background=new T.Color(0x2a3340);
+scene.add(new T.HemisphereLight(0xbcd2ee,0x4a5230,1.1));const sun=new T.DirectionalLight(0xffe2b8,3);sun.position.set(-6,9,5);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-8,right:8,top:8,bottom:-8});scene.add(sun);
+const fill=new T.DirectionalLight(0x9db8ff,.4);fill.position.set(6,4,7);scene.add(fill);
+const ground=new T.Mesh(new T.CircleGeometry(12,48).rotateX(-Math.PI/2),new T.MeshStandardMaterial({color:0x56703a,roughness:1}));ground.receiveShadow=true;scene.add(ground);
+scene.add(new T.GridHelper(12,24,0x3a4a2a,0x3a4a2a));
+/* Mensch-Maßstab: so gross (2,3 Einheiten) ist eine Spielfigur */
+const ref=new T.Group();{const m=new T.MeshStandardMaterial({color:0x8899aa,roughness:.7}),b=new T.Mesh(new T.CapsuleGeometry(.33,1.0,4,10),m);b.position.y=.85;const h=new T.Mesh(new T.SphereGeometry(.3,12,10),m);h.position.y=1.95;ref.add(b,h);ref.position.set(-2.2,0,2.2)}scene.add(ref);
+const cam=new T.PerspectiveCamera(40,1,.1,200);let yaw=.7,pit=.45,dist=7,spin=true,target=new T.Vector3(0,1,0);
+function place(){cam.position.set(target.x+Math.sin(yaw)*Math.cos(pit)*dist,target.y+Math.sin(pit)*dist,target.z+Math.cos(yaw)*Math.cos(pit)*dist);cam.lookAt(target)}
+let drag=null;cv.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY};spin=false;cv.setPointerCapture(e.pointerId)};cv.onpointerup=()=>drag=null;
+cv.onpointermove=e=>{if(!drag)return;yaw-=(e.clientX-drag.x)*.01;pit=Math.max(.05,Math.min(1.4,pit+(e.clientY-drag.y)*.01));drag={x:e.clientX,y:e.clientY}};
+cv.onwheel=e=>{e.preventDefault();dist=Math.max(1.5,Math.min(40,dist*(1+e.deltaY*.001)))};
+function size(){const w=$('view').clientWidth,h=$('view').clientHeight;rd.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}addEventListener('resize',size);size();
+let model=null,mixer=null,acts={},team='#3d72b8',tris=0,info={};
+function applyTeam(){if(!model)return;model.traverse(o=>{if(!o.isMesh)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(m&&m.userData.isTeam)m.color.set(team)})})}
+function load(buf,name){
+  if(model){scene.remove(model);model=null}mixer=null;acts={};
+  new EKGLTF.GLTFLoader().parse(buf,'',g=>{
+    model=g.scene;let t=0,meshes=0,mats=new Set(),texMax=0,teamFound=false;
+    model.traverse(o=>{if(!o.isMesh)return;meshes++;o.castShadow=o.receiveShadow=true;const gm=o.geometry;t+=(gm.index?gm.index.count:gm.attributes.position.count)/3;
+      (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{mats.add(m.name||'(ohne Namen)');if(/team|farbe/i.test(m.name||'')){teamFound=true;m.userData.isTeam=true}
+        for(const k of['map','normalMap','roughnessMap','metalnessMap','aoMap','emissiveMap']){const im=m[k]&&m[k].image;if(im)texMax=Math.max(texMax,im.width||0,im.height||0)}})});
+    tris=Math.round(t);const bb=new T.Box3().setFromObject(model),sz=bb.getSize(new T.Vector3());
+    /* auf Höhe ca. 2,3 normieren, damit man die Gestalt gut sieht – im Spiel passt es sich selbst an */
+    const k=(sz.y>0?2.3/sz.y:1);model.scale.multiplyScalar(sz.y<1.2||sz.y>6?k:1);
+    const b2=new T.Box3().setFromObject(model),c=b2.getCenter(new T.Vector3());model.position.set(-c.x,-b2.min.y,-c.z);
+    const wrap=new T.Group();wrap.add(model);scene.add(wrap);model=wrap;
+    applyTeam();info={name,tris,meshes,mats:[...mats],teamFound,anims:g.animations.map(a=>a.name),texMax,size:[sz.x,sz.y,sz.z]};
+    target.set(0,Math.max(.8,sz.y*k*.5),0);dist=Math.max(5,Math.max(sz.x,sz.y,sz.z)*k*2.4);
+    $('drop').style.display='none';
+    if(g.animations.length){mixer=new T.AnimationMixer(g.scene);const box=$('anims');box.innerHTML='<h2>Animationen</h2><div class="row"></div>';
+      g.animations.forEach((a,i)=>{const ac=mixer.clipAction(a);acts[a.name]=ac;const bt=document.createElement('button');bt.textContent=a.name;bt.onclick=()=>{Object.values(acts).forEach(x=>x.stop());ac.reset().play()};box.lastChild.appendChild(bt);if(i===0)ac.play()})}else $('anims').innerHTML='';
+    report();snippet()},err=>{$('report').innerHTML='<span class="bad">Datei konnte nicht gelesen werden: '+(err&&err.message||err)+'</span>'})}
+function report(){const i=info,isB=$('kind').value==='buildings',L=[];
+  const row=(c,t)=>L.push('<div class="'+c+'">'+(c==='ok'?'✔ ':c==='warn'?'⚠ ':'✖ ')+t+'</div>');
+  row('ok','Datei: '+i.name+' · '+i.meshes+' Teile · '+i.tris.toLocaleString('de')+' Dreiecke');
+  const lim=isB?40000:8000;row(i.tris>lim*2?'bad':i.tris>lim?'warn':'ok','Dreiecke: '+i.tris.toLocaleString('de')+' (empfohlen: bis '+lim.toLocaleString('de')+(isB?' je Gebäude':' je Einheit; viele Einheiten sind gleichzeitig im Bild')+')');
+  row(i.teamFound?'ok':'warn',i.teamFound?'Team-Material gefunden (Name enthält „Team“) – bekommt die Spielerfarbe':'Kein Material mit „Team“ im Namen – Einheiten/Gebäude sind dann für beide Spieler gleich gefärbt. Tipp: ein Material „TeamColor“ für Fahnen/Umhänge/Dächer anlegen.');
+  row(i.texMax>2048?'warn':'ok','Größte Textur: '+(i.texMax||'keine')+(i.texMax>2048?' px – besser höchstens 2048':''));
+  if(!isB)row(i.anims.length?'ok':'warn',i.anims.length?'Animationen: '+i.anims.join(', '):'Keine Animationen – die Figur bleibt steif (geht, sieht aber hölzern aus). Namen wie Idle, Walk, Attack, Work werden erkannt.');
+  row('ok','Größe im Original: '+i.size.map(v=>v.toFixed(2)).join(' × ')+' (wird im Spiel automatisch auf die richtige Größe gebracht)');
+  $('report').innerHTML=L.join('')}
+function fillTypes(){const k=$('kind').value,src=k==='units'?UNITS:BLDS;$('type').innerHTML=Object.keys(src).map(t=>'<option value="'+t+'">'+(src[t].name||t)+' ('+t+')</option>').join('');snippet()}
+function epsUI(){$('eps').innerHTML='Zeitalter: '+EPOCHS.map((e,i)=>'<label><input type="checkbox" class="ep" value="'+i+'" checked> '+e.name+'</label>').join(' ')}
+function snippet(){const k=$('kind').value,t=$('type').value||'worker',eps=[...document.querySelectorAll('.ep:checked')].map(x=>+x.value),folder=k==='units'?'units':'buildings';
+  const en=k==='units'?{file:folder+'/'+(info.name||'name.glb'),epochs:eps,yaw:0,scale:1,anim:{idle:'Idle',walk:'Walk',attack:'Attack',work:'Work'}}:{file:folder+'/'+(info.name||'name.glb'),epochs:eps,fit:1.0,yaw:0};
+  $('snip').textContent='"'+t+'": '+JSON.stringify(en,null,2);if(info.name)report()}
+$('kind').onchange=()=>{fillTypes();report&&info.name&&report()};$('type').onchange=snippet;epsUI();fillTypes();document.addEventListener('change',e=>{if(e.target.classList.contains('ep'))snippet()});
+$('copy').onclick=()=>{try{navigator.clipboard.writeText($('snip').textContent);$('copy').textContent='Kopiert!';setTimeout(()=>$('copy').textContent='Kopieren',1500)}catch(_){}};
+$('tcB').onclick=()=>{team='#3d72b8';applyTeam()};$('tcR').onclick=()=>{team='#b9442f';applyTeam()};$('spin').onclick=()=>spin=!spin;$('refB').onclick=()=>ref.visible=!ref.visible;
+function readFile(f){const r=new FileReader();r.onload=()=>load(r.result,f.name);r.readAsArrayBuffer(f)}
+$('file').onchange=e=>e.target.files[0]&&readFile(e.target.files[0]);
+addEventListener('dragover',e=>e.preventDefault());addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)readFile(f)});
+const clock=new T.Clock();(function loop(){requestAnimationFrame(loop);const dt=clock.getDelta();if(spin)yaw+=dt*.4;if(mixer)mixer.update(dt);place();rd.render(scene,cam)})();
+})();
+</script></body></html>

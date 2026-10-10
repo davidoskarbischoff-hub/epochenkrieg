@@ -1,0 +1,10 @@
+import * as T from 'three';import fs from 'fs';
+const names=Object.keys(T).filter(k=>/^[A-Za-z_$][\w$]*$/.test(k));
+fs.writeFileSync('three-shim.js',names.map(k=>`export const ${k}=window.THREE.${k};`).join('\n')+'\n');
+fs.writeFileSync('entry.js',`import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+import {GLTFExporter} from 'three/examples/jsm/exporters/GLTFExporter.js';
+import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
+import {MeshoptDecoder} from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+window.EKGLTF={GLTFLoader,GLTFExporter,SkeletonUtils,MeshoptDecoder};
+`);
+console.log(names.length);

@@ -175,3 +175,9 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] 6 Leuchten (Bloom, abschaltbar)
 - [ ] Später: Wasserspiegelung, Tag/Nacht und Wetter, Feuer und Staub in 3D, echte Nachbearbeitung (SSAO)
 - [x] Wirtschaft: mehr Stein und Eisen in mittlerer/grosser Entfernung
+
+## Neue Modelle / Engine
+- [x] glTF-Pipeline (Manifest, Rückfall, Team-Farbe, Animationen, Vorschau-Werkzeug, Anleitung `MODELLE.md`)
+- [ ] Modelle beschaffen (CC0-Pakete, KI-Generator oder Auftrag) und erste Einheit/Gebäude je Zeitalter austauschen
+- [ ] glTF für Tiere, Bäume und Felsen (Instanzen), Mauern/Tore, Sterbe-Animation
+- [ ] Spätere Entscheidung: Engine-Wechsel (Godot) nur bei Steam-/Konsolenplänen oder sehr vielen animierten Einheiten

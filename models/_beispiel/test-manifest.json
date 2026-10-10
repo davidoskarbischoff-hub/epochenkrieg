@@ -1,0 +1,1 @@
+{ "units": { "worker": { "file": "_beispiel/figur.glb", "height": 2.0 } }, "buildings": { "house": { "file": "_beispiel/haus.glb", "fit": 1.0 } } }
