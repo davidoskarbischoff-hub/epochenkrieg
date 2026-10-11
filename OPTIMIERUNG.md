@@ -69,4 +69,4 @@ Hilfsmittel:
   - Kaserne, Hafen und Turm in Zeitalter 5–6
   - Mauer, Tor, Graben
   - Bohrturm, Raffinerie, Flugplatz
-- [ ] Fell-Umhang, Fellrock und Zahnkette der Steinzeit-Figuren sind aus Formen gebaut (`cloth()`). Prüfen, ob David sie als „selbst gebaut“ empfindet. Wenn ja, durch echte Modelle (Rüstungs-/Kleidungsteile aus `models/archiv`) oder nur Umfärben ersetzen.
+- [x] Fell-Umhang, Fellrock und Zahnkette (aus Formen gebaut, `cloth()`) an allen Figuren entfernt. Die Zeitalter unterscheiden sich jetzt über die Kleidungsfarben, Späher sind grün, Heiler hell.

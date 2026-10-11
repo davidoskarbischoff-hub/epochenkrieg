@@ -17,7 +17,6 @@
      "Black": "#9c6a48",
      "Gold": "#e8dcc0"
     },
-    "pelt": "#8a6338",
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
@@ -31,7 +30,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
     "human": true,
     "work": {
      "chop": {
@@ -178,7 +176,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
     "human": true,
     "work": {
      "chop": {
@@ -325,7 +322,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
     "human": true,
     "work": {
      "chop": {
@@ -692,15 +688,14 @@
    {
     "file": "neu/Adventurer.glb",
     "tint": {
-     "Green": "#7a5634",
-     "LightGreen": "#93693f",
+     "Green": "#4f6b34",
+     "LightGreen": "#62803f",
      "Brown": "skin",
      "Brown2": "skin",
      "Grey": "skin",
      "Black": "#9c6a48",
      "Gold": "#e8dcc0"
     },
-    "pelt": "#8a6338",
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
@@ -714,9 +709,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#3d5a2e",
-    "tooth": true,
     "human": true,
     "hide": [
      "Backpack",
@@ -739,8 +731,8 @@
    {
     "file": "neu/Adventurer.glb",
     "tint": {
-     "Green": "#b9a27a",
-     "LightGreen": "#a08a62",
+     "Green": "#556f3a",
+     "LightGreen": "#6a8548",
      "Brown": "#6b4a2e",
      "Brown2": "#5a3c22",
      "Grey": "#7a5532",
@@ -760,8 +752,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#3d5a2e",
     "human": true,
     "hide": [
      "Backpack",
@@ -784,8 +774,8 @@
    {
     "file": "neu/Adventurer.glb",
     "tint": {
-     "Green": "#6f6a48",
-     "LightGreen": "#857e58",
+     "Green": "#4a5e36",
+     "LightGreen": "#5d7244",
      "Brown": "#5a4632",
      "Brown2": "#4a3a2a",
      "Grey": "#4a3a2a",
@@ -808,8 +798,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#3d5a2e",
     "human": true,
     "hide": [
      "Backpack",
@@ -844,8 +832,7 @@
      "Shield",
      "Gun",
      "Rifle"
-    ],
-    "cape": "#3d5a2e"
+    ]
    },
    {
     "file": "neu/Adventurer.glb",
@@ -873,15 +860,14 @@
    {
     "file": "neu/Adventurer.glb",
     "tint": {
-     "Green": "#7a5634",
-     "LightGreen": "#93693f",
+     "Green": "#d8cdb0",
+     "LightGreen": "#c9bd9c",
      "Brown": "skin",
      "Brown2": "skin",
      "Grey": "skin",
      "Black": "#9c6a48",
      "Gold": "#e8dcc0"
     },
-    "pelt": "#8a6338",
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
@@ -895,9 +881,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#e6e0cc",
-    "tooth": true,
     "human": true,
     "hide": [
      "Backpack",
@@ -920,8 +903,8 @@
    {
     "file": "neu/Adventurer.glb",
     "tint": {
-     "Green": "#b9a27a",
-     "LightGreen": "#a08a62",
+     "Green": "#e4dccb",
+     "LightGreen": "#d6ccb4",
      "Brown": "#6b4a2e",
      "Brown2": "#5a3c22",
      "Grey": "#7a5532",
@@ -941,8 +924,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#e6e0cc",
     "human": true,
     "hide": [
      "Backpack",
@@ -965,8 +946,8 @@
    {
     "file": "neu/Adventurer.glb",
     "tint": {
-     "Green": "#6f6a48",
-     "LightGreen": "#857e58",
+     "Green": "#ece6d6",
+     "LightGreen": "#dcd4c0",
      "Brown": "#5a4632",
      "Brown2": "#4a3a2a",
      "Grey": "#4a3a2a",
@@ -989,8 +970,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#e6e0cc",
     "human": true,
     "hide": [
      "Backpack",
@@ -1228,8 +1207,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#6b4a2b",
     "human": true,
     "hairs": [
      "#2a1a10",
@@ -1297,8 +1274,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#6b4a2b",
     "human": true,
     "hairs": [
      "#2a1a10",
@@ -1427,8 +1402,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#5a4a3a",
     "human": true,
     "hairs": [
      "#2a1a10",
@@ -1526,8 +1499,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#8a6a40",
     "human": true,
     "hairs": [
      "#2a1a10",
@@ -1581,8 +1552,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#8a6a40",
     "human": true,
     "hairs": [
      "#2a1a10",
@@ -1876,7 +1845,6 @@
      "Black": "#9c6a48",
      "Gold": "#e8dcc0"
     },
-    "pelt": "#8a6338",
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
@@ -1904,9 +1872,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#7a5a38",
-    "tooth": true,
     "human": true,
     "epochs": [
      0
@@ -1960,8 +1925,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#6b4a2b",
     "human": true,
     "epochs": [
      1
@@ -1989,7 +1952,6 @@
     "Black": "#9c6a48",
     "Gold": "#e8dcc0"
    },
-   "pelt": "#8a6338",
    "anim": {
     "idle": "Idle",
     "walk": "Walk",
@@ -2017,7 +1979,6 @@
     "#a8734d",
     "#d49a72"
    ],
-   "belt": "#3b2a1a",
    "human": true,
    "epochs": [
     0
