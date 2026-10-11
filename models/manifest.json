@@ -984,9 +984,9 @@
     },
     "pelt": "#8a6338",
     "anim": {
-     "idle": "Idle_Loop",
+     "idle": "Pistol_Idle_Loop",
      "walk": "Walk_Loop",
-     "attack": "Sword_Attack",
+     "attack": "Pistol_Shoot",
      "work": "Interact"
     },
     "epochs": [
