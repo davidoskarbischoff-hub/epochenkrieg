@@ -149,6 +149,7 @@ function placeWallLine(x0,y0,x1,y1,raw,append){
   return n}
 function tryPlace(wx,wy,keep){
   let wa=null;if(placing==='wall'||placing==='gate'){const sn=wallSnap(wx,wy);wx=sn.x;wy=sn.y;wa=sn.a}
+  if(placing==='mine'){const sn=mineSnap(wx,wy);if(sn){wx=sn.x;wy=sn.y}}
   const d=BLDS[placing],blk=placeBlock(placing,wx,wy);if(blk){toast(blk);sfx('error');return}
   if(NET.client){if(!afford(0,d.cost)){toast(missing(0,d.cost)+'.');placing=null;return}NET.send({c:'place',type:placing,x:wx,y:wy,ang:wa,keep:!!keep,ids:ownSel().filter(u=>UNITS[u.type].builds).map(u=>u.id)});sfx('click');if(!keep)placing=null;return}
   if(!pay(0,d.cost)){toast(missing(0,d.cost)+'.');placing=null;return}
@@ -156,5 +157,5 @@ function tryPlace(wx,wy,keep){
   ownSel().filter(u=>UNITS[u.type].builds).forEach(u=>giveOrder(u,{t:'build',tid:b.id},keep));
   if(!(keep&&afford(0,d.cost)))placing=null;
 }
-function cancelQueue(b,i){if(NET.client){NET.send({c:'cq',b:b.id,i});return}const q=b.queue[i];if(!q)return;refund(0,UNITS[q.type].cost);b.queue.splice(i,1);panelSig=''}
+function cancelQueue(b,i){if(NET.client){NET.send({c:'cq',b:b.id,i});return}const q=b.queue[i];if(!q)return;if(q.tech){const c={};for(const r in TECH[q.tech].cost)c[r]=TECH[q.tech].cost[r]*(q.paid||0);refund(0,c)}else refund(0,UNITS[q.type].cost);b.queue.splice(i,1);panelSig=''}
 

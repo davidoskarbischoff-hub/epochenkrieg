@@ -109,7 +109,7 @@ const SAMPLES={
   error:{f:['sounds/error_002.ogg','sounds/error_003.ogg'],v:.5},
   drop:{f:['sounds/handleCoins2.ogg','sounds/dropLeather.ogg'],v:.6,r:.1},
   /* Axt: der Synthesizer-Hieb (FX.chop) trägt den Klang, darunter ein echter dumpfer Tritt als natürlicher Holzkörper (zum Aufprall verschoben) */
-  chop:{f:[['sounds/footstep08.ogg',1],['sounds/footstep06.ogg',1.97],['sounds/footstep07.ogg',1.8]],v:.45,p:1.15,r:.08,at:.045,fx:1},
+  chop:{f:[['sounds/footstep08.ogg',1],['sounds/footstep06.ogg',1.97],['sounds/footstep07.ogg',1.8]],v:.3,p:1.15,r:.08,at:.045,fx:.6},
   /* Spitzhacke: Metall-Klirren plus Steinsplitter und Aufprall aus FX.mine */
   mine:{f:[['sounds/impactMetal_light_004.ogg',1.27],['sounds/impactPlate_light_004.ogg',1.76]],v:1.1,r:.15,fx:.5},
   /* Busch: Rascheln (Stoff/Leder, stark angehoben – die Dateien sind sehr leise) plus Blätter-Körner und Stiel-Knacken aus FX.pick */

@@ -73,7 +73,7 @@ const BLDS={
   castle:{name:'Burg',sight:340,claim:250,hp:1600,r:40,cost:{wood:200,stone:260,iron:80},time:45,ep:3,shoot:{rng:205,atk:15,cd:1.3},sub:'Starke Festung, erobert Land'},
   wall:{name:'Mauer',sight:60,hp:520,r:11,cost:{wood:8,stone:3},time:5,ep:1,sub:'Palisade, später Stein und Sperren – Ziehen mit gedrückter Maustaste'},
   gate:{name:'Tor',sight:80,hp:480,r:13,cost:{wood:30,stone:8},time:10,ep:1,passable:true,sub:'Einheiten kommen hindurch'},
-  farm:{name:'Feld',sight:120,claim:60,hp:200,r:20,cost:{wood:70},time:16,ep:1,sub:'Nahrung, die immer nachwächst'},
+  farm:{name:'Feld',sight:120,claim:60,hp:200,r:20,passable:true,cost:{wood:70},time:16,ep:1,sub:'Nahrung, die immer nachwächst'},
   trench:{name:'Stellung',sight:110,hp:260,r:15,cost:{wood:25,stone:10},time:8,ep:1,passable:true,cover:true,sub:'Truppen darin erleiden 35 % weniger Schaden'},
   derrick:{name:'Bohrturm',sight:150,claim:80,hp:420,r:16,cost:{wood:150,iron:80},time:24,ep:5,sub:'Nötig, um Öl zu fördern'},
   refinery:{name:'Raffinerie',sight:170,claim:110,hp:650,r:24,dropOil:true,cost:{wood:200,stone:100,iron:120},time:34,ep:5,sub:'Hier wird Öl abgeliefert'},
@@ -104,7 +104,7 @@ const RAGE={dur:6,cd:35,dmg:1.35,spd:1.25}; /* Fähigkeit Kampfrausch (Taste F) 
 /* Einheiten ändern ihren Namen mit dem Zeitalter (Sanitäter-Reihe) */
 /* Truppenlinien: ab einem späteren Zeitalter ist eine Einheit veraltet und nicht mehr ausbildbar (upto = letztes Zeitalter); vorhandene bleiben. uOk prüft beides. */
 /* Minen: bis MINE_CAP Arbeiter arbeiten drinnen, das Erz sammelt sich im Minenlager (MINE_STOCK) und eine Lore (Einheit cart) fährt es zum nächsten Lager */
-const MINE_CAP=5,MINE_STOCK=300,CART_LOAD=60;
+const MINE_CAP=8,MINE_STOCK=300,CART_LOAD=60;
 const UPTO={sling:0,club:1,archer:2,warship:2,crossbow:3,catapult:3,ram:3,spear:4,sword:4,musket:4,cannon:4,galleon:4,knight:5};for(const k in UPTO)UNITS[k].upto=UPTO[k];
 const uOk=(k,ep)=>UNITS[k].ep<=ep&&!(UNITS[k].upto<ep);
 const UNAMES={healer:['Schamane','Heiler','Priester','Feldscher','Sanitäter','Medizintechniker']};

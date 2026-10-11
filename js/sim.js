@@ -23,7 +23,7 @@ const towerSpec=buildSpec;
 function pay(t,c){if(!afford(t,c))return false;RES.forEach(r=>G.res[t][r]-=c[r]||0);return true}
 /* Abreißen: eigenes Gebäude (nicht Hauptlager) entfernen; fertig = 50 % der Kosten zurück, unfertig = alles zurück */
 function demolish(team,id){if(NET.client&&team===0){NET.send({c:'demo',id});return true}const b=G.byId.get(id);if(!b||b.dead||b.kind!=='bld'||b.team!==team||b.type==='hq')return false;
-  const k=b.built?.5:1,c={};for(const r in BLDS[b.type].cost)c[r]=Math.round(BLDS[b.type].cost[r]*k);refund(team,c);kill(b);return true}
+  const k=b.built?.5:1,c={};for(const r in BLDS[b.type].cost)c[r]=Math.round(BLDS[b.type].cost[r]*k);for(const r in b.st||{})c[r]=(c[r]||0)+Math.floor(b.st[r]);refund(team,c);kill(b);return true}
 function refund(t,c){RES.forEach(r=>G.res[t][r]+=c[r]||0)}
 function missing(t,c){const m=RES.filter(r=>(G.res[t][r]||0)<(c[r]||0)).map(r=>rn(r));return tr('Nicht genug {0}',m.join(tr(' und ')))}
 
@@ -85,7 +85,7 @@ function step(dt){
   G.rcT=(G.rcT||0)-dt;if(G.rcT<=0||!G.solids){G.rcT=.2;G.solids=G.ents.filter(e=>e.kind!=='unit'&&e.kind!=='animal'&&!e.dead);recount()}
   for(const e of G.ents){if(e.dead||e.upj)continue;if(e.kind==='unit')updUnit(e,dt);else if(e.kind==='bld')updBld(e,dt);else if(e.kind==='animal')updAnimal(e,dt)}
   for(let t=0;t<2;t++){const js=G.jobs[t];if(!js.length)continue;for(const j of js){j.t+=dt;if(j.t>=j.time){j.done=true;for(const id of j.ids){const e=G.byId.get(id);if(e&&!e.dead){e.upj=null;levelUp(e,j.to)}}if(t===0){panelSig='';infoCache='';sfx('epoch');toast(tr('Upgrade fertig: {0}',j.label),'good')}}}G.jobs[t]=js.filter(j=>!j.done)}
-  for(let t=0;t<2;t++){const rs=G.rs[t];if(!rs.length)continue;for(const r of rs){r.t+=dt;if(r.t>=r.time){r.done=true;G.tech[t].add(r.id);techRefresh(t);if(t===0){panelSig='';infoCache='';sfx('epoch');toast(tr('Erforscht: {0}',tr(TECH[r.id].name)),'good')}}}G.rs[t]=rs.filter(r=>!r.done)}
+  G.rs=[[],[]];for(const b of G.ents)if(b.kind==='bld'&&!b.dead&&b.team>=0&&b.queue)b.queue.forEach((q,k)=>{if(q.tech)G.rs[b.team].push({id:q.tech,t:q.t,time:TECH[q.tech].time,q:k>0,b:b.id})}); /* Ansicht der laufenden/wartenden Forschung */
   for(let t=0;t<2;t++){const a=G.adv[t];if(!a)continue;a.t+=dt;if(a.t>=a.time){G.epoch[t]++;G.adv[t]=null;panelSig='';if(t===1){applyLevels(1);grantAiTechs(1)}if(t===0){sfx('epoch');if(typeof SND!=='undefined')SND.setEpoch(G.epoch[0])}if(t===0)toast(tr('{0} erreicht! Neue Einheiten und Gebäude verfügbar.',tr(EPOCHS[G.epoch[0]].name)),'good');else toast(tr('Der Gegner hat die {0} erreicht.',tr(EPOCHS[G.epoch[1]].name)),'warn')}}
   for(const p of G.proj){const t=get(p.tid);if(!t){p.dead=true;continue}const dx=t.x-p.x,dy=t.y-p.y,d=Math.hypot(dx,dy),s=380*dt;p.a=Math.atan2(dy,dx);if(d<=s+t.r*.5){damage(t,p.dmg,get(p.src));if(p.sp){for(const o of G.ents)if(o!==t&&!o.dead&&o.kind==='unit'&&o.team===t.team&&Math.hypot(o.x-t.x,o.y-t.y)<p.sp)damage(o,p.dmg*.5,get(p.src))}p.dead=true}else{p.x+=dx/d*s;p.y+=dy/d*s}}
   G.proj=G.proj.filter(p=>!p.dead);
@@ -128,7 +128,7 @@ function moveToward(u,tx,ty,dt,ignore){
 /* Eisen und Gold lassen sich nur abbauen, wenn eine eigene, fertige Mine in der Nähe steht */
 function minedBy(team,n){if(!MINE_RT[n.rt]||team<0)return true;for(const b of G.ents)if(b.kind==='bld'&&b.type===MINE_RT[n.rt]&&b.built&&!b.dead&&b.team===team&&Math.hypot(b.x-n.x,b.y-n.y)<MINE_RNG)return true;return false}
 function nearestNode(rt,x,y,max,u,free){const naval=!!(u&&UNITS[u.type].naval);let best=null,bd=max;for(const e of G.solids){if(e.kind!=='node'||e.dead||(rt&&e.rt!==rt)||!!e.sea!==naval||(e.regen&&e.amount<30))continue;if(u&&MINE_RT[e.rt]==='mine'&&!UNITS[u.type].naval&&!mineOf(u.team,e))continue;if(u&&!minedBy(u.team,e))continue;if(u&&u.team===0&&!G.mp&&!nodeKnown(e))continue;if(u&&u.bad&&u.bad[e.id]&&G.t-u.bad[e.id]<40)continue;if(free&&(G.load[e.id]||0)>=NODES[e.type].cap)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd&&(e.type!=='tree'||nodeOpen(e))){bd=d;best=e}}return best}
-function nearestDrop(t,x,y,naval,rt){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='bld'||e.team!==t||!e.built||e.dead)continue;if(rt==='oil'?!BLDS[e.type].dropOil:!BLDS[e.type].drop)continue;if(naval&&e.type!=='harbor')continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
+function nearestDrop(t,x,y,naval,rt,land){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='bld'||e.team!==t||!e.built||e.dead||(land&&e.type==='harbor'))continue;if(rt==='oil'?!BLDS[e.type].dropOil:!BLDS[e.type].drop)continue;if(naval&&e.type!=='harbor')continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
 function findEnemy(s,rad,unitsOnly){let best=null,bd=1e9;for(const e of G.ents){if(e.dead||e.team===s.team)continue;if(e.inm)continue;if(e.team<0&&!(e.kind==='animal'&&e.state==='chase'))continue;if(unitsOnly&&e.kind!=='unit'&&e.kind!=='animal')continue;if(e.gar&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;if(UNITS[e.type]&&UNITS[e.type].air&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;const d=Math.hypot(e.x-s.x,e.y-s.y)-e.r-s.r;if(d>rad)continue;const sc=d+(e.kind==='bld'?80:0);if(sc<bd){bd=sc;best=e}}return best}
 const reach=(u,t)=>dist(u,t)<=u.r+t.r+5;
 
@@ -156,18 +156,22 @@ function updUnit(u,dt){
     if(!b||b.dead||!b.built||b.team!==u.team){mineOut(u);break}
     if(u.inm!==b.id){if(reach(u,b)){if(minersIn(b)>=MINE_CAP){if(u.team===0)toast(tr('Die Mine ist voll (höchstens {0} Arbeiter).',MINE_CAP));u.state='idle';break}u.inm=b.id;u.pf=null;sel.delete(u.id)}else{moveToward(u,b.x,b.y,dt,b.id);break}}
     u.x=b.x;u.y=b.y;const st=b.st||(b.st={});if(Object.values(st).reduce((a,v)=>a+v,0)>=MINE_STOCK)break;
-    const n=mineNode(b,u);if(!n){mineOut(u);if(u.team===0&&G.t-(b.emptyMsg||-99)>20){b.emptyMsg=G.t;toast(tr('Kein abbaubares Vorkommen mehr bei dieser Mine.'))}break}
+    const n=mineNode(b,u);if(!n){mineOut(u);if(!G.ents.some(e=>e.kind==='node'&&!e.dead&&MINE_RT[e.rt]==='mine'&&Math.hypot(e.x-b.x,e.y-b.y)<e.r+b.r+8))b.empty=1;if(u.team===0&&G.t-(b.emptyMsg||-99)>20){b.emptyMsg=G.t;toast(tr('Kein abbaubares Vorkommen mehr bei dieser Mine.'))}break}
     if((u.gt=(u.gt||0)-dt)<=0){u.gt=1.4+Math.random()*.6;if(Math.random()<.35)sfx('mine',b)}
     const amt=Math.min(gRate(u,n)*dt*.7*(b.spec==='deep'?1.3:1),n.amount);n.amount-=amt;st[n.rt]=(st[n.rt]||0)+amt;if(n.amount<=.001)kill(n);break}
   case 'haul':{const b=get(u.home); /* Lore: holt Erz an der Mine, bringt es zum nächsten Lager; wird sie zerstört, ist die Ladung weg */
     if(!b||b.dead){kill(u);break}u.spk=b.spec==='rails'?2:1;
-    if(u.carry>0){const dp=nearestDrop(u.team,u.x,u.y,false,u.ctype);if(!dp)break;if(reach(u,dp)){G.res[u.team][u.ctype]+=u.carry;if(u.team===0)sfx('drop',u);u.carry=0}else moveToward(u,dp.x,dp.y,dt,dp.id);break}
+    if(u.carry>0){const dp=nearestDrop(u.team,u.x,u.y,false,u.ctype,true);if(!dp)break;if(reach(u,dp)){G.res[u.team][u.ctype]+=u.carry;if(u.team===0)sfx('drop',u);u.carry=0}else moveToward(u,dp.x,dp.y,dt,dp.id);break}
     if(reach(u,b)){const st=b.st||{};let rt=null;for(const k in st)if(st[k]>=1&&(!rt||st[k]>st[rt]))rt=k;if(rt&&(st[rt]>=CART_LOAD*.5||(u.wt=(u.wt||0)+dt)>6)){const a=Math.min(CART_LOAD,Math.floor(st[rt]));st[rt]-=a;u.carry=a;u.ctype=rt;u.wt=0}}
     else moveToward(u,b.x,b.y,dt,b.id);break}
   case 'idle':
     if(!d.passive&&((u.ft=(u.ft||0)-dt)<=0)){u.ft=.25+Math.random()*.1;const t=findEnemy(u,150);if(t){u.tid=t.id;u.state='attack'}}
     break;
-  case 'explore':{const g=exGrid(u.team);if(!u.ex||G.t>u.ex.until||g[u.ex.i]){u.ex=pickExplore(u);if(!u.ex){u.state='idle';break}u.ex.until=G.t+45;u.pf=null}
+  case 'explore':{ /* Späher-Kreislauf: erst zum Gegner (Lage auskundschaften), dann Unerforschtes, dann wieder zum Gegner … */
+    if(!u.exPh)u.exPh=d.naval?'map':'enemy';
+    if(u.exPh==='enemy'){const hq=G.ents.find(e=>e.type==='hq'&&!e.dead&&e.team>=0&&e.team!==u.team),tx=hq?hq.x:W-u.x,ty=hq?hq.y:H-u.y;
+      if(Math.hypot(tx-u.x,ty-u.y)<d.sight*.9||(u.pf&&u.pf.fail)){u.exPh='map';u.pf=null;u.ex=null}else{moveToward(u,tx,ty,dt);break}}
+    const g=exGrid(u.team);if(!u.ex||G.t>u.ex.until||g[u.ex.i]){u.ex=pickExplore(u);if(!u.ex){if(d.naval){u.state='idle'}else{u.exPh='enemy';u.pf=null}break}u.ex.until=G.t+45;u.pf=null}
     const done=moveToward(u,u.ex.x,u.ex.y,dt);if(u.pf&&u.pf.fail){(u.badEx||(u.badEx={}))[u.ex.i]=G.t;u.ex=null;u.pf=null}else if(done)u.ex=null;break}
   case 'move':if(moveToward(u,u.dest.x,u.dest.y,dt))u.state='idle';break;
   case 'amove':{const t=((u.ft=(u.ft||0)-dt)<=0)?(u.ft=.2+Math.random()*.1,findEnemy(u,140)):null;if(t){u.tid=t.id;u.state='attack';break}if(moveToward(u,u.amove.x,u.amove.y,dt)){u.state='idle';u.amove=null}break}
@@ -183,11 +187,12 @@ function updUnit(u,dt){
     if(!canGather(u,n)){u.state='idle';u.tid=null;u.rtype=null;if(u.team===0&&G.t-(G.lvlWarn||-9)>4){G.lvlWarn=G.t;toast(tr('Arbeiter brauchen Stufe {0}, um {1} abzubauen.',LVLN[NODES[n.type].lvl!==undefined?NODES[n.type].lvl:NEED_LVL[n.rt]],tr(NODES[n.type].name)));sfx('error')}break}
     const cap=gc.carry*(1+G.tfx[u.team].carry+(d.naval?G.tfx[u.team].bcarry:0));
     if(u.carry>=cap){u.state='return';break}
-    if(reach(u,n)){u.fa=Math.atan2(n.y-u.y,n.x-u.x);u.gat=G.t;if((u.gt=(u.gt||0)-dt)<=0){u.gt=.75+Math.random()*.2;sfx(n.rt==='wood'?'chop':n.rt==='stone'||n.rt==='iron'||n.rt==='gold'?'mine':'pick',u);if(Math.random()<.22)sfx('grunt',u)}const rate=gRate(u,n);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;if(n.amount<=0.001){if(n.regen)n.amount=0;else kill(n)}if(u.carry>=cap)u.state='return'}
+    const fs=n.type==='field'?{x:n.x+Math.cos(u.id*2.4)*n.r*(.45+(u.id*53%10)/25),y:n.y+Math.sin(u.id*2.4)*n.r*(.45+(u.id*53%10)/25)}:null; /* Feld: jeder Arbeiter hat seinen Platz auf dem Acker */
+    if(fs?Math.hypot(u.x-fs.x,u.y-fs.y)<6:reach(u,n)){u.fa=fs?u.id%6.283:Math.atan2(n.y-u.y,n.x-u.x);u.gat=G.t;if((u.gt=(u.gt||0)-dt)<=0){u.gt=.75+Math.random()*.2;sfx(n.rt==='wood'?'chop':n.rt==='stone'||n.rt==='iron'||n.rt==='gold'?'mine':'pick',u);if(Math.random()<.22)sfx('grunt',u)}const rate=gRate(u,n);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;if(n.amount<=0.001){if(n.regen)n.amount=0;else kill(n)}if(u.carry>=cap)u.state='return'}
     else{
       // Absprache: ist der Baum/Busch schon voll besetzt, ein freies Vorkommen in der Nähe suchen
       if((G.load[n.id]||0)>NODES[n.type].cap&&G.t-(u.rs||0)>1.5){u.rs=G.t;const alt=nearestNode(u.rtype||n.rt,u.x,u.y,350,u,true);if(alt&&alt.id!==n.id){G.load[n.id]--;G.load[alt.id]=(G.load[alt.id]||0)+1;u.tid=alt.id;u.pf=null;n=alt}}
-      moveToward(u,n.x,n.y,dt,n.id);
+      moveToward(u,fs?fs.x:n.x,fs?fs.y:n.y,dt,n.id);
       if(u.pf&&u.pf.fail){(u.bad||(u.bad={}))[n.id]=G.t;u.tid=null;u.pf=null}}
     break}
   case 'return':{const dp=nearestDrop(u.team,u.x,u.y,!!d.naval,u.ctype);if(!dp||!u.ctype){u.state='idle';break}
@@ -218,13 +223,16 @@ function damage(t,amt,src){
   if(t.team===1&&G.mp&&G.t-G.alertT1>12){G.alertT1=G.t;G.ev.push({t:'alert',x:Math.round(t.x),y:Math.round(t.y)})}
   if(t.hp<=0){kill(t);if(t.kind==='animal'&&src&&src.team>=0){const f=ANIMALS[t.type].food;if(f){G.res[src.team][ 'food']+=f;if(src.team===0&&!NET.cap)toast(tr('Beute erlegt: +{0} Nahrung',f),'good')}}}
 }
-function kill(e){if(e.dead)return;e.dead=true;if(e.type==='farm')for(const n of G.ents)if(n.type==='field'&&n.farm===e.id)n.dead=true;if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea))navStamp(e,-1);if(e.kind==='unit'||e.kind==='animal')sfx('die',e);else if(e.kind==='bld')sfx('crumble',e);sel.delete(e.id);if(e.kind==='unit')G.stats.lost[e.team]++;
+function kill(e){if(e.dead)return;e.dead=true;if(e.type==='farm')for(const n of G.ents)if(n.type==='field'&&n.farm===e.id)n.dead=true;if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea&&e.type!=='field'))navStamp(e,-1);if(e.kind==='unit'||e.kind==='animal')sfx('die',e);else if(e.kind==='bld')sfx('crumble',e);sel.delete(e.id);if(e.kind==='unit')G.stats.lost[e.team]++;
   if(e.type==='hq'&&!G.over)G.over=e.team===0?'lose':'win';}
 function updBld(b,dt){
   if(!b.built)return;const d=BLDS[b.type];
   if(b.type==='harbor'&&G.tfx[b.team].statfish)G.res[b.team].food+=G.tfx[b.team].statfish*dt*(1+.2*b.lvl);
   if(d.shoot){const sd=b.spec==='def',sob=b.spec==='obs';b.cd=Math.max(0,b.cd-dt);if(b.cd<=0){const t=findEnemy(b,d.shoot.rng*(sd?1.3:sob?.8:1),true);if(t){b.cd=d.shoot.cd*(sob?1.3:1);sfx('arrow',b);G.proj.push({x:b.x,y:b.y-8,tid:t.id,dmg:d.shoot.atk*(sd?1.8:sob?.7:1)*LVL.atk[b.lvl]*(1+G.tfx[b.team].tower),src:b.id,a:0})}}}
-  if(b.queue.length){const q=b.queue[0];if(G.pop[b.team]>=G.cap[b.team]){q.blocked=true}else{q.blocked=false;q.t+=dt*(1+(G.nfx?G.nfx[b.team].prod:0)+SF(b.team).prod);if(q.t>=UNITS[q.type].time){b.queue.shift();spawn(b,q.type)}}}
+  if(b.queue.length&&b.queue[0].tech){const q=b.queue[0],T=TECH[q.tech]; /* Forschung in der Warteschlange: Kosten werden während der Forschung abgebucht */
+    if(G.tech[b.team].has(q.tech)){b.queue.shift()}else{const f=Math.min(dt,T.time-q.t)/T.time,c={};for(const r in T.cost)c[r]=T.cost[r]*f;
+      if(afford(b.team,c)){q.blocked=false;pay(b.team,c);q.paid=(q.paid||0)+f;q.t+=dt;if(q.t>=T.time){b.queue.shift();G.tech[b.team].add(q.tech);techRefresh(b.team);if(b.team===0){panelSig='';infoCache='';sfx('epoch');toast(tr('Erforscht: {0}',tr(T.name)),'good')}}}else q.blocked=true}}
+  else if(b.queue.length){const q=b.queue[0];if(G.pop[b.team]>=G.cap[b.team]){q.blocked=true}else{q.blocked=false;q.t+=dt*(1+(G.nfx?G.nfx[b.team].prod:0)+SF(b.team).prod);if(q.t>=UNITS[q.type].time){b.queue.shift();spawn(b,q.type)}}}
 }
 function spawn(b,type){
   const rp=b.rally;let ang=rp?Math.atan2(rp.y-b.y,rp.x-b.x):(b.team===0?-1.57:1.57);ang+=(Math.random()-.5)*.8;
@@ -259,8 +267,9 @@ function ucost(team,type){const d=UNITS[type],n=G.nfx?G.nfx[team]:NFX0,c={...d.c
 function techRefresh(team){G.tfx[team]=techFx(G.tech[team]);for(const e of G.ents){if(e.dead||e.team!==team||e.kind!=='unit')continue;const nm=unitHp(team,e.type,e.lvl);e.hp=e.hp/e.maxHp*nm;e.maxHp=nm}}
 function startResearch(team,id){if(NET.client&&team===0){NET.send({c:'tech',id});return true}const t=TECH[id];if(!t||G.tech[team].has(id)||G.rs[team].some(r=>r.id===id)||t.ep>G.epoch[team])return false;
   if(!G.ents.some(e=>!e.dead&&e.team===team&&e.kind==='bld'&&e.built&&(e.type===t.bld||(t.blds&&t.blds.includes(e.type))))){if(team===0){toast(tr('Dafür fehlt das passende Gebäude.'));sfx('error')}return false}
-  if(!pay(team,t.cost)){if(team===0){toast(missing(team,t.cost)+'.');sfx('error')}return false}
-  G.rs[team].push({id,t:0,time:t.time});if(team===0){panelSig='';infoCache='';sfx('click');toast(tr('Forschung gestartet: {0}',tr(t.name)))}return true}
+  const bs=G.ents.filter(e=>!e.dead&&e.team===team&&e.kind==='bld'&&e.built&&(e.type===t.bld||(t.blds&&t.blds.includes(e.type)))).sort((a,b)=>a.queue.length-b.queue.length),b=bs[0];
+  if(b.queue.length>=10){if(team===0){toast(tr('Die Warteschlange ist voll (max. 10).'));sfx('error')}return false}
+  b.queue.push({tech:id,t:0,paid:0});G.rs[team].push({id,t:0,time:t.time,q:true,b:b.id});if(team===0){panelSig='';infoCache='';sfx('click');toast(tr('Forschung eingereiht: {0}',tr(t.name)))}return true}
 function grantAiTechs(team){for(const t of TECHS)if(t.ep<=G.epoch[team]&&t.id!=='statfish')G.tech[team].add(t.id);techRefresh(team)}
 function levelUp(e,to){if(e.dead||e.kind==='node'||e.lvl>=to)return;
   const nm=e.kind==='unit'?unitHp(e.team,e.type,to):Math.round(BLDS[e.type].hp*LVL.bhp[to]*(1+G.nfx[e.team].bhp));e.hp=e.hp/e.maxHp*nm;e.maxHp=nm;e.lvl=to}
@@ -287,8 +296,8 @@ function startUpgrade(team,key){key=key||'all';if(NET.client&&team===0){NET.send
   if(team===0){panelSig='';infoCache='';sfx('click');toast(tr('Upgrade gestartet: {0} ruhen, bis es fertig ist.',job.label))}return true}
 /* Minen: Hilfsfunktionen */
 function minersIn(b){let n=0;for(const e of G.ents)if(e.inm===b.id&&!e.dead)n++;return n}
-function mineOf(team,n){let best=null,bd=1e9;for(const b of G.ents){if(b.kind!=='bld'||b.type!=='mine'||!b.built||b.dead||b.team!==team)continue;const d=Math.hypot(b.x-n.x,b.y-n.y);if(d<MINE_RNG&&minersIn(b)<MINE_CAP&&d<bd){bd=d;best=b}}return best}
-function mineNode(b,u){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='node'||e.dead||MINE_RT[e.rt]!=='mine'||e.amount<=0||!canGather(u,e)||(u.team===0&&!nodeKnown(e)))continue;const d=Math.hypot(e.x-b.x,e.y-b.y);if(d<MINE_RNG&&d<bd){bd=d;best=e}}return best}
+function mineOf(team,n){let best=null,bd=1e9;for(const b of G.ents){if(b.kind!=='bld'||b.type!=='mine'||!b.built||b.dead||b.team!==team)continue;const d=Math.hypot(b.x-n.x,b.y-n.y);if(d<n.r+b.r+8&&!b.empty&&minersIn(b)<MINE_CAP&&d<bd){bd=d;best=b}}return best}
+function mineNode(b,u){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='node'||e.dead||MINE_RT[e.rt]!=='mine'||e.amount<=0||!canGather(u,e)||(u.team===0&&!nodeKnown(e)))continue;const d=Math.hypot(e.x-b.x,e.y-b.y);if(d<e.r+b.r+8&&d<bd){bd=d;best=e}}return best}
 function mineOut(u){const b=u.inm&&G.byId.get(u.inm);if(u.inm){u.x=b?b.x:u.x;u.y=(b?b.y+b.r+8:u.y+20)}u.inm=null;u.state='idle';u.tid=null;u.pf=null}
 function mineRelease(team,id){if(NET.client&&team===0){NET.send({c:'unmine',id});return}for(const e of G.ents)if(e.inm===id&&e.team===team&&!e.dead)mineOut(e)}
 function mineCarts(){for(const b of G.ents){if(b.kind!=='bld'||b.type!=='mine'||!b.built||b.dead)continue;const want=b.spec==='rails'?2:1,have=G.ents.filter(c=>c.type==='cart'&&!c.dead&&c.home===b.id).length;
@@ -312,7 +321,11 @@ function advance(team,nat){
   if(ep===5&&nat&&NATIONS[nat]){G.nation[team]=nat;G.nfx[team]=nationFx(nat);recount()}
   G.adv[team]={t:0,time:EPOCHS[ep].time};if(team===0){panelSig='';toast(tr('Aufstieg in die {0} begonnen.',tr(EPOCHS[ep+1].name)))}return true;
 }
-function validSpot(x,y,r,anyTerrain){if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)return false;if(!anyTerrain&&(!onLand(x,y)||!onLand(x+r,y)||!onLand(x-r,y)||!onLand(x,y+r)||!onLand(x,y-r)))return false;if(!anyTerrain&&slopeNear(x,y,r)>.9)return false;for(const e of G.ents){if(e.dead||e.kind==='unit')continue;if(Math.hypot(e.x-x,e.y-y)<e.r+r+5)return false}return true}
+function validSpot(x,y,r,anyTerrain,ore){if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)return false;if(!anyTerrain&&(!onLand(x,y)||!onLand(x+r,y)||!onLand(x-r,y)||!onLand(x,y+r)||!onLand(x,y-r)))return false;if(!anyTerrain&&slopeNear(x,y,r)>.9)return false;for(const e of G.ents){if(e.dead||e.kind==='unit'||(ore&&e.kind==='node'&&MINE_RT[e.rt]==='mine'))continue;if(Math.hypot(e.x-x,e.y-y)<e.r+r+5)return false}return true}
+/* freies Vorkommen (ohne Mine) für eine neue Mine, nächstes zuerst */
+function mineFree(rt,x,y,team){let best=null,bd=2600;for(const n of G.ents){if(n.kind!=='node'||n.dead||n.rt!==rt||(team===0&&!nodeKnown(n)))continue;const d=Math.hypot(n.x-x,n.y-y);if(d<bd&&!G.ents.some(b=>b.type==='mine'&&!b.dead&&Math.hypot(b.x-n.x,b.y-n.y)<12)&&validSpot(n.x,n.y,BLDS.mine.r,false,true)){bd=d;best=n}}return best}
+/* Mine: rastet auf das nächste Stein-/Eisen-/Goldvorkommen ein (ohne eigene Mine darauf) */
+function mineSnap(x,y){let best=null,bd=80;for(const n of G.ents){if(n.kind!=='node'||n.dead||MINE_RT[n.rt]!=='mine'||!nodeKnown(n))continue;const d=Math.hypot(n.x-x,n.y-y);if(d<bd&&!G.ents.some(b=>b.type==='mine'&&!b.dead&&Math.hypot(b.x-n.x,b.y-n.y)<12)){bd=d;best=n}}return best}
 function separate(){
   const us=G.ents.filter(e=>e.kind==='unit'&&!e.dead&&!e.gar&&!e.inm&&!UNITS[e.type].air),CU=40,ug=new Map();
   us.forEach((u,i)=>{u._i=i;const k=((u.x/CU)|0)*4096+((u.y/CU)|0);const l=ug.get(k);if(l)l.push(u);else ug.set(k,[u])});
@@ -320,7 +333,7 @@ function separate(){
     for(let gx=cx-1;gx<=cx+1;gx++)for(let gy=cy-1;gy<=cy+1;gy++){const l=ug.get(gx*4096+gy);if(!l)continue;
       for(const b of l){if(b._i<=a._i)continue;let dx=b.x-a.x,dy=b.y-a.y;const m=a.r+b.r;if(Math.abs(dx)>m||Math.abs(dy)>m)continue;let d=Math.hypot(dx,dy);if(d>=m)continue;if(d<.01){dx=Math.random()-.5;dy=Math.random()-.5;d=Math.hypot(dx,dy)}const p=(m-d)/2*.8;a.x-=dx/d*p;a.y-=dy/d*p;b.x+=dx/d*p;b.y+=dy/d*p}}}
   const CS=64,sg=new Map();
-  for(const o of G.solids){if(o.dead||(o.kind==='bld'&&BLDS[o.type].passable))continue;const rr=o.r+24;
+  for(const o of G.solids){if(o.dead||(o.kind==='bld'&&BLDS[o.type].passable)||(o.kind==='node'&&(o.sea||o.type==='field')))continue;const rr=o.r+24;
     for(let gx=((o.x-rr)/CS)|0;gx<=((o.x+rr)/CS)|0;gx++)for(let gy=((o.y-rr)/CS)|0;gy<=((o.y+rr)/CS)|0;gy++){const k=gx*4096+gy,l=sg.get(k);if(l)l.push(o);else sg.set(k,[o])}}
   for(const u of us){const nav=!!UNITS[u.type].naval,l=sg.get(((u.x/CS)|0)*4096+((u.y/CS)|0));
     if(l)for(const o of l){if(o.dead||(o.sea&&!nav))continue;let dx=u.x-o.x,dy=u.y-o.y;const R=o.r+u.r;if(Math.abs(dx)>R||Math.abs(dy)>R)continue;let d=Math.hypot(dx,dy);if(d>=R)continue;if(d<.01){dx=1;dy=0;d=1}u.x=o.x+dx/d*R;u.y=o.y+dy/d*R}

@@ -4,7 +4,7 @@
 /* ---------- Menü ---------- */
 let menuOpen=false,menuPaused=false;
 function toggleMenu(){
-  menuOpen=!menuOpen;const m=$('menu');
+  menuOpen=!menuOpen;const m=$('menu');document.body.classList.toggle('menu-open',menuOpen);
   if(menuOpen){if(G&&G.running&&!G.paused&&!G.mp){G.paused=true;menuPaused=true}else menuPaused=false;renderMenu();m.hidden=false}
   else{m.hidden=true;if(menuPaused&&G){G.paused=false;menuPaused=false}$('pauseBtn').textContent=G&&G.paused?tr('Weiter'):tr('Pause')}
 }
@@ -62,7 +62,7 @@ function renderOptions(){
   m.innerHTML=`<div class="gm"><div class="gm-frame wide"><h1 class="gm-title sm">${tr('Optionen')}</h1><div class="gm-rule"></div>
    <div class="otabs" role="tablist">${tabs.map(([k,n])=>`<button data-t="${k}" aria-pressed="${k===optTab}">${tr(n)}</button>`).join('')}</div>
    <div class="obody">${body}</div><div class="gm-rule"></div>
-   <div class="btnrow"><button class="btn2" id="oReset">${tr('Zurücksetzen')}</button><button class="go" id="oBack">${tr('Zurück')}</button></div></div></div>`;
+   <div class="btnrow"><button class="btn2" id="oReset">${tr('Zurücksetzen')}</button><button class="go" id="oBack">${tr('Übernehmen')}</button></div></div></div>`;
   m.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{optTab=b.dataset.t;renderOptions()});
   const q=id=>document.getElementById(id),bind=(id,fn)=>{const e=q(id);if(e)fn(e)};
   const segB=(id,fn)=>bind(id,e=>e.querySelectorAll('button').forEach(b=>b.onclick=()=>{fn(b.dataset.v);e.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
@@ -128,7 +128,7 @@ function techBlock(e){
   const ts=techsFor(e.type).filter(t=>t.ep<=G.epoch[0]);if(!ts.length)return '';const own=G.tech[0];
   let h=`<div class="upg"><div class="uh"><b>${tr('Technologien')}</b></div>`;
   for(const t of ts){if(own.has(t.id))continue;const rs=G.rs[0].find(r=>r.id===t.id);
-    if(rs)h+=`<div class="ur run"><span class="un">${tr(t.name)}</span><span class="uc"><small>${Math.floor(rs.t/rs.time*100)} %</small></span><span class="ub busy">${tr('läuft')}</span></div>`;
+    if(rs)h+=`<div class="ur run"><span class="un">${tr(t.name)}</span><span class="uc"><small>${Math.floor(rs.t/rs.time*100)} %</small></span><span class="ub busy">${tr(rs.q?'wartet':'läuft')}</span></div>`;
     else{const ok=afford(0,t.cost);h+=`<div class="ur"><span class="un"><b class="tn">${tr(t.name)}</b><small>${tr(t.desc)}</small></span><span class="uc">${costHTML(t.cost)}<small>${t.time} s</small></span><button class="ub ${ok?'ok':'bad'}" data-tech="${t.id}">${tr('Erforschen')}</button></div>`}}
   const done=ts.filter(t=>own.has(t.id));if(done.length)h+=`<div class="line upd">✔ ${done.map(t=>tr(t.name)).join(' · ')}</div>`;
   return h+'</div>'}
@@ -157,9 +157,10 @@ function infoHTML(s){
       h+='</div>'}
     if(e.type==='mine'&&e.built){const n=minersIn(e),tot=Object.values(e.st||{}).reduce((a,v)=>a+v,0);
       h+=`<div class="line">${tr('Bergleute: {0} / {1}',n,MINE_CAP)}</div><div class="chips"><span class="q">${tr('Minenlager')}: ${Math.floor(tot)} / ${MINE_STOCK}<span class="qb"><span style="width:${Math.min(100,tot/MINE_STOCK*100)}%"></span></span></span></div>`;
-      if(e.team===0&&!n)h+='<div class="line"><em>'+tr('Arbeiter per Rechtsklick auf die Mine oder das Vorkommen schicken. Eine Lore bringt das Erz zum Lager.')+'</em></div>'}
+      if(e.empty)h+='<div class="line"><em>'+tr('Vorkommen erschöpft – Mine abreißen, um den Rest aus dem Minenlager zu bekommen.')+'</em></div>';
+      else if(e.team===0&&!n)h+='<div class="line"><em>'+tr('Arbeiter per Rechtsklick auf die Mine oder das Vorkommen schicken. Eine Lore bringt das Erz zum Lager.')+'</em></div>'}
     if(e.team===0&&e.built)h+=techBlock(e);
-    if(e.team===0&&e.queue.length){h+='<div class="chips">'+e.queue.map((q,i)=>`<button class="q${q.blocked?' blocked':''}" data-q="${i}" title="${tr('Klicken zum Abbrechen')}">${tr(UNITS[q.type].name)}${q.blocked?' – '+tr('Platz fehlt'):''}<span class="qb"><span style="width:${i===0?(q.t/UNITS[q.type].time*100).toFixed(0):0}%"></span></span></button>`).join('')+'</div>'}
+    if(e.team===0&&e.queue.length){h+='<div class="chips">'+e.queue.map((q,i)=>`<button class="q${q.blocked?' blocked':''}" data-q="${i}" title="${tr('Klicken zum Abbrechen')}">${q.tech?'⚗ '+tr(TECH[q.tech].name):tr(UNITS[q.type].name)}${q.blocked?' – '+tr(q.tech?'Rohstoffe fehlen':'Platz fehlt'):''}<span class="qb"><span style="width:${i===0?(q.t/(q.tech?TECH[q.tech].time:UNITS[q.type].time)*100).toFixed(0):0}%"></span></span></button>`).join('')+'</div>'}
     if(e.team===0&&e.built&&(e.type==='hq'||e.type==='barracks')&&!e.queue.length)h+='<div class="line"><em>'+tr('Rechtsklick auf die Karte setzt den Sammelpunkt.')+'</em></div>';
     if(e.team===0&&BLDS[e.type].pop)h+=`<div class="line"><em>${tr('Bietet Platz für {0} Bewohner',BLDS[e.type].pop)}</em></div>`;
   }

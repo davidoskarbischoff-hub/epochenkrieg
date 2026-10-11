@@ -206,3 +206,18 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Bäume ohne Schatten bis Grafik „Mittel“ (Testmessung ×2,6 schneller)
 - [ ] Kanone/Haubitze/Panzerschiff haben weiter gute Code-Modelle (kein passendes glTF vorhanden)
 - [ ] Code-Modelle bleiben als Rückfall in models3d.js (werden noch für Lore, Artillerie, Schiffe gebraucht)
+
+## Release 3 (gemerkt)
+- [ ] Vorschaubilder in den Knöpfen (Kaserne, Hauptlager …) zeigen noch das allgemeine Modell – eigene, schönere Bilder je Einheit/Zeitalter
+
+## Release 2 – Runde 3 (Davids Testrunde)
+- [x] Menü: untere Konsole ausgeblendet, Knopf „Übernehmen“; Holzfällen leiser; Fische weiter auseinander, blockieren Boote nicht
+- [x] Weniger Hirsche/Mammuts, mehr Wölfe; mehr Wälder und Haine; Lore fährt nicht zum Hafen
+- [x] Bau-Animation erst am Bauplatz; Bücken beim Beerenpflücken; Feldarbeiter auf dem Acker
+- [x] Rammbock, Katapult, Ruderboot fahren geradeaus; Fischer sitzt im Ruderboot
+- [x] Gold/Eisen mit Kristallen; Öl als unregelmäßige Lache; Steinzeit-Fellweste, engerer Fellrock
+- [x] Späher-Kreislauf (Gegner → Karte → Gegner)
+- [x] Forschung in der Warteschlange (mit Ausbildung, einzeln, Kosten über Zeit)
+- [x] Mine direkt auf dem Vorkommen, 8 Bergleute, erschöpft = dunkel, Abriss gibt Minenlager zurück
+- [x] Reiter sitzen mit angewinkelten Beinen; Lanzen-/Speerreiter und Schwertreiter
+- [ ] Fischernetze am Boot (kein passendes Modell vorhanden)

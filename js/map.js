@@ -3,10 +3,11 @@ let startK=1;
    (Teil des Spiels; alle game-Dateien teilen sich die globalen Namen, Ladereihenfolge siehe index.html.) */
 'use strict';
 /* ---------- entities ---------- */
-function reg(e){G.ents.push(e);G.byId.set(e.id,e);if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea))navStamp(e,1);return e}
+function reg(e){G.ents.push(e);G.byId.set(e.id,e);if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea&&e.type!=='field'))navStamp(e,1);return e}
 function addUnit(type,team,x,y,fid){const d=UNITS[type],lvl=G.epoch[team],hp=unitHp(team,type,lvl);return reg({id:fid!==undefined?fid:G.nid++,kind:'unit',type,team,x,y,r:d.r,lvl,hp,maxHp:hp,state:'idle',cd:0,carry:0,ctype:null,rtype:null,tid:null,dest:null,amove:null,fa:team===0?-1.57:1.57})}
 function wallNeighbor(b){let best=null,bd=48;for(const o of G.ents)if(o!==b&&!o.dead&&o.kind==='bld'&&(o.type==='wall'||o.type==='gate')&&o.team===b.team){const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<bd){bd=d;best=o}}return best}
-function addBld(type,team,x,y,built,fid){const d=BLDS[type],lvl=G.epoch[team],mh=Math.round(d.hp*LVL.bhp[lvl]*(1+(G.nfx?G.nfx[team].bhp:0)));const b=reg({id:fid!==undefined?fid:G.nid++,kind:'bld',type,team,x,y,r:d.r,lvl,maxHp:mh,hp:built?mh:1,built,prog:built?1:0,queue:[],rally:null,cd:0});if(type==='wall'||type==='gate'){const n=wallNeighbor(b);if(n){const a=Math.atan2(n.y-b.y,n.x-b.x);b.ang=a;if(n.type==='wall'&&n.ang===undefined)n.ang=a}}return b}
+function addBld(type,team,x,y,built,fid){const d=BLDS[type],lvl=G.epoch[team],mh=Math.round(d.hp*LVL.bhp[lvl]*(1+(G.nfx?G.nfx[team].bhp:0)));let r0=d.r;if(type==='mine')for(const n of G.ents)if(n.kind==='node'&&!n.dead&&MINE_RT[n.rt]==='mine'&&Math.hypot(n.x-x,n.y-y)<2)r0=Math.max(r0,n.r+2); /* Mine auf dem Vorkommen: so groß wie der Felsen */
+  const b=reg({id:fid!==undefined?fid:G.nid++,kind:'bld',type,team,x,y,r:r0,lvl,maxHp:mh,hp:built?mh:1,built,prog:built?1:0,queue:[],rally:null,cd:0});if(type==='wall'||type==='gate'){const n=wallNeighbor(b);if(n){const a=Math.atan2(n.y-b.y,n.x-b.x);b.ang=a;if(n.type==='wall'&&n.ang===undefined)n.ang=a}}return b}
 function addAnimal(type,x,y,fid){const d=ANIMALS[type];return reg({id:fid!==undefined?fid:G.nid++,kind:'animal',type,team:-1,x,y,r:d.r,hp:d.hp,maxHp:d.hp,lvl:0,state:'idle',cd:0,home:{x,y},fa:Math.random()*6.283,wt:Math.random()*4})}
 function addNode(type,x,y,sz){const d=NODES[type];sz=sz||1;return reg({id:G.nid++,kind:'node',type,team:-1,x,y,sz,r:Math.round(d.r*Math.sqrt(sz)),rt:d.rt,sea:!!d.sea,amount:Math.round(d.amt*sz),maxAmt:Math.round(d.amt*sz),regen:d.regen||0,seed:Math.random()})}
 const rn=r=>tr(RN[r]);
@@ -109,8 +110,8 @@ function genForests(R,bases,A,cnt){
   nearF(64,false,250,320,34);nearF(52,R()<.5,380,500,24);nearF(34,false,430,560,10);
   // weiter draussen: grosse Wälder (Flecken und Bänder) und kleine Haine
   const far=(size,band,minN)=>{for(let k=0;k<80;k++){const x=150+R()*(W-300),y=150+R()*(H-300);if(!walk(x,y,40)||bases.some(b=>Math.hypot(b.x-x,b.y-y)<700)||Math.hypot(x-W/2,y-H/2)<90)continue;if(forest(x,y,size,band,minN,600))return}};
-  for(let i=0;i<cnt(4);i++)far(72+R()*48,R()<.4,30);
-  for(let i=0;i<cnt(3);i++)far(30+R()*16,false,8);
+  for(let i=0;i<cnt(6);i++)far(72+R()*48,R()<.5,30);
+  for(let i=0;i<cnt(6);i++)far(30+R()*16,R()<.3,8);
   forestPass(bases,pre);
 }
 /* Freie Felder, die eine Basis zu Fuss erreicht (4er-Nachbarschaft wie die Wegsuche ohne Eckenschneiden) */
@@ -167,10 +168,10 @@ function spawnAnimals(R,bases,A){
       if(pts.length<Math.min(n,2))continue;
       for(const q of pts){const sp=late?(x,y)=>G.late.push({type,x,y}):(x,y)=>addAnimal(type,x,y);sp(q.x,q.y);if(good(W-q.x,H-q.y))sp(W-q.x,H-q.y)}return true}
     return false};
-  for(let i=0;i<5;i++)place('deer',2+Math.floor(R()*3),A,380,950,(x,y)=>farBase(x,y,360));
-  for(let i=0;i<4;i++)place('wolf',3,A,850,2200,(x,y)=>farBase(x,y,750)&&treesNear(x,y,170)>=4);
+  for(let i=0;i<3;i++)place('deer',2+Math.floor(R()*2),A,380,950,(x,y)=>farBase(x,y,360));
+  for(let i=0;i<6;i++)place('wolf',2+Math.floor(R()*2),A,850,2200,(x,y)=>farBase(x,y,750)&&treesNear(x,y,170)>=4);
   for(let i=0;i<3;i++)place('bear',1,A,1100,2800,(x,y)=>farBase(x,y,950)&&treesNear(x,y,170)>=2);
-  for(let i=0;i<3;i++)place('mammoth',1+Math.floor(R()*2),A,700,2200,(x,y)=>farBase(x,y,650));
+  for(let i=0;i<2;i++)place('mammoth',1,A,700,2200,(x,y)=>farBase(x,y,650));
   place('sabertooth',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
   for(let i=0;i<2;i++)place('sabertooth',1,A,1000,2600,(x,y)=>farBase(x,y,900)&&treesNear(x,y,170)>=2);
   place('tiger',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
