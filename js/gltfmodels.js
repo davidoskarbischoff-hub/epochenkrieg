@@ -165,7 +165,7 @@ const EKMODELS=(()=>{
       const cl=gl.animations.find(c=>/swim.*(normal|idle)|swim/i.test(c.name))||gl.animations[0];if(cl){const m=new THREE.AnimationMixer(root);m.clipAction(cl).play();m.update(Math.random()*2);mix.push(m)}
       if(n>1)(g.userData.school||(g.userData.school=[])).push({w,a,r,sp:.35+((i*17+e.id)%5)/25});
       g.add(w)}
-    const ring=new THREE.Mesh(new THREE.RingGeometry(.9,1,40).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.5,depthWrite:false,fog:false}));ring.userData.ring=true;g.add(ring);
+    const ring=new THREE.Mesh(new THREE.RingGeometry(.82,1,40).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xbfe8ff,transparent:true,opacity:.75,depthWrite:false,fog:false}));ring.userData.ring=true;g.add(ring);
     g.userData.mix=mix;return g}
   /* Animationen pro Bild: passenden Clip wählen, weich überblenden */
   function animate(rig,want,dt,speedScale,kind){
