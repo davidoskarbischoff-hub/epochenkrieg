@@ -21,6 +21,9 @@ function specFx(){G.sfx=[{...SF0},{...SF0}];for(const b of G.ents){if(b.dead||b.
 function buildSpec(team,id,kind){if(NET.client&&team===0){NET.send({c:'tspec',id,kind});return true}const b=G.byId.get(id),sp=b&&BSPEC[b.type]&&BSPEC[b.type][kind];if(!b||b.dead||b.team!==team||!b.built||b.spec||!sp||(sp.ep||0)>G.epoch[team])return false;if(!pay(team,sp.cost))return false;b.spec=kind;if(b.type==='tower'&&kind==='def'){b.maxHp=Math.round(b.maxHp*1.5);b.hp=Math.round(b.hp*1.5)}if(b.type==='hq'){b.maxHp=Math.round(b.maxHp*1.2);b.hp=Math.round(b.hp*1.2)}specFx();recount();terrUpdate();sfx('built',b);return true}
 const towerSpec=buildSpec;
 function pay(t,c){if(!afford(t,c))return false;RES.forEach(r=>G.res[t][r]-=c[r]||0);return true}
+/* Abreißen: eigenes Gebäude (nicht Hauptlager) entfernen; fertig = 50 % der Kosten zurück, unfertig = alles zurück */
+function demolish(team,id){if(NET.client&&team===0){NET.send({c:'demo',id});return true}const b=G.byId.get(id);if(!b||b.dead||b.kind!=='bld'||b.team!==team||b.type==='hq')return false;
+  const k=b.built?.5:1,c={};for(const r in BLDS[b.type].cost)c[r]=Math.round(BLDS[b.type].cost[r]*k);refund(team,c);kill(b);return true}
 function refund(t,c){RES.forEach(r=>G.res[t][r]+=c[r]||0)}
 function missing(t,c){const m=RES.filter(r=>(G.res[t][r]||0)<(c[r]||0)).map(r=>rn(r));return tr('Nicht genug {0}',m.join(tr(' und ')))}
 
@@ -54,8 +57,8 @@ function autoExpand(){
       G.autoStoreT=G.t+40;if(sp&&put('store',sp,far.slice(0,2).map(o=>o.w)))toast(tr('Deine Arbeiter bauen ein Lager bei den weit entfernten Vorkommen.'),'good')}}
   if(G.t>(G.autoTowerT||0)&&R.wood>=BLDS.tower.cost.wood+80&&R.stone>=BLDS.tower.cost.stone+60){
     const ang=Math.atan2(H/2-hq.y,W/2-hq.x),dx=Math.cos(ang),dy=Math.sin(ang);
-    const out=mine.filter(b=>b.kind==='bld'&&b.built&&(b.type==='store'||b.type==='mine'||b.type==='harbor')&&(b.x-hq.x)*dx+(b.y-hq.y)*dy>320&&!mine.some(t=>t.kind==='bld'&&(t.type==='tower'||t.type==='castle')&&Math.hypot(t.x-b.x,t.y-b.y)<230));
-    if(out.length){const b=out[0],sp=spot('tower',b.x+dx*40,b.y+dy*40,30,110);G.autoTowerT=G.t+60;
+    const out=mine.filter(b=>b.kind==='bld'&&b.built&&(b.type==='store'||b.type==='mine'||b.type==='harbor')&&(b.x-hq.x)*dx+(b.y-hq.y)*dy>320&&!mine.some(t=>t.kind==='bld'&&(t.type==='tower'||t.type==='castle')&&Math.hypot(t.x-b.x,t.y-b.y)<300));
+    if(out.length){const b=out[0];let sp=spot('tower',b.x+dx*40,b.y+dy*40,30,110);if(sp&&mine.some(t=>(t.type==='tower'||t.type==='castle')&&Math.hypot(t.x-sp.x,t.y-sp.y)<300))sp=null;/* Türme nicht dicht nebeneinander */G.autoTowerT=G.t+60;
       if(sp){let w=null,bd=1e9;for(const u of mine)if(u.type==='worker'&&!u.upj&&u.state!=='build'){const d=Math.hypot(u.x-b.x,u.y-b.y);if(d<bd){bd=d;w=u}}
         if(w&&put('tower',sp,[w]))toast(tr('Ein Arbeiter baut einen Wachturm zur Sicherung des vorgeschobenen Lagers.'),'good')}}}}
 /* Heiler heilen verbündete Truppen in der Nähe */

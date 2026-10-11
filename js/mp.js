@@ -82,6 +82,7 @@ function execRemote(m){
       case'train':{const b=get(m.b);if(b&&b.team===0&&b.built&&UNITS[m.type]&&UNITS[m.type].from===b.type)enqueue(b,m.type,0);break}
       case'adv':advance(0,m.nation);break;
       case'upg':startUpgrade(0,m.key);break;
+      case'demo':demolish(0,m.id);break;
       case'tspec':towerSpec(0,m.id,m.kind);break;
       case'tech':startResearch(0,m.id);break;
       case'cq':{const b=get(m.b);if(b&&b.team===0)cancelQueue(b,m.i);break}
