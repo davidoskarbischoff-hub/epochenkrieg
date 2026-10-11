@@ -1,7 +1,8 @@
 /* Epochenkrieg – Kamera und Eingabe (Maus, Touch, Tastatur).
    (Teil des Spiels; alle game-Dateien teilen sich die globalen Namen, Ladereihenfolge siehe index.html.) */
 'use strict';
-let wallDrag=null;addEventListener('pointerup',()=>{wallDrag=null;wallAng=null});
+/* Sicherheitsnetz: Loslassen ausserhalb der Karte oder abgebrochener Zeiger beendet das Mauerziehen (die Karte selbst wertet es vorher aus) */
+addEventListener('pointerup',()=>{wallDrag=null;wallAng=null});addEventListener('pointercancel',()=>{wallDrag=null});
 /* ---------- camera & input ---------- */
 function resize(){const r=view.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);VW=r.width;VH=r.height;cv.width=Math.round(VW*dpr);cv.height=Math.round(VH*dpr);
   const mr=mm.getBoundingClientRect();MW=mr.width;MH=mr.height;mm.width=Math.round(MW*dpr);mm.height=Math.round(MH*dpr);if(typeof r3Resize==='function')r3Resize();clampCam()}
@@ -16,19 +17,30 @@ cv.addEventListener('pointerdown',e=>{
   try{cv.setPointerCapture(e.pointerId)}catch(_){}
   if(e.pointerType!=='mouse'){if(!e.isPrimary)return;drag={sx:p.x,sy:p.y,lx:p.x,ly:p.y,touch:true,moved:false};return}
   const w=toWorld(p.x,p.y);
-  if(e.button===2){if(placing||armed){placing=null;armed=false;return}command(w.x,w.y,e.shiftKey,{x:p.x,y:p.y});if(ownSel().length)sfx('order');return}
+  if(e.button===2){if(wallDrag){wallDrag=null;return}if(placing||armed){placing=null;armed=false;return}command(w.x,w.y,e.shiftKey,{x:p.x,y:p.y});if(ownSel().length)sfx('order');return}
   if(e.button===1){drag={pan:true,lx:p.x,ly:p.y};e.preventDefault();return}
-  if(e.button===0){if(placing){const wl=placing==='wall';tryPlace(w.x,w.y,e.shiftKey||wl);if(wl&&placing==='wall')wallDrag={x:w.x,y:w.y,first:true};return}if(armed){attackMove(w.x,w.y,e.shiftKey);return}drag={sx:p.x,sy:p.y,box:false,shift:e.shiftKey}}
+  if(e.button===0){if(placing){
+      /* Mauer: erst beim Loslassen bauen – Klick = ein Stück wie bisher, Ziehen = ganze Mauerlinie (Vorschau in render.js) */
+      if(placing==='wall'){wallDrag={sx:p.x,sy:p.y,x:w.x,y:w.y,line:false,shift:e.shiftKey};return}
+      tryPlace(w.x,w.y,e.shiftKey);return}
+    if(armed){attackMove(w.x,w.y,e.shiftKey);return}drag={sx:p.x,sy:p.y,box:false,shift:e.shiftKey}}
 });
 cv.addEventListener('pointermove',e=>{
   const p=evPos(e);mouse.x=p.x;mouse.y=p.y;mouse.in=true;mouse.type=e.pointerType;
-  if(wallDrag&&placing==='wall'){const w=toWorld(p.x,p.y),d=BLDS.wall.r*2+1;let dx=w.x-wallDrag.x,dy=w.y-wallDrag.y,L=Math.hypot(dx,dy),n=0;while(L>=d&&placing==='wall'&&n++<12){wallAng=Math.atan2(dy,dx);if(wallDrag.first&&lastPlaced&&!lastPlaced.built){lastPlaced.ang=wallAng;wallDrag.first=false}const k=d/L;wallDrag.x+=dx*k;wallDrag.y+=dy*k;tryPlace(wallDrag.x,wallDrag.y,true);dx=w.x-wallDrag.x;dy=w.y-wallDrag.y;L=Math.hypot(dx,dy)}return}
+  if(wallDrag){
+    /* Rechte Maustaste während des Ziehens (kommt als pointermove) bricht ab; Maustaste nicht mehr gedrückt (z. B. nach Fensterwechsel) ebenso */
+    if(placing!=='wall'||(e.pointerType==='mouse'&&(e.buttons&2||!(e.buttons&1)))){wallDrag=null;return}
+    if(!wallDrag.line&&Math.hypot(p.x-wallDrag.sx,p.y-wallDrag.sy)>8)wallDrag.line=true;return}
   if(!drag)return;
   if(drag.pan||drag.touch){if(drag.touch&&!drag.moved&&Math.hypot(p.x-drag.sx,p.y-drag.sy)<9)return;if(drag.touch)drag.moved=true;{const a=toWorld(drag.lx,drag.ly),b=toWorld(p.x,p.y);cam.x+=a.x-b.x;cam.y+=a.y-b.y}drag.lx=p.x;drag.ly=p.y;clampCam();return}
   if(Math.hypot(p.x-drag.sx,p.y-drag.sy)>5)drag.box=true;
 });
 cv.addEventListener('pointerleave',()=>{mouse.in=false});
 cv.addEventListener('pointerup',e=>{
+  if(wallDrag){const wd=wallDrag;wallDrag=null;if(placing!=='wall'||e.button!==0)return;
+    if(wd.line){const w=toWorld(evPos(e).x,evPos(e).y);placeWallLine(wd.x,wd.y,w.x,w.y,false,wd.shift||e.shiftKey)}
+    else tryPlace(wd.x,wd.y,true);
+    return}
   if(!drag)return;const p=evPos(e);const d=drag;drag=null;
   if(d.pan)return;
   if(d.touch){if(!d.moved)tap(p);return}
@@ -69,7 +81,7 @@ addEventListener('keydown',e=>{
   if(e.key==='Escape'&&menuOpen){toggleMenu();return}
   if(menuOpen||!G||!G.running)return;
   if(kA(e)==='pause'){e.preventDefault();togglePause()}
-  else if(e.key==='Escape'){if(placing||armed){placing=null;armed=false}else toggleMenu()}
+  else if(e.key==='Escape'){if(wallDrag)wallDrag=null;else if(placing||armed){placing=null;armed=false}else toggleMenu()}
   else if(kA(e)==='form'){curForm=(curForm+1)%FORMS.length;panelSig='';toast(tr('Formation: {0}',tr(FORMS[curForm])),'good')}
   else if(kA(e)==='rage'){const ids=ownSel().filter(u=>u.kind==='unit').map(u=>u.id);if(ids.length){if(NET.client)NET.send({c:'rage',ids});else if(!useRage(0,ids))toast(tr('Kampfrausch lädt noch.'),'warn')}}
   else if(kA(e)==='mute'){SND.setMute(!SND.muted);toast(SND.muted?tr('Ton aus'):tr('Ton an'))}

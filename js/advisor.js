@@ -27,10 +27,19 @@ function advIntelText(I){
 function advFindSpot(type){
   const hq=G.ents.find(e=>e.type==='hq'&&e.team===0&&!e.dead);if(!hq)return null;const d0=BLDS[type];
   const base=Math.atan2(H/2-hq.y,W/2-hq.x),far=type==='tower';
-  for(let d=far?200:100;d<=(far?330:320);d+=20)for(let k=0;k<36;k++){const a=base+(k%2?1:-1)*Math.ceil(k/2)*.17;const x=hq.x+Math.cos(a)*d,y=hq.y+Math.sin(a)*d;if(!placeBlock(type,x,y))return{x,y}}
+  if(far){/* Türme verteilt: möglichst weit weg von eigenen Türmen/Burgen (mind. 300 px), bevorzugt Richtung Gegner, Ring wächst mit der Anzahl */
+    const tw=G.ents.filter(e=>!e.dead&&e.team===0&&(e.type==='tower'||e.type==='castle'));let best=null,bs=-1e9;
+    for(let d=220;d<=420+tw.length*40;d+=20)for(let k=0;k<48;k++){const a=base+k*.1309,x=hq.x+Math.cos(a)*d,y=hq.y+Math.sin(a)*d;if(placeBlock(type,x,y))continue;
+      let g=1e9;for(const t of tw)g=Math.min(g,Math.hypot(t.x-x,t.y-y));if(g<300)continue;
+      const da=Math.abs(Math.atan2(Math.sin(a-base),Math.cos(a-base)));const sc=Math.min(g,700)-da*120-Math.abs(d-300)*.3;if(sc>bs){bs=sc;best={x,y}}}
+    return best}
+  /* andere Gebäude: mit Abstand zu eigenen Gebäuden (Kante zu Kante), damit Wege frei bleiben und es nicht gedrängt aussieht */
+  const gap={house:26,farm:22,barracks:46,store:40,market:44,refinery:40,harbor:30,airfield:50,castle:60}[type]||30,own=G.ents.filter(e=>!e.dead&&e.team===0&&e.kind==='bld');
+  const free=(x,y)=>{for(const e of own){if(e.type==='wall'||e.type==='gate'||e.type==='trench')continue;if(Math.hypot(e.x-x,e.y-y)-e.r-d0.r<gap)return false}return true};
+  for(const need of[true,false])for(let d=100;d<=(need?420:320);d+=20)for(let k=0;k<36;k++){const a=base+(k%2?1:-1)*Math.ceil(k/2)*.17;const x=hq.x+Math.cos(a)*d,y=hq.y+Math.sin(a)*d;if(placeBlock(type,x,y))continue;if(need&&!free(x,y))continue;return{x,y}}
   return null}
 /* Platz für eine Mine: nahe dem nächsten Vorkommen (Eisen oder Gold), das noch keine Mine hat */
-function advMineSpot(rt,hq){const nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||minedBy(0,nd))return null;
+function advMineSpot(rt,hq){const nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||(minedBy(0,nd)&&(MINE_RT[rt]!=='mine'||mineOf(0,nd))))return null;
   for(let d=34;d<=MINE_RNG*.8;d+=12)for(let k=0;k<20;k++){const a=k*.314,x=nd.x+Math.cos(a)*d,y=nd.y+Math.sin(a)*d;if(!placeBlock(MINE_RT[rt],x,y))return{x,y}}return null}
 function advBuild(type,at){
   const spot=at||advFindSpot(type),d=BLDS[type];if(!spot){toast(tr('Kein passender Platz gefunden.'));sfx('error');return false}
@@ -81,13 +90,13 @@ function advRules(){
   if(!has('harbor').length&&workers.length>=9&&afford(0,BLDS.harbor.cost)&&advFindSpot('harbor'))push({id:'harbor',txt:'einen Hafen bauen, um Fische zu fangen',cost:BLDS.harbor.cost,go:()=>advBuild('harbor')});
   if(ep>=1&&workers.length>=8&&has('farm').length<Math.min(2+ep,5)&&R.food<420&&afford(0,BLDS.farm.cost)&&advFindSpot('farm')&&!mine.some(e=>e.type==='farm'&&!e.built))push({id:'farm',txt:'ein Feld anlegen (Nahrung, die nie ausgeht)',cost:BLDS.farm.cost,go:()=>advBuild('farm')});
   // Minen: Eisen ab der Eisenzeit, Gold ab dem Mittelalter; Markt zum Tauschen
-  if(ep>=2&&workers.length>=8&&!mine.some(e=>(e.type==='mine'||e.type==='derrick')&&!e.built))for(const rt of['iron','gold','oil']){if(ep<RES_EP[rt])continue;const bt=MINE_RT[rt],sp=advMineSpot(rt,hq);if(!afford(0,BLDS[bt].cost))continue;
+  if(ep>=1&&workers.length>=6&&!mine.some(e=>(e.type==='mine'||e.type==='derrick')&&!e.built))for(const rt of['stone','iron','gold','oil']){if(ep<RES_EP[rt])continue;const bt=MINE_RT[rt],sp=advMineSpot(rt,hq);if(!afford(0,BLDS[bt].cost))continue;
     if(sp){push({id:'mine:'+rt,txt:bt==='mine'?'eine Mine für {0} bauen (ohne Mine kann man {0} nicht abbauen)':'einen Bohrturm für {0} bauen (ohne Bohrturm gibt es kein {0})',args:[rn(rt)],cost:BLDS[bt].cost,go:()=>advBuild(bt,sp)});break}}
   if(ep>=5&&has('derrick').some(b=>b.built)&&!has('refinery').length&&afford(0,BLDS.refinery.cost)&&advFindSpot('refinery'))push({id:'refinery',txt:'eine Raffinerie bauen (hier wird das Öl abgeliefert)',cost:BLDS.refinery.cost,go:()=>advBuild('refinery')});
   if(ep>=3&&!has('market').length&&workers.length>=14&&R.gold<250&&afford(0,BLDS.market.cost)&&advFindSpot('market'))push({id:'market',txt:'einen Markt bauen, um Rohstoffe gegen Gold zu tauschen',cost:BLDS.market.cost,go:()=>advBuild('market')});
   if(has('market').some(b=>b.built)&&R.gold<200){const rt=['food','wood','stone'].find(x=>R[x]>(x==='stone'?450:800));if(rt)push({id:'trade:'+rt,txt:'100 {0} auf dem Markt gegen Gold tauschen (Vorrat ist groß)',args:[rn(rt)],go:()=>{trade(0,rt,'sell');sfx('click')}})}
   const ub=bars.find(b=>b.built&&b.queue.length<(R.food>350&&R.wood>250?2:1));
-  if(ub&&mil<S.mil(ep)){const t=Object.keys(UNITS).filter(k=>UNITS[k].from==='barracks'&&UNITS[k].ep<=ep&&!UNITS[k].siege&&!UNITS[k].passive&&(!UNITS[k].tech||G.tech[0].has(UNITS[k].tech))).sort((a,b)=>UNITS[b].ep-UNITS[a].ep).find(k=>afford(0,UNITS[k].cost));if(t)push({id:'army',txt:'{0} ausbilden',args:[tr(UNITS[t].name)],cost:UNITS[t].cost,go:()=>enqueue(ub,t,0)&&(panelSig='')})}
+  if(ub&&mil<S.mil(ep)){const t=Object.keys(UNITS).filter(k=>UNITS[k].from==='barracks'&&uOk(k,ep)&&!UNITS[k].siege&&!UNITS[k].passive&&(!UNITS[k].tech||G.tech[0].has(UNITS[k].tech))).sort((a,b)=>UNITS[b].ep-UNITS[a].ep).find(k=>afford(0,UNITS[k].cost));if(t)push({id:'army',txt:'{0} ausbilden',args:[tr(UNITS[t].name)],cost:UNITS[t].cost,go:()=>enqueue(ub,t,0)&&(panelSig='')})}
   {const have=new Set([...G.tech[0],...G.rs[0].map(r=>r.id)]);const cand=TECHS.filter(t=>t.ep<=ep&&!have.has(t.id)&&afford(0,t.cost)&&mine.some(e=>e.kind==='bld'&&e.built&&(e.type===t.bld||(t.blds&&t.blds.includes(e.type)))));
     const prefer=cand.find(t=>t.bld==='barracks'&&bars.length&&!t.fx.ratk&&!t.fx.matk&&!t.fx.hp)||cand.find(t=>t.bld==='hq')||cand[0];
     if(prefer&&!G.rs[0].length&&workers.length>=6)push({id:'tech:'+prefer.id,txt:'die Technologie {0} erforschen',args:[tr(prefer.name)],cost:prefer.cost,go:()=>startResearch(0,prefer.id)})}
@@ -114,7 +123,7 @@ function advRules(){
     if(cutters.length>=3&&drops.length&&workers.length>=6&&afford(0,BLDS.store.cost)&&!mine.some(e=>e.type==='store'&&!e.built)){
       const far=cutters.filter(w=>{const n=G.byId.get(w.tid);return Math.min(...drops.map(d=>Math.hypot(d.x-n.x,d.y-n.y)))>170});
       if(far.length>=3){const cx=far.reduce((s,w)=>s+G.byId.get(w.tid).x,0)/far.length,cy=far.reduce((s,w)=>s+G.byId.get(w.tid).y,0)/far.length;
-        let spot=null;for(let d=30;d<=110&&!spot;d+=14)for(let k=0;k<24&&!spot;k++){const a=k*.2618,x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d;if(!placeBlock('store',x,y))spot={x,y}}
+        let spot=null;for(let d=30;d<=110&&!spot;d+=14)for(let k=0;k<24&&!spot;k++){const a=k*.2618,x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d;if(!placeBlock('store',x,y)&&!mine.some(e=>e.kind==='bld'&&BLDS[e.type].drop&&Math.hypot(e.x-x,e.y-y)<170)&&!mine.some(e=>e.kind==='bld'&&Math.hypot(e.x-x,e.y-y)-e.r-BLDS.store.r<30))spot={x,y}}
         if(spot)push({id:'store',txt:'ein Lager nahe dem Wald bauen, damit die Holzfäller kürzere Wege haben',cost:BLDS.store.cost,go:()=>{if(!pay(0,BLDS.store.cost)){toast(missing(0,BLDS.store.cost)+'.');return false}const b=addBld('store',0,spot.x,spot.y,false);const ws=far.slice(0,2);ws.forEach(w=>{w.state='build';w.tid=b.id;w.pf=null});sfx('click');return true}})}}}
   if(G.t>40&&!has('scout').length&&hq.queue.length<2&&afford(0,UNITS.scout.cost))push({id:'scout',txt:'einen Späher ausbilden, um die Karte zu erkunden',cost:UNITS.scout.cost,go:()=>enqueue(hq,'scout',0)&&(panelSig='')});
   // zweite Kaserne bei Angriffstaktik

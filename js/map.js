@@ -14,10 +14,11 @@ function get(id){const e=G.byId.get(id);return e&&!e.dead?e:null}
 function nameOf(e){return e.kind==='animal'?tr(ANIMALS[e.type].name):e.kind==='unit'?tr(UNAMES[e.type]?UNAMES[e.type][Math.min(5,e.lvl||0)]:UNITS[e.type].name):e.kind==='bld'?tr(BLDS[e.type].name):tr(NODES[e.type].name)}
 
 /* ---------- map ---------- */
+/* Ein Platz taugt nur, wenn rundherum (Abstand r) Land des Hauptlandes ist */
+function landSpot(x,y,r){if(x<24||y<24||x>W-24||y>H-24)return false;for(let k=0;k<8;k++){const a=k*.785,px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;if(px<10||py<10||px>W-10||py>H-10||!onLand(px,py))return false}const c=Math.max(0,Math.min(TH-1,(y/TG)|0))*TW+Math.max(0,Math.min(TW-1,(x/TG)|0));return MAINLAND[c]===1}
 function genMap(seed){
   const R=mulberry(seed);
-  // Ein Platz taugt nur, wenn rundherum Land des Hauptlandes ist
-  const okSpot=(x,y,r)=>{if(x<24||y<24||x>W-24||y>H-24)return false;for(let k=0;k<8;k++){const a=k*.785,px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;if(px<10||py<10||px>W-10||py>H-10||!onLand(px,py))return false}const c=Math.max(0,Math.min(TH-1,(y/TG)|0))*TW+Math.max(0,Math.min(TW-1,(x/TG)|0));return MAINLAND[c]===1};
+  const okSpot=landSpot;
   // Basis A: auf der Diagonale, möglichst nah an der Küste (Hafen soll früh erreichbar sein)
   const Ld=Math.hypot(W,H),nx=H/Ld,ny=W/Ld;let A=null;
   for(let pp=700;pp>=0&&!A;pp-=20){const c={x:W/2+(.17*W+nx*pp-W/2)*startK,y:H/2+(.83*H+ny*pp-H/2)*startK};if(okSpot(c.x,c.y,175))A=c}
@@ -27,7 +28,7 @@ function genMap(seed){
   if(MAPS[curMap]&&MAPS[curMap].cliff){carveCoast(A.x,A.y,380);carveCoast(W-A.x,H-A.y,380);navInit()}
   const GAP={tree:15,bush:12,stone:14,iron:14,gold:14,oil:16,fish:10,dolphin:14,whale:20};
   const free=(x,y,r,type)=>!G.ents.some(e=>Math.hypot(e.x-x,e.y-y)<e.r+r+GAP[type]);
-  const ORE=new Set(['stone','iron','gold','oil']);let szForce=0;const szFor=type=>{if(!ORE.has(type))return 1;if(szForce)return szForce;const q=R();return q<.4?.5:q<.8?1:1.7};
+  const ORE=new Set(['stone','iron','gold','oil']);let szForce=0;const szFor=type=>{if(!ORE.has(type))return 1;if(type==='oil')return 1.7;/* Ölfelder: wenige, dafür grosse */if(szForce)return szForce;const q=R();return q<.4?.5:q<.8?1:1.7};
   const cluster=(type,cx,cy,n,spread,okFn)=>{for(let i=0;i<n;i++){for(let k=0;k<20;k++){const a=R()*6.283,d=Math.sqrt(R())*spread;const x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d,sz=szFor(type),r=Math.round(NODES[type].r*Math.sqrt(sz));if(!okFn(x,y,r))continue;if(!free(x,y,r,type))continue;addNode(type,x,y,sz);break}}};
   const landOk=(x,y,r)=>okSpot(x,y,r+4);
   const waterOk={fish:(x,y,r)=>x>40&&y>40&&x<W-40&&y<H-40&&terrAt(x,y)===1&&terrAt(x+r,y)===1&&terrAt(x-r,y)===1&&terrAt(x,y+r)===1&&terrAt(x,y-r)===1,
@@ -39,19 +40,19 @@ function genMap(seed){
   bases.forEach((b,i)=>{for(let k=0;k<4;k++)addUnit('worker',i,b.x+b.s*(k*18-27),b.y+b.s*58)});
   // Startvorkommen rund um Basis A (zufällige Richtung, gültiges Land), danach gespiegelt auf Basis B
   const near=(type,n,spread,dmin,dmax,okFn)=>{for(let k=0;k<60;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!okFn(x,y,spread*.5))continue;const n0=G.ents.length;cluster(type,x,y,n,spread,okFn);if(G.ents.length-n0>=Math.min(n,3)){mirror(n0);return}}};
-  near('tree',28,92,175,265,landOk);near('tree',16,80,285,400,landOk);near('bush',8,52,110,200,landOk);near('bush',6,44,290,430,landOk);szForce=1;near('stone',1,40,190,280,landOk);szForce=.5;near('iron',1,40,260,360,landOk);szForce=0;near('iron',1,40,520,720,landOk);near('stone',1,40,480,680,landOk);near('iron',2,46,800,1150,landOk);near('stone',2,46,760,1100,landOk);near('iron',1,40,1200,1700,landOk);near('stone',1,40,1250,1750,landOk);
+  // Die Wälder kommen erst am Schluss (genForests) und weichen allem anderen aus
+  near('bush',8,52,110,200,landOk);near('bush',6,44,290,430,landOk);szForce=1;near('stone',1,40,200,285,landOk);szForce=.5;near('iron',1,40,265,365,landOk);szForce=0;near('iron',1,40,520,720,landOk);near('stone',1,40,480,680,landOk);near('iron',2,62,800,1150,landOk);near('stone',2,62,760,1100,landOk);near('iron',1,40,1200,1700,landOk);near('stone',1,40,1250,1750,landOk);
   // Fische in Küstennähe von Basis A
   const nearWater=(type,n,spread,dmin,dmax)=>{for(let k=0;k<200;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!waterOk[type](x,y,spread*.4))continue;const n0=G.ents.length;cluster(type,x,y,n,spread,waterOk[type]);if(G.ents.length>n0){mirror(n0);return}}};
   nearWater('fish',5,55,180,520);nearWater('fish',4,50,250,650);nearWater('dolphin',3,50,350,900);
   // gespiegelte Mitte
   const feats=[];
   const cnt=n=>Math.max(1,Math.round(n*Math.sqrt(AREA)*1.1*playF*playF));
-  for(let i=0;i<cnt(8);i++)feats.push(['tree',22+Math.floor(R()*12),98,landOk]);
-  for(let i=0;i<cnt(6);i++)feats.push(['stone',1+Math.floor(R()*2),56,landOk]);
+  for(let i=0;i<cnt(6);i++)feats.push(['stone',1+Math.floor(R()*2),74,landOk]);
   for(let i=0;i<cnt(3);i++)feats.push(['bush',5,44,landOk]);
-  for(let i=0;i<cnt(7);i++)feats.push(['iron',1+Math.floor(R()*2),54,landOk]);
+  for(let i=0;i<cnt(7);i++)feats.push(['iron',1+Math.floor(R()*2),72,landOk]);
   for(let i=0;i<cnt(2);i++)feats.push(['oil',1,40,landOk]);
-  for(let i=0;i<cnt(3);i++)feats.push(['gold',1+Math.floor(R()*2),46,landOk]);
+  for(let i=0;i<cnt(3);i++)feats.push(['gold',1+Math.floor(R()*2),62,landOk]);
   for(let i=0;i<cnt(10);i++)feats.push(['fish',4+Math.floor(R()*2),55,waterOk.fish]);
   for(let i=0;i<cnt(6);i++)feats.push(['dolphin',2+Math.floor(R()*2),50,waterOk.dolphin]);
   for(let i=0;i<cnt(4);i++)feats.push(['whale',1+Math.floor(R()*2),70,waterOk.whale]);
@@ -61,8 +62,99 @@ function genMap(seed){
     if(!ok)continue;
     const n0=G.ents.length;cluster(t,x,y,n,sp,okFn);mirror(n0);
   }
+  genForests(R,bases,A,cnt);
   spawnAnimals(R,bases,A);
 }
+/* ---------- Wälder ----------
+   Dichte Wälder: Die Bäume stehen auf einem leicht verwackelten Dreiecksgitter mit FOREST_S px Abstand. Jeder Baum sperrt in der
+   Wegfindung die Felder bis r+5 = 16 px um sich, und ein Arbeiter (r 4) passt erst ab 30 px Baumabstand durch – so kommt niemand
+   durch den Wald, man muss aussen herum oder sich einen Weg freischlagen (gefällt werden nur Randbäume, siehe nodeOpen in nav.js).
+   Formen: Fleck (mehrere Ellipsen) oder Band (gebogener Streifen), mit welligem Rand; grosse Wälder bekommen eine Schneise.
+   Alles punktsymmetrisch. Danach prüft forestPass, ob jede Basis noch alles erreicht, was ohne Wald erreichbar war,
+   und schlägt sonst eine Gasse (mindestens 3 Felder breit) frei – auf beiden Seiten gleich. */
+const FOREST_S=21;
+function genForests(R,bases,A,cnt){
+  const pre=bases.map(b=>navReach(b));
+  const nz=vnoise(R,48,32),tr0=NODES.tree.r;
+  // Land rundherum und zu Fuss von einer Basis erreichbar (auch über flaches Wasser – bei Seen ist das "Hauptland" sonst zu klein)
+  const walk=(x,y,r)=>{if(x<24||y<24||x>W-24||y>H-24)return false;for(let k=0;k<8;k++){const a=k*.785;if(!onLand(x+Math.cos(a)*r,y+Math.sin(a)*r))return false}const i=navCell(x,y);return pre[0][i]===1||pre[1][i]===1};
+  const others=G.ents.filter(e=>e.kind==='bld'||(e.kind==='node'&&!e.sea)); // allem, was schon steht, weicht der Wald aus
+  const CS=32,grid=new Map(),gk=(gx,gy)=>gx*1024+gy;
+  const treeNear=(x,y,d)=>{const cx=(x/CS)|0,cy=(y/CS)|0,k=Math.ceil(d/CS);for(let gx=cx-k;gx<=cx+k;gx++)for(let gy=cy-k;gy<=cy+k;gy++){const l=grid.get(gk(gx,gy));if(l)for(const t of l)if(Math.hypot(t.x-x,t.y-y)<d)return true}return false};
+  const addT=(x,y,pine)=>{const e=addNode('tree',x,y);e.seed=pine?R()*.5:.5+R()*.5;const k=gk((x/CS)|0,(y/CS)|0);(grid.get(k)||grid.set(k,[]).get(k)).push(e)};
+  // schmale Landstellen (Furten, Landbrücken, Pässe) bleiben frei: Land muss in mindestens einer von zwei Gegenrichtungen weit reichen
+  const narrow=(x,y)=>{for(let k=0;k<4;k++){const a=k*.785,c=Math.cos(a),s=Math.sin(a);let h=0;for(const sg of[1,-1])for(let d=40;d<=120;d+=20)if(!onLand(x+c*d*sg,y+s*d*sg)){h++;break}if(h===2)return true}return false};
+  const spotOk=(x,y,mb)=>{if(!walk(x,y,tr0+20)||narrow(x,y))return false;for(const b of bases)if(Math.hypot(b.x-x,b.y-y)<mb)return false;
+    for(const o of others){const g=o.kind==='bld'?40:o.type==='bush'||o.type==='field'?14:42;if(Math.abs(o.x-x)<o.r+tr0+g&&Math.hypot(o.x-x,o.y-y)<o.r+tr0+g)return false}
+    return !treeNear(x,y,13)};
+  // Umriss eines Waldes: inside(x,y) und Ausdehnung
+  const shape=(cx,cy,size,band)=>{
+    if(!band){const el=[],n=2+((R()*3)|0);for(let i=0;i<n;i++){const a=R()*6.283,d=i?size*(.35+R()*.45):0;el.push({x:cx+Math.cos(a)*d,y:cy+Math.sin(a)*d,a:R()*3.142,rx:size*(i?.5+R()*.35:.8+R()*.25),ry:size*(i?.4+R()*.3:.55+R()*.3)})}
+      return{ext:size*2,cut:null,in:(x,y)=>{const w=1+(nz(x,y)-.5)*.6;for(const q of el){const dx=x-q.x,dy=y-q.y,c=Math.cos(q.a),s=Math.sin(q.a),u=(dx*c+dy*s)/q.rx,v=(dy*c-dx*s)/q.ry;if(u*u+v*v<w*w)return true}return false}}}
+    const a=R()*6.283,L=size*(1.5+R()*.8),bend=(R()-.5)*size*1.6,hw=size*(.34+R()*.14),p0={x:cx-Math.cos(a)*L,y:cy-Math.sin(a)*L},p2={x:cx+Math.cos(a)*L,y:cy+Math.sin(a)*L},p1={x:cx-Math.sin(a)*bend,y:cy+Math.cos(a)*bend},pts=[];
+    for(let i=0;i<=28;i++){const t=i/28,m=1-t;pts.push({x:m*m*p0.x+2*m*t*p1.x+t*t*p2.x,y:m*m*p0.y+2*m*t*p1.y+t*t*p2.y,t})}
+    const ct=pts[10+((R()*9)|0)];
+    return{ext:L+hw+Math.abs(bend),cut:{x:ct.x,y:ct.y,a:a+1.571},in:(x,y)=>{let bd=1e9,bt=0;for(const p of pts){const d=(p.x-x)*(p.x-x)+(p.y-y)*(p.y-y);if(d<bd){bd=d;bt=p.t}}return Math.sqrt(bd)<hw*(.4+.6*Math.sqrt(Math.sin(Math.PI*bt)))*(1+(nz(x,y)-.5)*.7)}}};
+  // Wald setzen (mit Spiegelbild), wenn genug Bäume Platz finden
+  const forest=(cx,cy,size,band,minN,mb)=>{ /* mb = Mindestabstand der Bäume zu den Basen */const sh=shape(cx,cy,size,band),ang=R()*1.047,c=Math.cos(ang),s=Math.sin(ang),S=FOREST_S,rh=S*.866,E=sh.ext;let cand=[];
+    for(let j=-Math.ceil(E/rh);j<=Math.ceil(E/rh);j++)for(let i=-Math.ceil(E/S)-1;i<=Math.ceil(E/S)+1;i++){const lx=i*S+(j&1?S/2:0)+(R()-.5)*5,ly=j*rh+(R()-.5)*5,x=cx+lx*c-ly*s,y=cy+lx*s+ly*c;if(sh.in(x,y))cand.push({x,y})}
+    // grosse Wälder: Schneise quer hindurch (Baummitten mindestens 31 px von der Linie = 3 Felder freier Weg)
+    if(cand.length>90){const q=sh.cut||{x:cx+(R()-.5)*size*.4,y:cy+(R()-.5)*size*.4,a:R()*3.142},sa=Math.sin(q.a),ca=Math.cos(q.a);cand=cand.filter(p=>Math.abs((p.x-q.x)*sa-(p.y-q.y)*ca)>31)}
+    cand=cand.filter(p=>spotOk(p.x,p.y,mb)&&spotOk(W-p.x,H-p.y,mb));if(cand.length<minN)return false;
+    const pf=.15+R()*.7;
+    for(const p of cand){if(!spotOk(p.x,p.y,mb))continue;const mx=W-p.x,my=H-p.y,self=Math.hypot(mx-p.x,my-p.y)<S;if(!self&&!spotOk(mx,my,mb))continue;const pine=R()<pf;addT(p.x,p.y,pine);if(!self)addT(mx,my,pine)}
+    return true};
+  // nahe der Basis A (gespiegelt auf B): ein grosser Wald, ein zweiter etwas weiter weg, ein Wäldchen
+  const nearF=(size,band,dmin,dmax,minN)=>{for(let k=0;k<60;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!walk(x,y,30))continue;if(forest(x,y,size,band,minN,175))return}};
+  nearF(64,false,250,320,34);nearF(52,R()<.5,380,500,24);nearF(34,false,430,560,10);
+  // weiter draussen: grosse Wälder (Flecken und Bänder) und kleine Haine
+  const far=(size,band,minN)=>{for(let k=0;k<80;k++){const x=150+R()*(W-300),y=150+R()*(H-300);if(!walk(x,y,40)||bases.some(b=>Math.hypot(b.x-x,b.y-y)<700)||Math.hypot(x-W/2,y-H/2)<90)continue;if(forest(x,y,size,band,minN,600))return}};
+  for(let i=0;i<cnt(4);i++)far(72+R()*48,R()<.4,30);
+  for(let i=0;i<cnt(3);i++)far(30+R()*16,false,8);
+  forestPass(bases,pre);
+}
+/* Freie Felder, die eine Basis zu Fuss erreicht (4er-Nachbarschaft wie die Wegsuche ohne Eckenschneiden) */
+function navStart(b){let best=-1,bd=1e9;const c=navCell(b.x,b.y),cx=c%NW,cy=(c/NW)|0;for(let dy=-9;dy<=9;dy++)for(let dx=-9;dx<=9;dx++){const x=cx+dx,y=cy+dy;if(x<0||y<0||x>=NW||y>=NH)continue;const i=y*NW+x;if(!navOpen(i,false))continue;const d=dx*dx+dy*dy;if(d<bd){bd=d;best=i}}return best}
+function navReach(b){const m=new Uint8Array(NW*NH),s=navStart(b);if(s<0)return m;const st=[s];m[s]=1;
+  while(st.length){const i=st.pop(),x=i%NW;for(const j of[x>0?i-1:-1,x<NW-1?i+1:-1,i>=NW?i-NW:-1,i+NW<NW*NH?i+NW:-1])if(j>=0&&!m[j]&&navOpen(j,false)){m[j]=1;st.push(j)}}
+  return m}
+/* Durchgänge sichern: Was eine Basis vor dem Wald erreichen konnte (pre), muss sie danach auch erreichen. Sonst den billigsten Weg
+   durch den Wald suchen (Baumfeld kostet 8, freies Feld 1) und entlang des Weges Bäume entfernen – gespiegelt auf beiden Seiten. */
+function forestPass(bases,pre){
+  const N=NW*NH,hard=new Uint8Array(N);
+  for(const e of G.ents){if(e.dead||!((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea&&e.type!=='tree')))continue;const r=e.r+5;
+    for(let y=Math.max(0,Math.floor((e.y-r)/NS));y<=Math.min(NH-1,Math.floor((e.y+r)/NS));y++)for(let x=Math.max(0,Math.floor((e.x-r)/NS));x<=Math.min(NW-1,Math.floor((e.x+r)/NS));x++){const dx=(x+.5)*NS-e.x,dy=(y+.5)*NS-e.y;if(dx*dx+dy*dy<=r*r)hard[y*NW+x]=1}}
+  const trees=G.ents.filter(e=>e.kind==='node'&&e.type==='tree'),CS=40,grid=new Map();for(const t of trees){const k=((t.x/CS)|0)*1024+((t.y/CS)|0);(grid.get(k)||grid.set(k,[]).get(k)).push(t)}
+  const cutAt=(x,y,rad)=>{let n=0;const cx=(x/CS)|0,cy=(y/CS)|0,k=Math.ceil(rad/CS);for(let gx=cx-k;gx<=cx+k;gx++)for(let gy=cy-k;gy<=cy+k;gy++){const l=grid.get(gx*1024+gy);if(l)for(const t of l)if(!t.dead&&Math.hypot(t.x-x,t.y-y)<rad){t.dead=true;navStamp(t,-1);n++}}return n};
+  const skip=new Set();let cutN=0;
+  for(let it=0;it<24;it++){let worked=false;
+    for(let bi=0;bi<bases.length&&!worked;bi++){const now=navReach(bases[bi]),P=pre[bi];
+      // abgeschnittene freie Felder in Gruppen einteilen
+      const comp=new Int32Array(N).fill(-1),sizes=[];
+      for(let i=0;i<N;i++){if(!P[i]||now[i]||comp[i]>=0||!navOpen(i,false))continue;const id=sizes.length,st=[i];comp[i]=id;let sz=0;
+        while(st.length){const c=st.pop(),x=c%NW;sz++;for(const j of[x>0?c-1:-1,x<NW-1?c+1:-1,c>=NW?c-NW:-1,c+NW<N?c+NW:-1])if(j>=0&&comp[j]<0&&P[j]&&!now[j]&&navOpen(j,false)){comp[j]=id;st.push(j)}}sizes.push(sz)}
+      // wichtig: grössere Gebiete und alles, was an einem Vorkommen (Busch, Stein, Erz) oder einer Basis liegt
+      const imp=new Set();sizes.forEach((s,id)=>{if(s>=12)imp.add(id)});
+      for(const e of G.ents){if(e.dead||e.kind==='unit'||e.kind==='animal'||e.sea||e.type==='tree')continue;const r=e.r+16;
+        for(let y=Math.max(0,Math.floor((e.y-r)/NS));y<=Math.min(NH-1,Math.floor((e.y+r)/NS));y++)for(let x=Math.max(0,Math.floor((e.x-r)/NS));x<=Math.min(NW-1,Math.floor((e.x+r)/NS));x++){const c=comp[y*NW+x];if(c>=0)imp.add(c)}}
+      const tgts=[...imp].filter(id=>!skip.has(bi+':'+sizes[id]+':'+id)).sort((a,b)=>sizes[b]-sizes[a]);
+      for(const tgt of tgts){
+        // billigster Weg vom abgeschnittenen Gebiet zum erreichbaren Gebiet (Dijkstra mit kleinem Heap)
+        const dist=new Float32Array(N).fill(1e9),par=new Int32Array(N).fill(-1),hp=[],hf=[];
+        const push=(i,f)=>{hp.push(i);hf.push(f);let k=hp.length-1;while(k>0){const p=(k-1)>>1;if(hf[p]<=hf[k])break;[hp[p],hp[k]]=[hp[k],hp[p]];[hf[p],hf[k]]=[hf[k],hf[p]];k=p}};
+        const pop=()=>{const r=hp[0],lh=hp.pop(),lf=hf.pop();if(hp.length){hp[0]=lh;hf[0]=lf;let k=0;for(;;){const l=2*k+1,rr=l+1;let m=k;if(l<hp.length&&hf[l]<hf[m])m=l;if(rr<hp.length&&hf[rr]<hf[m])m=rr;if(m===k)break;[hp[m],hp[k]]=[hp[k],hp[m]];[hf[m],hf[k]]=[hf[k],hf[m]];k=m}}return r};
+        for(let i=0;i<N;i++)if(comp[i]===tgt){dist[i]=0;push(i,0)}
+        let end=-1;
+        while(hp.length){const f=hf[0],i=pop();if(f>dist[i])continue;if(now[i]){end=i;break}const x=i%NW;
+          for(const j of[x>0?i-1:-1,x<NW-1?i+1:-1,i>=NW?i-NW:-1,i+NW<N?i+NW:-1]){if(j<0||hard[j]||!(navT[j]===1||navT[j]===2))continue;const c=dist[i]+(navDyn[j]?8:1);if(c<dist[j]){dist[j]=c;par[j]=i;push(j,c)}}}
+        if(end<0){skip.add(bi+':'+sizes[tgt]+':'+tgt);continue}
+        // Bäume nur dort fällen, wo der Weg durch den Wald führt (31 px um jedes zugewachsene Feld = Gasse von 3 Feldern)
+        const blk=[];for(let i=end;i>=0;i=par[i])if(navDyn[i])blk.push(i);
+        for(const i of blk){const x=(i%NW+.5)*NS,y=(((i/NW)|0)+.5)*NS;cutN+=cutAt(x,y,31)+cutAt(W-x,H-y,31)}
+        worked=true;break}}
+    if(!worked)break}
+  if(cutN||trees.some(t=>t.dead)){for(const t of trees)if(t.dead)G.byId.delete(t.id);G.ents=G.ents.filter(e=>!e.dead)}
+  G.forestCut=cutN}
 /* Wilde Tiere: Rehe in der Nähe der Startgebiete, Wölfe in Wäldern, Bären weit draußen, Tiger in der Mitte. Immer punktsymmetrisch, damit beide Seiten gleich viele haben. */
 function spawnAnimals(R,bases,A){
   const treesNear=(x,y,r)=>{let n=0;for(const e of G.ents)if(e.kind==='node'&&e.type==='tree'&&Math.hypot(e.x-x,e.y-y)<r)n++;return n};

@@ -71,6 +71,37 @@ function partsDraw(){
     ctx.restore()}
 }
 
+/* ---------- Mauer ziehen: Vorschau ----------
+   Durchscheinende Modelle für mehrere Mauerstücke gleichzeitig (gedreht entlang der Linie). Farbe: 0 grün = frei, 1 rot = blockiert, 2 gelb = Rohstoffe reichen nicht mehr. */
+const WGH={pool:{},used:{},scene:null};
+function wallGhostMat(m,tint){m=m.clone();m.transparent=true;m.opacity=.55;if(m.emissive)m.emissive.setHex([0x1c3a10,0x5a140a,0x4a3a08][tint]);return m}
+function wallGhost(type,x,y,a,tint){
+  if(!R3.ok||!r3.scene)return;if(WGH.scene!==r3.scene){WGH.pool={};WGH.used={};WGH.scene=r3.scene}
+  const key=type+':'+G.epoch[0]+':'+tint;let P=WGH.pool[key];
+  if(!P){const g=buildBld(type,BLDS[type].r/R3.S*1.05,G.epoch[0],0);g.traverse(o=>{if(o.isMesh){o.material=Array.isArray(o.material)?o.material.map(m=>wallGhostMat(m,tint)):wallGhostMat(o.material,tint);o.castShadow=false;o.receiveShadow=false}});P=WGH.pool[key]={tpl:g,list:[]}}
+  const i=WGH.used[key]||0;WGH.used[key]=i+1;let o=P.list[i];if(!o){o=P.tpl.clone();P.list.push(o);r3.scene.add(o)}
+  o.visible=true;o.position.set(x/R3.S,hAt(x,y),y/R3.S);o.rotation.y=-(a||0)}
+/* Nicht benutzte Vorschau-Modelle ausblenden (einmal pro Bild vor dem Zeichnen) */
+function wallGhostsEnd(){for(const k in WGH.pool){const L=WGH.pool[k].list;for(let i=WGH.used[k]||0;i<L.length;i++)L[i].visible=false}WGH.used={}}
+/* Linie berechnen und jedes Stück prüfen (höchstens alle 120 ms neu, die Prüfung geht über alle Objekte); affIdx = so viele Stücke werden noch bezahlt */
+let wlCache=null;
+function wallPreview(pw){
+  const key=[wallDrag.x,wallDrag.y,Math.round(pw.x),Math.round(pw.y),G.ents.length].join(','),now=performance.now();
+  if(wlCache&&wlCache.key===key&&now-wlCache.t<120)return wlCache;
+  const L=wallLine(wallDrag.x,wallDrag.y,pw.x,pw.y),c=BLDS.wall.cost,R=G.res[0];
+  let can=1e9;for(const r of RES)if(c[r])can=Math.min(can,Math.floor((R[r]||0)/c[r]));
+  let nOk=0,affIdx=L.segs.length;for(let i=0;i<L.segs.length;i++){const s=L.segs[i];s.ok=!placeBlock('wall',s.x,s.y);if(s.ok){nOk++;if(nOk>can&&affIdx===L.segs.length)affIdx=i}}
+  return wlCache={...L,key,t:now,nOk,nBad:L.segs.length-nOk,can}}
+/* Kosten und Anzahl am Mauszeiger */
+function wallLabel(P){
+  const c=BLDS.wall.cost,ok=P.can>=P.nOk;
+  const lines=[[tr('Mauer: {0} Stücke',P.nOk)+(P.nBad?' · '+tr('{0} blockiert',P.nBad):''),'#f3e2b3',true],[RES.filter(r=>c[r]).map(r=>rn(r)+' '+c[r]*P.nOk).join(' · '),ok?'#9fd67a':'#ff9a85']];
+  if(!ok)lines.push([tr('Rohstoffe reichen für {0} Stücke',Math.max(0,P.can)),'#ffcf7a']);
+  ctx.save();ctx.font='bold 12px sans-serif';let w=0;for(const l of lines)w=Math.max(w,ctx.measureText(l[0]).width);w+=16;const h=lines.length*16+8;
+  const x=Math.max(6,Math.min(VW-w-6,mouse.x+18)),y=Math.max(6,Math.min(VH-h-6,mouse.y+20));
+  ctx.fillStyle='rgba(24,26,30,.92)';ctx.strokeStyle='rgba(200,170,110,.7)';ctx.lineWidth=1;ctx.beginPath();ctx.rect(x,y,w,h);ctx.fill();ctx.stroke();
+  ctx.textAlign='left';ctx.textBaseline='top';lines.forEach((l,i)=>{ctx.fillStyle=l[1];ctx.font=(l[2]?'bold ':'')+'12px sans-serif';ctx.fillText(l[0],x+8,y+5+i*16)});ctx.restore()}
+
 /* ---------- Ein Bild ---------- */
 let lastDraw=0;
 function draw(){
@@ -90,8 +121,12 @@ function draw(){
   const rings=[];
   for(const e of vis)if(s.has(e.id))rings.push({x:e.x,y:e.y,r:e.r+(e.kind==='bld'?6:4),c:e.team===1?0xef9b86:e.team<0?0xecdfc3:0xf3d48a});
   for(const f of G.fx){const k=(G.t-f.t)/.7;rings.push({x:f.x,y:f.y,r:14*(1-k*.6),c:f.kind==='attack'?0xe0533c:f.kind==='rally'?0xf3d48a:0xecdfc3,o:1-k})}
-  let ghostOk=true,pw=null;
-  if(placing&&mouse.in){pw=toWorld(mouse.x,mouse.y);ghostOk=!placeBlock(placing,pw.x,pw.y);r3Ghost(placing,pw.x,pw.y,ghostOk);R3.ghostOn=true;rings.push({x:pw.x,y:pw.y,r:BLDS[placing].r+3,c:ghostOk?0x8fbf63:0xd0533c,o:.9})}
+  let ghostOk=true,pw=null,wl=null;
+  if(placing&&mouse.in){pw=toWorld(mouse.x,mouse.y);
+    if(placing==='wall'&&wallDrag&&wallDrag.line){wl=wallPreview(pw);wl.segs.forEach((s,i)=>wallGhost('wall',s.x,s.y,wl.a,!s.ok?1:i<wl.affIdx?0:2));for(const q of[wl.A,wl.B])rings.push({x:q.x,y:q.y,r:q.snap?9:6,c:q.snap?0xf3d48a:0xecdfc3,o:.9})}
+    else if(placing==='wall'||placing==='gate'){const sn=wallSnap(pw.x,pw.y);ghostOk=!placeBlock(placing,sn.x,sn.y);wallGhost(placing,sn.x,sn.y,sn.a,ghostOk?0:1);rings.push({x:sn.x,y:sn.y,r:BLDS[placing].r+3,c:ghostOk?0x8fbf63:0xd0533c,o:.9})}
+    else{ghostOk=!placeBlock(placing,pw.x,pw.y);r3Ghost(placing,pw.x,pw.y,ghostOk);R3.ghostOn=true;rings.push({x:pw.x,y:pw.y,r:BLDS[placing].r+3,c:ghostOk?0x8fbf63:0xd0533c,o:.9})}}
+  wallGhostsEnd();
   r3Frame(list,rings,dt);
   // Anzeigen darüber
   partsStep(vis);partsDraw();
@@ -108,7 +143,8 @@ function draw(){
   for(const e of vis){if(e.kind==='unit')ovUnit(e);else if(e.kind==='bld')ovBld(e)}
   if(OPT.hpBars!=='off')for(const e of vis)if(e.kind!=='node'&&(s.has(e.id)||OPT.hpBars==='all'&&e.kind==='unit'||e.hp<e.maxHp))hpBar(e);
   for(const e of vis)if(e.kind==='node'&&s.has(e.id))atGround(e.x,e.y,entH(e)+6,()=>{ctx.fillStyle='rgba(20,15,10,.75)';ctx.fillRect(-12,0,24,4);ctx.fillStyle='#ecdfc3';ctx.fillRect(-12,0,24*e.amount/e.maxAmt,4)});
-  if(placing&&pw){const d=BLDS[placing];ctx.setLineDash([4,6]);ctx.lineWidth=1;ctx.strokeStyle='rgba(208,83,60,.85)';if(d.shoot)groundCircle(pw.x,pw.y,d.r+d.shoot.rng);ctx.strokeStyle='rgba(143,191,99,.9)';groundCircle(pw.x,pw.y,d.claim);ctx.setLineDash([])}
+  if(placing&&pw&&!wl){const d=BLDS[placing];ctx.setLineDash([4,6]);ctx.lineWidth=1;ctx.strokeStyle='rgba(208,83,60,.85)';if(d.shoot)groundCircle(pw.x,pw.y,d.r+d.shoot.rng);ctx.strokeStyle='rgba(143,191,99,.9)';if(d.claim)groundCircle(pw.x,pw.y,d.claim);ctx.setLineDash([])}
+  if(wl){ctx.setLineDash([6,5]);ctx.lineWidth=1.5;ctx.strokeStyle='rgba(243,212,138,.85)';groundLine([wl.A,wl.B]);ctx.setLineDash([]);wallLabel(wl)}
   // Upgrade und Forschung: Balken über dem Gebäude bzw. der Einheit
   for(const e of vis){if(e.upj&&e.team===0){const j=e.upj.time?e.upj:G.jobs[0][0];if(j)progBar(e,j.t/j.time,tr('Upgrade'),'#e0a24a')}}
   for(const r of G.rs[0]){const t=TECH[r.id];const b=t&&vis.find(e=>e.kind==='bld'&&e.team===0&&e.built&&(e.type===t.bld||(t.blds&&t.blds.includes(e.type))));if(b)progBar(b,r.t/r.time,tr(t.name),'#7fb2e8')}

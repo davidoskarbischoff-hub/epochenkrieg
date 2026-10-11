@@ -1,7 +1,8 @@
 /* Epochenkrieg – echte 3D-Modelle (glTF/.glb) statt der im Code gebauten Formen.
    Ablauf: models/manifest.json sagt, welche Einheit/welches Gebäude (und welches Zeitalter) welche .glb-Datei bekommt. Fehlt ein Eintrag oder eine Datei,
    nimmt das Spiel automatisch das bisherige Code-Modell (Rückfall). Anleitung für David: MODELLE.md. Vorschau-Werkzeug: tools/model-viewer.html.
-   Regeln für Modelle: Blickrichtung +Z (Blender-Standard beim glTF-Export), Y oben, Meter-Maßstab egal (wird auf die Spielgröße angepasst),
+   Regeln für Modelle: Blickrichtung wird angeglichen (Menschen: aus den Händen, Tiere mit Skelett: Kopf- minus Körperknochen, sonst „yaw“ im Manifest
+   so wählen, dass der Kopf bei Spielrichtung 0 nach +X zeigt; Blender-Export schaut meist nach +Z → "yaw": 90), Y oben, Meter-Maßstab egal (wird auf die Spielgröße angepasst),
    Material mit „Team“ im Namen (z. B. „TeamColor“) bekommt die Spielerfarbe, Animationen heißen z. B. Idle/Walk/Attack/Work. */
 const EKMODELS=(()=>{
   let manifest=null,loader=null;const files=new Map(),failed=[],refCache={},teamMats=new Map();
@@ -38,8 +39,9 @@ const EKMODELS=(()=>{
     const q=spec.pos||[0,0,0];holder.position.set(q[0]*k/(ws.x||1),q[1]*k/(ws.x||1),q[2]*k/(ws.x||1));return holder}
   function dress(root,wrap,en,k,team,u){
     const id=(u&&u.id)||0;
-    if(en.tint||en.hide){root.traverse(o=>{if(!o.isMesh)return;
-      if(en.hide&&en.hide.some(h=>new RegExp(h,'i').test(o.name))){o.visible=false;return}
+    const hide=(en.hide||[]).concat(en.hand||en.left?['^Sword']:[]);/* eigene Waffe → eingebautes Schwert (Sword, Sword_1 …) weg */
+    if(en.tint||hide.length){root.traverse(o=>{if(!o.isMesh)return;
+      if(hide.some(h=>new RegExp(h,'i').test(o.name))){o.visible=false;return}
       if(en.tint){const f=m=>{let c=en.tint[m.name];if(c&&en.skins&&/^M_(Main|Joints)$/.test(m.name))c=en.skins[id%en.skins.length];if(!c)return m;const n=m.clone();n.color.set(c);n.name=m.name;return n};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}})}
     if(en.tintAll){root.traverse(o=>{if(!o.isMesh)return;const f=m=>{const n=m.clone();n.vertexColors=false;n.map=null;n.color.set(en.tintAll);n.needsUpdate=true;return n};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)})}
     if(en.extras)for(const x of en.extras)attach(root,root,x,k);
@@ -88,16 +90,25 @@ const EKMODELS=(()=>{
     const lx=a.x-b.x,lz=a.z-b.z;if(Math.hypot(lx,lz)<1e-5)return null;
     /* vorn = links × oben(0,1,0) = (lz, 0, -lx) */
     const fx=-lz,fz=lx;return Math.round(Math.atan2(fz,fx)/(Math.PI/2))*(Math.PI/2)}catch(_){return null}}
+  /* Tiere mit Skelett: Blickrichtung aus Kopf-Knochen minus Körper-/Hüftknochen (waagrecht), auf 90° gerundet.
+     Liefert die Drehung um Y, die den Kopf nach +X (Spielrichtung 0) dreht; null = kein passendes Skelett (dann gilt nur „yaw“ im Manifest) */
+  function animalFace(root){
+    try{root.updateMatrixWorld(true);let H=null,B=null;
+    root.traverse(o=>{if(!o.isBone)return;if(!H&&/^head$/i.test(o.name))H=o;if(!B&&/^(body|hips|pelvis|root|spine\d*|torso\d*)$/i.test(o.name))B=o});
+    if(!H)root.traverse(o=>{if(!H&&o.isBone&&/head/i.test(o.name)&&!/end|top/i.test(o.name))H=o});
+    if(!H||!B)return null;const a=new THREE.Vector3(),b=new THREE.Vector3();H.getWorldPosition(a);B.getWorldPosition(b);
+    const fx=a.x-b.x,fz=a.z-b.z;if(Math.hypot(fx,fz)<1e-5)return null;
+    return Math.round(Math.atan2(fz,fx)/(Math.PI/2))*(Math.PI/2)}catch(_){return null}}
   function makeUnit(u,origMake,kind){
     kind=kind||'unit';const en=entryFor(kind,u.type,u.lvl||0);if(!en)return null;const gl=files.get(en.file);
     try{
       const root=EKGLTF.SkeletonUtils.clone(gl.scene),wrap=new THREE.Group();wrap.add(root);prepare(root,u.team);
-      {const fa=en.human?faceAngle(root):null;root.rotation.y=(fa||0)+(en.yaw||0)*Math.PI/180}
+      {const fa=en.human?faceAngle(root):kind==='animal'?animalFace(root):null;root.rotation.y=(fa||0)+(en.yaw||0)*Math.PI/180}
       let b=box(wrap),sz=b.getSize(new THREE.Vector3());const ref=refSize(kind,u.type,()=>origMake(u).g);
       const k=(en.human?(2.4/1.84):en.height?en.height/(sz.y||1):(en.fit==='length'||(kind==='animal'&&!en.fit))?ref.m/(Math.max(sz.x,sz.y,sz.z)||1):ref.h/(sz.y||1))*(en.scale||1);
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y+(en.lift||0),-c.z);
       dress(root,wrap,en,k,u.team,u);
-      const rig={g:wrap,gltf:true,legs:[],arms:[],tools:{},acts:{},cur:null};
+      const rig={g:wrap,gltf:true,human:!!en.human,legs:[],arms:[],tools:{},acts:{},cur:null};
       if(gl.animations&&gl.animations.length){rig.mixer=new THREE.AnimationMixer(root);const A=en.anim||{},cl=gl.animations;
         const map={idle:pickClip(cl,[A.idle],/idle|stand|rest/i),walk:pickClip(cl,[A.walk],/walk|run|move/i),attack:pickClip(cl,[A.attack],/attack|hit|strike|shoot|fire/i),work:pickClip(cl,[A.work],/work|gather|chop|mine|build|dig/i)};
         for(const n in map)if(map[n])rig.acts[n]=rig.mixer.clipAction(map[n]);
@@ -143,7 +154,7 @@ const EKMODELS=(()=>{
     g.userData.mix=mix;return g}
   /* Animationen pro Bild: passenden Clip wählen, weich überblenden */
   function animate(rig,want,dt,speedScale,kind){
-    if(!rig.mixer)return;
+    if(!rig.mixer)return;if(typeof G!=='undefined')dt*=G.paused||G.netPause?0:(G.speed||1);
     if(rig.wtools){for(const kd in rig.wtools)rig.wtools[kd].visible=(want==='work'&&kind===kd);if(rig.hand)rig.hand.visible=!(want==='work'&&rig.wtools[kind])}
     const wkey=want==='work'&&kind&&rig.acts['w:'+kind]?'w:'+kind:null;
     if(want==='idle'&&!rig.acts.idle&&rig.cur){rig.acts[rig.cur].fadeOut(.2);rig.cur=null}if(want==='idle'&&!rig.acts.idle){rig.mixer.update(dt*(speedScale||1));return}
@@ -153,7 +164,9 @@ const EKMODELS=(()=>{
   async function init(url){
     if(typeof EKGLTF==='undefined'){return}
     try{const r=await fetch(url||'models/manifest.json',{cache:'no-cache'});if(!r.ok)return;manifest=await r.json()}catch(_){return}
-    loader=new EKGLTF.GLTFLoader();try{loader.setMeshoptDecoder(EKGLTF.MeshoptDecoder)}catch(_){}
+    /* Kenney-Bausätze verweisen auf Textures/colormap.png: stattdessen die Farbtabelle aus dem Manifest (cmap) nehmen */
+    const mgr=new THREE.LoadingManager();if(manifest.cmap)mgr.setURLModifier(u=>/colormap\.png$/.test(u)?'models/'+manifest.cmap:u);
+    loader=new EKGLTF.GLTFLoader(mgr);try{loader.setMeshoptDecoder(EKGLTF.MeshoptDecoder)}catch(_){}
     const want=new Set();for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off){want.add(x.file);if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work))if(w.tool&&w.tool.file)want.add(w.tool.file)}
     await Promise.all([...want].map(async f=>{try{files.set(f,await loader.loadAsync('models/'+f))}catch(err){failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}}));
     R.ready=true;R.ver++;/* Einheiten/Gebäude/Tiere: Signaturen ändern sich über tag() von selbst; Bäume/Felsen: Instanzen neu aufbauen */try{if(typeof r3!=='undefined'&&r3.scene&&typeof G!=='undefined'&&G&&G.ents&&G.ents.length)r3NodesInit()}catch(_){}

@@ -52,7 +52,7 @@ function aiTick(){
   const cnt={food:0,wood:0,stone:0,iron:0,gold:0,oil:0};workers.forEach(w=>{if(w.state!=='idle'&&w.rtype)cnt[w.rtype]++});
   for(const w of workers){if(w.state!=='idle')continue;
     const n=workers.length;const order=RES.filter(rt=>canGather(w,rt)).sort((a,b)=>(w8[b]*n-cnt[b])-(w8[a]*n-cnt[a]));
-    for(const rt of order){const node=nearestNode(rt,hq.x,hq.y,900,w,true)||nearestNode(rt,hq.x,hq.y,900,w);if(node){w.state='gather';w.tid=node.id;w.rtype=rt;cnt[rt]++;break}}}
+    for(const rt of order){const node=nearestNode(rt,hq.x,hq.y,900,w,true)||nearestNode(rt,hq.x,hq.y,900,w)||nearestNode(rt,w.x,w.y,1800,w);if(node){w.state='gather';w.tid=node.id;w.rtype=rt;cnt[rt]++;break}}}
   // Bauarbeiter
   for(const b of unbuilt){const busy=workers.some(w=>w.state==='build'&&w.tid===b.id);if(!busy){let bw=null,bd=1e9;for(const w of workers){if(w.state==='build')continue;const d=dist(w,b);if(d<bd){bd=d;bw=w}}if(bw){bw.state='build';bw.tid=b.id}}}
   // Lager neben weit entfernten Vorkommen, damit die Wege kurz bleiben
@@ -67,8 +67,8 @@ function aiTick(){
   if(ep>=1&&workers.length>=8&&G.t>(ai.farmT||0)&&!unbuilt.some(b=>b.type==='farm')){ai.farmT=G.t+35;const nf=blds.filter(b=>b.type==='farm').length;
     if(nf<Math.min(2+ep,5)&&r.wood>=BLDS.farm.cost.wood+60&&(r.food<400||nf<2))aiPlace('farm',hq,60,150)}
   // Minen für Eisen und Gold, Markt für Gold
-  if(ep>=2&&workers.length>=10&&G.t>(ai.mineT||0)&&!unbuilt.some(b=>b.type==='mine'||b.type==='derrick')){ai.mineT=G.t+25;
-    for(const rt of['iron','gold','oil']){if(ep<RES_EP[rt])continue;const bt=MINE_RT[rt],nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||minedBy(1,nd)||!afford(1,BLDS[bt].cost))continue;
+  if(ep>=1&&workers.length>=6&&G.t>(ai.mineT||0)&&!unbuilt.some(b=>b.type==='mine'||b.type==='derrick')){ai.mineT=G.t+25;
+    for(const rt of['stone','iron','gold','oil']){if(ep<RES_EP[rt])continue;const bt=MINE_RT[rt],nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||(minedBy(1,nd)&&(bt!=='mine'||mineOf(1,nd)))||!afford(1,BLDS[bt].cost))continue;
       for(let k=0;k<60;k++){const a=Math.random()*6.283,d=34+Math.random()*(MINE_RNG*.55),x=nd.x+Math.cos(a)*d,y=nd.y+Math.sin(a)*d;if(validSpot(x,y,BLDS[bt].r)){pay(1,BLDS[bt].cost);addBld(bt,1,x,y,false);break}}break}}
   if(ep>=5&&blds.some(b=>b.type==='derrick'&&b.built)&&!blds.some(b=>b.type==='refinery')&&afford(1,BLDS.refinery.cost))aiPlace('refinery',hq,100,260);
   if(ep>=3&&workers.length>=16&&!blds.some(b=>b.type==='market')&&r.gold<250&&afford(1,BLDS.market.cost))aiPlace('market',hq,90,230);
@@ -89,7 +89,7 @@ function aiTick(){
     if(harbor){
       if(boats.length+harbor.queue.filter(q=>q.type==='boat').length<2&&harbor.queue.length<2)enqueue(harbor,'boat',1);
       const wantShips=ep>=1&&!saving?Math.min(5,1+ep):0;
-      if(ships.length+harbor.queue.filter(q=>UNITS[q.type].ranged).length<wantShips&&harbor.queue.length<2){const t=ep>=3&&G.tech[1].has('galleonbuild')&&Math.random()<.6?'galleon':'warship';enqueue(harbor,t,1)}
+      if(ships.length+harbor.queue.filter(q=>UNITS[q.type].ranged).length<wantShips&&harbor.queue.length<2){const t=['ironclad','galleon','warship'].find(k=>uOk(k,ep)&&(k!=='galleon'||G.tech[1].has('galleonbuild')))||'boat';enqueue(harbor,t,1)}
       for(const bt of boats)if(bt.state==='idle'){const n=nearestNode('food',harbor.x,harbor.y,1500,bt,true)||nearestNode('food',harbor.x,harbor.y,1500,bt);if(n){bt.state='gather';bt.tid=n.id;bt.rtype='food'}}
       // Flotte greift an
       if(ships.length>=2&&G.t>=ai.shipNext){const seenHq=[...ai.seen.values()].find(s=>{const e=get(s.id);return e&&e.type==='hq'});const t=seenHq||{x:W-hq.x,y:H-hq.y};const w=aiWaterTarget(t.x,t.y);if(w){for(const sh of ships){sh.state='amove';sh.amove={x:w.x+(Math.random()-.5)*60,y:w.y+(Math.random()-.5)*60}}}ai.shipNext=G.t+110}
@@ -99,7 +99,7 @@ function aiTick(){
   /* Armeemischung nach Rollen: Front (hält die Linie), Fernkampf, Reiter, Belagerung, Sanitäter. Gebaut wird, was gemessen am Ziel-Anteil fehlt. */
   const ROLE=u=>({club:'front',spear:'front',sword:'front',engineer:'front',knight:'shock',sling:'rng',archer:'rng',crossbow:'rng',musket:'rng',rifle:'rng',catapult:'siege',cannon:'siege',howitzer:'siege',ram:'siege',tank:'siege',healer:'med'})[u]||({inf:'front',rng:'rng',cav:'shock',siege:'siege'})[UNITS[u].cls]||'front';
   const MIX={balanced:{front:.38,rng:.3,shock:.1,siege:.12,med:.1},turtle:{front:.5,rng:.3,siege:.1,med:.1},rush:{front:.45,shock:.25,rng:.25,med:.05},eco:{front:.4,rng:.35,siege:.1,med:.15},boom:{front:.35,rng:.3,siege:.2,med:.15}}[ai.style]||{front:.4,rng:.3,siege:.1,med:.1,shock:.1};
-  const have=u=>UNITS[u].ep<=ep&&(!UNITS[u].tech||G.tech[1].has(UNITS[u].tech))&&u!=='scout'&&UNITS[u].from==='barracks'&&(!UNITS[u].nation||UNITS[u].nation===G.nation[1]);
+  const have=u=>uOk(u,ep)&&(!UNITS[u].tech||G.tech[1].has(UNITS[u].tech))&&u!=='scout'&&UNITS[u].from==='barracks'&&(!UNITS[u].nation||UNITS[u].nation===G.nation[1]);
   const pool=Object.keys(UNITS).filter(have),healers=mine.filter(e=>e.type==='healer'),all=army.concat(healers),tot=Math.max(1,all.length);
   const armyCap=Math.round([8,13,20,28,36,44,52][ep]*DIFF[diff].army*ST.army),queued=blds.reduce((n,b)=>n+(b.type==='barracks'?b.queue.length:0),0);
   for(const b of blds){if(b.type!=='barracks'||!b.built||b.queue.length>=2||army.length+queued>=armyCap)continue;

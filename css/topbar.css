@@ -1,0 +1,70 @@
+/* ===== Obere Leiste, Variante B: zwei feste Ebenen =====
+   Ebene 1 (schmale Leiste über die ganze Breite): links Baum + Arbeiter-Knopf, Mitte Zeitalter, rechts Pause/Tempo/Menü.
+   Ebene 2 (hängende Tafel mittig unter dem Zeitalter): alle Rohstoffe. Spätere Rohstoffe (Eisen, Gold, Öl) haben schon
+   einen leeren Platz ("Fassung"), deshalb ändern sich Höhe UND Breite der Leiste nie.
+   Wird NACH css/style.css geladen und überschreibt dessen Regeln für #top. */
+body{--t1h:38px;--t2h:36px;--tbf:13.5px;--tbb:5px;--epf:18px;--rsf:16.5px;--rsi:27px;--rsb:7px;--slot:2.9em}
+@media (min-width:1700px){body{--t1h:42px;--t2h:40px;--tbf:14.5px;--epf:19.5px;--rsf:18px;--rsi:30px;--rsb:8px}}
+@media (min-width:2300px){body{--t1h:46px;--t2h:44px;--tbf:16px;--tbb:6px;--epf:21px;--rsf:19.5px;--rsi:33px}}
+@media (max-width:1250px){body{--t1h:34px;--t2h:32px;--tbf:12.5px;--tbb:4px;--epf:16px;--rsf:14.5px;--rsi:23px;--rsb:6px}}
+@media (max-width:900px){body{--t1h:32px;--t2h:30px;--tbf:11.5px;--epf:14.5px;--rsf:13.5px;--rsi:21px;--rsb:5px;--slot:2.75em}}
+@media (max-width:740px){body{--t1h:30px;--t2h:28px;--tbf:10.5px;--epf:13px;--rsf:12px;--rsi:18px;--rsb:4px;--slot:2.6em}#top .tl{gap:4px;padding:0 6px}#idleBtn{min-width:12.5em}}
+
+/* Gerüst: Raster mit 3 Spalten (links | Zeitalter | rechts) und 2 festen Zeilen; feste Gesamthöhe */
+#top{display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-rows:var(--t1h) var(--t2h);
+  column-gap:12px;row-gap:0;align-items:center;justify-items:stretch;padding:0;margin:0;
+  height:calc(var(--t1h) + var(--t2h) + 3px);min-height:0;max-height:none;flex-wrap:nowrap;
+  background:none;-webkit-backdrop-filter:none;backdrop-filter:none;border:0;box-shadow:none;pointer-events:none}
+#top>*{pointer-events:auto} /* Ebene 1 fängt Klicks ab, neben der Tafel (Ebene 2) geht der Klick auf die Karte */
+/* Hintergrund nur hinter Ebene 1 (seitlich neben der Tafel bleibt die Welt frei sichtbar) */
+#top::before{content:"";display:block;position:absolute;left:0;right:0;top:0;bottom:auto;width:auto;margin:0;height:var(--t1h);z-index:-1;pointer-events:none;
+  background:linear-gradient(rgba(14,10,6,.88),rgba(14,10,6,.62)),var(--noise);
+  -webkit-backdrop-filter:blur(5px) saturate(1.1);backdrop-filter:blur(5px) saturate(1.1)}
+/* Goldene Zierlinie unter Ebene 1 */
+#top::after{top:calc(var(--t1h) - 5px);bottom:auto;height:10px;z-index:-1}
+
+/* Ebene 1: alle Knöpfe in einer Zeile über die ganze Breite; Baum + Arbeiter links, Pause/Tempo/Menü rechts */
+#top .tl{grid-column:1 / -1;grid-row:1;display:flex;flex-wrap:nowrap;align-items:center;gap:6px;min-width:0;height:var(--t1h);padding:0 12px;justify-content:flex-start}
+#top .tl .brand{display:none}
+#treeBtn{order:0}#idleBtn{order:1;margin-right:auto}#pauseBtn{order:2}#speedBtn{order:3}#menuBtn{order:4}
+#top .tbtn{font-size:var(--tbf);line-height:1.15;height:calc(var(--t1h) - 9px);padding:0 calc(var(--tbf)*.6);border-width:var(--tbb);border-image-width:var(--tbb);
+  display:inline-flex;align-items:center;justify-content:center;gap:.35em;white-space:nowrap;flex:none}
+/* Arbeiter-Knopf: feste Breite, damit "4 untätige Arbeiter" und "Alle Arbeiter beschäftigt" gleich breit sind */
+#idleBtn{min-width:14.2em}
+#pauseBtn{min-width:5.4em}#speedBtn{min-width:6.2em}
+
+/* Zeitalter: feste Höhe; Aufstiegs-Fortschritt als kleine zweite Zeile im selben Schild */
+#top #epoch{grid-column:2;grid-row:1;align-self:center;justify-self:center;position:relative;left:auto;top:auto;transform:none;order:0;margin:0;
+  width:auto;box-sizing:border-box;height:calc(var(--t1h) - 4px);padding:0 calc(var(--epf)*1.6);font-size:var(--epf);line-height:1;white-space:nowrap;text-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;border-width:calc(var(--tbb) + 2px);border-image-width:calc(var(--tbb) + 2px);z-index:2}
+#top #epoch .prog{display:block;margin:2px 0 0;font-size:calc(var(--epf)*.58);line-height:1;letter-spacing:.02em;color:var(--warn);text-shadow:0 1px 1px #000}
+#top #epoch:has(.prog){font-size:calc(var(--epf)*.82)}
+#top #epoch::before,#top #epoch::after{top:50%;margin-top:0;line-height:1;transform:translateY(-50%);font-size:calc(var(--epf)*.5)}
+#top #epoch::before{left:calc(var(--epf)*.55)}#top #epoch::after{right:calc(var(--epf)*.55)}
+
+/* Ebene 2: hängende Rohstoff-Tafel, mittig unter dem Zeitalter, feste Höhe, keine Umbrüche */
+#top .tr{grid-column:1 / -1;grid-row:2;justify-self:center;align-self:start;display:flex;flex-wrap:nowrap;align-items:center;justify-content:center;gap:0;
+  position:relative;height:var(--t2h);margin-top:-2px;padding:0 calc(var(--rsb) + 4px);min-width:0;
+  border:var(--rsb) solid transparent;border-top-width:2px;border-image:var(--orn-sm) 8 / var(--rsb) stretch;border-image-width:2px var(--rsb) var(--rsb);
+  background:var(--noise),linear-gradient(rgba(22,17,12,.9),rgba(10,8,6,.84));background-clip:padding-box;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);box-shadow:0 5px 12px rgba(0,0,0,.45)}
+/* Rohstoffe in der Tafel: ohne eigene Rahmen, feste Fächer, getrennt durch feine Linien */
+#top .tr .res{display:flex;align-items:center;gap:3px;height:100%;min-height:0;margin:0;padding:0 calc(var(--rsf)*.42);
+  border:0;border-image:none;border-radius:0;background:none;box-shadow:none;flex:none}
+#top .tr .res b{font-size:var(--rsf);line-height:1;min-width:var(--slot);text-align:left;white-space:nowrap}
+#top .tr .res .icn{flex:none;display:inline-flex;align-items:center;justify-content:center;width:var(--rsi);height:var(--rsi)}
+#top .tr .res .icn img.ic,#top .tr .res .icn svg{width:var(--rsi);height:var(--rsi);margin:0}
+#top .tr .res:not(:has(#v-food)){background:linear-gradient(transparent 18%,color-mix(in srgb,var(--fr) 55%,transparent) 50%,transparent 82%) 0 0/1px 100% no-repeat}
+/* Reihenfolge nach Zeitalter: Nahrung, Holz, Stein, Eisen, Gold, Öl | Bevölkerung, Arbeiter, Truppen */
+#top .tr .res:has(#v-food){order:1}#top .tr .res:has(#v-wood){order:2}#top .tr .res:has(#v-stone){order:3}
+#res-iron{order:4}#res-gold{order:5}#res-oil{order:6}
+#top .tr .res:has(#v-pop){order:7;margin-left:6px;padding-left:calc(var(--rsf)*.42 + 8px);
+  background:radial-gradient(circle,var(--fr) 0 2.2px,transparent 2.8px) 0 50%/7px 7px no-repeat,linear-gradient(transparent 10%,var(--fr) 50%,transparent 90%) 3px 0/1px 100% no-repeat}
+#res-wk{order:8}#res-wk b{min-width:2.7em}
+#top .tr .res:has(#v-pop) b{min-width:3.9em}
+#top .tr .res:has(#v-troop){order:9}#top .tr .res:has(#v-troop) b{min-width:1.7em}
+/* Noch nicht freigeschaltete Rohstoffe: Platz bleibt als leere Fassung erhalten (kein Springen, kein Verschieben) */
+#top .tr .res[hidden]{display:flex!important;position:relative;pointer-events:none}
+#top .tr .res[hidden]>*{visibility:hidden}
+#top .tr .res[hidden]::after{content:"◆";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:calc(var(--rsf)*.55);color:var(--fr);opacity:.28}
+/* Mehrspieler: Pause/Tempo sind ausgeblendet; das Menü bleibt trotzdem rechts (margin-right:auto am Arbeiter-Knopf). */

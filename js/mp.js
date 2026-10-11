@@ -15,7 +15,7 @@ const r1=v=>Math.round(v*10)/10;
 function encodeSnap(){
   const U=[],B=[],N=[],A=[],rel=v=>v&&G.t-v<1?r1(G.t-v):-1;
   for(const e of G.ents){if(e.dead)continue;
-    if(e.kind==='unit')U.push({i:e.id,ty:e.type,m:e.team,x:r1(e.x),y:r1(e.y),a:Math.round(e.fa*100)/100,h:Math.round(e.hp),H:e.maxHp,l:e.lvl,s:e.state,c:r1(e.carry||0),ct:e.ctype||0,rt:e.rtype||0,td:e.tid||0,sw:rel(e.swing),ga:rel(e.gat),mv:rel(e.mvT),u:e.upj?1:0,cd:r1(e.cd||0),q:e.team===0&&e.q&&e.q.length?e.q:0,lp:e.loop?1:0,gr:e.gar||0});
+    if(e.kind==='unit')U.push({i:e.id,ty:e.type,m:e.team,x:r1(e.x),y:r1(e.y),a:Math.round(e.fa*100)/100,h:Math.round(e.hp),H:e.maxHp,l:e.lvl,s:e.state,c:r1(e.carry||0),ct:e.ctype||0,rt:e.rtype||0,td:e.tid||0,sw:rel(e.swing),ga:rel(e.gat),mv:rel(e.mvT),u:e.upj?1:0,cd:r1(e.cd||0),q:e.team===0&&e.q&&e.q.length?e.q:0,lp:e.loop?1:0,gr:e.gar||0,im:e.inm||0});
     else if(e.kind==='bld')B.push({i:e.id,ty:e.type,m:e.team,x:r1(e.x),y:r1(e.y),h:Math.round(e.hp),H:e.maxHp,l:e.lvl,b:e.built?1:0,p:Math.round(e.prog*1000)/1000,an:e.ang||0,sp:e.spec||0,pc:e.pc||0,u:e.upj?1:0,qu:e.team===0?e.queue.map(q=>({type:q.type,t:r1(q.t),blocked:q.blocked?1:0})):0,r:e.team===0&&e.rally?e.rally:0});
     else if(e.kind==='animal')A.push({i:e.id,ty:e.type,x:r1(e.x),y:r1(e.y),a:Math.round(e.fa*100)/100,h:Math.round(e.hp),s:e.state,sw:rel(e.swing),mv:rel(e.mvT)});
     else if(e.kind==='node'&&(e.amount<e.maxAmt-.5||e.snapLow)){N.push([e.id,Math.round(e.amount)]);e.snapLow=e.amount<e.maxAmt-.5}}
@@ -47,7 +47,7 @@ function applySnap(s){
   const seen=new Set();
   for(let r of s.U){seen.add(r.i);let e0=G.byId.get(r.i);r=mergeRec(e0,r);if(r._d)continue;let e=e0;if(!e||e.dead){e=addUnit(r.ty,r.m,r.x,r.y,r.i)}
     e._rec=r;e.team=r.m;e.tx=r.x;e.ty=r.y;e.fa=r.a;e.hp=r.h;e.maxHp=r.H;e.lvl=r.l;e.state=r.s;e.carry=r.c;e.ctype=r.ct||null;e.rtype=r.rt||null;e.tid=r.td||null;
-    e.swing=r.sw>=0?G.t-r.sw:undefined;e.gat=r.ga>=0?G.t-r.ga:undefined;e.mvT=r.mv>=0?G.t-r.mv:undefined;e.upj=r.u?{}:null;e.cd=r.cd;e.gar=r.gr||undefined;e.q=r.q||[];e.loop=r.lp?[{}]:null}
+    e.swing=r.sw>=0?G.t-r.sw:undefined;e.gat=r.ga>=0?G.t-r.ga:undefined;e.mvT=r.mv>=0?G.t-r.mv:undefined;e.upj=r.u?{}:null;e.cd=r.cd;e.gar=r.gr||undefined;e.inm=r.im||undefined;e.q=r.q||[];e.loop=r.lp?[{}]:null}
   for(let r of s.B){seen.add(r.i);let e0=G.byId.get(r.i);r=mergeRec(e0,r);if(r._d)continue;let e=e0;if(!e||e.dead){e=addBld(r.ty,r.m,r.x,r.y,!!r.b,r.i)}
     e._rec=r;e.team=r.m;e.x=r.x;e.y=r.y;e.hp=r.h;e.maxHp=r.H;e.lvl=r.l;e.built=!!r.b;e.prog=r.p;e.ang=r.an;e.spec=r.sp||undefined;e.pc=r.pc||undefined;e.upj=r.u?{}:null;e.queue=r.qu||[];e.rally=r.r||null}
   for(let r of s.A||[]){seen.add(r.i);let e0=G.byId.get(r.i);r=mergeRec(e0,r);if(r._d)continue;let e=e0;if(!e||e.dead)e=addAnimal(r.ty,r.x,r.y,r.i);e._rec=r;e.tx=r.x;e.ty=r.y;e.fa=r.a;e.hp=r.h;e.state=r.s;e.swing=r.sw>=0?G.t-r.sw:undefined;e.mvT=r.mv>=0?G.t-r.mv:undefined}
@@ -68,7 +68,7 @@ function clientStep(dt){
 /* Befehl des Gastes ausführen (Gastgeber): Teams kurz vertauschen, damit der Gast "Team 0" ist */
 function execRemote(m){
   if(!NET.host||!G||!G.running||G.over||!m)return;
-  const saveSel=[...sel],savePl=placing,msgs=[];
+  const saveSel=[...sel],savePl=placing,saveWA=wallAng,msgs=[];
   flipTeams();sel.clear();(m.ids||[]).forEach(id=>sel.add(id));NET.cap=msgs;NET.trust=true;
   try{
     switch(m.c){
@@ -77,9 +77,13 @@ function execRemote(m){
       case'rage':useRage(0,(m.ids||[]).slice(0,80));break;
       case'trade':if(RES.includes(m.rt)&&m.rt!=='gold')trade(0,m.rt,m.dir==='buy'?'buy':'sell');break;
       case'place':placing=m.type;wallAng=typeof m.ang==='number'?m.ang:null;if(BLDS[m.type]&&BLDS[m.type].ep<=G.epoch[0])tryPlace(m.x,m.y,!!m.keep);break;
+      /* Mauerlinie des Gastes: Endpunkte sind bei ihm schon eingerastet, jedes Stück wird hier noch einmal geprüft und bezahlt */
+      case'wline':if([m.x0,m.y0,m.x1,m.y1].every(Number.isFinite)&&BLDS.wall.ep<=G.epoch[0]){placing='wall';placeWallLine(m.x0,m.y0,m.x1,m.y1,true,!!m.app)}break;
       case'train':{const b=get(m.b);if(b&&b.team===0&&b.built&&UNITS[m.type]&&UNITS[m.type].from===b.type)enqueue(b,m.type,0);break}
       case'adv':advance(0,m.nation);break;
       case'upg':startUpgrade(0,m.key);break;
+      case'unmine':mineRelease(0,m.id);break;
+      case'demo':demolish(0,m.id);break;
       case'tspec':towerSpec(0,m.id,m.kind);break;
       case'tech':startResearch(0,m.id);break;
       case'cq':{const b=get(m.b);if(b&&b.team===0)cancelQueue(b,m.i);break}
@@ -88,7 +92,7 @@ function execRemote(m){
       case'loop':toggleLoopSel();break;
       case'clr':clearChainSel();break}
   }catch(err){console.error('Fehler bei Fernbefehl',err)}
-  finally{NET.cap=null;NET.tgtSet=false;NET.tgt=null;NET.trust=false;placing=savePl;flipTeams();sel.clear();saveSel.forEach(id=>sel.add(id));panelSig='';infoCache=''}
+  finally{NET.cap=null;NET.tgtSet=false;NET.tgt=null;NET.trust=false;placing=savePl;wallAng=saveWA;flipTeams();sel.clear();saveSel.forEach(id=>sel.add(id));panelSig='';infoCache=''}
   if(msgs.length&&NET.send)NET.send({t:'msgs',list:msgs.slice(0,4)})}
 function startMP(o){
   NetLog.saverReset();

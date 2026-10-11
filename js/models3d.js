@@ -464,6 +464,18 @@ const UNIT3={
     gab(g,0,1.9,0,2.6,1.7,.7,m3Plain(0x7a5a3a),m3Mat('planks',0x7a5a3a),.15);
     const log=new THREE.Group();log.position.y=1.05;g.add(log);rig.log=log;const lg=put(log,cyl(.28,.28,3.3,10),m3Plain(0x6b4f31),0,0,0);lg.rotation.z=Math.PI/2;put(log,cone(.34,.55,10),metal(),1.85,0,0).rotation.z=-Math.PI/2;
     put(g,new THREE.BoxGeometry(.04,.5,1.3),tm,-1.35,1.4,0);return rig},
+  /* Lore der Mine: Holzkarren (bis Mittelalter), Grubenhunt mit Eisenbeschlag (Renaissance/Industrie), Stahl-Lore (ab Weltkrieg); Ladung sichtbar (rig.load) */
+  cart(u,tm){const g=new THREE.Group(),rig={g,legs:[],arms:[],wheels:[]},lv=u.lvl||0,steel=lv>=5,iron=lv>=3;
+    const body=steel?m3Plain(0x5a5f66,.5,{metalness:.6}):m3Mat('planks',0x7a5a3a),rim=iron?m3Plain(0x3a3a3e,.5,{metalness:.7}):woodD();
+    for(const x of[-.75,.75])for(const z of[-.62,.62]){const w=put(g,cyl(steel?.28:.38,steel?.28:.38,.12,12),rim,x,steel?.3:.4,z);w.rotation.x=Math.PI/2;rig.wheels.push(w)}
+    put(g,new THREE.BoxGeometry(2.1,.12,1.1),body,0,.62,0);
+    for(const z of[-.55,.55])put(g,new THREE.BoxGeometry(2.1,.55,.08),body,0,.95,z);for(const x of[-1.02,1.02])put(g,new THREE.BoxGeometry(.08,.55,1.1),body,x,.95,0);
+    if(iron)for(const x of[-.9,0,.9])put(g,new THREE.BoxGeometry(.06,.58,1.16),rim,x,.95,0);
+    if(!steel){put(g,cyl(.04,.04,1.6,5),woodD(),1.8,.75,.3).rotation.z=Math.PI/2;put(g,cyl(.04,.04,1.6,5),woodD(),1.8,.75,-.3).rotation.z=Math.PI/2}
+    const load=new THREE.Group();g.add(load);rig.load=load;rig.loadMat=m3Plain(0x8a8278,.85);for(let i=0;i<7;i++)put(load,new THREE.DodecahedronGeometry(.28+((i*37)%5)*.04,0),rig.loadMat,-.7+(i%4)*.45,1.15+(i>3?.15:0),i%2?.22:-.22);
+    put(g,new THREE.BoxGeometry(.04,.4,.9),tm,-1.06,1.05,0);
+    /* Arbeiter schiebt die Lore von hinten */try{const w=UNIT3.worker(u,tm);w.g.scale.setScalar(1.25);w.g.position.x=-1.9;(w.arms||[]).forEach(a=>a.rotation.z=1.3);g.add(w.g);rig.pusher=w;rig.legs=[];rig.arms=[]}catch(_){}
+    return rig},
   catapult(u,tm){const g=new THREE.Group(),rig={g,legs:[],arms:[],wheels:[]};
     for(const z of[-.7,.7]){const w=put(g,cyl(.5,.5,.14,12),m3Plain(0x5b4228),.0,.5,z);w.rotation.x=Math.PI/2;rig.wheels.push(w)}
     put(g,new THREE.BoxGeometry(2.2,.2,1.1),m3Plain(0x7a5a3a),0,.75,0);
@@ -730,6 +742,9 @@ function specModel(g,type,kind,R,team){
     else{put(g,new THREE.BoxGeometry(R*.8,R*.5,R*.5),m3Plain(0x7a6a50,.5),R*1.7,R*.25,0);for(let i=0;i<5;i++)put(g,cyl(.28,.28,.07,14),m3Plain(0xf0c030,.3,{metalness:.9}),R*1.7,R*.55+i*.08,0);put(g,new THREE.SphereGeometry(.3,10,8),m3Plain(0xf0c030,.3,{metalness:.9}),R*1.7,R*1.2,0)}}
   else if(type==='airfield'){if(kind==='ace'){for(let i=0;i<3;i++){put(g,new THREE.BoxGeometry(.04,.5,.5),i%2?tm:m3Plain(0xeeeeee,.8),-R*1.3+i*.7,R*.9,R*.95)}put(g,cyl(.04,.04,R*.9,5),wd,-R*1.3,R*.45,R*.95)}
     else{for(let i=0;i<4;i++)put(g,new THREE.BoxGeometry(.9,.12,.5),m3Plain(0x6a6e74,.4,{metalness:.7}),-R*1.3+(i%2)*1.0,.2+Math.floor(i/2)*.14,R*.95)}}
+  else if(type==='mine'){const mt=m3Plain(0x6a6e74,.4,{metalness:.7});
+    if(kind==='rails'){for(const z of[-.32,.32])put(g,new THREE.BoxGeometry(R*3.2,.07,.07),mt,R*1.7,.08,z);for(let i=0;i<9;i++)put(g,new THREE.BoxGeometry(.18,.06,1),wd,R*.3+i*R*.36,.03,0)}
+    else{for(const x of[-.5,.5])put(g,cyl(.08,.1,T*1.1,6),wd,R*.9+x,T*.55,R*.6);put(g,new THREE.BoxGeometry(1.3,.12,.12),wd,R*.9,T*1.1,R*.6);const wh=put(g,cyl(.45,.45,.1,14),mt,R*.9,T*1.15,R*.6);wh.rotation.x=Math.PI/2}}
   else if(type==='barracks'){
     if(kind==='drill'){for(let i=0;i<3;i++){put(g,cyl(.06,.06,1.2,5),wd,-R*1.6,.6,-R*.6+i*.7);put(g,new THREE.SphereGeometry(.2,6,5),m3Plain(0xb8a578,.9),-R*1.6,1.3,-R*.6+i*.7)}}
     else{for(let i=0;i<2;i++){const z=-R*.4+i*.9;put(g,cyl(.4,.4,.06,14),m3Plain(0xeeeeee,.8),-R*1.7,.9,z).rotation.z=Math.PI/2;put(g,cyl(.2,.2,.08,14),m3Plain(0xc8382a,.8),-R*1.68,.9,z).rotation.z=Math.PI/2;put(g,cyl(.04,.04,.9,5),wd,-R*1.7,.45,z)}}}}

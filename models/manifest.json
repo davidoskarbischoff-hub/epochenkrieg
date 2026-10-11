@@ -1,5 +1,6 @@
 {
  "_info": "Hier steht, welche Einheit/welches Gebäude ein echtes 3D-Modell (.glb) bekommt. Fehlt ein Eintrag, nutzt das Spiel das eingebaute Modell. Anleitung: MODELLE.md. Beispiel unten: Zeilen mit „_beispiel_“ entfernen/umbenennen und die Datei in den Ordner models/units bzw. models/buildings legen.",
+ "cmap": "neu/variation-a.png",
  "units": {
   "worker": [
    {
@@ -90,9 +91,9 @@
       }
      },
      "farm": {
-      "clip": "Push_Loop",
+      "clip": "Sword_Attack",
       "tool": {
-       "file": "neu/Shovel.glb",
+       "file": "neu/Scythe.glb",
        "scale": 0.4,
        "rot": [
         -90,
@@ -214,9 +215,130 @@
       }
      },
      "farm": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Scythe.glb",
+       "scale": 0.4,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "hunt": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Spear.glb",
+       "scale": 0.25,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "fish": {
       "clip": "Interact",
       "tool": {
-       "file": "neu/Shovel.glb",
+       "file": "neu/Fishing Rod.glb",
+       "scale": 0.5,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     }
+    }
+   },
+   {
+    "file": "neu/Worker.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Punch_Right",
+     "work": "Interact"
+    },
+    "human": true,
+    "work": {
+     "chop": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Axe Small.glb",
+       "scale": 0.4,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "mine": {
+      "clip": "Punch_Right",
+      "tool": {
+       "file": "neu/Doublesided Hammer.glb",
+       "scale": 0.3,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "pick": {
+      "clip": "Interact"
+     },
+     "build": {
+      "clip": "Punch_Left",
+      "tool": {
+       "file": "neu/Doublesided Hammer.glb",
+       "scale": 0.25,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "farm": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Scythe.glb",
        "scale": 0.4,
        "rot": [
         -90,
@@ -352,9 +474,9 @@
      }
     },
     "farm": {
-     "clip": "Interact",
+     "clip": "Sword_Slash",
      "tool": {
-      "file": "neu/Shovel.glb",
+      "file": "neu/Scythe.glb",
       "scale": 0.4,
       "rot": [
        -90,
@@ -425,7 +547,7 @@
     ],
     "hand": {
      "file": "neu/Spear.glb",
-     "scale": 0.2,
+     "scale": 0.14,
      "rot": [
       -90,
       0,
@@ -485,7 +607,7 @@
     ],
     "hand": {
      "file": "neu/Spear.glb",
-     "scale": 0.2,
+     "scale": 0.14,
      "rot": [
       -90,
       0,
@@ -498,6 +620,34 @@
      ]
     },
     "human": true
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    }
   ],
   "sword": [
@@ -575,6 +725,34 @@
      "work": "Interact"
     },
     "human": true
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    }
   ],
   "archer": [
@@ -656,25 +834,83 @@
      ]
     },
     "human": true
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    }
   ],
-  "crossbow": {
-   "file": "neu/Medieval.glb",
-   "epochs": [
-    3,
-    4
-   ],
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Gun_Shoot",
-    "work": "Interact"
+  "crossbow": [
+   {
+    "file": "neu/Medieval.glb",
+    "epochs": [
+     3,
+     4
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact"
+    },
+    "hide": [
+     "^Sword$"
+    ],
+    "human": true
    },
-   "hide": [
-    "^Sword$"
-   ],
-   "human": true
-  },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
+   }
+  ],
   "musket": {
    "file": "neu/Soldier.glb",
    "epochs": [
@@ -688,7 +924,21 @@
     "attack": "Gun_Shoot",
     "work": "Interact"
    },
-   "human": true
+   "human": true,
+   "hand": {
+    "file": "neu/Sniper Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
   },
   "rifle": {
    "file": "neu/Soldier.glb",
@@ -703,7 +953,21 @@
     "attack": "Gun_Shoot",
     "work": "Interact"
    },
-   "human": true
+   "human": true,
+   "hand": {
+    "file": "neu/Sniper Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
   },
   "assault": {
    "file": "neu/Soldier.glb",
@@ -718,7 +982,21 @@
     "attack": "Gun_Shoot",
     "work": "Interact"
    },
-   "human": true
+   "human": true,
+   "hand": {
+    "file": "neu/Assault Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
   },
   "mg": {
    "file": "neu/Soldier.glb",
@@ -733,7 +1011,21 @@
     "attack": "Gun_Shoot",
     "work": "Interact"
    },
-   "human": true
+   "human": true,
+   "hand": {
+    "file": "neu/Assault Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
   },
   "tank": {
    "file": "neu/Tank.glb",
@@ -769,9 +1061,6 @@
   },
   "club": {
    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
-   "epochs": [
-    0
-   ],
    "yaw": 0,
    "tint": {
     "M_Main": "#c9966e",
@@ -817,9 +1106,6 @@
   },
   "sling": {
    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
-   "epochs": [
-    0
-   ],
    "yaw": 0,
    "tint": {
     "M_Main": "#c9966e",
@@ -873,29 +1159,36 @@
     "yaw": 0
    },
    {
-    "file": "neu/Boat by Poly by Google - 1ZuSXvhkRg_.glb",
+    "file": "neu/boat-fishing-small.glb",
     "fit": "length",
     "epochs": [
+     1,
+     2,
      3,
      4,
      5,
      6
-    ]
+    ],
+    "yaw": 90,
+    "scale": 0.75
    }
   ],
   "warship": {
-   "file": "neu/Sail Boat by Quaternius - BgSZXwmm7k.glb",
+   "file": "neu/ship-small.glb",
    "fit": "length",
-   "yaw": -90
+   "yaw": 90,
+   "scale": 0.55
   },
   "galleon": {
-   "file": "neu/Sail Ship by Quaternius - cIzO4MBPqI.glb",
+   "file": "neu/ship-large.glb",
    "fit": "length",
-   "yaw": -90
+   "yaw": 90,
+   "scale": 0.6
   },
   "catapult": {
-   "file": "neu/Catapult by Poly by Google - 7P_ZOjZbbMJ.glb",
-   "fit": "length"
+   "file": "neu/siege-catapult.glb",
+   "fit": "length",
+   "yaw": 90
   },
   "plane": {
    "file": "neu/Aeroplane by Gilang Romadhan - 9VeIc0cybp4.glb",
@@ -912,6 +1205,179 @@
   "zero": {
    "file": "neu/Aeroplane by Gilang Romadhan - 9VeIc0cybp4.glb",
    "fit": "length"
+  },
+  "alpini": {
+   "file": "neu/Soldier.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   },
+   "human": true,
+   "hand": {
+    "file": "neu/Sniper Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "sturm": {
+   "file": "neu/Swat.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   },
+   "human": true,
+   "hand": {
+    "file": "neu/Assault Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "rekrut": {
+   "file": "neu/Soldier.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   },
+   "human": true,
+   "hand": {
+    "file": "neu/Sniper Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "doughboy": {
+   "file": "neu/Soldier.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   },
+   "human": true,
+   "hand": {
+    "file": "neu/Sniper Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "janit": {
+   "file": "neu/Soldier.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   },
+   "human": true,
+   "hand": {
+    "file": "neu/Sniper Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "banzai": {
+   "file": "neu/Swat.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   },
+   "human": true,
+   "hand": {
+    "file": "neu/Assault Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "bersag": {
+   "file": "neu/Soldier.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   },
+   "human": true,
+   "hand": {
+    "file": "neu/Sniper Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "ram": {
+   "file": "neu/siege-ram.glb",
+   "fit": "length",
+   "yaw": 90
   }
  },
  "buildings": {
@@ -932,14 +1398,6 @@
     "fit": 1.0
    },
    {
-    "file": "neu/Houses-vCoDG5hFyI.glb",
-    "epochs": [
-     3,
-     4
-    ],
-    "fit": 1.0
-   },
-   {
     "file": "neu/Houses-gEjAC1UvVU.glb",
     "epochs": [
      5
@@ -952,6 +1410,20 @@
      6
     ],
     "fit": 1.0
+   },
+   {
+    "file": "neu/Houses-vCoDG5hFyI.glb",
+    "epochs": [
+     3
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Castle Fortress.glb",
+    "epochs": [
+     4
+    ],
+    "fit": 1.1
    }
   ],
   "house": [
@@ -1024,25 +1496,23 @@
    {
     "file": "neu/Wooden Encampment.glb",
     "epochs": [
-     0,
-     1
+     0
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Wooden Fortress.glb",
+    "epochs": [
+     1,
+     2,
+     3
     ],
     "fit": 1.0
    },
    {
     "file": "neu/Castle.glb",
     "epochs": [
-     2,
-     3,
      4
-    ],
-    "fit": 1.0
-   },
-   {
-    "file": "neu/Large Building-h7Jaq7bqMq.glb",
-    "epochs": [
-     5,
-     6
     ],
     "fit": 1.0
    }
@@ -1093,13 +1563,14 @@
   "mine": {
    "file": "neu/Mine.glb",
    "epochs": [
+    1,
     2,
     3,
     4,
     5,
     6
    ],
-   "fit": 1.0
+   "fit": 1.6
   },
   "market": [
    {
@@ -1182,34 +1653,38 @@
    }
   },
   "bear": {
-   "file": "neu/Bear.glb"
+   "file": "neu/Bear.glb",
+   "yaw": 90
   },
   "mammoth": {
    "file": "neu/Bizon.glb",
    "scale": 0.62,
-   "yaw": 180
+   "yaw": 90
   },
   "sabertooth": {
    "file": "neu/Cat.glb",
-   "tintAll": "#c79a5a"
+   "tintAll": "#c79a5a",
+   "yaw": 90
   },
   "tiger": {
    "file": "neu/Cat.glb",
-   "tintAll": "#d9792b"
+   "tintAll": "#d9792b",
+   "yaw": 90
   },
   "croc": {
    "file": "neu/Lizard.glb",
-   "tintAll": "#4f6b3a"
+   "tintAll": "#4f6b3a",
+   "yaw": 90
   }
  },
  "nodes": {
   "pine": {
    "file": "neu/Pine.glb",
-   "scale": 0.8
+   "scale": 1.35
   },
   "broad": {
    "file": "neu/dorf/Tree-t9KbsfYdXz.glb",
-   "scale": 0.8
+   "scale": 1.35
   },
   "bush": {
    "file": "neu/Bush.glb",
@@ -1219,49 +1694,49 @@
   "stone": [
    {
     "file": "neu/Rock Medium.glb",
-    "scale": 0.6
+    "scale": 0.8
    },
    {
     "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
-    "scale": 0.6
+    "scale": 0.8
    },
    {
     "file": "neu/Rock Medium-JQxF95498B.glb",
-    "scale": 0.6
+    "scale": 0.8
    }
   ],
   "iron": [
    {
-    "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
-    "mesh": "crystal_basalt_green.018",
-    "scale": 0.5
+    "file": "neu/Rock Medium.glb",
+    "scale": 0.8,
+    "tint": "#c98f74"
    },
    {
-    "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
-    "mesh": "crystal_basalt_green.021",
-    "scale": 0.5
+    "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
+    "scale": 0.8,
+    "tint": "#c98f74"
    },
    {
-    "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
-    "mesh": "crystal_basalt_green.017",
-    "scale": 0.5
+    "file": "neu/Rock Medium-JQxF95498B.glb",
+    "scale": 0.8,
+    "tint": "#c98f74"
    }
   ],
   "gold": [
    {
-    "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
-    "mesh": "crystal_basalt_green.010",
-    "scale": 0.5
+    "file": "neu/Rock Medium.glb",
+    "scale": 0.72,
+    "tint": "#f2cf6a"
    },
    {
-    "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
-    "mesh": "crystal_basalt_green.008",
-    "scale": 0.5
+    "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
+    "scale": 0.72,
+    "tint": "#f2cf6a"
    },
    {
-    "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
-    "mesh": "crystal_basalt_green.014",
-    "scale": 0.5
+    "file": "neu/Rock Medium-JQxF95498B.glb",
+    "scale": 0.72,
+    "tint": "#f2cf6a"
    }
   ]
  },

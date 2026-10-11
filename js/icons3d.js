@@ -31,8 +31,8 @@ const ICON3=(()=>{
     try{const m=(typeof EKMODELS!=='undefined'&&EKMODELS.iconModel)?EKMODELS.iconModel(n):null;if(m)return resImg[n]=shot(m,new THREE.Vector3(.9,.9,1.25),m.userData.focus)}catch(e){}
     if(!RES[n])return null;try{return resImg[n]=shot(RES[n]())}catch(e){return resImg[n]=null}}
   /* Einheit oder Gebäude: Vorschaubild (Epoche beeinflusst das Aussehen) */
-  function thing(kind,type){
-    const ep=(typeof G!=='undefined'&&G)?G.epoch[0]:0,key=kind+type+':'+ep+':'+(G&&G.nation?G.nation[0]:'');if(cache.has(key))return cache.get(key);
+  function thing(kind,type,epArg){
+    const ep=epArg!==undefined?epArg:(typeof G!=='undefined'&&G)?G.epoch[0]:0,key=kind+type+':'+ep+':'+(G&&G.nation?G.nation[0]:'');if(cache.has(key))return cache.get(key);
     if(!init())return null;let url=null;
     try{let g;if(kind==='unit'){const u={id:7,type,team:0,lvl:ep,state:'idle',r:UNITS[type].r,x:0,y:0,hp:100,maxHp:100,carry:0};const rig=buildUnit(u);g=new THREE.Group();g.add(rig.g);
         if(rig.props){rig.g.scale.setScalar(1)}}

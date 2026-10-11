@@ -230,7 +230,7 @@ function aoDecal(radius,op){
   const m=new THREE.Mesh(new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2),_aoMat);m.scale.set(radius*2,1,radius*2);m.position.y=.07;m.renderOrder=1;m.castShadow=false;m.receiveShadow=false;m.userData.noShadow=true;return m}
 function r3Make(e,sig){
   const S=R3.S;
-  if(e.kind==='unit'){const rig=buildUnit(e),sc=(UNITS[e.type].vr||e.r)/7*1.25*(UNITS[e.type].naval?.46:e.type==='tank'||e.type==='mark1'?.72:UNITS[e.type].siege?.7:UNITS[e.type].cls==='cav'?.74:e.type==='worker'?.8:1);rig.g.scale.setScalar(sc*(.94+((e.id*37)%13)/13*.12));const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
+  if(e.kind==='unit'){const rig=buildUnit(e);let sc=(UNITS[e.type].vr||e.r)/7*1.25*(UNITS[e.type].naval?.46:e.type==='tank'||e.type==='mark1'?.72:UNITS[e.type].siege?.7:UNITS[e.type].cls==='cav'?.74:e.type==='worker'?.8:1);if(rig.human)sc=UNITS.worker.vr/7*1.25*.8/* alle Menschen so groß wie der Arbeiter */;rig.g.scale.setScalar(sc*(.94+((e.id*37)%13)/13*.12));const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
   if(e.kind==='bld'){const g=buildBld(e.type,e.r/S*1.05,G.epoch[e.team],e.team);if(e.type!=='wall'&&e.type!=='gate'&&e.type!=='trench'&&e.type!=='farm')g.add(aoDecal(e.r/S*1.55));if(e.pc&&typeof wallPostModel==='function')wallPostModel(g,e.pc,e.r/S*1.05,G.epoch[e.team],e.team);if(e.spec&&typeof specModel==='function')specModel(g,e.type,e.spec,e.r/S*1.05,e.team);return{obj:g,sig,flags:g.userData.flags||[]}}
   if(e.kind==='animal'){const rig=buildAnimal(e);const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
   const g=EKMODELS.makeSea(e)||seaModel(e);return{obj:g,sig,flags:[]}}
@@ -289,7 +289,7 @@ function r3Unit(o,e,h,dt,t){
     else if(moving&&!rig.gltf)y+=Math.abs(s)*.07*(rig.horse?1.6:1);
     if(rig.gltf)EKMODELS.animate(rig,e.state==='attack'&&G.t-(e.swing||-9)<1?'attack':(work||build)?'work':moving?'walk':'idle',dt,moving?Math.max(.6,d.spd/60):1,wkKind(e));
     else if(rig.horse){rig.legs.forEach((l,i)=>l.rotation.z=(i%2?s:-s)*.7);const rd=rig.rider;rd.arms[1].rotation.z=.2+sw*.6}
-    else if(rig.wheels){if(moving)rig.wheels.forEach(w=>w.rotation[w.userData.axis||'y']+=dt*3.2*(d.spd/40));if(rig.log)rig.log.position.x=sw*.9;if(rig.arm)rig.arm.rotation.z=-sw*1.8;if(rig.barrel)rig.barrel.position.x=.1-sw*.35}
+    else if(rig.wheels){if(rig.load){rig.load.visible=(e.carry||0)>0;if(rig.loadMat&&rig.lc!==e.ctype){rig.lc=e.ctype;rig.loadMat.color.set({stone:0x8a8278,iron:0x8a4e3a,gold:0xe8c048}[e.ctype]||0x8a8278);if(rig.loadMat.metalness!==undefined)rig.loadMat.metalness=e.ctype==='gold'?.7:e.ctype==='iron'?.3:0}}if(rig.pusher&&moving){const p=rig.pusher,s=Math.sin(G.t*9);(p.legs||[]).forEach((l,i)=>l.rotation.z=(i?s:-s)*.5)}if(moving)rig.wheels.forEach(w=>w.rotation[w.userData.axis||'y']+=dt*3.2*(d.spd/40));if(rig.log)rig.log.position.x=sw*.9;if(rig.arm)rig.arm.rotation.z=-sw*1.8;if(rig.barrel)rig.barrel.position.x=.1-sw*.35}
     else if(rig.up){r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t)}
     else{
       const sa=moving?s*.7:0;rig.legs[0].rotation.z=-sa;rig.legs[1].rotation.z=sa;
