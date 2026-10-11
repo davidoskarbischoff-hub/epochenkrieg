@@ -270,7 +270,7 @@ function bldDecor(g,type,R,st,team){
   if(type==='hq'&&st.ep>=1)for(const s of[-1,1]){const br=new THREE.Group();br.position.set(s*R*.75,0,R*1.05);g.add(br);put(br,cyl(.12,.16,.6,8),m3Plain(0x3a3b42,.5,{metalness:.6}),0,.3,0);put(br,cone(.17,.34,7),m3Plain(0xf08a2c,.5,{emissive:0xe85a10,emissiveIntensity:1}),0,.75,0,false)}
   if(type==='house'&&st.ep<=3){for(let i=0;i<5;i++){put(g,cyl(.04,.04,.55,5),wd,-R*1.25+i*.28,.28,-R*1.0);}put(g,cyl(.03,.03,1.2,4),wd,-R*.85,.5,-R*1.0).rotation.z=Math.PI/2}
 }
-function buildBld(type,R,ep,team){const st=bStyle(ep),era=typeof ERA0!=='undefined'&&(ep===0?ERA0[type]:ep===1?ERA1[type]:null),g=(era||ep===0&&PRIM[type]||BLD3[type]||BLD3.house)(R,st,team);if(ep>0&&!era)bldDetail(g,type,R,st);bldDecor(g,type,R,st,team);if(ep>=4)epExtras(g,type,R,st);setShadows(g);g.userData.flags=[];g.traverse(o=>{if(o.userData.flag)g.userData.flags.push(o)});return g}
+function buildBld(type,R,ep,team){const st=bStyle(ep),g=(ep===0&&PRIM[type]||BLD3[type]||BLD3.house)(R,st,team);if(ep>0)bldDetail(g,type,R,st);bldDecor(g,type,R,st,team);if(ep>=4)epExtras(g,type,R,st);setShadows(g);g.userData.flags=[];g.traverse(o=>{if(o.userData.flag)g.userData.flags.push(o)});return g}
 
 /* ---------- Figuren ---------- */
 function limbPivot(parent,x,y,z){const p=new THREE.Group();p.position.set(x,y,z);parent.add(p);return p}

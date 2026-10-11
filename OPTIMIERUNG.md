@@ -59,3 +59,14 @@ Hilfsmittel:
 
 ## Erledigt
 - (wird je Runde ergänzt)
+
+## Funde aus Davids Test (2026-10-12)
+- [x] Keulenkrieger fiel in der Bronzezeit auf die alte Code-Figur zurück. Behoben: eigener Eintrag für Zeitalter 1. Außerdem nimmt `entryFor` bei Einheiten jetzt immer das nächstgelegene echte Modell.
+- [x] Selbst gebaute Steinzeit-/Bronzezeit-Gebäude (`js/eramodels.js`) entfernt. Stattdessen echte Modelle (Town Center mit Hirsch-Totem, Hütten, Shack, Encampment, Wachtürme, Steg) mit echtem Beiwerk (Lagerfeuer, Schädel, Heu, Fischgräten).
+- [ ] Restliche Code-Rückfälle laut `node tools/modell-luecken.js` mit echten Modellen schließen:
+  - Kanone, Haubitze, Panzerschiff, Skoda, Bertha
+  - Lore vor der Industriezeit
+  - Kaserne, Hafen und Turm in Zeitalter 5–6
+  - Mauer, Tor, Graben
+  - Bohrturm, Raffinerie, Flugplatz
+- [ ] Fell-Umhang, Fellrock und Zahnkette der Steinzeit-Figuren sind aus Formen gebaut (`cloth()`). Prüfen, ob David sie als „selbst gebaut“ empfindet. Wenn ja, durch echte Modelle (Rüstungs-/Kleidungsteile aus `models/archiv`) oder nur Umfärben ersetzen.

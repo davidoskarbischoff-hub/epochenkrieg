@@ -10,7 +10,9 @@ const EKMODELS=(()=>{
   const secOf=k=>k==='unit'?'units':k==='bld'?'buildings':k==='animal'?'animals':'nodes';
   function entryFor(kind,type,ep){
     const sec=manifest&&manifest[secOf(kind)];let en=sec&&sec[type];if(!en)return null;
-    for(const x of Array.isArray(en)?en:[en]){if(x&&x.file&&!x.off&&(!x.epochs||x.epochs.includes(ep))&&files.has(x.file))return x}return null}
+    const L=(Array.isArray(en)?en:[en]).filter(x=>x&&x.file&&!x.off&&files.has(x.file));for(const x of L)if(!x.epochs||x.epochs.includes(ep))return x;
+    /* Einheiten: kein Eintrag für dieses Zeitalter → nächstgelegenes Zeitalter (lieber das frühere) statt der alten Code-Figur */
+    if(kind!=='unit'||!L.length)return null;let best=null,bd=99;for(const x of L)for(const e of x.epochs){const d=e<=ep?ep-e:(e-ep)+.5;if(d<bd){bd=d;best=x}}return best}
   /* Kennzeichen für die Modell-Signatur im Renderer: ändert sich, wenn ein glTF-Modell zuständig wird (dann wird die Figur neu gebaut) */
   function tag(e){if(!manifest||!files.size)return'';
     if(e.kind==='unit'){const en=entryFor('unit',e.type,e.lvl||0);return en?'|g:'+en.file:''}

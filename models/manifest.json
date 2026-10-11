@@ -1864,63 +1864,120 @@
    },
    "scale": 0.5
   },
-  "club": {
-   "file": "neu/Adventurer.glb",
-   "tint": {
-    "Green": "#7a5634",
-    "LightGreen": "#93693f",
-    "Brown": "skin",
-    "Brown2": "skin",
-    "Grey": "skin",
-    "Black": "#9c6a48",
-    "Gold": "#e8dcc0"
-   },
-   "pelt": "#8a6338",
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Sword_Slash",
-    "work": "Interact"
-   },
-   "hand": {
-    "file": "neu/Wooden Torch.glb",
-    "scale": 0.45,
-    "rot": [
-     180,
-     0,
+  "club": [
+   {
+    "file": "neu/Adventurer.glb",
+    "tint": {
+     "Green": "#7a5634",
+     "LightGreen": "#93693f",
+     "Brown": "skin",
+     "Brown2": "skin",
+     "Grey": "skin",
+     "Black": "#9c6a48",
+     "Gold": "#e8dcc0"
+    },
+    "pelt": "#8a6338",
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
+    },
+    "hand": {
+     "file": "neu/Wooden Torch.glb",
+     "scale": 0.45,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "belt": "#3b2a1a",
+    "cape": "#7a5a38",
+    "tooth": true,
+    "human": true,
+    "epochs": [
      0
     ],
-    "pos": [
-     0,
-     0,
-     0
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
     ]
    },
-   "skins": [
-    "#e0ac85",
-    "#c68c63",
-    "#eab994",
-    "#a8734d",
-    "#d49a72"
-   ],
-   "belt": "#3b2a1a",
-   "cape": "#7a5a38",
-   "tooth": true,
-   "human": true,
-   "epochs": [
-    0
-   ],
-   "hairs": [
-    "#2a1a10",
-    "#4a2e18",
-    "#1c1410",
-    "#6b4a2a",
-    "#3a2414"
-   ],
-   "hide": [
-    "Backpack"
-   ]
-  },
+   {
+    "file": "neu/Adventurer.glb",
+    "tint": {
+     "Green": "#b9a27a",
+     "LightGreen": "#a08a62",
+     "Brown": "#6b4a2e",
+     "Brown2": "#5a3c22",
+     "Grey": "#7a5532",
+     "Black": "#3b2a1a",
+     "Gold": "#c08a3a"
+    },
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
+    },
+    "hand": {
+     "file": "neu/Wooden Torch.glb",
+     "scale": 0.45,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "belt": "#3b2a1a",
+    "cape": "#6b4a2b",
+    "human": true,
+    "epochs": [
+     1
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ]
+   }
+  ],
   "sling": {
    "file": "neu/Adventurer.glb",
    "tint": {
@@ -2436,6 +2493,69 @@
  "buildings": {
   "hq": [
    {
+    "file": "neu/Wooden house tower.glb",
+    "epochs": [
+     1
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Bonfire.glb",
+      "h": 0.8,
+      "x": 0.9,
+      "z": 1.05
+     },
+     {
+      "file": "archiv/Cooking Pot.glb",
+      "h": 0.5,
+      "x": -0.9,
+      "z": 1.05
+     }
+    ]
+   },
+   {
+    "file": "archiv/Town Center-76GTkSh4KM.glb",
+    "epochs": [
+     0
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "neu/Hut.glb",
+      "h": 2.6,
+      "x": -1.0,
+      "z": -0.75,
+      "ry": 20
+     },
+     {
+      "file": "archiv/Hut-4MJWbyd6vw.glb",
+      "h": 2.4,
+      "x": 1.0,
+      "z": -0.8,
+      "ry": -25
+     },
+     {
+      "file": "archiv/Bonfire.glb",
+      "h": 0.9,
+      "x": 0.55,
+      "z": 1.1
+     },
+     {
+      "file": "archiv/Skull.glb",
+      "h": 0.45,
+      "x": -0.55,
+      "z": 1.15,
+      "ry": 30
+     },
+     {
+      "file": "archiv/Hay.glb",
+      "h": 0.8,
+      "x": -1.15,
+      "z": 0.7
+     }
+    ]
+   },
+   {
     "file": "neu/Tower House.glb",
     "epochs": [
      2
@@ -2490,6 +2610,42 @@
   ],
   "house": [
    {
+    "file": "archiv/Hut-4MJWbyd6vw.glb",
+    "epochs": [
+     1
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Hay.glb",
+      "h": 0.7,
+      "x": 0.95,
+      "z": 0.8
+     }
+    ]
+   },
+   {
+    "file": "neu/Hut.glb",
+    "epochs": [
+     0
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Bonfire.glb",
+      "h": 0.6,
+      "x": 0.9,
+      "z": 0.85
+     },
+     {
+      "file": "archiv/Fish Bone.glb",
+      "h": 0.15,
+      "x": -0.8,
+      "z": 0.95
+     }
+    ]
+   },
+   {
     "file": "neu/House-YlADpCJU8U.glb",
     "epochs": [
      2
@@ -2521,6 +2677,41 @@
   ],
   "store": [
    {
+    "file": "neu/Storage Hut.glb",
+    "epochs": [
+     1
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "archiv/Shack.glb",
+    "epochs": [
+     0
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Hay.glb",
+      "h": 0.8,
+      "x": 1.0,
+      "z": 0.8
+     },
+     {
+      "file": "archiv/Hay.glb",
+      "h": 0.7,
+      "x": 0.75,
+      "z": 1.05,
+      "ry": 40
+     },
+     {
+      "file": "archiv/Fish Bone.glb",
+      "h": 0.15,
+      "x": -0.9,
+      "z": 0.95
+     }
+    ]
+   },
+   {
     "file": "neu/Storage shed-fkTsDdpQAA.glb",
     "epochs": [
      2
@@ -2545,6 +2736,40 @@
    }
   ],
   "barracks": [
+   {
+    "file": "neu/Wooden Fortress.glb",
+    "epochs": [
+     1
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Wooden Encampment.glb",
+    "epochs": [
+     0
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Bonfire.glb",
+      "h": 0.9,
+      "x": 0,
+      "z": 0
+     },
+     {
+      "file": "archiv/Skull.glb",
+      "h": 0.5,
+      "x": -0.35,
+      "z": 1.1
+     },
+     {
+      "file": "archiv/Skull-ExZmhOIjka.glb",
+      "h": 0.45,
+      "x": 0.4,
+      "z": 1.1
+     }
+    ]
+   },
    {
     "file": "arch/Colosseum.glb",
     "epochs": [
@@ -2577,6 +2802,22 @@
    }
   ],
   "harbor": [
+   {
+    "file": "neu/Dock Wide.glb",
+    "epochs": [
+     0,
+     1
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Fish Bone.glb",
+      "h": 0.15,
+      "x": 0.4,
+      "z": 0.3
+     }
+    ]
+   },
    {
     "file": "neu/Port.glb",
     "epochs": [
@@ -2684,6 +2925,28 @@
    }
   ],
   "tower": [
+   {
+    "file": "neu/Watch Tower-VJZZW37Vsk.glb",
+    "epochs": [
+     1
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Watch Tower.glb",
+    "epochs": [
+     0
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Skull.glb",
+      "h": 0.5,
+      "x": 0.9,
+      "z": 0.9
+     }
+    ]
+   },
    {
     "file": "neu/Watch Tower-VJZZW37Vsk.glb",
     "epochs": [
