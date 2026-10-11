@@ -108,7 +108,7 @@ const EKMODELS=(()=>{
       const k=(en.human?(2.4/1.84):en.height?en.height/(sz.y||1):(en.fit==='length'||(kind==='animal'&&!en.fit))?ref.m/(Math.max(sz.x,sz.y,sz.z)||1):ref.h/(sz.y||1))*(en.scale||1);
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y+(en.lift||0),-c.z);
       dress(root,wrap,en,k,u.team,u);
-      const rig={g:wrap,gltf:true,human:!!(en.human||en.rider),legs:[],arms:[],tools:{},acts:{},cur:null};
+      const rig={g:wrap,gltf:true,bend:en.human?findBone(root,/^(Abdomen|Spine|Spine1|spine|DEF-spine\.?001)$/i):null,bendA:0,human:!!(en.human||en.rider),legs:[],arms:[],tools:{},acts:{},cur:null};
       if(gl.animations&&gl.animations.length){rig.mixer=new THREE.AnimationMixer(root);const A=en.anim||{},cl=gl.animations;
         const map={idle:pickClip(cl,[A.idle],/idle|stand|rest/i),walk:pickClip(cl,[A.walk],/walk|run|move/i),attack:pickClip(cl,[A.attack],/attack|hit|strike|shoot|fire/i),work:pickClip(cl,[A.work],/work|gather|chop|mine|build|dig/i)};
         for(const n in map)if(map[n])rig.acts[n]=rig.mixer.clipAction(map[n]);
@@ -163,7 +163,10 @@ const EKMODELS=(()=>{
     if(want==='idle'&&!rig.acts.idle&&rig.cur){rig.acts[rig.cur].fadeOut(.2);rig.cur=null}if(want==='idle'&&!rig.acts.idle){rig.mixer.update(dt*(speedScale||1));return}
     const chain={attack:['attack','idle'],work:['work','idle'],walk:['walk','idle'],idle:['idle']},w=wkey||(chain[want]||['idle']).find(n=>rig.acts[n])||null;
     if(w&&rig.cur!==w){const a=rig.acts[w],p=rig.cur&&rig.acts[rig.cur];a.reset().fadeIn(.2).play();if(p)p.fadeOut(.2);rig.cur=w}
-    rig.mixer.update(dt*(speedScale||1))}
+    if(rig.bend&&rig.bendP){rig.bend.rotation.x-=rig.bendP;rig.bendP=0}
+    rig.mixer.update(dt*(speedScale||1));
+    /* Beeren pflücken: Oberkörper nach vorn beugen (nach der Animation aufgesetzt) */
+    if(rig.bend){const t=want==='work'&&kind==='pick'?.75:0;rig.bendA+=(t-rig.bendA)*Math.min(1,dt*5);if(rig.bendA>.01){rig.bend.rotation.x+=rig.bendA;rig.bendP=rig.bendA}}}
   async function init(url){
     if(typeof EKGLTF==='undefined'){return}
     try{const r=await fetch(url||'models/manifest.json',{cache:'no-cache'});if(!r.ok)return;manifest=await r.json()}catch(_){return}
