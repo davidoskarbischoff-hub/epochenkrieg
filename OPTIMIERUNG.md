@@ -7,6 +7,8 @@ Bei jeder Änderung prüfen:
 - Balance
 - Stimmigkeit über die Zeitalter, also passende Vorgänger und Nachfolger
 
+Grundregel (David): Nicht blind einbauen, immer das Gesamtbild vergleichen. Modelle, die nicht passen oder nicht schön aussehen, werden nicht verwendet. Keine selbst gebauten Formen statt echter Modelle.
+
 Ablauf je Runde:
 1. Diese Liste lesen und den nächsten offenen Punkt nehmen.
 2. Umsetzen, im Spiel prüfen (Screenshots, Konsole) und die Qualitäts-Leitung (`epochen-qa`) prüfen lassen.
