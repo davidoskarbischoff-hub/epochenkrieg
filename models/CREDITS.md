@@ -15,3 +15,9 @@ Diese Dateien tragen den Autor im Dateinamen und stammen nicht von Quaternius. V
 Vor einer Veröffentlichung: Lizenz der Original-Seite prüfen und die Namen im Spiel/auf der Webseite nennen (z. B. unter „Über“).
 
 Im Spiel genannt: Menü → Optionen → Mitwirkende (Quaternius, Kenney, Poly by Google CC BY 3.0, Gilang Romadhan CC BY).
+
+## Von David hinzugefügt (Oktober 2026) – Quelle/Lizenz bitte ergänzen
+- `dino/` (Apatosaurus, Parasaurolophus, Stegosaurus, T-Rex, Triceratops, Velociraptor)
+- `military/` (Ambulance Car, Bike, Helicopter, Jeep, Light Tank, Military Boat, Military Motorbike, Tank, Truck)
+- `torture/` (Galgen, Pranger, Käfige, Guillotine, Eiserne Jungfrau u. a.)
+- `arch/` (Arch, Barn, Bridge, Cabin Shed, Castle, Church, Colosseum, Cottage, Ferris Wheel, Fortress)

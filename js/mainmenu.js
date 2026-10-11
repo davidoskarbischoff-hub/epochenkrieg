@@ -13,7 +13,7 @@
     const o=ov();o.hidden=false;o.className='mmv';bg(true);
     o.innerHTML=`<div class="mm-splash"><div class="mm-crest">⚔</div><h1 class="mm-logo">Epochenkrieg</h1><p class="mm-by">Daveson ${tr('für')} Deus Vult Infidel</p>
       <div class="mm-bar"><i id="mmBar"></i></div><p class="mm-hint" id="mmHint">${tr('Lädt …')}</p></div>`;
-    let p=0;const tick=()=>{if(splashDone)return;const ready=!window.EKMODELS||EKMODELS.ready;p=Math.min(ready?100:92,p+(ready?6:1.2));const b=$('mmBar');if(b)b.style.width=p+'%';
+    let p=0;const tick=()=>{if(splashDone)return;const ready=typeof EKMODELS==='undefined'||EKMODELS.ready;p=Math.min(ready?100:92,p+(ready?6:1.2));const b=$('mmBar');if(b)b.style.width=p+'%';
       if(p>=100){const h=$('mmHint');if(h)h.textContent=tr('Klicken zum Fortfahren');o.classList.add('mm-ready')}setTimeout(tick,60)};tick();
     o.onclick=()=>{if(!o.classList.contains('mm-ready'))return;splashDone=true;o.onclick=null;music();main()}}
   function main(){

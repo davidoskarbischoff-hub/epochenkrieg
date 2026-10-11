@@ -173,9 +173,13 @@ function spawnAnimals(R,bases,A){
   for(let i=0;i<nn(3);i++)place('deer',2+Math.floor(R()*2),A,380,950,(x,y)=>farBase(x,y,360));
   for(let i=0;i<nn(6);i++)place('wolf',2+Math.floor(R()*2),A,850,2200,(x,y)=>farBase(x,y,750)&&treesNear(x,y,170)>=4);
   for(let i=0;i<nn(3);i++)place('bear',1,A,1100,2800,(x,y)=>farBase(x,y,950)&&treesNear(x,y,170)>=2);
-  for(let i=0;i<nn(2);i++)place('mammoth',1,A,700,2200,(x,y)=>farBase(x,y,650));
-  if(wm>=.5)place('sabertooth',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
-  for(let i=0;i<nn(2);i++)place('sabertooth',1,A,1000,2600,(x,y)=>farBase(x,y,900)&&treesNear(x,y,170)>=2);
+  /* Steinzeit: Dinosaurier statt Mammut und Säbelzahntiger (Pflanzenfresser häufiger, T-Rex nur einer je Seite) */
+  for(let i=0;i<nn(3);i++)place('para',2+Math.floor(R()*2),A,500,1500,(x,y)=>farBase(x,y,450));
+  for(let i=0;i<nn(2);i++)place('trike',1,A,800,2400,(x,y)=>farBase(x,y,700));
+  for(let i=0;i<nn(2);i++)place('stego',1,A,800,2400,(x,y)=>farBase(x,y,700));
+  if(wm>=.5)place('bronto',1,A,1200,2600,(x,y)=>farBase(x,y,1000));
+  for(let i=0;i<nn(4);i++)place('raptor',2+Math.floor(R()*2),A,950,2500,(x,y)=>farBase(x,y,850));
+  if(wm>=.25)place('trex',1,{x:W/2,y:H/2},150,900,(x,y)=>farBase(x,y,1000));
   if(wm>=.5)place('tiger',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
   const shallow=(x,y)=>{if(x<90||y<90||x>W-90||y>H-90)return false;for(let k=0;k<8;k++){const a=k*.785;if(terrAt(x+Math.cos(a)*26,y+Math.sin(a)*26)!==1)return false}return terrAt(x,y)===1&&navDyn[navCell(x,y)]===0};
   for(let n=0,k=0;n<Math.round(4*wm)&&k<600;k++){const a=R()*6.283,d=420+R()*1500,x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!shallow(x,y)||!farBase(x,y,380))continue;G.late.push({type:'croc',x,y});if(shallow(W-x,H-y))G.late.push({type:'croc',x:W-x,y:H-y});n++}

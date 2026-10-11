@@ -358,7 +358,7 @@ function entH(e){
 
 /* Skelette ausgestorbener Tiere (Mammut, Säbelzahntiger): liegen dauerhaft am Boden, sobald das Tier umgefallen ist */
 function skeletonModel(type){
-  const g=new THREE.Group(),bone=m3Plain(0xe8e0cc,.8),big=type==='mammoth',k=big?1.5:.8;
+  const g=new THREE.Group(),bone=m3Plain(0xe8e0cc,.8),big=['mammoth','trex','trike','stego','bronto'].includes(type),k=big?1.5:.8;
   const L=big?3.2:2.0;
   put(g,cyl(.07*k,.07*k,L,6),bone,0,.2,0).rotation.z=Math.PI/2;
   for(let i=0;i<7;i++){const x=-L*.35+i*L*.12;for(const s of[-1,1]){const rb=put(g,new THREE.TorusGeometry(.4*k*(1-Math.abs(i-3)*.12),.035*k,5,10,Math.PI),bone,x,.28,0);rb.rotation.set(0,Math.PI/2,s>0?0:Math.PI);rb.rotation.x=s>0?Math.PI/2:-Math.PI/2}}

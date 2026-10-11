@@ -4,40 +4,38 @@
  "units": {
   "worker": [
    {
-    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
+    "file": "neu/Adventurer.glb",
     "epochs": [
-     0,
-     1
+     0
     ],
-    "yaw": 0,
     "tint": {
-     "M_Main": "#c9966e",
-     "M_Joints": "#c9966e"
+     "Green": "#7a5634",
+     "LightGreen": "#93693f",
+     "Brown": "skin",
+     "Brown2": "skin",
+     "Grey": "skin",
+     "Black": "#9c6a48",
+     "Gold": "#e8dcc0"
     },
     "pelt": "#8a6338",
     "anim": {
-     "idle": "Idle_Loop",
-     "walk": "Walk_Loop",
-     "attack": "Sword_Attack",
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
      "work": "Interact"
     },
     "skins": [
-     "#c9966e",
-     "#b57e58",
-     "#d8a883",
-     "#9c6a48"
-    ],
-    "hair": [
-     "#2a1a10",
-     "#4a2e18",
-     "#1c1410",
-     "#6b4a2a"
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
     ],
     "belt": "#3b2a1a",
     "human": true,
     "work": {
      "chop": {
-      "clip": "Sword_Attack",
+      "clip": "Sword_Slash",
       "tool": {
        "file": "neu/Axe Small.glb",
        "scale": 0.4,
@@ -54,7 +52,7 @@
       }
      },
      "mine": {
-      "clip": "Punch_Cross",
+      "clip": "Punch_Right",
       "tool": {
        "file": "neu/Doublesided Hammer.glb",
        "scale": 0.3,
@@ -71,10 +69,10 @@
       }
      },
      "pick": {
-      "clip": "PickUp_Table"
+      "clip": "Interact"
      },
      "build": {
-      "clip": "Fixing_Kneeling",
+      "clip": "Punch_Left",
       "tool": {
        "file": "neu/Doublesided Hammer.glb",
        "scale": 0.25,
@@ -91,7 +89,7 @@
       }
      },
      "farm": {
-      "clip": "Sword_Attack",
+      "clip": "Sword_Slash",
       "tool": {
        "file": "neu/Scythe.glb",
        "scale": 0.4,
@@ -108,7 +106,7 @@
       }
      },
      "hunt": {
-      "clip": "Sword_Attack",
+      "clip": "Sword_Slash",
       "tool": {
        "file": "neu/Spear.glb",
        "scale": 0.25,
@@ -141,14 +139,315 @@
        ]
       }
      }
-    }
+    },
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ]
+   },
+   {
+    "file": "neu/Adventurer.glb",
+    "epochs": [
+     1
+    ],
+    "tint": {
+     "Green": "#b9a27a",
+     "LightGreen": "#a08a62",
+     "Brown": "#6b4a2e",
+     "Brown2": "#5a3c22",
+     "Grey": "#7a5532",
+     "Black": "#3b2a1a",
+     "Gold": "#c08a3a"
+    },
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
+    },
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "belt": "#3b2a1a",
+    "human": true,
+    "work": {
+     "chop": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Axe Small.glb",
+       "scale": 0.4,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "mine": {
+      "clip": "Punch_Right",
+      "tool": {
+       "file": "neu/Doublesided Hammer.glb",
+       "scale": 0.3,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "pick": {
+      "clip": "Interact"
+     },
+     "build": {
+      "clip": "Punch_Left",
+      "tool": {
+       "file": "neu/Doublesided Hammer.glb",
+       "scale": 0.25,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "farm": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Scythe.glb",
+       "scale": 0.4,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "hunt": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Spear.glb",
+       "scale": 0.25,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "fish": {
+      "clip": "Interact",
+      "tool": {
+       "file": "neu/Fishing Rod.glb",
+       "scale": 0.5,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     }
+    },
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ]
+   },
+   {
+    "file": "neu/Adventurer.glb",
+    "epochs": [
+     2
+    ],
+    "tint": {
+     "Green": "#6f6a48",
+     "LightGreen": "#857e58",
+     "Brown": "#5a4632",
+     "Brown2": "#4a3a2a",
+     "Grey": "#4a3a2a",
+     "Black": "#2a2018",
+     "Gold": "#9aa0a6"
+    },
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
+    },
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "belt": "#3b2a1a",
+    "human": true,
+    "work": {
+     "chop": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Axe Small.glb",
+       "scale": 0.4,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "mine": {
+      "clip": "Punch_Right",
+      "tool": {
+       "file": "neu/Doublesided Hammer.glb",
+       "scale": 0.3,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "pick": {
+      "clip": "Interact"
+     },
+     "build": {
+      "clip": "Punch_Left",
+      "tool": {
+       "file": "neu/Doublesided Hammer.glb",
+       "scale": 0.25,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "farm": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Scythe.glb",
+       "scale": 0.4,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "hunt": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Spear.glb",
+       "scale": 0.25,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "fish": {
+      "clip": "Interact",
+      "tool": {
+       "file": "neu/Fishing Rod.glb",
+       "scale": 0.5,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     }
+    },
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ]
    },
    {
     "file": "neu/Farmer.glb",
     "epochs": [
-     0,
-     1,
-     2,
      3,
      4
     ],
@@ -391,57 +690,111 @@
   ],
   "scout": [
    {
-    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
-    "yaw": 0,
+    "file": "neu/Adventurer.glb",
     "tint": {
-     "M_Main": "#c9966e",
-     "M_Joints": "#c9966e"
+     "Green": "#7a5634",
+     "LightGreen": "#93693f",
+     "Brown": "skin",
+     "Brown2": "skin",
+     "Grey": "skin",
+     "Black": "#9c6a48",
+     "Gold": "#e8dcc0"
     },
     "pelt": "#8a6338",
     "anim": {
-     "idle": "Idle_Loop",
-     "walk": "Walk_Loop",
+     "idle": "Idle",
+     "walk": "Walk",
      "attack": "Interact",
      "work": "Interact"
     },
     "skins": [
-     "#c9966e",
-     "#b57e58",
-     "#d8a883",
-     "#9c6a48"
-    ],
-    "hair": [
-     "#2a1a10",
-     "#4a2e18",
-     "#1c1410",
-     "#6b4a2a"
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
     ],
     "belt": "#3b2a1a",
     "cape": "#3d5a2e",
     "tooth": true,
     "human": true,
     "hide": [
+     "Backpack",
      "^Sword",
      "Shield",
      "Gun",
      "Rifle"
     ],
     "epochs": [
-     0,
-     1
+     0
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
     ]
    },
    {
-    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
-    "yaw": 0,
+    "file": "neu/Adventurer.glb",
     "tint": {
-     "M_Main": "#c9966e",
-     "M_Joints": "#c9966e"
+     "Green": "#b9a27a",
+     "LightGreen": "#a08a62",
+     "Brown": "#6b4a2e",
+     "Brown2": "#5a3c22",
+     "Grey": "#7a5532",
+     "Black": "#3b2a1a",
+     "Gold": "#c08a3a"
     },
-    "pelt": "#8a6338",
     "anim": {
-     "idle": "Idle_Loop",
-     "walk": "Walk_Loop",
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Interact",
+     "work": "Interact"
+    },
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "belt": "#3b2a1a",
+    "cape": "#3d5a2e",
+    "human": true,
+    "hide": [
+     "Backpack",
+     "^Sword",
+     "Shield",
+     "Gun",
+     "Rifle"
+    ],
+    "epochs": [
+     1
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ]
+   },
+   {
+    "file": "neu/Adventurer.glb",
+    "tint": {
+     "Green": "#6f6a48",
+     "LightGreen": "#857e58",
+     "Brown": "#5a4632",
+     "Brown2": "#4a3a2a",
+     "Grey": "#4a3a2a",
+     "Black": "#2a2018",
+     "Gold": "#9aa0a6"
+    },
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
      "attack": "Interact",
      "work": "Interact"
     },
@@ -449,25 +802,28 @@
      2
     ],
     "skins": [
-     "#c9966e",
-     "#b57e58",
-     "#d8a883",
-     "#9c6a48"
-    ],
-    "hair": [
-     "#2a1a10",
-     "#4a2e18",
-     "#1c1410",
-     "#6b4a2a"
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
     ],
     "belt": "#3b2a1a",
     "cape": "#3d5a2e",
     "human": true,
     "hide": [
+     "Backpack",
      "^Sword",
      "Shield",
      "Gun",
      "Rifle"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
     ]
    },
    {
@@ -501,64 +857,125 @@
     },
     "human": true,
     "epochs": [
-     5,
-     6
+     5
     ]
+   },
+   {
+    "file": "military/Military Motorbike.glb",
+    "epochs": [
+     6
+    ],
+    "len": 2.6,
+    "yaw": 90
    }
   ],
   "healer": [
    {
-    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
-    "yaw": 0,
+    "file": "neu/Adventurer.glb",
     "tint": {
-     "M_Main": "#c9966e",
-     "M_Joints": "#c9966e"
+     "Green": "#7a5634",
+     "LightGreen": "#93693f",
+     "Brown": "skin",
+     "Brown2": "skin",
+     "Grey": "skin",
+     "Black": "#9c6a48",
+     "Gold": "#e8dcc0"
     },
     "pelt": "#8a6338",
     "anim": {
-     "idle": "Idle_Loop",
-     "walk": "Walk_Loop",
+     "idle": "Idle",
+     "walk": "Walk",
      "attack": "Interact",
      "work": "Interact"
     },
     "skins": [
-     "#c9966e",
-     "#b57e58",
-     "#d8a883",
-     "#9c6a48"
-    ],
-    "hair": [
-     "#2a1a10",
-     "#4a2e18",
-     "#1c1410",
-     "#6b4a2a"
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
     ],
     "belt": "#3b2a1a",
     "cape": "#e6e0cc",
     "tooth": true,
     "human": true,
     "hide": [
+     "Backpack",
      "^Sword",
      "Shield",
      "Gun",
      "Rifle"
     ],
     "epochs": [
-     0,
-     1
+     0
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
     ]
    },
    {
-    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
-    "yaw": 0,
+    "file": "neu/Adventurer.glb",
     "tint": {
-     "M_Main": "#c9966e",
-     "M_Joints": "#c9966e"
+     "Green": "#b9a27a",
+     "LightGreen": "#a08a62",
+     "Brown": "#6b4a2e",
+     "Brown2": "#5a3c22",
+     "Grey": "#7a5532",
+     "Black": "#3b2a1a",
+     "Gold": "#c08a3a"
     },
-    "pelt": "#8a6338",
     "anim": {
-     "idle": "Idle_Loop",
-     "walk": "Walk_Loop",
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Interact",
+     "work": "Interact"
+    },
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "belt": "#3b2a1a",
+    "cape": "#e6e0cc",
+    "human": true,
+    "hide": [
+     "Backpack",
+     "^Sword",
+     "Shield",
+     "Gun",
+     "Rifle"
+    ],
+    "epochs": [
+     1
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ]
+   },
+   {
+    "file": "neu/Adventurer.glb",
+    "tint": {
+     "Green": "#6f6a48",
+     "LightGreen": "#857e58",
+     "Brown": "#5a4632",
+     "Brown2": "#4a3a2a",
+     "Grey": "#4a3a2a",
+     "Black": "#2a2018",
+     "Gold": "#9aa0a6"
+    },
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
      "attack": "Interact",
      "work": "Interact"
     },
@@ -566,25 +983,28 @@
      2
     ],
     "skins": [
-     "#c9966e",
-     "#b57e58",
-     "#d8a883",
-     "#9c6a48"
-    ],
-    "hair": [
-     "#2a1a10",
-     "#4a2e18",
-     "#1c1410",
-     "#6b4a2a"
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
     ],
     "belt": "#3b2a1a",
     "cape": "#e6e0cc",
     "human": true,
     "hide": [
+     "Backpack",
      "^Sword",
      "Shield",
      "Gun",
      "Rifle"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
     ]
    },
    {
@@ -610,8 +1030,7 @@
    {
     "file": "neu/Soldier.glb",
     "epochs": [
-     5,
-     6
+     5
     ],
     "anim": {
      "idle": "Idle",
@@ -626,6 +1045,14 @@
      "Gun",
      "Rifle"
     ]
+   },
+   {
+    "file": "military/Ambulance Car.glb",
+    "epochs": [
+     6
+    ],
+    "len": 3.4,
+    "yaw": 90
    }
   ],
   "engineer": {
@@ -747,21 +1174,92 @@
   },
   "spear": [
    {
-    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
-    "yaw": 0,
+    "file": "neu/Adventurer.glb",
     "tint": {
-     "M_Main": "#c9966e",
-     "M_Joints": "#c9966e"
+     "Green": "#b9a27a",
+     "LightGreen": "#a08a62",
+     "Brown": "#6b4a2e",
+     "Brown2": "#5a3c22",
+     "Grey": "#7a5532",
+     "Black": "#3b2a1a",
+     "Gold": "#c08a3a"
     },
-    "pelt": "#8a6338",
     "anim": {
-     "idle": "Idle_Loop",
-     "walk": "Walk_Loop",
-     "attack": "Sword_Attack",
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
      "work": "Interact"
     },
     "epochs": [
-     1,
+     1
+    ],
+    "hand": {
+     "file": "neu/Spear.glb",
+     "scale": 0.14,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "left": {
+     "file": "neu/Shield Round.glb",
+     "scale": 0.22,
+     "rot": [
+      0,
+      -90,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "belt": "#3b2a1a",
+    "cape": "#6b4a2b",
+    "human": true,
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ]
+   },
+   {
+    "file": "neu/Adventurer.glb",
+    "tint": {
+     "Green": "#6f6a48",
+     "LightGreen": "#857e58",
+     "Brown": "#5a4632",
+     "Brown2": "#4a3a2a",
+     "Grey": "#4a3a2a",
+     "Black": "#2a2018",
+     "Gold": "#9aa0a6"
+    },
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
+    },
+    "epochs": [
      2
     ],
     "hand": {
@@ -793,21 +1291,25 @@
      ]
     },
     "skins": [
-     "#c9966e",
-     "#b57e58",
-     "#d8a883",
-     "#9c6a48"
-    ],
-    "hair": [
-     "#2a1a10",
-     "#4a2e18",
-     "#1c1410",
-     "#6b4a2a"
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
     ],
     "belt": "#3b2a1a",
     "cape": "#6b4a2b",
-    "tooth": true,
-    "human": true
+    "human": true,
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ]
    },
    {
     "file": "neu/Medieval.glb",
@@ -871,17 +1373,20 @@
   ],
   "sword": [
    {
-    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
-    "yaw": 0,
+    "file": "neu/Adventurer.glb",
     "tint": {
-     "M_Main": "#c9966e",
-     "M_Joints": "#c9966e"
+     "Green": "#6f6a48",
+     "LightGreen": "#857e58",
+     "Brown": "#5a4632",
+     "Brown2": "#4a3a2a",
+     "Grey": "#4a3a2a",
+     "Black": "#2a2018",
+     "Gold": "#9aa0a6"
     },
-    "pelt": "#8a6338",
     "anim": {
-     "idle": "Idle_Loop",
-     "walk": "Walk_Loop",
-     "attack": "Sword_Attack",
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
      "work": "Interact"
     },
     "epochs": [
@@ -916,20 +1421,25 @@
      ]
     },
     "skins": [
-     "#c9966e",
-     "#b57e58",
-     "#d8a883",
-     "#9c6a48"
-    ],
-    "hair": [
-     "#2a1a10",
-     "#4a2e18",
-     "#1c1410",
-     "#6b4a2a"
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
     ],
     "belt": "#3b2a1a",
     "cape": "#5a4a3a",
-    "human": true
+    "human": true,
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ]
    },
    {
     "file": "neu/Medieval.glb",
@@ -976,21 +1486,78 @@
   ],
   "archer": [
    {
-    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
-    "yaw": 0,
+    "file": "neu/Adventurer.glb",
     "tint": {
-     "M_Main": "#c9966e",
-     "M_Joints": "#c9966e"
+     "Green": "#b9a27a",
+     "LightGreen": "#a08a62",
+     "Brown": "#6b4a2e",
+     "Brown2": "#5a3c22",
+     "Grey": "#7a5532",
+     "Black": "#3b2a1a",
+     "Gold": "#c08a3a"
     },
-    "pelt": "#8a6338",
     "anim": {
-     "idle": "Pistol_Idle_Loop",
-     "walk": "Walk_Loop",
-     "attack": "Pistol_Shoot",
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
      "work": "Interact"
     },
     "epochs": [
-     1,
+     1
+    ],
+    "left": {
+     "file": "neu/Wooden Bow.glb",
+     "scale": 0.45,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "belt": "#3b2a1a",
+    "cape": "#8a6a40",
+    "human": true,
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ]
+   },
+   {
+    "file": "neu/Adventurer.glb",
+    "tint": {
+     "Green": "#6f6a48",
+     "LightGreen": "#857e58",
+     "Brown": "#5a4632",
+     "Brown2": "#4a3a2a",
+     "Grey": "#4a3a2a",
+     "Black": "#2a2018",
+     "Gold": "#9aa0a6"
+    },
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact"
+    },
+    "epochs": [
      2
     ],
     "left": {
@@ -1008,20 +1575,25 @@
      ]
     },
     "skins": [
-     "#c9966e",
-     "#b57e58",
-     "#d8a883",
-     "#9c6a48"
-    ],
-    "hair": [
-     "#2a1a10",
-     "#4a2e18",
-     "#1c1410",
-     "#6b4a2a"
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
     ],
     "belt": "#3b2a1a",
     "cape": "#8a6a40",
-    "human": true
+    "human": true,
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ]
    },
    {
     "file": "neu/Medieval.glb",
@@ -1293,24 +1865,28 @@
    "scale": 0.5
   },
   "club": {
-   "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
-   "yaw": 0,
+   "file": "neu/Adventurer.glb",
    "tint": {
-    "M_Main": "#c9966e",
-    "M_Joints": "#c9966e"
+    "Green": "#7a5634",
+    "LightGreen": "#93693f",
+    "Brown": "skin",
+    "Brown2": "skin",
+    "Grey": "skin",
+    "Black": "#9c6a48",
+    "Gold": "#e8dcc0"
    },
    "pelt": "#8a6338",
    "anim": {
-    "idle": "Idle_Loop",
-    "walk": "Walk_Loop",
-    "attack": "Sword_Attack",
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Sword_Slash",
     "work": "Interact"
    },
    "hand": {
     "file": "neu/Wooden Torch.glb",
     "scale": 0.45,
     "rot": [
-     90,
+     180,
      0,
      0
     ],
@@ -1321,34 +1897,46 @@
     ]
    },
    "skins": [
-    "#c9966e",
-    "#b57e58",
-    "#d8a883",
-    "#9c6a48"
-   ],
-   "hair": [
-    "#2a1a10",
-    "#4a2e18",
-    "#1c1410",
-    "#6b4a2a"
+    "#e0ac85",
+    "#c68c63",
+    "#eab994",
+    "#a8734d",
+    "#d49a72"
    ],
    "belt": "#3b2a1a",
    "cape": "#7a5a38",
    "tooth": true,
-   "human": true
+   "human": true,
+   "epochs": [
+    0
+   ],
+   "hairs": [
+    "#2a1a10",
+    "#4a2e18",
+    "#1c1410",
+    "#6b4a2a",
+    "#3a2414"
+   ],
+   "hide": [
+    "Backpack"
+   ]
   },
   "sling": {
-   "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
-   "yaw": 0,
+   "file": "neu/Adventurer.glb",
    "tint": {
-    "M_Main": "#c9966e",
-    "M_Joints": "#c9966e"
+    "Green": "#7a5634",
+    "LightGreen": "#93693f",
+    "Brown": "skin",
+    "Brown2": "skin",
+    "Grey": "skin",
+    "Black": "#9c6a48",
+    "Gold": "#e8dcc0"
    },
    "pelt": "#8a6338",
    "anim": {
-    "idle": "Idle_Loop",
-    "walk": "Walk_Loop",
-    "attack": "Sword_Attack",
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Sword_Slash",
     "work": "Interact"
    },
    "hand": {
@@ -1366,19 +1954,27 @@
     ]
    },
    "skins": [
-    "#c9966e",
-    "#b57e58",
-    "#d8a883",
-    "#9c6a48"
+    "#e0ac85",
+    "#c68c63",
+    "#eab994",
+    "#a8734d",
+    "#d49a72"
    ],
-   "hair": [
+   "belt": "#3b2a1a",
+   "human": true,
+   "epochs": [
+    0
+   ],
+   "hairs": [
     "#2a1a10",
     "#4a2e18",
     "#1c1410",
-    "#6b4a2a"
+    "#6b4a2a",
+    "#3a2414"
    ],
-   "belt": "#3b2a1a",
-   "human": true
+   "hide": [
+    "Backpack"
+   ]
   },
   "boat": [
    {
@@ -1824,24 +2420,35 @@
     "seat": 0.72
    },
    "yaw": 90
-  }
+  },
+  "cart": [
+   {
+    "file": "military/Truck.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "len": 3.2,
+    "yaw": 90
+   }
+  ]
  },
  "buildings": {
   "hq": [
-   {
-    "file": "neu/Wooden house tower.glb",
-    "epochs": [
-     0,
-     1
-    ],
-    "fit": 1.0
-   },
    {
     "file": "neu/Tower House.glb",
     "epochs": [
      2
     ],
-    "fit": 1.0
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "arch/Arch.glb",
+      "h": 3.2,
+      "x": 0.2,
+      "z": 1.25
+     }
+    ]
    },
    {
     "file": "neu/Houses-gEjAC1UvVU.glb",
@@ -1862,7 +2469,16 @@
     "epochs": [
      3
     ],
-    "fit": 1.0
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "arch/Church.glb",
+      "h": 7,
+      "x": -1.35,
+      "z": -0.5,
+      "ry": 90
+     }
+    ]
    },
    {
     "file": "neu/Castle Fortress.glb",
@@ -1873,14 +2489,6 @@
    }
   ],
   "house": [
-   {
-    "file": "neu/Hut.glb",
-    "epochs": [
-     0,
-     1
-    ],
-    "fit": 1.0
-   },
    {
     "file": "neu/House-YlADpCJU8U.glb",
     "epochs": [
@@ -1913,14 +2521,6 @@
   ],
   "store": [
    {
-    "file": "neu/Storage Hut.glb",
-    "epochs": [
-     0,
-     1
-    ],
-    "fit": 1.0
-   },
-   {
     "file": "neu/Storage shed-fkTsDdpQAA.glb",
     "epochs": [
      2
@@ -1934,24 +2534,39 @@
      4
     ],
     "fit": 1.0
+   },
+   {
+    "file": "arch/Barn.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "fit": 1.0
    }
   ],
   "barracks": [
    {
-    "file": "neu/Wooden Encampment.glb",
+    "file": "arch/Colosseum.glb",
     "epochs": [
-     0
+     2
     ],
     "fit": 1.0
    },
    {
     "file": "neu/Wooden Fortress.glb",
     "epochs": [
-     1,
-     2,
      3
     ],
-    "fit": 1.0
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "torture/Pilory-2aK6iL6NAY.glb",
+      "h": 1.1,
+      "x": 1.3,
+      "z": 1.0,
+      "ry": -20
+     }
+    ]
    },
    {
     "file": "neu/Castle.glb",
@@ -1962,14 +2577,6 @@
    }
   ],
   "harbor": [
-   {
-    "file": "neu/Dock Wide.glb",
-    "epochs": [
-     0,
-     1
-    ],
-    "fit": 1.0
-   },
    {
     "file": "neu/Port.glb",
     "epochs": [
@@ -1993,7 +2600,28 @@
      3,
      4
     ],
-    "fit": 1.0
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "torture/Gallows.glb",
+      "h": 2.6,
+      "x": 1.35,
+      "z": 0.9,
+      "ry": -30
+     },
+     {
+      "file": "torture/Pilory.glb",
+      "h": 1.2,
+      "x": -1.3,
+      "z": 1.0
+     },
+     {
+      "file": "torture/Cage-TAqDCvxcxd.glb",
+      "h": 1.6,
+      "x": -1.45,
+      "z": 0.45
+     }
+    ]
    },
    {
     "file": "neu/Castle Fortress.glb",
@@ -2043,21 +2671,22 @@
      5,
      6
     ],
-    "fit": 1.0
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "arch/Ferris Wheel.glb",
+      "h": 4.5,
+      "x": -1.4,
+      "z": -0.3,
+      "ry": 90
+     }
+    ]
    }
   ],
   "tower": [
    {
-    "file": "neu/Watch Tower.glb",
-    "epochs": [
-     0
-    ],
-    "fit": 1.0
-   },
-   {
     "file": "neu/Watch Tower-VJZZW37Vsk.glb",
     "epochs": [
-     1,
      2
     ],
     "fit": 1.0
@@ -2114,6 +2743,66 @@
    "file": "neu/Lizard.glb",
    "tintAll": "#4f6b3a",
    "yaw": 90
+  },
+  "para": {
+   "file": "dino/Parasaurolophus.glb",
+   "anim": {
+    "idle": "Armature|Parasaurolophus_Idle",
+    "walk": "Armature|Parasaurolophus_Walk",
+    "attack": "Armature|Parasaurolophus_Attack",
+    "work": "Armature|Parasaurolophus_Idle"
+   },
+   "len": 4.6
+  },
+  "trike": {
+   "file": "dino/Triceratops.glb",
+   "anim": {
+    "idle": "Armature|Triceratops_Idle",
+    "walk": "Armature|Triceratops_Walk",
+    "attack": "Armature|Triceratops_Attack",
+    "work": "Armature|Triceratops_Idle"
+   },
+   "len": 5.2
+  },
+  "stego": {
+   "file": "dino/Stegosaurus.glb",
+   "anim": {
+    "idle": "Armature|Stegosaurus_Idle",
+    "walk": "Armature|Stegosaurus_Walk",
+    "attack": "Armature|Stegosaurus_Attack",
+    "work": "Armature|Stegosaurus_Idle"
+   },
+   "len": 5.4
+  },
+  "bronto": {
+   "file": "dino/Apatosaurus.glb",
+   "anim": {
+    "idle": "Armature|Apatosaurus_Idle",
+    "walk": "Armature|Apatosaurus_Walk",
+    "attack": "Armature|Apatosaurus_Attack",
+    "work": "Armature|Apatosaurus_Idle"
+   },
+   "len": 10.5
+  },
+  "raptor": {
+   "file": "dino/Velociraptor.glb",
+   "anim": {
+    "idle": "Armature|Velociraptor_Idle",
+    "walk": "Armature|Velociraptor_Walk",
+    "attack": "Armature|Velociraptor_Attack",
+    "work": "Armature|Velociraptor_Idle"
+   },
+   "len": 2.6
+  },
+  "trex": {
+   "file": "dino/T-Rex.glb",
+   "anim": {
+    "idle": "Armature|TRex_Idle",
+    "walk": "Armature|TRex_Walk",
+    "attack": "Armature|TRex_Attack",
+    "work": "Armature|TRex_Idle"
+   },
+   "len": 7.0
   }
  },
  "nodes": {
