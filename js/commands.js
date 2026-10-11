@@ -156,5 +156,5 @@ function tryPlace(wx,wy,keep){
   ownSel().filter(u=>UNITS[u.type].builds).forEach(u=>giveOrder(u,{t:'build',tid:b.id},keep));
   if(!(keep&&afford(0,d.cost)))placing=null;
 }
-function cancelQueue(b,i){if(NET.client){NET.send({c:'cq',b:b.id,i});return}const q=b.queue[i];if(!q)return;refund(0,UNITS[q.type].cost);b.queue.splice(i,1);panelSig=''}
+function cancelQueue(b,i){if(NET.client){NET.send({c:'cq',b:b.id,i});return}const q=b.queue[i];if(!q)return;if(q.tech){const c={};for(const r in TECH[q.tech].cost)c[r]=TECH[q.tech].cost[r]*(q.paid||0);refund(0,c)}else refund(0,UNITS[q.type].cost);b.queue.splice(i,1);panelSig=''}
 

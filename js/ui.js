@@ -128,7 +128,7 @@ function techBlock(e){
   const ts=techsFor(e.type).filter(t=>t.ep<=G.epoch[0]);if(!ts.length)return '';const own=G.tech[0];
   let h=`<div class="upg"><div class="uh"><b>${tr('Technologien')}</b></div>`;
   for(const t of ts){if(own.has(t.id))continue;const rs=G.rs[0].find(r=>r.id===t.id);
-    if(rs)h+=`<div class="ur run"><span class="un">${tr(t.name)}</span><span class="uc"><small>${Math.floor(rs.t/rs.time*100)} %</small></span><span class="ub busy">${tr('läuft')}</span></div>`;
+    if(rs)h+=`<div class="ur run"><span class="un">${tr(t.name)}</span><span class="uc"><small>${Math.floor(rs.t/rs.time*100)} %</small></span><span class="ub busy">${tr(rs.q?'wartet':'läuft')}</span></div>`;
     else{const ok=afford(0,t.cost);h+=`<div class="ur"><span class="un"><b class="tn">${tr(t.name)}</b><small>${tr(t.desc)}</small></span><span class="uc">${costHTML(t.cost)}<small>${t.time} s</small></span><button class="ub ${ok?'ok':'bad'}" data-tech="${t.id}">${tr('Erforschen')}</button></div>`}}
   const done=ts.filter(t=>own.has(t.id));if(done.length)h+=`<div class="line upd">✔ ${done.map(t=>tr(t.name)).join(' · ')}</div>`;
   return h+'</div>'}
@@ -159,7 +159,7 @@ function infoHTML(s){
       h+=`<div class="line">${tr('Bergleute: {0} / {1}',n,MINE_CAP)}</div><div class="chips"><span class="q">${tr('Minenlager')}: ${Math.floor(tot)} / ${MINE_STOCK}<span class="qb"><span style="width:${Math.min(100,tot/MINE_STOCK*100)}%"></span></span></span></div>`;
       if(e.team===0&&!n)h+='<div class="line"><em>'+tr('Arbeiter per Rechtsklick auf die Mine oder das Vorkommen schicken. Eine Lore bringt das Erz zum Lager.')+'</em></div>'}
     if(e.team===0&&e.built)h+=techBlock(e);
-    if(e.team===0&&e.queue.length){h+='<div class="chips">'+e.queue.map((q,i)=>`<button class="q${q.blocked?' blocked':''}" data-q="${i}" title="${tr('Klicken zum Abbrechen')}">${tr(UNITS[q.type].name)}${q.blocked?' – '+tr('Platz fehlt'):''}<span class="qb"><span style="width:${i===0?(q.t/UNITS[q.type].time*100).toFixed(0):0}%"></span></span></button>`).join('')+'</div>'}
+    if(e.team===0&&e.queue.length){h+='<div class="chips">'+e.queue.map((q,i)=>`<button class="q${q.blocked?' blocked':''}" data-q="${i}" title="${tr('Klicken zum Abbrechen')}">${q.tech?'⚗ '+tr(TECH[q.tech].name):tr(UNITS[q.type].name)}${q.blocked?' – '+tr(q.tech?'Rohstoffe fehlen':'Platz fehlt'):''}<span class="qb"><span style="width:${i===0?(q.t/(q.tech?TECH[q.tech].time:UNITS[q.type].time)*100).toFixed(0):0}%"></span></span></button>`).join('')+'</div>'}
     if(e.team===0&&e.built&&(e.type==='hq'||e.type==='barracks')&&!e.queue.length)h+='<div class="line"><em>'+tr('Rechtsklick auf die Karte setzt den Sammelpunkt.')+'</em></div>';
     if(e.team===0&&BLDS[e.type].pop)h+=`<div class="line"><em>${tr('Bietet Platz für {0} Bewohner',BLDS[e.type].pop)}</em></div>`;
   }
