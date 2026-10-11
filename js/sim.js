@@ -183,11 +183,12 @@ function updUnit(u,dt){
     if(!canGather(u,n)){u.state='idle';u.tid=null;u.rtype=null;if(u.team===0&&G.t-(G.lvlWarn||-9)>4){G.lvlWarn=G.t;toast(tr('Arbeiter brauchen Stufe {0}, um {1} abzubauen.',LVLN[NODES[n.type].lvl!==undefined?NODES[n.type].lvl:NEED_LVL[n.rt]],tr(NODES[n.type].name)));sfx('error')}break}
     const cap=gc.carry*(1+G.tfx[u.team].carry+(d.naval?G.tfx[u.team].bcarry:0));
     if(u.carry>=cap){u.state='return';break}
-    if(reach(u,n)){u.fa=Math.atan2(n.y-u.y,n.x-u.x);u.gat=G.t;if((u.gt=(u.gt||0)-dt)<=0){u.gt=.75+Math.random()*.2;sfx(n.rt==='wood'?'chop':n.rt==='stone'||n.rt==='iron'||n.rt==='gold'?'mine':'pick',u);if(Math.random()<.22)sfx('grunt',u)}const rate=gRate(u,n);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;if(n.amount<=0.001){if(n.regen)n.amount=0;else kill(n)}if(u.carry>=cap)u.state='return'}
+    const fs=n.type==='field'?{x:n.x+Math.cos(u.id*2.4)*n.r*(.45+(u.id*53%10)/25),y:n.y+Math.sin(u.id*2.4)*n.r*(.45+(u.id*53%10)/25)}:null; /* Feld: jeder Arbeiter hat seinen Platz auf dem Acker */
+    if(fs?Math.hypot(u.x-fs.x,u.y-fs.y)<6:reach(u,n)){u.fa=fs?u.id%6.283:Math.atan2(n.y-u.y,n.x-u.x);u.gat=G.t;if((u.gt=(u.gt||0)-dt)<=0){u.gt=.75+Math.random()*.2;sfx(n.rt==='wood'?'chop':n.rt==='stone'||n.rt==='iron'||n.rt==='gold'?'mine':'pick',u);if(Math.random()<.22)sfx('grunt',u)}const rate=gRate(u,n);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;if(n.amount<=0.001){if(n.regen)n.amount=0;else kill(n)}if(u.carry>=cap)u.state='return'}
     else{
       // Absprache: ist der Baum/Busch schon voll besetzt, ein freies Vorkommen in der Nähe suchen
       if((G.load[n.id]||0)>NODES[n.type].cap&&G.t-(u.rs||0)>1.5){u.rs=G.t;const alt=nearestNode(u.rtype||n.rt,u.x,u.y,350,u,true);if(alt&&alt.id!==n.id){G.load[n.id]--;G.load[alt.id]=(G.load[alt.id]||0)+1;u.tid=alt.id;u.pf=null;n=alt}}
-      moveToward(u,n.x,n.y,dt,n.id);
+      moveToward(u,fs?fs.x:n.x,fs?fs.y:n.y,dt,n.id);
       if(u.pf&&u.pf.fail){(u.bad||(u.bad={}))[n.id]=G.t;u.tid=null;u.pf=null}}
     break}
   case 'return':{const dp=nearestDrop(u.team,u.x,u.y,!!d.naval,u.ctype);if(!dp||!u.ctype){u.state='idle';break}
@@ -218,7 +219,7 @@ function damage(t,amt,src){
   if(t.team===1&&G.mp&&G.t-G.alertT1>12){G.alertT1=G.t;G.ev.push({t:'alert',x:Math.round(t.x),y:Math.round(t.y)})}
   if(t.hp<=0){kill(t);if(t.kind==='animal'&&src&&src.team>=0){const f=ANIMALS[t.type].food;if(f){G.res[src.team][ 'food']+=f;if(src.team===0&&!NET.cap)toast(tr('Beute erlegt: +{0} Nahrung',f),'good')}}}
 }
-function kill(e){if(e.dead)return;e.dead=true;if(e.type==='farm')for(const n of G.ents)if(n.type==='field'&&n.farm===e.id)n.dead=true;if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea))navStamp(e,-1);if(e.kind==='unit'||e.kind==='animal')sfx('die',e);else if(e.kind==='bld')sfx('crumble',e);sel.delete(e.id);if(e.kind==='unit')G.stats.lost[e.team]++;
+function kill(e){if(e.dead)return;e.dead=true;if(e.type==='farm')for(const n of G.ents)if(n.type==='field'&&n.farm===e.id)n.dead=true;if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea&&e.type!=='field'))navStamp(e,-1);if(e.kind==='unit'||e.kind==='animal')sfx('die',e);else if(e.kind==='bld')sfx('crumble',e);sel.delete(e.id);if(e.kind==='unit')G.stats.lost[e.team]++;
   if(e.type==='hq'&&!G.over)G.over=e.team===0?'lose':'win';}
 function updBld(b,dt){
   if(!b.built)return;const d=BLDS[b.type];
@@ -320,7 +321,7 @@ function separate(){
     for(let gx=cx-1;gx<=cx+1;gx++)for(let gy=cy-1;gy<=cy+1;gy++){const l=ug.get(gx*4096+gy);if(!l)continue;
       for(const b of l){if(b._i<=a._i)continue;let dx=b.x-a.x,dy=b.y-a.y;const m=a.r+b.r;if(Math.abs(dx)>m||Math.abs(dy)>m)continue;let d=Math.hypot(dx,dy);if(d>=m)continue;if(d<.01){dx=Math.random()-.5;dy=Math.random()-.5;d=Math.hypot(dx,dy)}const p=(m-d)/2*.8;a.x-=dx/d*p;a.y-=dy/d*p;b.x+=dx/d*p;b.y+=dy/d*p}}}
   const CS=64,sg=new Map();
-  for(const o of G.solids){if(o.dead||(o.kind==='bld'&&BLDS[o.type].passable)||(o.kind==='node'&&o.sea))continue;const rr=o.r+24;
+  for(const o of G.solids){if(o.dead||(o.kind==='bld'&&BLDS[o.type].passable)||(o.kind==='node'&&(o.sea||o.type==='field')))continue;const rr=o.r+24;
     for(let gx=((o.x-rr)/CS)|0;gx<=((o.x+rr)/CS)|0;gx++)for(let gy=((o.y-rr)/CS)|0;gy<=((o.y+rr)/CS)|0;gy++){const k=gx*4096+gy,l=sg.get(k);if(l)l.push(o);else sg.set(k,[o])}}
   for(const u of us){const nav=!!UNITS[u.type].naval,l=sg.get(((u.x/CS)|0)*4096+((u.y/CS)|0));
     if(l)for(const o of l){if(o.dead||(o.sea&&!nav))continue;let dx=u.x-o.x,dy=u.y-o.y;const R=o.r+u.r;if(Math.abs(dx)>R||Math.abs(dy)>R)continue;let d=Math.hypot(dx,dy);if(d>=R)continue;if(d<.01){dx=1;dy=0;d=1}u.x=o.x+dx/d*R;u.y=o.y+dy/d*R}
