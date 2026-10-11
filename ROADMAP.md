@@ -221,3 +221,4 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Mine direkt auf dem Vorkommen, 8 Bergleute, erschöpft = dunkel, Abriss gibt Minenlager zurück
 - [x] Reiter sitzen mit angewinkelten Beinen; Lanzen-/Speerreiter und Schwertreiter
 - [ ] Fischernetze am Boot (kein passendes Modell vorhanden)
+- [ ] Schwere Reiterei: Pferd und Reiter mit Rüstung (Pferdedecke/Harnisch) – Release 3

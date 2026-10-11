@@ -13,6 +13,7 @@ const UNITS={
   club:{cls:'inf',name:'Keulenkrieger',sight:140,hp:75,spd:52,atk:7,rng:4,cd:1.1,r:8,cost:{food:60,wood:20},time:12,ep:0,from:'barracks'},
   spear:{cls:'spear',tech:'spearbuild',name:'Speerträger',sight:140,hp:115,spd:54,atk:11,rng:8,cd:1.1,r:8,cost:{food:70,wood:40},time:14,ep:1,from:'barracks'},
   archer:{cls:'rng',tech:'bowbuild',name:'Bogenschütze',sight:170,hp:55,spd:55,atk:8,rng:130,cd:1.6,r:7,cost:{food:40,wood:60},time:14,ep:1,from:'barracks',ranged:true},
+  hbow:{cls:'rng',tech:'stables',name:'Berittener Schütze',sight:180,hp:120,spd:78,atk:10,rng:125,cd:1.5,r:10,cost:{food:100,wood:60,iron:30},time:20,ep:3,from:'barracks',ranged:true},
   knight:{cls:'cav',tech:'stables',name:'Ritter',sight:170,hp:230,spd:70,atk:21,rng:6,cd:1.2,r:10,cost:{food:110,iron:60},time:22,ep:3,from:'barracks'},
   crossbow:{cls:'rng',tech:'crossbowbuild',name:'Armbrustschütze',sight:180,hp:110,spd:52,atk:28,rng:150,cd:2,r:7,cost:{food:70,wood:60,iron:30},time:18,ep:3,from:'barracks',ranged:true},
   musket:{cls:'rng',tech:'powder',name:'Musketier',sight:190,hp:135,spd:52,atk:46,rng:175,cd:2.2,r:7,cost:{gold:25,food:80,wood:40,iron:60},time:20,ep:4,from:'barracks',ranged:true,gun:true},
@@ -105,9 +106,9 @@ const RAGE={dur:6,cd:35,dmg:1.35,spd:1.25}; /* Fähigkeit Kampfrausch (Taste F) 
 /* Truppenlinien: ab einem späteren Zeitalter ist eine Einheit veraltet und nicht mehr ausbildbar (upto = letztes Zeitalter); vorhandene bleiben. uOk prüft beides. */
 /* Minen: bis MINE_CAP Arbeiter arbeiten drinnen, das Erz sammelt sich im Minenlager (MINE_STOCK) und eine Lore (Einheit cart) fährt es zum nächsten Lager */
 const MINE_CAP=8,MINE_STOCK=300,CART_LOAD=60;
-const UPTO={sling:0,club:1,archer:2,warship:2,crossbow:3,catapult:3,ram:3,spear:4,sword:4,musket:4,cannon:4,galleon:4,knight:5};for(const k in UPTO)UNITS[k].upto=UPTO[k];
+const UPTO={hbow:5,sling:0,club:1,archer:2,warship:2,crossbow:3,catapult:3,ram:3,spear:4,sword:4,musket:4,cannon:4,galleon:4,knight:5};for(const k in UPTO)UNITS[k].upto=UPTO[k];
 const uOk=(k,ep)=>UNITS[k].ep<=ep&&!(UNITS[k].upto<ep);
-const UNAMES={healer:['Schamane','Heiler','Priester','Feldscher','Sanitäter','Medizintechniker']};
+const UNAMES={knight:['Ritter','Ritter','Ritter','Ritter','Kürassier','Dragoner'],hbow:['Berittener Schütze','Berittener Schütze','Berittener Schütze','Berittener Armbrustschütze','Berittener Musketier','Karabinerreiter'],healer:['Schamane','Heiler','Priester','Feldscher','Sanitäter','Medizintechniker']};
 /* Nationen (ab der Industriezeit wählbar): Gruppe, Region, Farbe, Bonus (fx), Spezialeinheiten. fx: art = Artillerie-Schaden, gather = Sammeltempo, oilgold = Öl und Gold, tankCost = Panzerkosten, foodCost = Nahrungskosten der Truppen, prod = Ausbildungstempo, hp = Leben der Truppen, navhp = Leben der Schiffe, pop = Bevölkerung, air = Flugzeug-Leben */
 const NATIONS={
   at:{name:'Österreich-Ungarn',short:'k.u.k.',grp:'Kaiserreiche',reg:'Europa',col:'#d8c24a',desc:'Donaumonarchie mit gewaltiger Festungsartillerie.',bonus:'Belagerungswaffen +15 % Schaden, Gebäude +10 % Leben',fx:{art:.15,bhp:.1},sp:['skoda','alpini']},
@@ -185,7 +186,7 @@ const TECHS=[
   {id:'smithy',bld:'barracks',ep:2,name:'Eisenschmiede',desc:'Erlaubt Schwertkämpfer',cost:{food:250,wood:150,iron:80},time:32,fx:{}},
   {id:'marksman',bld:'barracks',ep:2,name:'Treffsicherheit',desc:'Fernkämpfer machen 20 % mehr Schaden (bessere Genauigkeit)',cost:{food:240,wood:200},time:32,fx:{ratk:.2}},
   {id:'siegeworks',bld:'barracks',ep:3,name:'Belagerungswerkstatt',desc:'Erlaubt Rammbock und Katapult',cost:{wood:350,iron:180},time:40,fx:{}},
-  {id:'stables',bld:'barracks',ep:3,name:'Reiterei',desc:'Erlaubt Ritter',cost:{food:400,wood:250,iron:150},time:38,fx:{}},
+  {id:'stables',bld:'barracks',ep:3,name:'Reiterei',desc:'Erlaubt Ritter und berittene Schützen',cost:{food:400,wood:250,iron:150},time:38,fx:{}},
   {id:'crossbowbuild',bld:'barracks',ep:3,name:'Armbrustbau',desc:'Erlaubt Armbrustschützen',cost:{food:300,wood:250,iron:100},time:36,fx:{}},
   {id:'plate',bld:'barracks',ep:3,name:'Plattenpanzer',desc:'Alle Truppen haben 20 % mehr Leben',cost:{food:420,iron:200},time:40,fx:{hp:.2}},
   {id:'powder',bld:'barracks',ep:4,name:'Schießpulver',desc:'Erlaubt Musketiere',cost:{food:500,wood:300,iron:250},time:42,fx:{}},
