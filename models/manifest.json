@@ -1976,34 +1976,91 @@
    {
     "file": "neu/Rock Medium.glb",
     "scale": 0.8,
-    "tint": "#c98f74"
+    "tint": "#d6b4a4",
+    "extra": {
+     "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
+     "mesh": "crystal_basalt_green.018",
+     "tint": "#b4482a",
+     "scale": 0.7,
+     "y": 0.5,
+     "n": 3,
+     "metal": 0.6
+    }
    },
    {
     "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
     "scale": 0.8,
-    "tint": "#c98f74"
+    "tint": "#d6b4a4",
+    "extra": {
+     "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
+     "mesh": "crystal_basalt_green.018",
+     "tint": "#b4482a",
+     "scale": 0.7,
+     "y": 0.5,
+     "n": 3,
+     "metal": 0.6
+    }
    },
    {
     "file": "neu/Rock Medium-JQxF95498B.glb",
     "scale": 0.8,
-    "tint": "#c98f74"
+    "tint": "#d6b4a4",
+    "extra": {
+     "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
+     "mesh": "crystal_basalt_green.018",
+     "tint": "#b4482a",
+     "scale": 0.7,
+     "y": 0.5,
+     "n": 3,
+     "metal": 0.6
+    }
    }
   ],
   "gold": [
    {
     "file": "neu/Rock Medium.glb",
     "scale": 0.72,
-    "tint": "#f2cf6a"
+    "tint": "#e8dcc0",
+    "extra": {
+     "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
+     "mesh": "crystal_basalt_green.010",
+     "tint": "#ffc93a",
+     "scale": 0.65,
+     "y": 0.5,
+     "n": 4,
+     "metal": 0.8,
+     "glow": 0.25
+    }
    },
    {
     "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
     "scale": 0.72,
-    "tint": "#f2cf6a"
+    "tint": "#e8dcc0",
+    "extra": {
+     "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
+     "mesh": "crystal_basalt_green.010",
+     "tint": "#ffc93a",
+     "scale": 0.65,
+     "y": 0.5,
+     "n": 4,
+     "metal": 0.8,
+     "glow": 0.25
+    }
    },
    {
     "file": "neu/Rock Medium-JQxF95498B.glb",
     "scale": 0.72,
-    "tint": "#f2cf6a"
+    "tint": "#e8dcc0",
+    "extra": {
+     "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
+     "mesh": "crystal_basalt_green.010",
+     "tint": "#ffc93a",
+     "scale": 0.65,
+     "y": 0.5,
+     "n": 4,
+     "metal": 0.8,
+     "glow": 0.25
+    }
    }
   ]
  },

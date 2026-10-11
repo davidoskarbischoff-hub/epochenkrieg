@@ -134,7 +134,13 @@ const EKMODELS=(()=>{
     const want=en.mesh&&en.mesh.replace(/\./g,'');gl.scene.traverse(o=>{if(o.isMesh&&!o.isSkinnedMesh&&(!want||o.name===want)){const g=o.geometry.clone();g.applyMatrix4(o.matrixWorld);parts.push({g,m:o.material})}});if(!parts.length)return null;
     const bb=new THREE.Box3();for(const p of parts){p.g.computeBoundingBox();bb.union(p.g.boundingBox)}
     refGeo.computeBoundingBox();const rb=refGeo.boundingBox,rh=(rb.max.y-rb.min.y)||1,sz=bb.getSize(new THREE.Vector3()),k=(en.height?en.height/(sz.y||1):rh/(sz.y||1))*(en.scale||1),c=bb.getCenter(new THREE.Vector3());
-    return parts.map(p=>{p.g.translate(-c.x,-bb.min.y,-c.z);p.g.scale(k,k,k);const m=p.m.clone();if(en.tint&&m.color)m.color.set(en.tint);if(m.isMeshStandardMaterial&&m.envMapIntensity>.5)m.envMapIntensity=.3;return{geo:p.g,mat:m}})}
+    const out=parts.map(p=>{p.g.translate(-c.x,-bb.min.y,-c.z);p.g.scale(k,k,k);const m=p.m.clone();if(en.tint&&m.color)m.color.set(en.tint);if(m.isMeshStandardMaterial&&m.envMapIntensity>.5)m.envMapIntensity=.3;return{geo:p.g,mat:m}});
+    /* Zusatz auf dem Felsen (z. B. Erz-Kristalle): extra:{file,mesh,tint,scale,y,n} – n Kristalle rund um die Kuppe */
+    const X=en.extra,gx=X&&files.get(X.file);if(gx){gx.scene.updateMatrixWorld(true);const want2=X.mesh&&X.mesh.replace(/\./g,'');let src=null;gx.scene.traverse(o=>{if(!src&&o.isMesh&&(!want2||o.name===want2))src=o});
+      if(src){const H=sz.y*k,W2=Math.max(sz.x,sz.z)*k;for(let i=0;i<(X.n||3);i++){const g=src.geometry.clone();g.applyMatrix4(src.matrixWorld);g.computeBoundingBox();const b2=g.boundingBox,s2=b2.getSize(new THREE.Vector3()),c2=b2.getCenter(new THREE.Vector3());
+        const kk=H*(X.scale||.5)*(.75+.25*((i*7+v)%3))/(s2.y||1);g.translate(-c2.x,-b2.min.y,-c2.z);g.scale(kk,kk,kk);g.rotateZ((i-1)*.35);g.rotateY(i*2.1+v);const a=i*2.1+v,rr=W2*.18;g.translate(Math.cos(a)*rr,H*(X.y||.55),Math.sin(a)*rr);
+        const m=src.material.clone();if(X.tint)m.color.set(X.tint);m.metalness=X.metal||.4;m.roughness=.35;if(X.glow){m.emissive=new THREE.Color(X.tint);m.emissiveIntensity=X.glow}out.push({geo:g,mat:m})}}}
+    return out}
   /* Symbole (Ressourcen in der oberen Leiste): echtes Modell aus manifest.icons, vom Symbol-Renderer (ICON3) in ein Bild gemalt */
   function iconModel(name){
     const en=manifest&&manifest.icons&&manifest.icons[name];if(!en||!files.has(en.file))return null;
@@ -173,7 +179,7 @@ const EKMODELS=(()=>{
     /* Kenney-Bausätze verweisen auf Textures/colormap.png: stattdessen die Farbtabelle aus dem Manifest (cmap) nehmen */
     const mgr=new THREE.LoadingManager();if(manifest.cmap)mgr.setURLModifier(u=>/colormap\.png$/.test(u)?'models/'+manifest.cmap:u);
     loader=new EKGLTF.GLTFLoader(mgr);try{loader.setMeshoptDecoder(EKGLTF.MeshoptDecoder)}catch(_){}
-    const want=new Set();for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off){want.add(x.file);if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work))if(w.tool&&w.tool.file)want.add(w.tool.file)}
+    const want=new Set();for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off){want.add(x.file);if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work))if(w.tool&&w.tool.file)want.add(w.tool.file);if(x.extra&&x.extra.file)want.add(x.extra.file)}
     await Promise.all([...want].map(async f=>{try{files.set(f,await loader.loadAsync('models/'+f))}catch(err){failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}}));
     R.ready=true;R.ver++;/* Einheiten/Gebäude/Tiere: Signaturen ändern sich über tag() von selbst; Bäume/Felsen: Instanzen neu aufbauen */try{if(typeof r3!=='undefined'&&r3.scene&&typeof G!=='undefined'&&G&&G.ents&&G.ents.length)r3NodesInit()}catch(_){}
     try{if(typeof ICON3!=='undefined'){ICON3.clear();document.querySelectorAll('[data-ic]').forEach(el=>{el.innerHTML=ART.icon(el.dataset.ic)})}}catch(_){}}
