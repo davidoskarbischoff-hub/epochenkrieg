@@ -265,6 +265,127 @@
       }
      }
     }
+   },
+   {
+    "file": "neu/Worker.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Punch_Right",
+     "work": "Interact"
+    },
+    "human": true,
+    "work": {
+     "chop": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Axe Small.glb",
+       "scale": 0.4,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "mine": {
+      "clip": "Punch_Right",
+      "tool": {
+       "file": "neu/Doublesided Hammer.glb",
+       "scale": 0.3,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "pick": {
+      "clip": "Interact"
+     },
+     "build": {
+      "clip": "Punch_Left",
+      "tool": {
+       "file": "neu/Doublesided Hammer.glb",
+       "scale": 0.25,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "farm": {
+      "clip": "Interact",
+      "tool": {
+       "file": "neu/Shovel.glb",
+       "scale": 0.4,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "hunt": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Spear.glb",
+       "scale": 0.25,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "fish": {
+      "clip": "Interact",
+      "tool": {
+       "file": "neu/Fishing Rod.glb",
+       "scale": 0.5,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     }
+    }
    }
   ],
   "scout": {
@@ -498,6 +619,34 @@
      ]
     },
     "human": true
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    }
   ],
   "sword": [
@@ -575,6 +724,34 @@
      "work": "Interact"
     },
     "human": true
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    }
   ],
   "archer": [
@@ -656,25 +833,83 @@
      ]
     },
     "human": true
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    }
   ],
-  "crossbow": {
-   "file": "neu/Medieval.glb",
-   "epochs": [
-    3,
-    4
-   ],
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Gun_Shoot",
-    "work": "Interact"
+  "crossbow": [
+   {
+    "file": "neu/Medieval.glb",
+    "epochs": [
+     3,
+     4
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact"
+    },
+    "hide": [
+     "^Sword$"
+    ],
+    "human": true
    },
-   "hide": [
-    "^Sword$"
-   ],
-   "human": true
-  },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
+   }
+  ],
   "musket": {
    "file": "neu/Soldier.glb",
    "epochs": [
@@ -688,7 +923,21 @@
     "attack": "Gun_Shoot",
     "work": "Interact"
    },
-   "human": true
+   "human": true,
+   "hand": {
+    "file": "neu/Sniper Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
   },
   "rifle": {
    "file": "neu/Soldier.glb",
@@ -703,7 +952,21 @@
     "attack": "Gun_Shoot",
     "work": "Interact"
    },
-   "human": true
+   "human": true,
+   "hand": {
+    "file": "neu/Sniper Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
   },
   "assault": {
    "file": "neu/Soldier.glb",
@@ -718,7 +981,21 @@
     "attack": "Gun_Shoot",
     "work": "Interact"
    },
-   "human": true
+   "human": true,
+   "hand": {
+    "file": "neu/Assault Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
   },
   "mg": {
    "file": "neu/Soldier.glb",
@@ -733,7 +1010,21 @@
     "attack": "Gun_Shoot",
     "work": "Interact"
    },
-   "human": true
+   "human": true,
+   "hand": {
+    "file": "neu/Assault Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
   },
   "tank": {
    "file": "neu/Tank.glb",
@@ -769,9 +1060,6 @@
   },
   "club": {
    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
-   "epochs": [
-    0
-   ],
    "yaw": 0,
    "tint": {
     "M_Main": "#c9966e",
@@ -817,9 +1105,6 @@
   },
   "sling": {
    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
-   "epochs": [
-    0
-   ],
    "yaw": 0,
    "tint": {
     "M_Main": "#c9966e",
@@ -912,6 +1197,174 @@
   "zero": {
    "file": "neu/Aeroplane by Gilang Romadhan - 9VeIc0cybp4.glb",
    "fit": "length"
+  },
+  "alpini": {
+   "file": "neu/Soldier.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   },
+   "human": true,
+   "hand": {
+    "file": "neu/Sniper Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "sturm": {
+   "file": "neu/Swat.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   },
+   "human": true,
+   "hand": {
+    "file": "neu/Assault Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "rekrut": {
+   "file": "neu/Soldier.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   },
+   "human": true,
+   "hand": {
+    "file": "neu/Sniper Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "doughboy": {
+   "file": "neu/Soldier.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   },
+   "human": true,
+   "hand": {
+    "file": "neu/Sniper Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "janit": {
+   "file": "neu/Soldier.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   },
+   "human": true,
+   "hand": {
+    "file": "neu/Sniper Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "banzai": {
+   "file": "neu/Swat.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   },
+   "human": true,
+   "hand": {
+    "file": "neu/Assault Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "bersag": {
+   "file": "neu/Soldier.glb",
+   "anim": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "attack": "Gun_Shoot",
+    "work": "Interact"
+   },
+   "human": true,
+   "hand": {
+    "file": "neu/Sniper Rifle.glb",
+    "scale": 0.16,
+    "rot": [
+     0,
+     0,
+     0
+    ],
+    "pos": [
+     0,
+     0,
+     0
+    ]
+   }
   }
  },
  "buildings": {
