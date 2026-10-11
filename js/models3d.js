@@ -661,7 +661,9 @@ function rockGeoC(kind,v){
   if(kind==='iron')for(let i=0;i<9;i++){const a=i*1.9+seed*9,b=new THREE.IcosahedronGeometry(.11+(i%3)*.03,0);b.translate(Math.cos(a)*.8*sh[0]*.9,.3+((i*37)%10)/14*sh[1],Math.sin(a)*.8*sh[2]*.9);parts.push([b,[0xf0903a,0xd96a2a,0x9aa4b4][i%3]])}
   if(kind==='gold')for(let i=0;i<13;i++){const a=i*2.3+seed*5,b=new THREE.OctahedronGeometry(.17,0);b.scale(.8,2.4+(i%3)*.6,.8);b.rotateZ((i%3-1)*.4);b.translate(Math.cos(a)*.62*sh[0],.55+(i%4)*.12,Math.sin(a)*.62*sh[2]);parts.push([b,[0xf7d64a,0xffe680,0xe0b030][i%3]])}
   if(kind==='stone')for(let i=0;i<4;i++){const a=i*1.7+seed,b=new THREE.DodecahedronGeometry(.16+(i%2)*.06,0);b.translate(Math.cos(a)*1.25*sh[0],.06,Math.sin(a)*1.25*sh[2]);parts.push([b,ROCKPAL.stone[(v+i)%3]])}
-  if(kind==='oil'){const d=new THREE.CylinderGeometry(1.2,1.3,.08,16);d.translate(0,.02,0);parts.push([d,0x0c0a09]);for(let i=0;i<5;i++){const b=new THREE.SphereGeometry(.2+(i%3)*.07,8,6);b.scale(1,.35,1);b.translate(Math.cos(i*1.3)*.8,.06,Math.sin(i*1.3)*.8);parts.push([b,0x151210])}}
+  if(kind==='oil'){/* Öllache: unregelmäßiger, geschwungener Rand aus mehreren Flecken statt einer runden Scheibe */
+    const blob=(cx,cz,R,ph)=>{const sh=new THREE.Shape();for(let i=0;i<=40;i++){const a=i/40*6.283,r=R*(1+.28*Math.sin(3*a+ph)+.16*Math.sin(5*a+ph*2.3)+.08*Math.sin(9*a+ph));const x=cx+Math.cos(a)*r*1.25,z=cz+Math.sin(a)*r*.85;i?sh.lineTo(x,z):sh.moveTo(x,z)}const g=new THREE.ShapeGeometry(sh);g.rotateX(-Math.PI/2);g.translate(0,.03,0);return g};
+    const vv=(typeof v==='number'?v:0)*1.7;parts.push([blob(0,0,1.15,vv),0x0c0a09]);parts.push([blob(1.1,.5,.5,vv+1),0x0c0a09]);parts.push([blob(-.9,-.6,.42,vv+2),0x0c0a09]);for(let i=0;i<5;i++){const b=new THREE.SphereGeometry(.2+(i%3)*.07,8,6);b.scale(1,.35,1);b.translate(Math.cos(i*1.3)*.8,.06,Math.sin(i*1.3)*.8);parts.push([b,0x151210])}}
   if(!parts.length)return g;
   const extra=mergeColored(parts),all=new THREE.BufferGeometry(),cat=arr=>{let n=0;arr.forEach(a=>n+=a.length);const r=new Float32Array(n);let o=0;arr.forEach(a=>{r.set(a,o);o+=a.length});return r};
   const gg=kind==='oil'?null:g;
