@@ -10,4 +10,5 @@ if(fs.existsSync(mf)){fs.mkdirSync(path.join(dest,'models'),{recursive:true});fs
   for(const sec of['units','buildings','animals','nodes'])for(const en of Object.values(m[sec]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off)used.add(x.file);
   for(const f of used){const a=path.join(root,'models',f);if(!fs.existsSync(a)){console.warn('Modell fehlt:',f);continue}const b=path.join(dest,'models',f);fs.mkdirSync(path.dirname(b),{recursive:true});fs.copyFileSync(a,b)}
   console.log('Modelle:',used.size)}
+for(const n of['sounds','music']){const s=path.join(root,n);if(fs.existsSync(s))fs.cpSync(s,path.join(dest,n),{recursive:true,filter:f=>!/\.md$/.test(f)})}
 console.log('Spiel kopiert nach',dest);
