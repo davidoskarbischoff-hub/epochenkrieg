@@ -229,3 +229,9 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Tutorial (Release 3), Story (Release 4).
 - [ ] Altes `showStart` in ui.js entfernen, sobald das neue Menü bewährt ist.
 - [ ] Eigenes, langes Menü-Musikstück (jetzt: Greensleeves-Synthesizer).
+
+## Grafik-Runde 1: Figuren und frühe Gebäude (2026-10-11)
+- [x] Puppen-Figuren (Animated Base Character) ersetzt: Steinzeit bis Eisenzeit nutzen jetzt die Quaternius-Figur „Adventurer“ (gleicher Stil wie Bauer/Soldat), je Zeitalter andere Kleidung (Steinzeit: Fell, nackte Beine, Fellrock, Zahnkette; Bronzezeit: Leinen + Leder; Eisenzeit: Wolle), Haut- und Haarfarbe je Figur verschieden (`skins`, `hairs`, Farbe `skin` im Manifest).
+- [x] Arbeiter-Linie: Adventurer (Stein/Bronze/Eisen) → Bauer (Mittelalter/Renaissance) → Arbeiter (Industrie/Weltkrieg).
+- [x] Eigene Gebäude für Steinzeit (Fellzelte, Mammutknochen-Hütte, Schädel, Stoßzahn-Tor, Feuerstellen) und Bronzezeit (Rundhäuser mit Strohdach, Speicher auf Stelzen, Palisade, Bronzeschilde): `js/eramodels.js`.
+- [ ] Nächste Schritte Grafik: Eisenzeit-Gebäude eigener Stil, Krieger-Ausrüstung je Zeitalter verfeinern (Helme, Rüstungen), Tiere/Bäume prüfen, Mine/Feld in der Steinzeit.

@@ -40,14 +40,16 @@ const EKMODELS=(()=>{
   function dress(root,wrap,en,k,team,u){
     const id=(u&&u.id)||0;
     const hide=(en.hide||[]).concat(en.hand||en.left?['^Sword']:[]);/* eigene Waffe → eingebautes Schwert (Sword, Sword_1 …) weg */
-    if(en.tint||hide.length){root.traverse(o=>{if(!o.isMesh)return;
+    if(en.tint||en.skins||en.hairs||hide.length){root.traverse(o=>{if(!o.isMesh)return;
       if(hide.some(h=>new RegExp(h,'i').test(o.name))){o.visible=false;return}
-      if(en.tint){const f=m=>{let c=en.tint[m.name];if(c&&en.skins&&/^M_(Main|Joints)$/.test(m.name))c=en.skins[id%en.skins.length];if(!c)return m;const n=m.clone();n.color.set(c);n.name=m.name;return n};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}})}
+      if(en.tint||en.skins||en.hairs){const sk=en.skins?en.skins[id%en.skins.length]:null,hr=en.hairs?en.hairs[(id>>1)%en.hairs.length]:null;
+        /* Haut je Figur verschieden (Material Skin oder Farbe 'skin' = barfuss/nackte Beine), Haare/Augenbrauen aus 'hairs' */
+        const f=m=>{let c=en.tint&&en.tint[m.name];if(sk&&(c==='skin'||(/^(M_Main|M_Joints|Skin)$/.test(m.name))))c=sk;if(hr&&/^(Hair|Eyebrows|Moustache)$/.test(m.name))c=hr;if(!c)return m;const n=m.clone();n.color.set(c);n.name=m.name;return n};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}})}
     if(en.tintAll){root.traverse(o=>{if(!o.isMesh)return;const f=m=>{const n=m.clone();n.vertexColors=false;n.map=null;n.color.set(en.tintAll);n.needsUpdate=true;return n};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)})}
     if(en.extras)for(const x of en.extras)attach(root,root,x,k);
     let hh=null;if(en.hand)hh=attach(root,findBone(root,/hand\.?r|wrist\.?r/i),en.hand,k);wrap.userData.handHolder=hh;
     if(en.left)attach(root,findBone(root,/hand\.?l|wrist\.?l/i),en.left,k);
-    if(en.pelt)cloth(root,en,k,id);}
+    if(en.pelt||en.cape||en.tooth)cloth(root,en,k,id);}
   /* Steinzeit-Kleidung aus Formen mit Fell-/Lederstruktur: Hüftrock mit Zipfeln, Gürtel, Fellumhang, Haare, Zahnkette */
   function cloth(root,en,k,id){
     root.updateMatrixWorld(true);
@@ -59,13 +61,13 @@ const EKMODELS=(()=>{
     const fur=c=>m3Mat('fur',c,{side:THREE.DoubleSide,flatShading:true}),lea=c=>m3Mat('leather',c,{side:THREE.DoubleSide});
     const add=(g,mesh,x,y,z)=>{mesh.position.set(x,y,z);mesh.castShadow=true;g.add(mesh);return mesh};
     const hips=findBone(root,/hips|pelvis/i);
-    if(hips){const g=new THREE.Group(),f=fur(en.pelt),bt=lea(en.belt||'#3b2a1a');
+    if(hips&&en.pelt){const g=new THREE.Group(),f=fur(en.pelt),bt=lea(en.belt||'#3b2a1a');
       add(g,new THREE.Mesh(new THREE.CylinderGeometry(.175,.215,.2,10,1,true),f),0,-.07,0);
       for(let i=0;i<8;i++){const a=i/8*6.283,z=new THREE.Mesh(new THREE.ConeGeometry(.05,.2,4),f);z.rotation.x=Math.PI;add(g,z,Math.cos(a)*.2,-.26,Math.sin(a)*.2)}
       add(g,new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.04,10,1,true),bt),0,.03,0);
       add(g,new THREE.Mesh(new THREE.BoxGeometry(.03,.09,.05),bt),.185,0,0);
       mount(hips,g,0,.02,0)}
-    const ch=findBone(root,/spine\.?003|spine\.?002/i);
+    const ch=findBone(root,/spine\.?003|spine\.?002|^chest$/i);
     /* Steinzeit-Oberteil: Fellweste über der Brust mit Schulterriemen */
     const sp1=findBone(root,/spine\.?002|spine\.?001/i);
     if(sp1&&en.pelt){const g=new THREE.Group(),f=fur(en.top||en.pelt);
