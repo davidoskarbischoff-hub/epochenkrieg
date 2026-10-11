@@ -90,9 +90,9 @@
       }
      },
      "farm": {
-      "clip": "Push_Loop",
+      "clip": "Sword_Attack",
       "tool": {
-       "file": "neu/Shovel.glb",
+       "file": "neu/Scythe.glb",
        "scale": 0.4,
        "rot": [
         -90,
@@ -214,9 +214,9 @@
       }
      },
      "farm": {
-      "clip": "Interact",
+      "clip": "Sword_Slash",
       "tool": {
-       "file": "neu/Shovel.glb",
+       "file": "neu/Scythe.glb",
        "scale": 0.4,
        "rot": [
         -90,
@@ -335,9 +335,9 @@
       }
      },
      "farm": {
-      "clip": "Interact",
+      "clip": "Sword_Slash",
       "tool": {
-       "file": "neu/Shovel.glb",
+       "file": "neu/Scythe.glb",
        "scale": 0.4,
        "rot": [
         -90,
@@ -473,9 +473,9 @@
      }
     },
     "farm": {
-     "clip": "Interact",
+     "clip": "Sword_Slash",
      "tool": {
-      "file": "neu/Shovel.glb",
+      "file": "neu/Scythe.glb",
       "scale": 0.4,
       "rot": [
        -90,
@@ -546,7 +546,7 @@
     ],
     "hand": {
      "file": "neu/Spear.glb",
-     "scale": 0.2,
+     "scale": 0.14,
      "rot": [
       -90,
       0,
@@ -606,7 +606,7 @@
     ],
     "hand": {
      "file": "neu/Spear.glb",
-     "scale": 0.2,
+     "scale": 0.14,
      "rot": [
       -90,
       0,
