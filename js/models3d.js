@@ -472,8 +472,10 @@ const UNIT3={
     for(const z of[-.55,.55])put(g,new THREE.BoxGeometry(2.1,.55,.08),body,0,.95,z);for(const x of[-1.02,1.02])put(g,new THREE.BoxGeometry(.08,.55,1.1),body,x,.95,0);
     if(iron)for(const x of[-.9,0,.9])put(g,new THREE.BoxGeometry(.06,.58,1.16),rim,x,.95,0);
     if(!steel){put(g,cyl(.04,.04,1.6,5),woodD(),1.8,.75,.3).rotation.z=Math.PI/2;put(g,cyl(.04,.04,1.6,5),woodD(),1.8,.75,-.3).rotation.z=Math.PI/2}
-    const load=new THREE.Group();g.add(load);rig.load=load;for(let i=0;i<7;i++)put(load,new THREE.DodecahedronGeometry(.28+((i*37)%5)*.04,0),m3Plain(0x8a8278,.95),-.7+(i%4)*.45,1.15+(i>3?.15:0),i%2?.22:-.22);
-    put(g,new THREE.BoxGeometry(.04,.4,.9),tm,-1.06,1.05,0);return rig},
+    const load=new THREE.Group();g.add(load);rig.load=load;rig.loadMat=m3Plain(0x8a8278,.85);for(let i=0;i<7;i++)put(load,new THREE.DodecahedronGeometry(.28+((i*37)%5)*.04,0),rig.loadMat,-.7+(i%4)*.45,1.15+(i>3?.15:0),i%2?.22:-.22);
+    put(g,new THREE.BoxGeometry(.04,.4,.9),tm,-1.06,1.05,0);
+    /* Arbeiter schiebt die Lore von hinten */try{const w=UNIT3.worker(u,tm);w.g.scale.setScalar(1.25);w.g.position.x=-1.9;(w.arms||[]).forEach(a=>a.rotation.z=1.3);g.add(w.g);rig.pusher=w;rig.legs=[];rig.arms=[]}catch(_){}
+    return rig},
   catapult(u,tm){const g=new THREE.Group(),rig={g,legs:[],arms:[],wheels:[]};
     for(const z of[-.7,.7]){const w=put(g,cyl(.5,.5,.14,12),m3Plain(0x5b4228),.0,.5,z);w.rotation.x=Math.PI/2;rig.wheels.push(w)}
     put(g,new THREE.BoxGeometry(2.2,.2,1.1),m3Plain(0x7a5a3a),0,.75,0);
