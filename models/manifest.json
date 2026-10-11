@@ -1,5 +1,6 @@
 {
  "_info": "Hier steht, welche Einheit/welches Gebäude ein echtes 3D-Modell (.glb) bekommt. Fehlt ein Eintrag, nutzt das Spiel das eingebaute Modell. Anleitung: MODELLE.md. Beispiel unten: Zeilen mit „_beispiel_“ entfernen/umbenennen und die Datei in den Ordner models/units bzw. models/buildings legen.",
+ "cmap": "neu/variation-a.png",
  "units": {
   "worker": [
    {
@@ -1158,29 +1159,36 @@
     "yaw": 0
    },
    {
-    "file": "neu/Boat by Poly by Google - 1ZuSXvhkRg_.glb",
+    "file": "neu/boat-fishing-small.glb",
     "fit": "length",
     "epochs": [
+     1,
+     2,
      3,
      4,
      5,
      6
-    ]
+    ],
+    "yaw": 90,
+    "scale": 0.75
    }
   ],
   "warship": {
-   "file": "neu/Sail Boat by Quaternius - BgSZXwmm7k.glb",
+   "file": "neu/ship-small.glb",
    "fit": "length",
-   "yaw": -90
+   "yaw": 90,
+   "scale": 0.55
   },
   "galleon": {
-   "file": "neu/Sail Ship by Quaternius - cIzO4MBPqI.glb",
+   "file": "neu/ship-large.glb",
    "fit": "length",
-   "yaw": -90
+   "yaw": 90,
+   "scale": 0.6
   },
   "catapult": {
-   "file": "neu/Catapult by Poly by Google - 7P_ZOjZbbMJ.glb",
-   "fit": "length"
+   "file": "neu/siege-catapult.glb",
+   "fit": "length",
+   "yaw": 90
   },
   "plane": {
    "file": "neu/Aeroplane by Gilang Romadhan - 9VeIc0cybp4.glb",
@@ -1365,6 +1373,11 @@
      0
     ]
    }
+  },
+  "ram": {
+   "file": "neu/siege-ram.glb",
+   "fit": "length",
+   "yaw": 90
   }
  },
  "buildings": {
