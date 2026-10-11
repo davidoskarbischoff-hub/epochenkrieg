@@ -33,7 +33,10 @@ function advFindSpot(type){
       let g=1e9;for(const t of tw)g=Math.min(g,Math.hypot(t.x-x,t.y-y));if(g<300)continue;
       const da=Math.abs(Math.atan2(Math.sin(a-base),Math.cos(a-base)));const sc=Math.min(g,700)-da*120-Math.abs(d-300)*.3;if(sc>bs){bs=sc;best={x,y}}}
     return best}
-  for(let d=100;d<=320;d+=20)for(let k=0;k<36;k++){const a=base+(k%2?1:-1)*Math.ceil(k/2)*.17;const x=hq.x+Math.cos(a)*d,y=hq.y+Math.sin(a)*d;if(!placeBlock(type,x,y))return{x,y}}
+  /* andere Gebäude: mit Abstand zu eigenen Gebäuden (Kante zu Kante), damit Wege frei bleiben und es nicht gedrängt aussieht */
+  const gap={house:26,farm:22,barracks:46,store:40,market:44,refinery:40,harbor:30,airfield:50,castle:60}[type]||30,own=G.ents.filter(e=>!e.dead&&e.team===0&&e.kind==='bld');
+  const free=(x,y)=>{for(const e of own){if(e.type==='wall'||e.type==='gate'||e.type==='trench')continue;if(Math.hypot(e.x-x,e.y-y)-e.r-d0.r<gap)return false}return true};
+  for(const need of[true,false])for(let d=100;d<=(need?420:320);d+=20)for(let k=0;k<36;k++){const a=base+(k%2?1:-1)*Math.ceil(k/2)*.17;const x=hq.x+Math.cos(a)*d,y=hq.y+Math.sin(a)*d;if(placeBlock(type,x,y))continue;if(need&&!free(x,y))continue;return{x,y}}
   return null}
 /* Platz für eine Mine: nahe dem nächsten Vorkommen (Eisen oder Gold), das noch keine Mine hat */
 function advMineSpot(rt,hq){const nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||minedBy(0,nd))return null;
@@ -120,7 +123,7 @@ function advRules(){
     if(cutters.length>=3&&drops.length&&workers.length>=6&&afford(0,BLDS.store.cost)&&!mine.some(e=>e.type==='store'&&!e.built)){
       const far=cutters.filter(w=>{const n=G.byId.get(w.tid);return Math.min(...drops.map(d=>Math.hypot(d.x-n.x,d.y-n.y)))>170});
       if(far.length>=3){const cx=far.reduce((s,w)=>s+G.byId.get(w.tid).x,0)/far.length,cy=far.reduce((s,w)=>s+G.byId.get(w.tid).y,0)/far.length;
-        let spot=null;for(let d=30;d<=110&&!spot;d+=14)for(let k=0;k<24&&!spot;k++){const a=k*.2618,x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d;if(!placeBlock('store',x,y))spot={x,y}}
+        let spot=null;for(let d=30;d<=110&&!spot;d+=14)for(let k=0;k<24&&!spot;k++){const a=k*.2618,x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d;if(!placeBlock('store',x,y)&&!mine.some(e=>e.kind==='bld'&&BLDS[e.type].drop&&Math.hypot(e.x-x,e.y-y)<170)&&!mine.some(e=>e.kind==='bld'&&Math.hypot(e.x-x,e.y-y)-e.r-BLDS.store.r<30))spot={x,y}}
         if(spot)push({id:'store',txt:'ein Lager nahe dem Wald bauen, damit die Holzfäller kürzere Wege haben',cost:BLDS.store.cost,go:()=>{if(!pay(0,BLDS.store.cost)){toast(missing(0,BLDS.store.cost)+'.');return false}const b=addBld('store',0,spot.x,spot.y,false);const ws=far.slice(0,2);ws.forEach(w=>{w.state='build';w.tid=b.id;w.pf=null});sfx('click');return true}})}}}
   if(G.t>40&&!has('scout').length&&hq.queue.length<2&&afford(0,UNITS.scout.cost))push({id:'scout',txt:'einen Späher ausbilden, um die Karte zu erkunden',cost:UNITS.scout.cost,go:()=>enqueue(hq,'scout',0)&&(panelSig='')});
   // zweite Kaserne bei Angriffstaktik
