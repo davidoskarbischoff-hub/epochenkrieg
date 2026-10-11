@@ -97,7 +97,7 @@ function step(dt){
 }
 
 function moveToward(u,tx,ty,dt,ignore){
-  const ud=UNITS[u.type],naval=!!ud.naval;
+  const ud=UNITS[u.type],naval=ud.naval?true:u.type==='cart'?'dry':false;
   let dx=tx-u.x,dy=ty-u.y;const d=Math.hypot(dx,dy);if(d<1.5)return true;
   if(ud.air){const st=Math.min(d,ud.spd*dt);u.x+=dx/d*st;u.y+=dy/d*st;u.fa=Math.atan2(dy,dx);u.mvT=G.t;return d-st<1.5}
   const fxt=G.tfx[u.team],spd=ud.spd*dt*(1+(ud.naval?fxt.bspeed:ud.gather?fxt.wspeed:0))*(u.rage>G.t?RAGE.spd:1)*(u.spk||1),step=Math.min(d,spd);
@@ -142,6 +142,7 @@ function pickExplore(u){const g=exGrid(u.team),naval=!!UNITS[u.type].naval;let b
 function updUnit(u,dt){
   const d=UNITS[u.type];u.cd=Math.max(0,u.cd-dt);u.px=u.x;u.py=u.y;
   if(u.type==='cart'&&u.state!=='haul'&&u.state!=='move')u.state='haul';
+  if(u.inm&&u.state!=='mine'){const b=G.byId.get(u.inm);u.inm=null;if(b){u.x=b.x;u.y=b.y+b.r+8}} /* anderer Befehl: Bergmann kommt aus der Mine (sonst bliebe er unsichtbar) */
   if(u.state==='idle'&&u.loop&&!(u.q&&u.q.length)){u.q=u.loop.map(o=>({...o}))}
   if(u.state==='idle'&&u.q&&u.q.length)nextOrder(u);
   switch(u.state){
@@ -156,11 +157,11 @@ function updUnit(u,dt){
     if(!b||b.dead||!b.built||b.team!==u.team){mineOut(u);break}
     if(u.inm!==b.id){if(reach(u,b)){if(minersIn(b)>=MINE_CAP){if(u.team===0)toast(tr('Die Mine ist voll (höchstens {0} Arbeiter).',MINE_CAP));u.state='idle';break}u.inm=b.id;u.pf=null;sel.delete(u.id)}else{moveToward(u,b.x,b.y,dt,b.id);break}}
     u.x=b.x;u.y=b.y;const st=b.st||(b.st={});if(Object.values(st).reduce((a,v)=>a+v,0)>=MINE_STOCK)break;
-    const n=mineNode(b,u);if(!n){mineOut(u);if(!G.ents.some(e=>e.kind==='node'&&!e.dead&&MINE_RT[e.rt]==='mine'&&Math.hypot(e.x-b.x,e.y-b.y)<e.r+b.r+8))b.empty=1;if(u.team===0&&G.t-(b.emptyMsg||-99)>20){b.emptyMsg=G.t;toast(tr('Kein abbaubares Vorkommen mehr bei dieser Mine.'))}break}
+    const n=mineNode(b,u);if(!n){const nx=mineNode(b,{lvl:9,team:u.team});if(nx){mineOut(u);if(u.team===0&&G.t-(G.lvlWarn||-9)>4){G.lvlWarn=G.t;toast(tr('Arbeiter brauchen Stufe {0}, um {1} abzubauen – zuerst im Hauptlager upgraden.',LVLN[NEED_LVL[nx.rt]],tr(NODES[nx.type].name)));sfx('error')}break}mineOut(u);if(!G.ents.some(e=>e.kind==='node'&&!e.dead&&MINE_RT[e.rt]==='mine'&&Math.hypot(e.x-b.x,e.y-b.y)<e.r+b.r+8))b.empty=1;if(u.team===0&&G.t-(b.emptyMsg||-99)>20){b.emptyMsg=G.t;toast(tr('Kein abbaubares Vorkommen mehr bei dieser Mine.'))}break}
     if((u.gt=(u.gt||0)-dt)<=0){u.gt=1.4+Math.random()*.6;if(Math.random()<.35)sfx('mine',b)}
     const amt=Math.min(gRate(u,n)*dt*.7*(b.spec==='deep'?1.3:1),n.amount);n.amount-=amt;st[n.rt]=(st[n.rt]||0)+amt;if(n.amount<=.001)kill(n);break}
   case 'haul':{const b=get(u.home); /* Lore: holt Erz an der Mine, bringt es zum nächsten Lager; wird sie zerstört, ist die Ladung weg */
-    if(!b||b.dead){kill(u);break}u.spk=b.spec==='rails'?2:1;
+    if(!b||b.dead||(b.empty&&!u.carry&&!Object.values(b.st||{}).some(v=>v>=1))){kill(u);break}u.spk=b.spec==='rails'?2:1;
     if(u.carry>0){const dp=nearestDrop(u.team,u.x,u.y,false,u.ctype,true);if(!dp)break;if(reach(u,dp)){G.res[u.team][u.ctype]+=u.carry;if(u.team===0)sfx('drop',u);u.carry=0}else moveToward(u,dp.x,dp.y,dt,dp.id);break}
     if(reach(u,b)){const st=b.st||{};let rt=null;for(const k in st)if(st[k]>=1&&(!rt||st[k]>st[rt]))rt=k;if(rt&&(st[rt]>=CART_LOAD*.5||(u.wt=(u.wt||0)+dt)>6)){const a=Math.min(CART_LOAD,Math.floor(st[rt]));st[rt]-=a;u.carry=a;u.ctype=rt;u.wt=0}}
     else moveToward(u,b.x,b.y,dt,b.id);break}
@@ -301,7 +302,7 @@ function mineNode(b,u){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=
 function mineOut(u){const b=u.inm&&G.byId.get(u.inm);if(u.inm){u.x=b?b.x:u.x;u.y=(b?b.y+b.r+8:u.y+20)}u.inm=null;u.state='idle';u.tid=null;u.pf=null}
 function mineRelease(team,id){if(NET.client&&team===0){NET.send({c:'unmine',id});return}for(const e of G.ents)if(e.inm===id&&e.team===team&&!e.dead)mineOut(e)}
 function mineCarts(){for(const b of G.ents){if(b.kind!=='bld'||b.type!=='mine'||!b.built||b.dead)continue;const want=b.spec==='rails'?2:1,have=G.ents.filter(c=>c.type==='cart'&&!c.dead&&c.home===b.id).length;
-  if(have<want&&G.t>(b.cartT||0)){b.cartT=G.t+25;const c=addUnit('cart',b.team,b.x,b.y+b.r+8);c.home=b.id;c.state='haul'}}}
+  if(have<want&&!b.empty&&G.t>(b.cartT||0)){b.cartT=G.t+25;const c=addUnit('cart',b.team,b.x,b.y+b.r+8);c.home=b.id;c.state='haul'}}}
 /* Sammeltempo eines Arbeiters an einem Vorkommen (Technologien, Nation, Ausbau, Stufe, Schwierigkeit) */
 function gRate(u,n){const d=UNITS[u.type],gc=GATHER[n.rt];return .85*gc.rate*(1+G.tfx[u.team].gather+G.nfx[u.team].gather+((n.rt==='gold'||n.rt==='oil')?G.nfx[u.team].oilgold:0)+(d.naval?G.tfx[u.team].bgather+SF(u.team).bgather:0)+SF(u.team).gather)*(NODES[n.type].gm||1)*LVL.gather[u.lvl]*(u.team===1?DIFF[diff].gather:1)}
 function canGather(u,x){const need=typeof x==='string'?(NEED_LVL[x]||0):(NODES[x.type].lvl!==undefined?NODES[x.type].lvl:(NEED_LVL[x.rt]||0));return u.lvl>=need}
@@ -323,7 +324,7 @@ function advance(team,nat){
 }
 function validSpot(x,y,r,anyTerrain,ore){if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)return false;if(!anyTerrain&&(!onLand(x,y)||!onLand(x+r,y)||!onLand(x-r,y)||!onLand(x,y+r)||!onLand(x,y-r)))return false;if(!anyTerrain&&slopeNear(x,y,r)>.9)return false;for(const e of G.ents){if(e.dead||e.kind==='unit'||(ore&&e.kind==='node'&&MINE_RT[e.rt]==='mine'))continue;if(Math.hypot(e.x-x,e.y-y)<e.r+r+5)return false}return true}
 /* freies Vorkommen (ohne Mine) für eine neue Mine, nächstes zuerst */
-function mineFree(rt,x,y,team){let best=null,bd=2600;for(const n of G.ents){if(n.kind!=='node'||n.dead||n.rt!==rt||(team===0&&!nodeKnown(n)))continue;const d=Math.hypot(n.x-x,n.y-y);if(d<bd&&!G.ents.some(b=>b.type==='mine'&&!b.dead&&Math.hypot(b.x-n.x,b.y-n.y)<12)&&validSpot(n.x,n.y,BLDS.mine.r,false,true)){bd=d;best=n}}return best}
+function mineFree(rt,x,y,team){if(G.epoch[team]<NEED_LVL[rt])return null;let best=null,bd=2600;for(const n of G.ents){if(n.kind!=='node'||n.dead||n.rt!==rt||(team===0&&!nodeKnown(n)))continue;const d=Math.hypot(n.x-x,n.y-y);if(d<bd&&!G.ents.some(b=>b.type==='mine'&&!b.dead&&Math.hypot(b.x-n.x,b.y-n.y)<12)&&validSpot(n.x,n.y,BLDS.mine.r,false,true)){bd=d;best=n}}return best}
 /* Mine: rastet auf das nächste Stein-/Eisen-/Goldvorkommen ein (ohne eigene Mine darauf) */
 function mineSnap(x,y){let best=null,bd=80;for(const n of G.ents){if(n.kind!=='node'||n.dead||MINE_RT[n.rt]!=='mine'||!nodeKnown(n))continue;const d=Math.hypot(n.x-x,n.y-y);if(d<bd&&!G.ents.some(b=>b.type==='mine'&&!b.dead&&Math.hypot(b.x-n.x,b.y-n.y)<12)){bd=d;best=n}}return best}
 function separate(){

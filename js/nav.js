@@ -175,7 +175,7 @@ function navInit(){navT=new Uint8Array(NW*NH);navDyn=new Uint8Array(NW*NH);
 let navVer=0;
 function navStamp(e,sign){const r=e.r+5,x0=Math.max(0,Math.floor((e.x-r)/NS)),x1=Math.min(NW-1,Math.floor((e.x+r)/NS)),y0=Math.max(0,Math.floor((e.y-r)/NS)),y1=Math.min(NH-1,Math.floor((e.y+r)/NS));navVer++;
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const dx=(x+.5)*NS-e.x,dy=(y+.5)*NS-e.y;if(dx*dx+dy*dy<=r*r)navDyn[y*NW+x]+=sign}}
-const navOpen=(i,naval)=>navDyn[i]===0&&(naval?navT[i]<=1:(navT[i]===1||navT[i]===2));
+const navOpen=(i,naval)=>navDyn[i]===0&&(naval==='dry'?navT[i]===2:naval?navT[i]<=1:(navT[i]===1||navT[i]===2)); /* 'dry' = nur festes Land (Loren) */
 const navCell=(x,y)=>Math.max(0,Math.min(NH-1,(y/NS)|0))*NW+Math.max(0,Math.min(NW-1,(x/NS)|0));
 /* Dichter Wald: Fällen kann man nur Bäume am Waldrand. Ein Baum ist "offen", wenn ein freies Feld in Arbeiter-Reichweite liegt
    (so weit, wie die Wegsuche einen Arbeiter heranführt) und dieses Feld zu einem grösseren freien Gebiet gehört (keine
@@ -196,7 +196,7 @@ function nodeOpen(n){
     if(Math.max(dx,dy)+.4142*Math.min(dx,dy)<=R&&_opRoom(i))return n._op=true}
   return n._op=false}
 /* Gelände allein (ohne Gebäude): darf diese Einheit hier stehen? */
-function terrOk(x,y,naval){const t=terrAt(x,y);return naval?t<=1:(t===1||t===2)}
+function terrOk(x,y,naval){const t=terrAt(x,y);return naval==='dry'?t===2:naval?t<=1:(t===1||t===2)}
 /* Freie Sicht zwischen zwei Punkten bis zur Länge 'len'? Felder nahe am Start zählen nicht (Start darf im Rand eines Hindernisses liegen) */
 function navLos(x0,y0,x1,y1,naval,len){
   const dx=x1-x0,dy=y1-y0,d=Math.hypot(dx,dy);if(d<1)return true;const L=Math.min(d,len===undefined?d:len);

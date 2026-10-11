@@ -38,7 +38,7 @@ function wallSpot(x,y,r){
 function placeBlock(type,x,y){
   const d=BLDS[type];
   if(type==='harbor'){if(!validSpot(x,y,d.r,true))return tr('Hier ist kein Platz.');if(!harborOk(x,y,d.r))return tr('Der Hafen muss zwischen Land und flachem Wasser stehen.')}
-  else if(type==='mine'){const sn=mineSnap(x,y);if(!sn||Math.hypot(sn.x-x,sn.y-y)>1)return tr('Eine Mine muss direkt auf Stein, Eisen oder Gold gebaut werden.');if(!validSpot(x,y,d.r,false,true))return tr('Hier ist kein Platz.')}
+  else if(type==='mine'){const sn=mineSnap(x,y);if(!sn||Math.hypot(sn.x-x,sn.y-y)>1)return tr('Eine Mine muss direkt auf Stein, Eisen oder Gold gebaut werden.');if(G.epoch[0]<NEED_LVL[sn.rt])return tr('{0} kann erst ab der {1} abgebaut werden.',rn(sn.rt),tr(EPOCHS[NEED_LVL[sn.rt]].name));if(!validSpot(x,y,d.r,false,true))return tr('Hier ist kein Platz.')}
   else if(!((type==='wall'||type==='gate')?wallSpot(x,y,d.r):validSpot(x,y,d.r)))return tr('Hier ist kein Platz.');
   if((type==='derrick')&&!G.ents.some(n=>n.kind==='node'&&!n.dead&&MINE_RT[n.rt]===type&&nodeKnown(n)&&Math.hypot(n.x-x,n.y-y)<MINE_RNG*.85))return type==='mine'?tr('Eine Mine muss direkt an Stein, Eisen oder Gold stehen.'):tr('Ein Bohrturm muss in der Nähe eines entdeckten Ölfelds stehen.');
   if(NET.trust)return null;

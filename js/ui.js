@@ -109,7 +109,7 @@ function actionsFor(s){
   }
   if(f.kind==='bld'&&f.built){
     for(const [k,d] of Object.entries(UNITS))if(d.from===f.type&&uOk(k,ep)&&(!d.nation||d.nation===G.nation[0])){const nt=d.tech&&!G.tech[0].has(d.tech);acts.push({key:'t'+k,nm:tr(UNAMES[k]?UNAMES[k][Math.min(5,G.epoch[0])]:d.name),cost:ucost(0,k),need:nt?tr('Technologie nötig: {0}',tr(TECH[d.tech].name)):null,sub:nt?tr('Technologie nötig'):null,run:()=>enqueue(f,k,0),unit:k})}
-    if(BSPEC[f.type]&&f.team===0&&!f.spec)for(const [k,sp] of Object.entries(BSPEC[f.type]).filter(([k,sp])=>(sp.ep||0)<=G.epoch[0])){acts.push({key:'ts'+k,nm:tr(sp.name),cost:sp.cost,sub:tr(sp.sub),adv:true,run:()=>{if(!buildSpec(0,f.id,k))toast(tr('Nicht genug Rohstoffe.'),'warn')}})}
+    if(BSPEC[f.type]&&f.team===0&&!f.spec)for(const [k,sp] of Object.entries(BSPEC[f.type]).filter(([k,sp])=>(sp.ep||0)<=G.epoch[0])){acts.push({key:'ts'+k,ib:f.type,nm:tr(sp.name),cost:sp.cost,sub:tr(sp.sub),adv:true,run:()=>{if(!buildSpec(0,f.id,k))toast(tr('Nicht genug Rohstoffe.'),'warn')}})}
     if(f.type==='mine'&&f.team===0){const n=minersIn(f);if(n)acts.push({key:'unmine',nm:tr('Arbeiter herausholen'),sub:tr('{0} Bergleute kommen heraus',n),run:()=>{mineRelease(0,f.id);panelSig=''}})}
     if(f.team===0&&f.type!=='hq'&&f.kind==='bld'){const k=f.built?.5:1,c={};for(const r in BLDS[f.type].cost)c[r]=Math.round(BLDS[f.type].cost[r]*k);
       acts.push({key:'demo',nm:tr('Abreißen'),sub:tr('Gibt {0} % der Rohstoffe zurück',Math.round(k*100)),adv:true,run:()=>{if(G.demoArm!==f.id||G.t>G.demoT){G.demoArm=f.id;G.demoT=G.t+3;toast(tr('Zum Abreißen noch einmal klicken.'),'warn');return}G.demoArm=null;demolish(0,f.id)}})}
@@ -257,7 +257,7 @@ $('treeBtn').onclick=()=>{SND.init();treeOpen?closeTree():openTree('view')};
 addEventListener('keydown',e=>{if(kA(e)==='tree'){if(!G||!G.running||menuOpen)return;treeOpen?closeTree():openTree('view')}else if(e.key==='Escape'&&treeOpen){closeTree();e.stopPropagation()}},true);
 
 /* Vorschaubild für Ausbildungs- und Baukacheln */
-function actIcon(a){const k=a.key||'';let kind=null,type=null;if(k[0]==='t'&&UNITS[k.slice(1)]){kind='unit';type=k.slice(1)}else if(k[0]==='b'&&BLDS[k.slice(1)]){kind='bld';type=k.slice(1)}
+function actIcon(a){const k=a.key||'';let kind=null,type=null;if(k[0]==='t'&&UNITS[k.slice(1)]){kind='unit';type=k.slice(1)}else if(k[0]==='b'&&BLDS[k.slice(1)]){kind='bld';type=k.slice(1)}else if(a.ib){kind='bld';type=a.ib}
   if(!kind||typeof ICON3==='undefined')return'';const u=ICON3.thing(kind,type);return u?`<img class="aic" src="${u}" alt="">`:''}
 
 /* Versionsanzeige im Menü: in der Desktop-App die App-Version, im Browser „Web-Version“ */
