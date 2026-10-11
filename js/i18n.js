@@ -1,6 +1,7 @@
 /* Sprachen: Deutsch (Standard) und Englisch. tr('deutscher Text') liefert den englischen Text, wenn Englisch gewählt ist.
    Neue Texte: im Code deutsch schreiben, mit tr('...') umschliessen und hier unten die englische Übersetzung ergänzen. */
 const EN={
+  'für':'for','Lädt …':'Loading …','Klicken zum Fortfahren':'Click to continue','Einzelspieler':'Singleplayer','Bald':'Soon','Partie':'Match','Kartengröße':'Map size','Wildtiere':'Wild animals','Groß':'Large','Leicht':'Easy','Schwer':'Hard','Normal':'Normal','Tutorial':'Tutorial','Story':'Story',
   // Oberfläche oben
   'Nahrung':'Food','Holz':'Wood','Stein':'Stone','Bevölkerung':'Population','Pause':'Pause','Weiter':'Resume','Menü':'Menu',
   'Spieltempo':'Game speed','Tempo {0}×':'Speed {0}×','Menü (Esc)':'Menu (Esc)',
