@@ -74,7 +74,7 @@ function advRules(){
   const foes=G.ents.filter(e=>!e.dead&&e.team===1&&e.kind==='unit'&&shown(e)&&blds0.some(b=>dist(b,e)<320));
   if(foes.length){advisor.calmT=G.t;if(advisor.strat!=='turtle'&&!advisor.reacted){advisor.reacted=advisor.strat;advisor.strat='turtle';toast(tr('Berater: Wegen des Angriffs wechselt die Taktik auf Verteidigung.'),'warn')}}
   else if(advisor.reacted&&G.t-(advisor.calmT||0)>90){advisor.strat=advisor.reacted;advisor.reacted=null;toast(tr('Berater: Die Lage ist ruhig, Taktik zurück auf {0}.',tr(STRATS[advisor.strat].name)),'good')}
-  if(foes.length){const c=foes.reduce((a,e)=>({x:a.x+e.x/foes.length,y:a.y+e.y/foes.length}),{x:0,y:0});if(mil>0)push({id:'defend',txt:'Angriff! {0} Feinde bei deiner Siedlung – alle Truppen zur Verteidigung schicken',args:[foes.length],go:()=>{sendArmy(c.x,c.y);cam.x=c.x;cam.y=c.y}})}
+  if(foes.length){const c=foes.reduce((a,e)=>({x:a.x+e.x/foes.length,y:a.y+e.y/foes.length}),{x:0,y:0});if(mil>0)push({id:'defend',txt:'Angriff! {0} Feinde bei deiner Siedlung – alle Truppen zur Verteidigung schicken',args:[foes.length],go:()=>{sendArmy(c.x,c.y)}})}
   if(G.pop[0]>=G.cap[0]-S.hs&&G.cap[0]<POPMAX&&!mine.some(e=>e.type==='house'&&!e.built)&&afford(0,BLDS.house.cost)&&advFindSpot('house'))
     push({id:'house',txt:'eine Hütte bauen (die Bevölkerungsgrenze ist fast erreicht)',cost:BLDS.house.cost,go:()=>advBuild('house')});
   if(has('scout').some(u=>u.state==='idle'&&!u.upj))push({id:'explore',txt:'die Späher automatisch erkunden lassen',go:()=>{has('scout').forEach(u=>{if(u.state==='idle'){u.state='explore';u.ex=null}});sfx('order')}});

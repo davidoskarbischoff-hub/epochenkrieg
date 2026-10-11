@@ -44,7 +44,7 @@ function frontLine(){
   us.forEach((u,i)=>{const row=Math.floor(i/8),col=i%8-3.5,sx=hq.x+dx*(D-row*26)-dy*col*30,sy=hq.y+dy*(D-row*26)+dx*col*30;
     if(Math.hypot(u.x-sx,u.y-sy)>70&&validSpot(sx,sy,u.r)){u.state='move';u.dest={x:sx,y:sy};u.amove=null;u.pf=null}})}
 /* Arbeiter denken mit: bauen selbst ein Lager, wenn Sammler weit vom nächsten Abgabegebäude arbeiten, und einen Wachturm neben weit vorgeschobene Lager/Minen (nur mit Vorrat in der Kasse, abschaltbar im Menü) */
-let autoBuildOn=true;try{autoBuildOn=localStorage.getItem('ek-autobuild')!=='0'}catch(_){}
+let autoBuildOn=false;try{autoBuildOn=localStorage.getItem('ek-autobuild2')==='1'}catch(_){}
 function autoExpand(){
   if(G.mp||!autoBuildOn||G.t<45)return;const R=G.res[0],mine=G.ents.filter(e=>!e.dead&&e.team===0);
   const hq=mine.find(e=>e.type==='hq');if(!hq||mine.some(b=>b.kind==='bld'&&!b.built&&(b.type==='store'||b.type==='tower')))return;
