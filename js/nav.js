@@ -205,23 +205,24 @@ function navLos(x0,y0,x1,y1,naval,len){
 /* A*: Weg von (sx,sy) bis auf 'goalR' Abstand an (tx,ty). Gibt eine Liste von Wegpunkten zurück, oder null.
    'seed' != 0 würfelt die Kosten leicht, damit festgefahrene Einheiten einen anderen Weg nehmen. */
 let navCl=null;
+const NDX=[1,-1,0,0,1,1,-1,-1],NDY=[0,0,1,-1,1,-1,1,-1];let NHI=new Int32Array(4096),NHF=new Float32Array(4096); /* Wegsuche: feste Felder statt neuer Arrays je Schritt (schneller) */
 function navPath(sx,sy,tx,ty,goalR,naval,seed){
   const s=navCell(sx,sy);navGen++;
   const gx=tx/NS,gy=ty/NS,gr=goalR/NS;
   const hx=(i)=>{const dx=Math.abs((i%NW)+.5-gx),dy=Math.abs(((i/NW)|0)+.5-gy);return(Math.max(dx,dy)+.4142*Math.min(dx,dy))-gr};
-  const heap=[],hf=[];
-  const push=(i,f)=>{heap.push(i);hf.push(f);let k=heap.length-1;while(k>0){const p=(k-1)>>1;if(hf[p]<=hf[k])break;[heap[p],heap[k]]=[heap[k],heap[p]];[hf[p],hf[k]]=[hf[k],hf[p]];k=p}};
-  const pop=()=>{const r=heap[0],lh=heap.pop(),lf=hf.pop();if(heap.length){heap[0]=lh;hf[0]=lf;let k=0;for(;;){let l=2*k+1,rr=l+1,m=k;if(l<heap.length&&hf[l]<hf[m])m=l;if(rr<heap.length&&hf[rr]<hf[m])m=rr;if(m===k)break;[heap[m],heap[k]]=[heap[k],heap[m]];[hf[m],hf[k]]=[hf[k],hf[m]];k=m}}return r};
+  let hn=0;
+  const push=(i,f)=>{if(hn>=NHI.length){const a=new Int32Array(hn*2),b=new Float32Array(hn*2);a.set(NHI);b.set(NHF);NHI=a;NHF=b}let k=hn++;while(k>0){const q=(k-1)>>1;if(NHF[q]<=f)break;NHI[k]=NHI[q];NHF[k]=NHF[q];k=q}NHI[k]=i;NHF[k]=f};
+  const pop=()=>{const r=NHI[0];hn--;if(hn>0){const li=NHI[hn],lf=NHF[hn];let k=0;for(;;){const l=2*k+1;if(l>=hn)break;let m=l;if(l+1<hn&&NHF[l+1]<NHF[l])m=l+1;if(NHF[m]>=lf)break;NHI[k]=NHI[m];NHF[k]=NHF[m];k=m}NHI[k]=li;NHF[k]=lf}return r};
   if(!navCl||navCl.length!==NW*NH)navCl=new Uint32Array(NW*NH);
   navSeen[s]=navGen;navG[s]=0;navPar[s]=-1;push(s,hx(s));
-  let goal=-1,n=0,best=s,bestH=hx(s);
-  while(heap.length&&n++<NW*NH){
+  let goal=-1,n=0,best=s,bestH=hx(s);const cap=Math.min(NW*NH,14000); /* Suchgrenze: unerreichbare Ziele durchsuchen nicht mehr die ganze Karte */
+  while(hn&&n++<cap){
     const i=pop();if(navCl[i]===navGen)continue;navCl[i]=navGen; // schon abgearbeitet (veralteter Eintrag)
     const x=i%NW,y=(i/NW)|0,h=hx(i);
     if(h<bestH){bestH=h;best=i}
     if(h<=0.5&&(i===s||navOpen(i,naval))){goal=i;break}
-    for(let k=0;k<8;k++){const dx=k<4?[1,-1,0,0][k]:[1,1,-1,-1][k-4],dy=k<4?[0,0,1,-1][k]:[1,-1,1,-1][k-4];
-      const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=NW||ny>=NH)continue;const j=ny*NW+nx;if(!navOpen(j,naval))continue;
+    for(let k=0;k<8;k++){const dx=NDX[k],dy=NDY[k];
+      const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=NW||ny>=NH)continue;const j=ny*NW+nx;if(navCl[j]===navGen||!navOpen(j,naval))continue;
       if(k>=4&&(!navOpen(y*NW+nx,naval)||!navOpen(ny*NW+x,naval)))continue; // keine Ecken schneiden
       let c=k<4?1:1.4142;if(seed)c*=1+((((j*2654435761)^(seed*40503))>>>0)%100)/100*1.4;
       const g=navG[i]+c;if(navSeen[j]!==navGen||g<navG[j]){navSeen[j]=navGen;navG[j]=g;navPar[j]=i;push(j,g+hx(j))}}
@@ -231,6 +232,6 @@ function navPath(sx,sy,tx,ty,goalR,naval,seed){
   let pts=cells.map(i=>({x:(i%NW+.5)*NS,y:(((i/NW)|0)+.5)*NS}));
   // Weg glätten: Zwischenpunkte weglassen, wenn man direkt hinüberlaufen kann
   const out=[];let a=0;
-  while(a<pts.length-1){let b=pts.length-1;while(b>a+1&&!navLos(pts[a].x,pts[a].y,pts[b].x,pts[b].y,naval))b--;out.push(pts[b]);a=b}
+  while(a<pts.length-1){let b=Math.min(pts.length-1,a+60);while(b>a+1&&!navLos(pts[a].x,pts[a].y,pts[b].x,pts[b].y,naval))b--;out.push(pts[b]);a=b}
   return out;
 }
