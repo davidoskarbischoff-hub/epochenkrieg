@@ -1,6 +1,8 @@
 /* Sprachen: Deutsch (Standard) und Englisch. tr('deutscher Text') liefert den englischen Text, wenn Englisch gewählt ist.
    Neue Texte: im Code deutsch schreiben, mit tr('...') umschliessen und hier unten die englische Übersetzung ergänzen. */
 const EN={
+  'Parasaurolophus':'Parasaurolophus','Triceratops':'Triceratops','Stegosaurus':'Stegosaurus','Brontosaurus':'Brontosaurus','Velociraptor':'Velociraptor','Tyrannosaurus':'Tyrannosaurus',
+  'Pflanzenfresser – scheu, flieht im Rudel. Viel Nahrung':'Herbivore – shy, flees in herds. Lots of food','Pflanzenfresser – friedlich, wehrt sich aber mit den Hörnern. Viel Nahrung':'Herbivore – peaceful, but fights back with its horns. Lots of food','Pflanzenfresser – friedlich, schlägt mit dem Stachelschwanz zurück':'Herbivore – peaceful, strikes back with its spiked tail','Riesiger Pflanzenfresser – nur gefährlich, wenn man ihn reizt. Enorm viel Nahrung':'Giant herbivore – only dangerous when provoked. Huge amount of food','Fleischfresser im Rudel – schnell und angriffslustig':'Pack carnivore – fast and aggressive','Der König der Fleischfresser – greift alles an. Sehr selten':'King of the carnivores – attacks everything. Very rare',
   'für':'for','Lädt …':'Loading …','Klicken zum Fortfahren':'Click to continue','Einzelspieler':'Singleplayer','Bald':'Soon','Partie':'Match','Kartengröße':'Map size','Wildtiere':'Wild animals','Groß':'Large','Leicht':'Easy','Schwer':'Hard','Normal':'Normal','Tutorial':'Tutorial','Story':'Story',
   // Oberfläche oben
   'Nahrung':'Food','Holz':'Wood','Stein':'Stone','Bevölkerung':'Population','Pause':'Pause','Weiter':'Resume','Menü':'Menu',

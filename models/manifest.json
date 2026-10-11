@@ -857,9 +857,16 @@
     },
     "human": true,
     "epochs": [
-     5,
-     6
+     5
     ]
+   },
+   {
+    "file": "military/Military Motorbike.glb",
+    "epochs": [
+     6
+    ],
+    "len": 2.6,
+    "yaw": 90
    }
   ],
   "healer": [
@@ -1023,8 +1030,7 @@
    {
     "file": "neu/Soldier.glb",
     "epochs": [
-     5,
-     6
+     5
     ],
     "anim": {
      "idle": "Idle",
@@ -1039,6 +1045,14 @@
      "Gun",
      "Rifle"
     ]
+   },
+   {
+    "file": "military/Ambulance Car.glb",
+    "epochs": [
+     6
+    ],
+    "len": 3.4,
+    "yaw": 90
    }
   ],
   "engineer": {
@@ -2406,7 +2420,18 @@
     "seat": 0.72
    },
    "yaw": 90
-  }
+  },
+  "cart": [
+   {
+    "file": "military/Truck.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "len": 3.2,
+    "yaw": 90
+   }
+  ]
  },
  "buildings": {
   "hq": [
@@ -2415,7 +2440,15 @@
     "epochs": [
      2
     ],
-    "fit": 1.0
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "arch/Arch.glb",
+      "h": 3.2,
+      "x": 0.2,
+      "z": 1.25
+     }
+    ]
    },
    {
     "file": "neu/Houses-gEjAC1UvVU.glb",
@@ -2436,7 +2469,16 @@
     "epochs": [
      3
     ],
-    "fit": 1.0
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "arch/Church.glb",
+      "h": 7,
+      "x": -1.35,
+      "z": -0.5,
+      "ry": 90
+     }
+    ]
    },
    {
     "file": "neu/Castle Fortress.glb",
@@ -2492,16 +2534,39 @@
      4
     ],
     "fit": 1.0
+   },
+   {
+    "file": "arch/Barn.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "fit": 1.0
    }
   ],
   "barracks": [
    {
-    "file": "neu/Wooden Fortress.glb",
+    "file": "arch/Colosseum.glb",
     "epochs": [
-     2,
-     3
+     2
     ],
     "fit": 1.0
+   },
+   {
+    "file": "neu/Wooden Fortress.glb",
+    "epochs": [
+     3
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "torture/Pilory-2aK6iL6NAY.glb",
+      "h": 1.1,
+      "x": 1.3,
+      "z": 1.0,
+      "ry": -20
+     }
+    ]
    },
    {
     "file": "neu/Castle.glb",
@@ -2535,7 +2600,28 @@
      3,
      4
     ],
-    "fit": 1.0
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "torture/Gallows.glb",
+      "h": 2.6,
+      "x": 1.35,
+      "z": 0.9,
+      "ry": -30
+     },
+     {
+      "file": "torture/Pilory.glb",
+      "h": 1.2,
+      "x": -1.3,
+      "z": 1.0
+     },
+     {
+      "file": "torture/Cage-TAqDCvxcxd.glb",
+      "h": 1.6,
+      "x": -1.45,
+      "z": 0.45
+     }
+    ]
    },
    {
     "file": "neu/Castle Fortress.glb",
@@ -2585,7 +2671,16 @@
      5,
      6
     ],
-    "fit": 1.0
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "arch/Ferris Wheel.glb",
+      "h": 4.5,
+      "x": -1.4,
+      "z": -0.3,
+      "ry": 90
+     }
+    ]
    }
   ],
   "tower": [
@@ -2648,6 +2743,66 @@
    "file": "neu/Lizard.glb",
    "tintAll": "#4f6b3a",
    "yaw": 90
+  },
+  "para": {
+   "file": "dino/Parasaurolophus.glb",
+   "anim": {
+    "idle": "Armature|Parasaurolophus_Idle",
+    "walk": "Armature|Parasaurolophus_Walk",
+    "attack": "Armature|Parasaurolophus_Attack",
+    "work": "Armature|Parasaurolophus_Idle"
+   },
+   "len": 4.6
+  },
+  "trike": {
+   "file": "dino/Triceratops.glb",
+   "anim": {
+    "idle": "Armature|Triceratops_Idle",
+    "walk": "Armature|Triceratops_Walk",
+    "attack": "Armature|Triceratops_Attack",
+    "work": "Armature|Triceratops_Idle"
+   },
+   "len": 5.2
+  },
+  "stego": {
+   "file": "dino/Stegosaurus.glb",
+   "anim": {
+    "idle": "Armature|Stegosaurus_Idle",
+    "walk": "Armature|Stegosaurus_Walk",
+    "attack": "Armature|Stegosaurus_Attack",
+    "work": "Armature|Stegosaurus_Idle"
+   },
+   "len": 5.4
+  },
+  "bronto": {
+   "file": "dino/Apatosaurus.glb",
+   "anim": {
+    "idle": "Armature|Apatosaurus_Idle",
+    "walk": "Armature|Apatosaurus_Walk",
+    "attack": "Armature|Apatosaurus_Attack",
+    "work": "Armature|Apatosaurus_Idle"
+   },
+   "len": 10.5
+  },
+  "raptor": {
+   "file": "dino/Velociraptor.glb",
+   "anim": {
+    "idle": "Armature|Velociraptor_Idle",
+    "walk": "Armature|Velociraptor_Walk",
+    "attack": "Armature|Velociraptor_Attack",
+    "work": "Armature|Velociraptor_Idle"
+   },
+   "len": 2.6
+  },
+  "trex": {
+   "file": "dino/T-Rex.glb",
+   "anim": {
+    "idle": "Armature|TRex_Idle",
+    "walk": "Armature|TRex_Walk",
+    "attack": "Armature|TRex_Attack",
+    "work": "Armature|TRex_Idle"
+   },
+   "len": 7.0
   }
  },
  "nodes": {

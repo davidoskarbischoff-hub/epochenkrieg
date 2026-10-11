@@ -235,3 +235,11 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Arbeiter-Linie: Adventurer (Stein/Bronze/Eisen) → Bauer (Mittelalter/Renaissance) → Arbeiter (Industrie/Weltkrieg).
 - [x] Eigene Gebäude für Steinzeit (Fellzelte, Mammutknochen-Hütte, Schädel, Stoßzahn-Tor, Feuerstellen) und Bronzezeit (Rundhäuser mit Strohdach, Speicher auf Stelzen, Palisade, Bronzeschilde): `js/eramodels.js`.
 - [ ] Nächste Schritte Grafik: Eisenzeit-Gebäude eigener Stil, Krieger-Ausrüstung je Zeitalter verfeinern (Helme, Rüstungen), Tiere/Bäume prüfen, Mine/Feld in der Steinzeit.
+
+## Neue Modelle von David (2026-10-12)
+- [x] Dinosaurier in der Steinzeit (statt Mammut/Säbelzahntiger): Parasaurolophus (scheu, Herde), Triceratops und Stegosaurus (friedlich, wehren sich), Brontosaurus (riesig, selten), Velociraptor (Rudel, greift an), T-Rex (nur einer je Seite, greift alles an). Sterben beim ersten Aufstieg aus.
+- [x] Fahrzeuge Weltkriegszeit: Späher = Kradmelder (Motorrad), Sanitäter = Sanitätswagen, Lore ab Industriezeit = Lastwagen.
+- [x] Foltergeräte als Beiwerk: Galgen, Pranger, Käfig an der Burg (Mittelalter/Renaissance), Pranger an der Kaserne (Mittelalter).
+- [x] Architektur: Kolosseum = Kaserne der Eisenzeit, Torbogen am Hauptlager (Eisenzeit), Kirche am Hauptlager (Mittelalter), Scheune = Lager ab Industriezeit, Riesenrad am Markt ab Industriezeit.
+- [ ] Noch ungenutzt: Hubschrauber, Jeep, Light Tank, Military Boat, Fahrrad, Brücke, Cottage, Cabin Shed, Fortress, Castle, Guillotine, Elektrischer Stuhl u. a. – Ideen: Jeep/Light Tank als Nationen-Einheiten, Military Boat als Patrouillenboot, Brücke über Flüsse.
+- [ ] Quelle/Lizenz der neuen Modelle in models/CREDITS.md eintragen.
