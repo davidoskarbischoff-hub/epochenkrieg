@@ -49,6 +49,7 @@ const UNITS={
   zero:{cls:'air',air:true,nation:'jp',name:'Jagdflugzeug Zero',sight:290,hp:150,spd:200,atk:20,rng:120,cd:.4,r:10,cost:{wood:140,iron:190,gold:100,oil:80},time:28,ep:6,from:'airfield',ranged:true,gun:true},
   doughboy:{cls:'rng',nation:'us',name:'Doughboy',sight:200,hp:210,spd:56,atk:42,rng:170,cd:1.5,r:7,cost:{food:100,wood:30,iron:70,gold:20},time:18,ep:6,from:'barracks',ranged:true,gun:true},
   fighter:{cls:'air',air:true,nation:'us',name:'Jagdflieger',sight:290,hp:190,spd:175,atk:22,rng:120,cd:.4,r:10,cost:{wood:160,iron:210,gold:110,oil:90},time:30,ep:6,from:'airfield',ranged:true,gun:true},
+  cart:{cls:'wk',passive:true,name:'Lore',sight:80,hp:160,spd:42,atk:0,rng:4,cd:1,r:6,vr:4.2,cost:{},ep:9,pop:0},
   sword:{cls:'inf',tech:'smithy',name:'Schwertkämpfer',sight:150,hp:150,spd:52,atk:15,rng:5,cd:1.1,r:9,cost:{food:80,iron:40},time:18,ep:2,from:'barracks'}
 };
 /* Turm-Ausbau: Verteidigung (stärker schiessen, mehr Leben) oder Aussicht (Sicht und Gebiet) */
@@ -58,6 +59,7 @@ const BSPEC={
   harbor:{fish:{name:'Fischerhafen',ep:2,cost:{wood:200,stone:80},sub:'Boote fangen 25 % mehr'},navy:{name:'Werft',ep:3,cost:{wood:250,iron:120},sub:'Neue Schiffe +25 % Leben'}},
   market:{trade:{name:'Handelskontor',ep:3,cost:{wood:200,stone:150},sub:'Besserer Kurs: Verkauf bringt 25 % mehr Gold'},bank:{name:'Bank',ep:4,cost:{wood:200,stone:250,gold:100},sub:'Bringt dauerhaft Gold (1,5 pro Sekunde)'}},
   airfield:{ace:{name:'Jagdstaffel',ep:6,cost:{wood:200,iron:150,gold:100},sub:'Neue Flugzeuge +25 % Schaden'},armor:{name:'Panzerung',ep:6,cost:{wood:200,iron:200,gold:80},sub:'Neue Flugzeuge +30 % Leben'}},
+  mine:{rails:{name:'Schienen',ep:3,cost:{wood:150,iron:60},sub:'Loren auf Schienen: doppelt so schnell, eine zweite Lore'},deep:{name:'Tiefer Stollen',ep:2,cost:{wood:150,stone:100},sub:'Bergleute fördern 30 % mehr'}},
   barracks:{drill:{name:'Drillplatz',ep:1,cost:{wood:150,iron:80},sub:'Nahkämpfer und Reiter dieser Kaserne +25 % Leben'},range:{name:'Schiessstand',ep:2,cost:{wood:150,iron:80},sub:'Fernkämpfer dieser Kaserne +25 % Schaden'}}
 };
 const TSPEC=BSPEC.tower;
@@ -75,7 +77,7 @@ const BLDS={
   trench:{name:'Stellung',sight:110,hp:260,r:15,cost:{wood:25,stone:10},time:8,ep:1,passable:true,cover:true,sub:'Truppen darin erleiden 35 % weniger Schaden'},
   derrick:{name:'Bohrturm',sight:150,claim:80,hp:420,r:16,cost:{wood:150,iron:80},time:24,ep:5,sub:'Nötig, um Öl zu fördern'},
   refinery:{name:'Raffinerie',sight:170,claim:110,hp:650,r:24,dropOil:true,cost:{wood:200,stone:100,iron:120},time:34,ep:5,sub:'Hier wird Öl abgeliefert'},
-  mine:{name:'Mine',sight:150,claim:90,hp:420,r:16,drop:true,cost:{wood:100,stone:40},time:20,ep:2,sub:'Nötig für Eisen und Gold'},
+  mine:{name:'Mine',sight:150,claim:90,hp:520,r:20,cost:{wood:120},time:20,ep:1,sub:'Für Stein, Eisen und Gold: Arbeiter arbeiten drinnen, eine Lore bringt das Erz zum Lager'},
   market:{name:'Markt',sight:170,claim:110,hp:520,r:22,cost:{wood:150,stone:80},time:24,ep:3,sub:'Rohstoffe gegen Gold tauschen'},
   tower:{name:'Wachturm',sight:300,claim:320,hp:550,r:14,cost:{wood:70,stone:60},time:26,ep:0,shoot:{rng:170,atk:9,cd:1.5},sub:'Schiesst auf Gegner'}
 };
@@ -101,6 +103,8 @@ const CTR={spear:{cav:1.8},cav:{rng:1.4,siege:1.4,med:1.4},rng:{inf:1.2,spear:1.
 const RAGE={dur:6,cd:35,dmg:1.35,spd:1.25}; /* Fähigkeit Kampfrausch (Taste F) */
 /* Einheiten ändern ihren Namen mit dem Zeitalter (Sanitäter-Reihe) */
 /* Truppenlinien: ab einem späteren Zeitalter ist eine Einheit veraltet und nicht mehr ausbildbar (upto = letztes Zeitalter); vorhandene bleiben. uOk prüft beides. */
+/* Minen: bis MINE_CAP Arbeiter arbeiten drinnen, das Erz sammelt sich im Minenlager (MINE_STOCK) und eine Lore (Einheit cart) fährt es zum nächsten Lager */
+const MINE_CAP=5,MINE_STOCK=300,CART_LOAD=60;
 const UPTO={sling:0,club:1,archer:2,warship:2,crossbow:3,catapult:3,ram:3,spear:4,sword:4,musket:4,cannon:4,galleon:4,knight:5};for(const k in UPTO)UNITS[k].upto=UPTO[k];
 const uOk=(k,ep)=>UNITS[k].ep<=ep&&!(UNITS[k].upto<ep);
 const UNAMES={healer:['Schamane','Heiler','Priester','Feldscher','Sanitäter','Medizintechniker']};
@@ -121,7 +125,7 @@ const nationFx=k=>Object.assign({},NFX0,k&&NATIONS[k]?NATIONS[k].fx:{});
 const TANKS=new Set(['tank','mark1','renault']);
 const POPMAX=100;
 const RES=['food','wood','stone','iron','gold','oil'],RN={food:'Nahrung',wood:'Holz',stone:'Stein',iron:'Eisen',gold:'Gold',oil:'Öl'};
-const RES_EP={stone:1,iron:2,gold:3,oil:5},MINE_RT={iron:'mine',gold:'mine',oil:'derrick'}; /* ab welcher Epoche eine Ressource erscheint; Erz und Gold brauchen eine Mine in der Nähe */
+const RES_EP={stone:1,iron:2,gold:3,oil:5},MINE_RT={stone:'mine',iron:'mine',gold:'mine',oil:'derrick'}; /* ab welcher Epoche eine Ressource erscheint; Erz und Gold brauchen eine Mine in der Nähe */
 const MINE_RNG=150,TRADE={sell:.5,buy:1,lot:100}; /* Markt: 100 Rohstoff -> 50 Gold, 100 Gold -> 100 Rohstoff */
 /* army = Faktor für die Heeresgrösse der KI; pace = Tempo-Faktor für die frühesten Aufstiegszeiten der KI (kleiner = schneller) */
 const DIFF={leicht:{gather:.7,first:460,wave:4,pace:1.35,army:.55},normal:{gather:.85,first:480,wave:7,pace:1.3,army:.55},schwer:{gather:1.35,first:240,wave:6,pace:.8,army:1.1}};

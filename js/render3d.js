@@ -289,7 +289,7 @@ function r3Unit(o,e,h,dt,t){
     else if(moving&&!rig.gltf)y+=Math.abs(s)*.07*(rig.horse?1.6:1);
     if(rig.gltf)EKMODELS.animate(rig,e.state==='attack'&&G.t-(e.swing||-9)<1?'attack':(work||build)?'work':moving?'walk':'idle',dt,moving?Math.max(.6,d.spd/60):1,wkKind(e));
     else if(rig.horse){rig.legs.forEach((l,i)=>l.rotation.z=(i%2?s:-s)*.7);const rd=rig.rider;rd.arms[1].rotation.z=.2+sw*.6}
-    else if(rig.wheels){if(moving)rig.wheels.forEach(w=>w.rotation[w.userData.axis||'y']+=dt*3.2*(d.spd/40));if(rig.log)rig.log.position.x=sw*.9;if(rig.arm)rig.arm.rotation.z=-sw*1.8;if(rig.barrel)rig.barrel.position.x=.1-sw*.35}
+    else if(rig.wheels){if(rig.load)rig.load.visible=(e.carry||0)>0;if(moving)rig.wheels.forEach(w=>w.rotation[w.userData.axis||'y']+=dt*3.2*(d.spd/40));if(rig.log)rig.log.position.x=sw*.9;if(rig.arm)rig.arm.rotation.z=-sw*1.8;if(rig.barrel)rig.barrel.position.x=.1-sw*.35}
     else if(rig.up){r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t)}
     else{
       const sa=moving?s*.7:0;rig.legs[0].rotation.z=-sa;rig.legs[1].rotation.z=sa;

@@ -23,7 +23,7 @@ function toggleLoopSel(){let n=0,tog=0;ownSel().forEach(u=>{if(u.kind!=='unit')r
   if(tog===1)toast(tr('Befehlskette wird wiederholt (Patrouille). Taste L beendet sie.'));else if(tog===-1)toast(tr('Schleife beendet.'));else toast(tr('Dafür braucht es mindestens zwei Wegpunkte (Umschalt + Rechtsklick).'))}
 function clearChainSel(){let n=0;ownSel().forEach(u=>{if(u.kind==='unit'&&((u.q&&u.q.length)||u.loop)){u.q=[];u.loop=null;n++}});if(n)toast(tr('Befehlskette gelöscht.'));return n>0}
 /* ---------- Befehlsketten: Umschalt + Befehl hängt den Auftrag hinten an ---------- */
-function applyOrder(u,o){u.pf=null;if(u.gar&&o.t!=='garrison'){u.gar=null;u.y+=14}
+function applyOrder(u,o){u.pf=null;if(u.inm&&o.t!=='mine')mineOut(u);if(u.gar&&o.t!=='garrison'){u.gar=null;u.y+=14}
   switch(o.t){
     case'move':u.state='move';u.dest={x:o.x,y:o.y};u.amove=null;break;
     case'amove':u.state='amove';u.amove={x:o.x,y:o.y};break;
@@ -31,6 +31,7 @@ function applyOrder(u,o){u.pf=null;if(u.gar&&o.t!=='garrison'){u.gar=null;u.y+=1
     case'build':u.state='build';u.tid=o.tid;u.rep=!!o.rep;u.prev=null;break;
     case'attack':u.state='attack';u.tid=o.tid;u.amove=null;break;
     case'garrison':u.state='garrison';u.tid=o.tid;u.amove=null;break;
+    case'mine':u.state='mine';u.tid=o.tid;u.amove=null;break;
     case'return':u.state='return';break}}
 function orderValid(o){if(o.t==='build'){const b=get(o.tid);return !!b&&(!b.built||(o.rep&&b.hp<b.maxHp-1))}if(o.t==='gather'||o.t==='attack'||o.t==='garrison')return !!get(o.tid);return true}
 function giveOrder(u,o,append){
@@ -64,6 +65,7 @@ function command(wx,wy,append,sp){
     else if(t&&(t.team===1||t.kind==='animal')&&u.type!=='scout'){giveOrder(u,{t:'attack',tid:t.id},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&!t.built&&UNITS[u.type].builds){giveOrder(u,{t:'build',tid:t.id},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&t.built&&(t.type==='wall'||t.type==='tower')&&UNITS[u.type].ranged&&!UNITS[u.type].siege&&!UNITS[u.type].air&&!UNITS[u.type].builds){giveOrder(u,{t:'garrison',tid:t.id},append)}
+    else if(t&&t.team===0&&t.kind==='bld'&&t.built&&t.type==='mine'&&UNITS[u.type].builds&&t.hp>=t.maxHp-1){giveOrder(u,{t:'mine',tid:t.id},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&t.built&&t.hp<t.maxHp-1&&UNITS[u.type].builds){giveOrder(u,{t:'build',tid:t.id,rep:true},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&BLDS[t.type].drop&&UNITS[u.type].gather&&u.carry>0&&(!UNITS[u.type].naval||t.type==='harbor')){giveOrder(u,{t:'return'},append)}
     else{const sp2=movers.get(u.id);const ox=sp2?sp2.x-wx:(i%cols-(cols-1)/2)*csp,oy=sp2?sp2.y-wy:(Math.floor(i/cols)-(cols-1)/2)*csp;giveOrder(u,{t:'move',x:wx+ox,y:wy+oy},append);i++}

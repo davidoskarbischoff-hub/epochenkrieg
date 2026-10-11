@@ -1546,13 +1546,14 @@
   "mine": {
    "file": "neu/Mine.glb",
    "epochs": [
+    1,
     2,
     3,
     4,
     5,
     6
    ],
-   "fit": 1.0
+   "fit": 1.6
   },
   "market": [
    {

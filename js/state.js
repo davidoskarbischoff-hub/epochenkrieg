@@ -39,7 +39,7 @@ function placeBlock(type,x,y){
   const d=BLDS[type];
   if(type==='harbor'){if(!validSpot(x,y,d.r,true))return tr('Hier ist kein Platz.');if(!harborOk(x,y,d.r))return tr('Der Hafen muss zwischen Land und flachem Wasser stehen.')}
   else if(!((type==='wall'||type==='gate')?wallSpot(x,y,d.r):validSpot(x,y,d.r)))return tr('Hier ist kein Platz.');
-  if((type==='mine'||type==='derrick')&&!G.ents.some(n=>n.kind==='node'&&!n.dead&&MINE_RT[n.rt]===type&&nodeKnown(n)&&Math.hypot(n.x-x,n.y-y)<MINE_RNG*.85))return type==='mine'?tr('Eine Mine muss in der Nähe von Eisen oder Gold stehen.'):tr('Ein Bohrturm muss in der Nähe eines entdeckten Ölfelds stehen.');
+  if((type==='mine'||type==='derrick')&&!G.ents.some(n=>n.kind==='node'&&!n.dead&&MINE_RT[n.rt]===type&&nodeKnown(n)&&Math.hypot(n.x-x,n.y-y)<MINE_RNG*.85))return type==='mine'?tr('Eine Mine muss direkt an Stein, Eisen oder Gold stehen.'):tr('Ein Bohrturm muss in der Nähe eines entdeckten Ölfelds stehen.');
   if(NET.trust)return null;
   if(!fogEx[fogIdx(x,y)])return tr('Dieses Gebiet ist noch unerkundet.');
   if(terr[fogIdx(x,y)]===1)return tr('Im Gebiet des Gegners kann nicht gebaut werden. Ein Wachturm erobert Land zurück.');
@@ -64,7 +64,7 @@ function fogUpdate(){
   terrCtx.putImageData(terrImg,0,0);
 }
 /* Die Karte ist überall zu sehen (grau abgedunkelt). Gegnerische Einheiten nur im hellen Bereich, gegnerische Gebäude erst nach dem Erkunden */
-const shown=e=>{if(e.kind==='node')return nodeKnown(e);if(e.kind==='animal')return fogVis[fogIdx(e.x,e.y)]===1;if(e.team!==1)return true;const i=fogIdx(e.x,e.y);return e.kind==='unit'?fogVis[i]===1:fogEx[i]===1};
+const shown=e=>{if(e.inm)return false;if(e.kind==='node')return nodeKnown(e);if(e.kind==='animal')return fogVis[fogIdx(e.x,e.y)]===1;if(e.team!==1)return true;const i=fogIdx(e.x,e.y);return e.kind==='unit'?fogVis[i]===1:fogEx[i]===1};
 function sfx(name,e){if(NET.cap)return;if(NET.host&&e&&G&&G.ev&&G.ev.length<14&&SFXNET.has(name))G.ev.push({t:'s',n:name,x:Math.round(e.x),y:Math.round(e.y)});if(typeof SND==='undefined')return;if(e&&!shown(e))return;let pan=0,vol=1;if(e&&R3.ok){const q=scr(e.x,e.y,0);if(!q.front||q.x<-40||q.y<-40||q.x>VW+40||q.y>VH+40)return;const dx=q.x/VW-.5,dy=q.y/VH-.5;pan=dx*1.7;vol=Math.max(.35,1.15-Math.hypot(dx,dy)*.9)*Math.min(1,.55+R3.k*.45)}SND.play(name,pan,vol)}
 let G=null,bg=null,bgSmall=null,diff='normal',aiStyle='balanced';
 /* Mehrspieler: host = rechnet das Spiel, client = zeigt den Stand und schickt Befehle. send = Funktion zum anderen Spieler. */

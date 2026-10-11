@@ -39,7 +39,7 @@ function advFindSpot(type){
   for(const need of[true,false])for(let d=100;d<=(need?420:320);d+=20)for(let k=0;k<36;k++){const a=base+(k%2?1:-1)*Math.ceil(k/2)*.17;const x=hq.x+Math.cos(a)*d,y=hq.y+Math.sin(a)*d;if(placeBlock(type,x,y))continue;if(need&&!free(x,y))continue;return{x,y}}
   return null}
 /* Platz für eine Mine: nahe dem nächsten Vorkommen (Eisen oder Gold), das noch keine Mine hat */
-function advMineSpot(rt,hq){const nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||minedBy(0,nd))return null;
+function advMineSpot(rt,hq){const nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||(minedBy(0,nd)&&(MINE_RT[rt]!=='mine'||mineOf(0,nd))))return null;
   for(let d=34;d<=MINE_RNG*.8;d+=12)for(let k=0;k<20;k++){const a=k*.314,x=nd.x+Math.cos(a)*d,y=nd.y+Math.sin(a)*d;if(!placeBlock(MINE_RT[rt],x,y))return{x,y}}return null}
 function advBuild(type,at){
   const spot=at||advFindSpot(type),d=BLDS[type];if(!spot){toast(tr('Kein passender Platz gefunden.'));sfx('error');return false}
@@ -90,7 +90,7 @@ function advRules(){
   if(!has('harbor').length&&workers.length>=9&&afford(0,BLDS.harbor.cost)&&advFindSpot('harbor'))push({id:'harbor',txt:'einen Hafen bauen, um Fische zu fangen',cost:BLDS.harbor.cost,go:()=>advBuild('harbor')});
   if(ep>=1&&workers.length>=8&&has('farm').length<Math.min(2+ep,5)&&R.food<420&&afford(0,BLDS.farm.cost)&&advFindSpot('farm')&&!mine.some(e=>e.type==='farm'&&!e.built))push({id:'farm',txt:'ein Feld anlegen (Nahrung, die nie ausgeht)',cost:BLDS.farm.cost,go:()=>advBuild('farm')});
   // Minen: Eisen ab der Eisenzeit, Gold ab dem Mittelalter; Markt zum Tauschen
-  if(ep>=2&&workers.length>=8&&!mine.some(e=>(e.type==='mine'||e.type==='derrick')&&!e.built))for(const rt of['iron','gold','oil']){if(ep<RES_EP[rt])continue;const bt=MINE_RT[rt],sp=advMineSpot(rt,hq);if(!afford(0,BLDS[bt].cost))continue;
+  if(ep>=1&&workers.length>=6&&!mine.some(e=>(e.type==='mine'||e.type==='derrick')&&!e.built))for(const rt of['stone','iron','gold','oil']){if(ep<RES_EP[rt])continue;const bt=MINE_RT[rt],sp=advMineSpot(rt,hq);if(!afford(0,BLDS[bt].cost))continue;
     if(sp){push({id:'mine:'+rt,txt:bt==='mine'?'eine Mine für {0} bauen (ohne Mine kann man {0} nicht abbauen)':'einen Bohrturm für {0} bauen (ohne Bohrturm gibt es kein {0})',args:[rn(rt)],cost:BLDS[bt].cost,go:()=>advBuild(bt,sp)});break}}
   if(ep>=5&&has('derrick').some(b=>b.built)&&!has('refinery').length&&afford(0,BLDS.refinery.cost)&&advFindSpot('refinery'))push({id:'refinery',txt:'eine Raffinerie bauen (hier wird das Öl abgeliefert)',cost:BLDS.refinery.cost,go:()=>advBuild('refinery')});
   if(ep>=3&&!has('market').length&&workers.length>=14&&R.gold<250&&afford(0,BLDS.market.cost)&&advFindSpot('market'))push({id:'market',txt:'einen Markt bauen, um Rohstoffe gegen Gold zu tauschen',cost:BLDS.market.cost,go:()=>advBuild('market')});
