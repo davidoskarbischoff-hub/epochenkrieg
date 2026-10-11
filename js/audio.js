@@ -11,7 +11,7 @@ function init(){
   const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
   ac=new C();master=ac.createGain();master.gain.value=muted?0:.8;{const cp=ac.createDynamicsCompressor();cp.threshold.value=-14;cp.ratio.value=4;cp.attack.value=.01;cp.release.value=.25;master.connect(cp);cp.connect(ac.destination)}
   sfxG=ac.createGain();sfxG.gain.value=sfxV*.57;sfxG.connect(master);
-  musG=ac.createGain();musG.gain.value=musicV*.45;musG.connect(master);
+  musG=ac.createGain();musG.gain.value=musicV*.45;musG.connect(master);setTimeout(()=>loadSamples(),0);
   musBase=ac.createGain();musBase.connect(musG);musWar=ac.createGain();musWar.gain.value=0;musWar.connect(musG);musHi=ac.createGain();musHi.gain.value=0;musHi.connect(musG);mdst=musBase;
   /* Hall: ein künstlicher Nachhall (Rauschen, das schnell abklingt) macht Musik und Geräusche räumlicher */
   {const len=Math.floor(ac.sampleRate*2.4),ir=ac.createBuffer(2,len,ac.sampleRate);for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6)}
@@ -87,12 +87,43 @@ const FX={
   lose:t=>[0,.3,.6].forEach((d,i)=>{tone([330,262,196][i],t+d,1.1,{type:'sawtooth',vol:.18})})
 };
 const GAP={grunt:.5,yell:1.2,horn:4,growl:.8,deer:.6,chop:.18,mine:.18,pick:.18,hammer:.18,hit:.06,arrow:.06,die:.05,click:.03,select:.05,order:.05,drop:.1,crumble:.2};
+/* ---- Aufnahmen (Ordner sounds/ und music/jingles/): ersetzen die Synthesizer-Geräusche, sobald sie geladen sind; fehlt eine Datei, bleibt der Synthesizer ----
+   Pro Name eine Liste (zufällig gewählt), v = Lautstärke, r = Tonhöhen-Streuung. Neue Aufnahmen: hier eintragen. */
+const SAMPLES={
+  click:{f:['sounds/click_001.ogg','sounds/click_002.ogg','sounds/click_003.ogg'],v:.5},
+  select:{f:['sounds/select_001.ogg','sounds/select_002.ogg','sounds/select_003.ogg'],v:.45},
+  order:{f:['sounds/tick_002.ogg','sounds/tick_004.ogg','sounds/switch_001.ogg'],v:.5},
+  error:{f:['sounds/error_002.ogg','sounds/error_003.ogg'],v:.5},
+  drop:{f:['sounds/handleCoins2.ogg','sounds/dropLeather.ogg'],v:.6,r:.1},
+  chop:{f:['sounds/chop.ogg'],v:.8,r:.12},
+  mine:{f:['sounds/impactMetal_light_004.ogg','sounds/impactPlate_light_004.ogg'],v:.55,r:.15},
+  pick:{f:['sounds/cloth4.ogg','sounds/handleSmallLeather.ogg','sounds/handleSmallLeather2.ogg'],v:.6,r:.1},
+  hammer:{f:['sounds/impactWood_medium_004.ogg','sounds/impactPlank_medium_004.ogg'],v:.7,r:.12},
+  hit:{f:['sounds/impactPunch_heavy_004.ogg','sounds/knifeSlice.ogg','sounds/impactMetal_medium_004.ogg'],v:.6,r:.15},
+  arrow:{f:['sounds/knifeSlice2.ogg','sounds/drawKnife1.ogg'],v:.5,r:.1},
+  die:{f:['sounds/impactPunch_heavy_004.ogg','sounds/dropLeather.ogg'],v:.7,r:.2},
+  crumble:{f:['sounds/impactPlank_medium_004.ogg','sounds/doorClose_4.ogg','sounds/impactMetal_heavy_004.ogg'],v:.9,r:.2},
+  built:{f:['sounds/confirmation_003.ogg'],v:.6},
+  ready:{f:['sounds/confirmation_001.ogg'],v:.55},
+  alert:{f:['sounds/impactBell_heavy_004.ogg'],v:.8},
+  epoch:{f:['music/jingles/jingles_SAX15.ogg'],v:.7},
+  win:{f:['music/jingles/jingles_SAX16.ogg'],v:.75},
+  lose:{f:['music/jingles/jingles_STEEL16.ogg'],v:.75}
+};
+const SBUF={};
+function loadSamples(){
+  if(!ac||typeof fetch==='undefined')return;
+  for(const k in SAMPLES)for(const f of SAMPLES[k].f){if(SBUF[f]!==undefined)continue;SBUF[f]=null;
+    fetch(f).then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(b=>new Promise((ok,no)=>ac.decodeAudioData(b,ok,no))).then(buf=>{SBUF[f]=buf}).catch(()=>{SBUF[f]=false})}}
+function playSample(name,n,dest){
+  const d=SAMPLES[name];if(!d)return false;const ok=d.f.filter(f=>SBUF[f]);if(!ok.length)return false;
+  const src=ac.createBufferSource(),g=ac.createGain();src.buffer=SBUF[ok[(Math.random()*ok.length)|0]];g.gain.value=d.v||.6;if(d.r)src.playbackRate.value=1+(Math.random()-.5)*2*d.r;src.connect(g);g.connect(dest);src.start(n);return true}
 function play(name,pan=0,vol=1){
   if(!ac||sfxV<=0||!FX[name])return;if(!flags.voice&&(name==='grunt'||name==='yell'||name==='horn'))return;
   const n=ac.currentTime;if(last[name]&&n-last[name]<(GAP[name]||.02))return;last[name]=n;
   if(name==='hit'||name==='arrow'||name==='die'||name==='crumble')fight=Math.min(1,fight+.3);
   const b=ac.createGain(),pn=ac.createStereoPanner();b.gain.value=vol;pn.pan.value=Math.max(-.9,Math.min(.9,pan));b.connect(pn);pn.connect(sfxG);cur=b;
-  try{FX[name](n+.005)}finally{cur=null}
+  try{if(!playSample(name,n+.005,b))FX[name](n+.005)}finally{cur=null}
 }
 
 /* ---- Musik: drei gemeinfreie klassische Stücke, vereinfacht und mit Synthesizer gespielt ----
@@ -259,7 +290,7 @@ function applyGains(){
   if(!ac)return;const n=ac.currentTime;
   musG.gain.setTargetAtTime(musicV*.45,n,.1);sfxG.gain.setTargetAtTime(sfxV*.57,n,.05);
 }
-return{
+return{dbg:()=>({n:Object.keys(SBUF).length,ok:Object.values(SBUF).filter(Boolean).length,bad:Object.entries(SBUF).filter(e=>e[1]===false).map(e=>e[0])}),
   init,play,
   setEpoch(e){epoch=Math.max(0,Math.min(PIECES.length-1,e|0))},
   setFlags(f){Object.assign(flags,f)},

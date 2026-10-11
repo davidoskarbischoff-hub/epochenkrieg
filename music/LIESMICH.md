@@ -1,4 +1,3 @@
-# Ordner „music“ (Musik)
-Hier legst du Musikstücke ab (am besten `.ogg` oder `.mp3`, Lizenz in `CREDITS.md` eintragen).
-Vorschlag für Unterordner: `steinzeit/`, `bronzezeit/`, `eisenzeit/`, `mittelalter/`, `renaissance/`, `industrie/`, `weltkrieg/`, `kampf/`, `menue/`.
-Danach sage ich Claude Bescheid, er baut die Stücke ein (ein Stück pro Zeitalter, Kampfmusik bei Gefechten, Menümusik).
+# Ordner „music“
+`jingles/` enthält kurze Fanfaren (Zeitalter-Aufstieg, Sieg, Niederlage). Lange Musikstücke fehlen noch: Das Spiel spielt weiter die eingebaute klassische Musik (Satie, Pachelbel, Grieg).
+Zuordnung: `SAMPLES` in `js/audio.js`.
