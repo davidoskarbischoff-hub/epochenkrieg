@@ -389,16 +389,123 @@
     }
    }
   ],
-  "scout": {
-   "file": "neu/Adventurer.glb",
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Sword_Slash",
-    "work": "Interact"
+  "scout": [
+   {
+    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
+    "yaw": 0,
+    "tint": {
+     "M_Main": "#c9966e",
+     "M_Joints": "#c9966e"
+    },
+    "pelt": "#8a6338",
+    "anim": {
+     "idle": "Idle_Loop",
+     "walk": "Walk_Loop",
+     "attack": "Interact",
+     "work": "Interact"
+    },
+    "skins": [
+     "#c9966e",
+     "#b57e58",
+     "#d8a883",
+     "#9c6a48"
+    ],
+    "hair": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a"
+    ],
+    "belt": "#3b2a1a",
+    "cape": "#3d5a2e",
+    "tooth": true,
+    "human": true,
+    "hide": [
+     "^Sword",
+     "Shield",
+     "Gun",
+     "Rifle"
+    ],
+    "epochs": [
+     0,
+     1
+    ]
    },
-   "human": true
-  },
+   {
+    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
+    "yaw": 0,
+    "tint": {
+     "M_Main": "#c9966e",
+     "M_Joints": "#c9966e"
+    },
+    "pelt": "#8a6338",
+    "anim": {
+     "idle": "Idle_Loop",
+     "walk": "Walk_Loop",
+     "attack": "Interact",
+     "work": "Interact"
+    },
+    "epochs": [
+     2
+    ],
+    "skins": [
+     "#c9966e",
+     "#b57e58",
+     "#d8a883",
+     "#9c6a48"
+    ],
+    "hair": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a"
+    ],
+    "belt": "#3b2a1a",
+    "cape": "#3d5a2e",
+    "human": true,
+    "hide": [
+     "^Sword",
+     "Shield",
+     "Gun",
+     "Rifle"
+    ]
+   },
+   {
+    "file": "neu/Medieval.glb",
+    "epochs": [
+     3,
+     4
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Interact",
+     "work": "Interact"
+    },
+    "human": true,
+    "hide": [
+     "^Sword",
+     "Shield",
+     "Gun",
+     "Rifle"
+    ],
+    "cape": "#3d5a2e"
+   },
+   {
+    "file": "neu/Adventurer.glb",
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
+    },
+    "human": true,
+    "epochs": [
+     5,
+     6
+    ]
+   }
+  ],
   "healer": [
    {
     "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
@@ -1271,13 +1378,19 @@
     "yaw": 0
    },
    {
+    "file": "neu/boat-sail-a.glb",
+    "fit": "length",
+    "epochs": [
+     3,
+     4
+    ],
+    "yaw": 90,
+    "scale": 0.75
+   },
+   {
     "file": "neu/boat-fishing-small.glb",
     "fit": "length",
     "epochs": [
-     1,
-     2,
-     3,
-     4,
      5,
      6
     ],
@@ -1752,13 +1865,7 @@
    {
     "file": "neu/Market Stalls.glb",
     "epochs": [
-     5
-    ],
-    "fit": 1.0
-   },
-   {
-    "file": "neu/Large Building-JgGLJH2iXj.glb",
-    "epochs": [
+     5,
      6
     ],
     "fit": 1.0
@@ -1786,15 +1893,6 @@
      3,
      4,
      5,
-     6
-    ],
-    "fit": 1.0
-   }
-  ],
-  "airfield": [
-   {
-    "file": "neu/Low Wide-DKgknsHjmr.glb",
-    "epochs": [
      6
     ],
     "fit": 1.0
