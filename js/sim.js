@@ -128,7 +128,7 @@ function moveToward(u,tx,ty,dt,ignore){
 /* Eisen und Gold lassen sich nur abbauen, wenn eine eigene, fertige Mine in der Nähe steht */
 function minedBy(team,n){if(!MINE_RT[n.rt]||team<0)return true;for(const b of G.ents)if(b.kind==='bld'&&b.type===MINE_RT[n.rt]&&b.built&&!b.dead&&b.team===team&&Math.hypot(b.x-n.x,b.y-n.y)<MINE_RNG)return true;return false}
 function nearestNode(rt,x,y,max,u,free){const naval=!!(u&&UNITS[u.type].naval);let best=null,bd=max;for(const e of G.solids){if(e.kind!=='node'||e.dead||(rt&&e.rt!==rt)||!!e.sea!==naval||(e.regen&&e.amount<30))continue;if(u&&MINE_RT[e.rt]==='mine'&&!UNITS[u.type].naval&&!mineOf(u.team,e))continue;if(u&&!minedBy(u.team,e))continue;if(u&&u.team===0&&!G.mp&&!nodeKnown(e))continue;if(u&&u.bad&&u.bad[e.id]&&G.t-u.bad[e.id]<40)continue;if(free&&(G.load[e.id]||0)>=NODES[e.type].cap)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd&&(e.type!=='tree'||nodeOpen(e))){bd=d;best=e}}return best}
-function nearestDrop(t,x,y,naval,rt){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='bld'||e.team!==t||!e.built||e.dead)continue;if(rt==='oil'?!BLDS[e.type].dropOil:!BLDS[e.type].drop)continue;if(naval&&e.type!=='harbor')continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
+function nearestDrop(t,x,y,naval,rt,land){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='bld'||e.team!==t||!e.built||e.dead||(land&&e.type==='harbor'))continue;if(rt==='oil'?!BLDS[e.type].dropOil:!BLDS[e.type].drop)continue;if(naval&&e.type!=='harbor')continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
 function findEnemy(s,rad,unitsOnly){let best=null,bd=1e9;for(const e of G.ents){if(e.dead||e.team===s.team)continue;if(e.inm)continue;if(e.team<0&&!(e.kind==='animal'&&e.state==='chase'))continue;if(unitsOnly&&e.kind!=='unit'&&e.kind!=='animal')continue;if(e.gar&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;if(UNITS[e.type]&&UNITS[e.type].air&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;const d=Math.hypot(e.x-s.x,e.y-s.y)-e.r-s.r;if(d>rad)continue;const sc=d+(e.kind==='bld'?80:0);if(sc<bd){bd=sc;best=e}}return best}
 const reach=(u,t)=>dist(u,t)<=u.r+t.r+5;
 
@@ -161,7 +161,7 @@ function updUnit(u,dt){
     const amt=Math.min(gRate(u,n)*dt*.7*(b.spec==='deep'?1.3:1),n.amount);n.amount-=amt;st[n.rt]=(st[n.rt]||0)+amt;if(n.amount<=.001)kill(n);break}
   case 'haul':{const b=get(u.home); /* Lore: holt Erz an der Mine, bringt es zum nächsten Lager; wird sie zerstört, ist die Ladung weg */
     if(!b||b.dead){kill(u);break}u.spk=b.spec==='rails'?2:1;
-    if(u.carry>0){const dp=nearestDrop(u.team,u.x,u.y,false,u.ctype);if(!dp)break;if(reach(u,dp)){G.res[u.team][u.ctype]+=u.carry;if(u.team===0)sfx('drop',u);u.carry=0}else moveToward(u,dp.x,dp.y,dt,dp.id);break}
+    if(u.carry>0){const dp=nearestDrop(u.team,u.x,u.y,false,u.ctype,true);if(!dp)break;if(reach(u,dp)){G.res[u.team][u.ctype]+=u.carry;if(u.team===0)sfx('drop',u);u.carry=0}else moveToward(u,dp.x,dp.y,dt,dp.id);break}
     if(reach(u,b)){const st=b.st||{};let rt=null;for(const k in st)if(st[k]>=1&&(!rt||st[k]>st[rt]))rt=k;if(rt&&(st[rt]>=CART_LOAD*.5||(u.wt=(u.wt||0)+dt)>6)){const a=Math.min(CART_LOAD,Math.floor(st[rt]));st[rt]-=a;u.carry=a;u.ctype=rt;u.wt=0}}
     else moveToward(u,b.x,b.y,dt,b.id);break}
   case 'idle':
@@ -320,7 +320,7 @@ function separate(){
     for(let gx=cx-1;gx<=cx+1;gx++)for(let gy=cy-1;gy<=cy+1;gy++){const l=ug.get(gx*4096+gy);if(!l)continue;
       for(const b of l){if(b._i<=a._i)continue;let dx=b.x-a.x,dy=b.y-a.y;const m=a.r+b.r;if(Math.abs(dx)>m||Math.abs(dy)>m)continue;let d=Math.hypot(dx,dy);if(d>=m)continue;if(d<.01){dx=Math.random()-.5;dy=Math.random()-.5;d=Math.hypot(dx,dy)}const p=(m-d)/2*.8;a.x-=dx/d*p;a.y-=dy/d*p;b.x+=dx/d*p;b.y+=dy/d*p}}}
   const CS=64,sg=new Map();
-  for(const o of G.solids){if(o.dead||(o.kind==='bld'&&BLDS[o.type].passable))continue;const rr=o.r+24;
+  for(const o of G.solids){if(o.dead||(o.kind==='bld'&&BLDS[o.type].passable)||(o.kind==='node'&&o.sea))continue;const rr=o.r+24;
     for(let gx=((o.x-rr)/CS)|0;gx<=((o.x+rr)/CS)|0;gx++)for(let gy=((o.y-rr)/CS)|0;gy<=((o.y+rr)/CS)|0;gy++){const k=gx*4096+gy,l=sg.get(k);if(l)l.push(o);else sg.set(k,[o])}}
   for(const u of us){const nav=!!UNITS[u.type].naval,l=sg.get(((u.x/CS)|0)*4096+((u.y/CS)|0));
     if(l)for(const o of l){if(o.dead||(o.sea&&!nav))continue;let dx=u.x-o.x,dy=u.y-o.y;const R=o.r+u.r;if(Math.abs(dx)>R||Math.abs(dy)>R)continue;let d=Math.hypot(dx,dy);if(d>=R)continue;if(d<.01){dx=1;dy=0;d=1}u.x=o.x+dx/d*R;u.y=o.y+dy/d*R}

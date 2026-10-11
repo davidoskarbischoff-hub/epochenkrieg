@@ -206,3 +206,6 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Bäume ohne Schatten bis Grafik „Mittel“ (Testmessung ×2,6 schneller)
 - [ ] Kanone/Haubitze/Panzerschiff haben weiter gute Code-Modelle (kein passendes glTF vorhanden)
 - [ ] Code-Modelle bleiben als Rückfall in models3d.js (werden noch für Lore, Artillerie, Schiffe gebraucht)
+
+## Release 3 (gemerkt)
+- [ ] Vorschaubilder in den Knöpfen (Kaserne, Hauptlager …) zeigen noch das allgemeine Modell – eigene, schönere Bilder je Einheit/Zeitalter

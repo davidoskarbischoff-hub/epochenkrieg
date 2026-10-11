@@ -4,7 +4,7 @@
 /* ---------- Menü ---------- */
 let menuOpen=false,menuPaused=false;
 function toggleMenu(){
-  menuOpen=!menuOpen;const m=$('menu');
+  menuOpen=!menuOpen;const m=$('menu');document.body.classList.toggle('menu-open',menuOpen);
   if(menuOpen){if(G&&G.running&&!G.paused&&!G.mp){G.paused=true;menuPaused=true}else menuPaused=false;renderMenu();m.hidden=false}
   else{m.hidden=true;if(menuPaused&&G){G.paused=false;menuPaused=false}$('pauseBtn').textContent=G&&G.paused?tr('Weiter'):tr('Pause')}
 }
@@ -62,7 +62,7 @@ function renderOptions(){
   m.innerHTML=`<div class="gm"><div class="gm-frame wide"><h1 class="gm-title sm">${tr('Optionen')}</h1><div class="gm-rule"></div>
    <div class="otabs" role="tablist">${tabs.map(([k,n])=>`<button data-t="${k}" aria-pressed="${k===optTab}">${tr(n)}</button>`).join('')}</div>
    <div class="obody">${body}</div><div class="gm-rule"></div>
-   <div class="btnrow"><button class="btn2" id="oReset">${tr('Zurücksetzen')}</button><button class="go" id="oBack">${tr('Zurück')}</button></div></div></div>`;
+   <div class="btnrow"><button class="btn2" id="oReset">${tr('Zurücksetzen')}</button><button class="go" id="oBack">${tr('Übernehmen')}</button></div></div></div>`;
   m.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{optTab=b.dataset.t;renderOptions()});
   const q=id=>document.getElementById(id),bind=(id,fn)=>{const e=q(id);if(e)fn(e)};
   const segB=(id,fn)=>bind(id,e=>e.querySelectorAll('button').forEach(b=>b.onclick=()=>{fn(b.dataset.v);e.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));

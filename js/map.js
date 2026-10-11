@@ -109,8 +109,8 @@ function genForests(R,bases,A,cnt){
   nearF(64,false,250,320,34);nearF(52,R()<.5,380,500,24);nearF(34,false,430,560,10);
   // weiter draussen: grosse Wälder (Flecken und Bänder) und kleine Haine
   const far=(size,band,minN)=>{for(let k=0;k<80;k++){const x=150+R()*(W-300),y=150+R()*(H-300);if(!walk(x,y,40)||bases.some(b=>Math.hypot(b.x-x,b.y-y)<700)||Math.hypot(x-W/2,y-H/2)<90)continue;if(forest(x,y,size,band,minN,600))return}};
-  for(let i=0;i<cnt(4);i++)far(72+R()*48,R()<.4,30);
-  for(let i=0;i<cnt(3);i++)far(30+R()*16,false,8);
+  for(let i=0;i<cnt(6);i++)far(72+R()*48,R()<.5,30);
+  for(let i=0;i<cnt(6);i++)far(30+R()*16,R()<.3,8);
   forestPass(bases,pre);
 }
 /* Freie Felder, die eine Basis zu Fuss erreicht (4er-Nachbarschaft wie die Wegsuche ohne Eckenschneiden) */
@@ -167,10 +167,10 @@ function spawnAnimals(R,bases,A){
       if(pts.length<Math.min(n,2))continue;
       for(const q of pts){const sp=late?(x,y)=>G.late.push({type,x,y}):(x,y)=>addAnimal(type,x,y);sp(q.x,q.y);if(good(W-q.x,H-q.y))sp(W-q.x,H-q.y)}return true}
     return false};
-  for(let i=0;i<5;i++)place('deer',2+Math.floor(R()*3),A,380,950,(x,y)=>farBase(x,y,360));
-  for(let i=0;i<4;i++)place('wolf',3,A,850,2200,(x,y)=>farBase(x,y,750)&&treesNear(x,y,170)>=4);
+  for(let i=0;i<3;i++)place('deer',2+Math.floor(R()*2),A,380,950,(x,y)=>farBase(x,y,360));
+  for(let i=0;i<6;i++)place('wolf',2+Math.floor(R()*2),A,850,2200,(x,y)=>farBase(x,y,750)&&treesNear(x,y,170)>=4);
   for(let i=0;i<3;i++)place('bear',1,A,1100,2800,(x,y)=>farBase(x,y,950)&&treesNear(x,y,170)>=2);
-  for(let i=0;i<3;i++)place('mammoth',1+Math.floor(R()*2),A,700,2200,(x,y)=>farBase(x,y,650));
+  for(let i=0;i<2;i++)place('mammoth',1,A,700,2200,(x,y)=>farBase(x,y,650));
   place('sabertooth',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
   for(let i=0;i<2;i++)place('sabertooth',1,A,1000,2600,(x,y)=>farBase(x,y,900)&&treesNear(x,y,170)>=2);
   place('tiger',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
