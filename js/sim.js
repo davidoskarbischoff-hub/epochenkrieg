@@ -324,7 +324,7 @@ function advance(team,nat){
 }
 function validSpot(x,y,r,anyTerrain,ore){if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)return false;if(!anyTerrain&&(!onLand(x,y)||!onLand(x+r,y)||!onLand(x-r,y)||!onLand(x,y+r)||!onLand(x,y-r)))return false;if(!anyTerrain&&slopeNear(x,y,r)>.9)return false;for(const e of G.ents){if(e.dead||e.kind==='unit'||(ore&&e.kind==='node'&&MINE_RT[e.rt]==='mine'))continue;if(Math.hypot(e.x-x,e.y-y)<e.r+r+5)return false}return true}
 /* freies Vorkommen (ohne Mine) für eine neue Mine, nächstes zuerst */
-function mineFree(rt,x,y,team){let best=null,bd=2600;for(const n of G.ents){if(n.kind!=='node'||n.dead||n.rt!==rt||(team===0&&!nodeKnown(n)))continue;const d=Math.hypot(n.x-x,n.y-y);if(d<bd&&!G.ents.some(b=>b.type==='mine'&&!b.dead&&Math.hypot(b.x-n.x,b.y-n.y)<12)&&validSpot(n.x,n.y,BLDS.mine.r,false,true)){bd=d;best=n}}return best}
+function mineFree(rt,x,y,team){if(G.epoch[team]<NEED_LVL[rt])return null;let best=null,bd=2600;for(const n of G.ents){if(n.kind!=='node'||n.dead||n.rt!==rt||(team===0&&!nodeKnown(n)))continue;const d=Math.hypot(n.x-x,n.y-y);if(d<bd&&!G.ents.some(b=>b.type==='mine'&&!b.dead&&Math.hypot(b.x-n.x,b.y-n.y)<12)&&validSpot(n.x,n.y,BLDS.mine.r,false,true)){bd=d;best=n}}return best}
 /* Mine: rastet auf das nächste Stein-/Eisen-/Goldvorkommen ein (ohne eigene Mine darauf) */
 function mineSnap(x,y){let best=null,bd=80;for(const n of G.ents){if(n.kind!=='node'||n.dead||MINE_RT[n.rt]!=='mine'||!nodeKnown(n))continue;const d=Math.hypot(n.x-x,n.y-y);if(d<bd&&!G.ents.some(b=>b.type==='mine'&&!b.dead&&Math.hypot(b.x-n.x,b.y-n.y)<12)){bd=d;best=n}}return best}
 function separate(){
