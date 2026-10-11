@@ -97,7 +97,7 @@ function step(dt){
 }
 
 function moveToward(u,tx,ty,dt,ignore){
-  const ud=UNITS[u.type],naval=!!ud.naval;
+  const ud=UNITS[u.type],naval=ud.naval?true:u.type==='cart'?'dry':false;
   let dx=tx-u.x,dy=ty-u.y;const d=Math.hypot(dx,dy);if(d<1.5)return true;
   if(ud.air){const st=Math.min(d,ud.spd*dt);u.x+=dx/d*st;u.y+=dy/d*st;u.fa=Math.atan2(dy,dx);u.mvT=G.t;return d-st<1.5}
   const fxt=G.tfx[u.team],spd=ud.spd*dt*(1+(ud.naval?fxt.bspeed:ud.gather?fxt.wspeed:0))*(u.rage>G.t?RAGE.spd:1)*(u.spk||1),step=Math.min(d,spd);
