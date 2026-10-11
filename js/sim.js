@@ -157,7 +157,7 @@ function updUnit(u,dt){
     if(!b||b.dead||!b.built||b.team!==u.team){mineOut(u);break}
     if(u.inm!==b.id){if(reach(u,b)){if(minersIn(b)>=MINE_CAP){if(u.team===0)toast(tr('Die Mine ist voll (höchstens {0} Arbeiter).',MINE_CAP));u.state='idle';break}u.inm=b.id;u.pf=null;sel.delete(u.id)}else{moveToward(u,b.x,b.y,dt,b.id);break}}
     u.x=b.x;u.y=b.y;const st=b.st||(b.st={});if(Object.values(st).reduce((a,v)=>a+v,0)>=MINE_STOCK)break;
-    const n=mineNode(b,u);if(!n){mineOut(u);if(!G.ents.some(e=>e.kind==='node'&&!e.dead&&MINE_RT[e.rt]==='mine'&&Math.hypot(e.x-b.x,e.y-b.y)<e.r+b.r+8))b.empty=1;if(u.team===0&&G.t-(b.emptyMsg||-99)>20){b.emptyMsg=G.t;toast(tr('Kein abbaubares Vorkommen mehr bei dieser Mine.'))}break}
+    const n=mineNode(b,u);if(!n){const nx=mineNode(b,{lvl:9,team:u.team});if(nx){mineOut(u);if(u.team===0&&G.t-(G.lvlWarn||-9)>4){G.lvlWarn=G.t;toast(tr('Arbeiter brauchen Stufe {0}, um {1} abzubauen – zuerst im Hauptlager upgraden.',LVLN[NEED_LVL[nx.rt]],tr(NODES[nx.type].name)));sfx('error')}break}mineOut(u);if(!G.ents.some(e=>e.kind==='node'&&!e.dead&&MINE_RT[e.rt]==='mine'&&Math.hypot(e.x-b.x,e.y-b.y)<e.r+b.r+8))b.empty=1;if(u.team===0&&G.t-(b.emptyMsg||-99)>20){b.emptyMsg=G.t;toast(tr('Kein abbaubares Vorkommen mehr bei dieser Mine.'))}break}
     if((u.gt=(u.gt||0)-dt)<=0){u.gt=1.4+Math.random()*.6;if(Math.random()<.35)sfx('mine',b)}
     const amt=Math.min(gRate(u,n)*dt*.7*(b.spec==='deep'?1.3:1),n.amount);n.amount-=amt;st[n.rt]=(st[n.rt]||0)+amt;if(n.amount<=.001)kill(n);break}
   case 'haul':{const b=get(u.home); /* Lore: holt Erz an der Mine, bringt es zum nächsten Lager; wird sie zerstört, ist die Ladung weg */
