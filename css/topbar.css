@@ -72,3 +72,13 @@ body{--t1h:38px;--t2h:36px;--tbf:13.5px;--tbb:5px;--epf:18px;--rsf:16.5px;--rsi:
 .credits{line-height:1.5;font-size:14px}.credits h4{margin:12px 0 4px;color:var(--fr,#d8b46a)}.credits ul{margin:0;padding-left:18px}
 /* Menü offen: untere Konsole ausblenden, damit die Optionen ganz sichtbar sind */
 body.menu-open #panel{display:none!important}
+/* Upgrades und Technologien im Info-Feld: kompakte Kacheln statt Tabellenzeilen */
+#info .upg{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:5px;margin-top:6px}
+#info .upg>.uh,#info .upg>.line{grid-column:1/-1;margin:0}
+#info .upg .ur{display:flex;flex-direction:column;align-items:stretch;gap:3px;padding:6px 7px;border:1px solid rgba(216,180,106,.28);border-radius:6px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(0,0,0,.18));min-width:0}
+#info .upg .ur .un{display:flex;flex-direction:column;gap:1px;font-size:12.5px;line-height:1.2;white-space:normal}
+#info .upg .ur .un small{opacity:.75;font-size:11px}
+#info .upg .ur .uc{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:11.5px;justify-content:flex-start}
+#info .upg .ur .ub{align-self:stretch;padding:3px 6px;font-size:11.5px;border-radius:4px;margin:0}
+#info .upg .ur.run{border-color:rgba(127,178,232,.5)}
+#info .upg .ur.all{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between}
