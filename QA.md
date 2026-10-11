@@ -35,3 +35,11 @@ Bekannte Grenzen (Release 3): Fischernetze, Galeere, Bohrturm/Raffinerie/Beton-H
 - [x] Obere Leiste springt zwischen 1 und 2 Zeilen (in Arbeit)
 - [x] Berater/Arbeiter bauen Türme und Gebäude zu nah (Berater behoben, Arbeiter-Türme offen)
 - [x] Gebäude abreißen mit Rückerstattung (neu)
+
+## Davids Prüfliste vor v0.2.0 (gemeldet 2026-10-11, noch nicht umgesetzt – auf Go warten)
+- [ ] Mine auf Eisen: Arbeiter können nicht arbeiten, Meldung „kein abbaubares Vorkommen“, obwohl das Eisen nicht leer ist
+- [ ] Bogenschützen (Bronzezeit) werfen statt zu schießen → Animation/Waffe passend machen oder Einheit umbenennen (z. B. „Wurfspeerwerfer“)
+- [ ] Fische schwer anklickbar → Fischgründe deutlicher und leichter anklickbar
+- [ ] Lore mit Schieber bleibt im (seichten) Wasser stecken → Loren meiden Wasser ganz und fahren außen herum
+- [ ] Ausbau im Hauptlager (Handelshof/Kommandozentrale) ohne Bild → eleganter darstellen
+- [ ] Upgrade-/Technologie-Liste im Hauptlager wirkt wie eine Tabelle → kompakter und schöner (Kacheln statt ganzer Zeilen)
