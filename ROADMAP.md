@@ -198,3 +198,11 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Englisch vollständig (21 Texte), Fenster „Mitwirkende“ (CC-BY-Namensnennung)
 - [ ] Unbenutzte Modelle in Archiv-Ordner, Code-Modelle auslagern, Verschlanken (siehe RELEASE-2.md)
 - [ ] Leistung: nur sichtbare Bäume zeichnen
+
+## Release 2 – Runde 2 (2026-10-11)
+- [x] Reiter auf echtem Pferd (Ritter, Kürassier, Kosak, Kamelreiter: Pferd + Soldat der Schwertlinie), Heiler mit Truppenkörper statt Hexe
+- [x] Englische Übersetzung vollständig; Reiter „Mitwirkende“ im Optionsmenü (Lizenzen/Namensnennung)
+- [x] Unbenutzte Modelle nach `models/archiv/` (772 Dateien, 162 MB, nichts gelöscht)
+- [x] Bäume ohne Schatten bis Grafik „Mittel“ (Testmessung ×2,6 schneller)
+- [ ] Kanone/Haubitze/Panzerschiff haben weiter gute Code-Modelle (kein passendes glTF vorhanden)
+- [ ] Code-Modelle bleiben als Rückfall in models3d.js (werden noch für Lore, Artillerie, Schiffe gebraucht)
