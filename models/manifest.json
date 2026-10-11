@@ -399,16 +399,128 @@
    },
    "human": true
   },
-  "healer": {
-   "file": "neu/Witch.glb",
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Punch_Right",
-    "work": "Interact"
+  "healer": [
+   {
+    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
+    "yaw": 0,
+    "tint": {
+     "M_Main": "#c9966e",
+     "M_Joints": "#c9966e"
+    },
+    "pelt": "#8a6338",
+    "anim": {
+     "idle": "Idle_Loop",
+     "walk": "Walk_Loop",
+     "attack": "Interact",
+     "work": "Interact"
+    },
+    "skins": [
+     "#c9966e",
+     "#b57e58",
+     "#d8a883",
+     "#9c6a48"
+    ],
+    "hair": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a"
+    ],
+    "belt": "#3b2a1a",
+    "cape": "#e6e0cc",
+    "tooth": true,
+    "human": true,
+    "hide": [
+     "^Sword",
+     "Shield",
+     "Gun",
+     "Rifle"
+    ],
+    "epochs": [
+     0,
+     1
+    ]
    },
-   "human": true
-  },
+   {
+    "file": "neu/Animated Base Character by Quaternius - cwYvO5UauX.glb",
+    "yaw": 0,
+    "tint": {
+     "M_Main": "#c9966e",
+     "M_Joints": "#c9966e"
+    },
+    "pelt": "#8a6338",
+    "anim": {
+     "idle": "Idle_Loop",
+     "walk": "Walk_Loop",
+     "attack": "Interact",
+     "work": "Interact"
+    },
+    "epochs": [
+     2
+    ],
+    "skins": [
+     "#c9966e",
+     "#b57e58",
+     "#d8a883",
+     "#9c6a48"
+    ],
+    "hair": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a"
+    ],
+    "belt": "#3b2a1a",
+    "cape": "#e6e0cc",
+    "human": true,
+    "hide": [
+     "^Sword",
+     "Shield",
+     "Gun",
+     "Rifle"
+    ]
+   },
+   {
+    "file": "neu/Medieval.glb",
+    "epochs": [
+     3,
+     4
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Interact",
+     "work": "Interact"
+    },
+    "human": true,
+    "hide": [
+     "^Sword",
+     "Shield",
+     "Gun",
+     "Rifle"
+    ]
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Interact",
+     "work": "Interact"
+    },
+    "human": true,
+    "hide": [
+     "^Sword",
+     "Shield",
+     "Gun",
+     "Rifle"
+    ]
+   }
+  ],
   "engineer": {
    "file": "neu/Worker.glb",
    "anim": {
@@ -1377,6 +1489,62 @@
   "ram": {
    "file": "neu/siege-ram.glb",
    "fit": "length",
+   "yaw": 90
+  },
+  "knight": {
+   "file": "neu/White Horse.glb",
+   "height": 2.9,
+   "anim": {
+    "idle": "Idle_2",
+    "walk": "Walk",
+    "attack": "Attack_Kick"
+   },
+   "rider": {
+    "as": "sword",
+    "seat": 0.72
+   },
+   "yaw": 90
+  },
+  "kurass": {
+   "file": "neu/White Horse.glb",
+   "height": 2.9,
+   "anim": {
+    "idle": "Idle_2",
+    "walk": "Walk",
+    "attack": "Attack_Kick"
+   },
+   "rider": {
+    "as": "sword",
+    "seat": 0.72
+   },
+   "yaw": 90
+  },
+  "kosak": {
+   "file": "neu/White Horse.glb",
+   "height": 2.9,
+   "anim": {
+    "idle": "Idle_2",
+    "walk": "Walk",
+    "attack": "Attack_Kick"
+   },
+   "rider": {
+    "as": "sword",
+    "seat": 0.72
+   },
+   "yaw": 90
+  },
+  "kamel": {
+   "file": "neu/White Horse.glb",
+   "height": 2.9,
+   "anim": {
+    "idle": "Idle_2",
+    "walk": "Walk",
+    "attack": "Attack_Kick"
+   },
+   "rider": {
+    "as": "sword",
+    "seat": 0.72
+   },
    "yaw": 90
   }
  },

@@ -140,3 +140,4 @@ Idee für später: echte Nachbearbeitung (SSAO, Bloom mit Render-Target) braucht
 - Figuren: glTF-Menschen (`rig.human`) haben Arbeitergröße (r3Make); `EKMODELS.animate` rechnet mit `G.speed`, Pause = Stillstand; eigene Waffe blendet eingebaute Schwerter (`^Sword`) aus.
 - Kenney-Bausätze: Farbtabelle `cmap` im Manifest (LoadingManager-URL-Umleitung in gltfmodels.js).
 - Obere Leiste: `css/topbar.css` (zwei feste Ebenen, nach style.css geladen).
+- Reiter: Manifest-Eintrag mit `rider:{as,seat}` (gltfmodels.js `makeUnit`, Reiter-Figur = Truppenlinie `as` im selben Zeitalter, `rig.rider` wird in `animate` mitbewegt). Mitwirkende: Reiter `cred` in `renderMenu`. Archiv: `models/archiv/` (unbenutzte Modelle). Bäume werfen Schatten erst ab Grafik „Hoch“ (`userData.veg`).

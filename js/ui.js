@@ -21,7 +21,7 @@ function renderMenu(){
   $('mMulti').onclick=()=>{toggleMenu();if(window.Lobby)Lobby.open()};
 }
 function renderOptions(){
-  const m=$('menu'),pc=v=>Math.round(v*100)+' %',tabs=[['game','Spiel'],['gfx','Grafik'],['snd','Ton'],['ctl','Steuerung'],['ai','KI & Berater']];
+  const m=$('menu'),pc=v=>Math.round(v*100)+' %',tabs=[['game','Spiel'],['gfx','Grafik'],['snd','Ton'],['ctl','Steuerung'],['ai','KI & Berater'],['cred','Mitwirkende']];
   const row=(label,ctl,desc)=>`<div class="orow"><div class="ol"><b>${tr(label)}</b>${desc?`<small>${tr(desc)}</small>`:''}</div><div class="oc">${ctl}</div></div>`;
   const tog=(id,on)=>`<label class="sw"><input type="checkbox" id="${id}" ${on?'checked':''}><span></span></label>`;
   const seg=(id,vals,cur)=>`<div class="seg" id="${id}">${vals.map(([v,n])=>`<button data-v="${v}" aria-pressed="${String(v)===String(cur)}">${tr(n)}</button>`).join('')}</div>`;
@@ -48,6 +48,11 @@ function renderOptions(){
   if(optTab==='ctl'){const K=[['WASD / Pfeile','Karte bewegen'],['Mausrad','Zoom'],['Linksklick / Rahmen','Auswählen'],['Doppelklick','Alle gleichen im Bild'],['Rechtsklick','Bewegen, sammeln, bauen, angreifen, reparieren'],['Q','Angriffsmarsch'],['F','Kampfrausch'],['G','Formation wechseln (Linie, Keil, Kolonne, Karree, Kreis)'],['H','Zum Hauptlager'],['E','Späher erkunden'],['.','Untätigen Arbeiter wählen'],['Y / X','Berater: annehmen / ablehnen'],['Leertaste','Pause'],['M','Ton an/aus'],['Esc','Menü']];
     const fixed=K.filter(([k])=>!['Q','F','G','H','E','.','Y / X','Leertaste','M'].includes(k));
     body='<h3 class="ktitle">'+tr('Tastenkürzel (zum Ändern anklicken)')+'</h3><div class="keymap">'+KEYDEF.map(([a,d,lab])=>`<div class="kmrow"><span>${tr(lab)}</span><button class="kmbtn" data-a="${a}">${keyLabel(OPT.keys[a]||'')||'–'}</button></div>`).join('')+'</div><div class="kmnote">'+tr('Esc bricht ab. Eine Taste, die schon vergeben ist, wird der alten Aktion weggenommen.')+' <button class="kmreset" id="kmReset">'+tr('Standard')+'</button></div><h3 class="ktitle">'+tr('Maus und Karte')+'</h3><div class="keys">'+fixed.map(([k,d])=>`<div><kbd>${k}</kbd><span>${tr(d)}</span></div>`).join('')+'</div>'}
+  if(optTab==='cred')body=`<div class="credits"><p>${tr('Epochenkrieg – Idee und Spielgestaltung: Daveson für Deus Vult Infidel. Programmiert mit Claude (Anthropic).')}</p>
+    <h4>${tr('3D-Modelle')}</h4><ul><li>Quaternius (quaternius.com) – CC0</li><li>Kenney (kenney.nl) – CC0</li><li>Poly by Google – CC BY 3.0 (${tr('Boote, Katapult, Flugzeug, Luftschiff, Ballon')})</li><li>Gilang Romadhan – CC BY (${tr('Flugzeug')})</li></ul>
+    <h4>${tr('Klänge und Musik')}</h4><ul><li>Kenney (kenney.nl) – CC0 (${tr('Geräusche, Fanfaren')})</li><li>${tr('Hintergrundmusik: eigene Synthesizer-Fassungen nach Satie, Pachelbel und Grieg (gemeinfrei)')}</li></ul>
+    <h4>${tr('Technik')}</h4><ul><li>three.js – MIT</li><li>PeerJS – MIT</li></ul>
+    <p><small>${tr('Vielen Dank an alle, die ihre Werke frei zur Verfügung stellen.')}</small></p></div>`;
   if(optTab==='ai')body=row('Berater',tog('advChk',advOn),'Schlägt Aktionen vor (Annehmen: Y, Ablehnen: X)')
     +row('Berater im Auto-Modus',tog('oAuto',advisor.auto),'Der Berater führt seine Vorschläge selbst aus')
     +row('Taktik des Beraters',seg('oStrat',Object.entries(STRATS).map(([k,v])=>[k,v.name]),advisor.strat),'Ändert, was er zuerst vorschlägt')
