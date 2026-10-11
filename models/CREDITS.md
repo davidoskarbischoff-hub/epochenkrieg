@@ -16,8 +16,16 @@ Vor einer Veröffentlichung: Lizenz der Original-Seite prüfen und die Namen im 
 
 Im Spiel genannt: Menü → Optionen → Mitwirkende (Quaternius, Kenney, Poly by Google CC BY 3.0, Gilang Romadhan CC BY).
 
-## Von David hinzugefügt (Oktober 2026) – Quelle/Lizenz bitte ergänzen
-- `dino/` (Apatosaurus, Parasaurolophus, Stegosaurus, T-Rex, Triceratops, Velociraptor)
-- `military/` (Ambulance Car, Bike, Helicopter, Jeep, Light Tank, Military Boat, Military Motorbike, Tank, Truck)
-- `torture/` (Galgen, Pranger, Käfige, Guillotine, Eiserne Jungfrau u. a.)
-- `arch/` (Arch, Barn, Bridge, Cabin Shed, Castle, Church, Colosseum, Cottage, Ferris Wheel, Fortress)
+## Von David hinzugefügt (Oktober 2026)
+Laut David von itch.io bzw. poly.pizza heruntergeladen. Eingetragen ist, was im Dateinamen bzw. in der Datei steht; wo nichts steht: „unbekannt“. Vor einer Veröffentlichung die Lizenz auf der Download-Seite prüfen.
+
+| Ordner / Dateien | Quelle | Autor/in (laut Datei) | Lizenz | Geändert? |
+|---|---|---|---|---|
+| `props/Fishing Net by J-Toastie - Z11I3AUBO9.glb` | poly.pizza (Namensschema „… by Autor - ID“) | J-Toastie | auf poly.pizza meist CC BY – Namensnennung | nein |
+| `dino/` (Apatosaurus, Parasaurolophus, Stegosaurus, T-Rex, Triceratops, Velociraptor) | itch.io / poly.pizza (GLB, erzeugt mit FBX2glTF) | unbekannt | unbekannt | nein |
+| `military/` (Ambulance Car, Bike, Helicopter, Jeep, Light Tank, Military Boat, Military Motorbike, Tank, Truck) | itch.io / poly.pizza | unbekannt | unbekannt | nein |
+| `torture/` (Galgen, Pranger, Käfige, Guillotine, Eiserne Jungfrau u. a.) | itch.io / poly.pizza | unbekannt | unbekannt | nein |
+| `arch/` (Arch, Barn, Bridge, Cabin Shed, Castle, Church, Colosseum, Cottage, Ferris Wheel, Fortress) | itch.io / poly.pizza | unbekannt | unbekannt | nein |
+| `nature/` (aus `fbx/nature/`: CommonTree, BirchTree, Willow, Bush, BushBerries, Cactus, Rock_Snow, TreeStump, WoodLog, Wheat) | itch.io | unbekannt (Namen und Farben entsprechen dem „Ultimate Nature Pack“ von Quaternius, CC0) | vermutlich CC0 | umgewandelt FBX → GLB, Farben aufgehellt |
+| `towers/` (aus `fbx/towers/`: Archer/Ballista/Cannon/Poison/Wizard Tower Stufe 1–4, Textur „fortress elves“) | itch.io (Tower-Defense-Paket) | unbekannt | unbekannt | umgewandelt FBX → GLB |
+| `people/` (aus `fbx/people/`: peasant, city_dwellers, rich_citizens, king, queen) und `fbx/houses/` (House_01–20) | itch.io (Low-Poly-Pakete) | laut Dateipfad „arnoldV“ | unbekannt | umgewandelt FBX → GLB |
