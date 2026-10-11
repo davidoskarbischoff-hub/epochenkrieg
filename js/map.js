@@ -42,18 +42,18 @@ function genMap(seed){
   // Startvorkommen rund um Basis A (zufällige Richtung, gültiges Land), danach gespiegelt auf Basis B
   const near=(type,n,spread,dmin,dmax,okFn)=>{for(let k=0;k<60;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!okFn(x,y,spread*.5))continue;const n0=G.ents.length;cluster(type,x,y,n,spread,okFn);if(G.ents.length-n0>=Math.min(n,3)){mirror(n0);return}}};
   // Die Wälder kommen erst am Schluss (genForests) und weichen allem anderen aus
-  near('bush',8,52,110,200,landOk);near('bush',6,44,290,430,landOk);szForce=1;near('stone',1,40,200,285,landOk);szForce=.5;near('iron',1,40,265,365,landOk);szForce=0;near('iron',1,40,520,720,landOk);near('stone',1,40,480,680,landOk);near('iron',2,62,800,1150,landOk);near('stone',2,62,760,1100,landOk);near('iron',1,40,1200,1700,landOk);near('stone',1,40,1250,1750,landOk);
+  near('bush',8,52,110,200,landOk);near('bush',6,44,290,430,landOk);szForce=1;near('stone',1,40,200,285,landOk);szForce=.5;near('iron',1,40,265,365,landOk);szForce=0;near('iron',1,40,520,720,landOk);near('stone',1,40,480,680,landOk);near('iron',1,62,800,1150,landOk);near('stone',1,62,760,1100,landOk);
   // Fische in Küstennähe von Basis A
   const nearWater=(type,n,spread,dmin,dmax)=>{for(let k=0;k<200;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!waterOk[type](x,y,spread*.4))continue;const n0=G.ents.length;cluster(type,x,y,n,spread,waterOk[type]);if(G.ents.length>n0){mirror(n0);return}}};
   nearWater('fish',5,55,180,520);nearWater('fish',4,50,250,650);nearWater('dolphin',3,50,350,900);
   // gespiegelte Mitte
   const feats=[];
   const cnt=n=>Math.max(1,Math.round(n*Math.sqrt(AREA)*1.1*playF*playF));
-  for(let i=0;i<cnt(6);i++)feats.push(['stone',1+Math.floor(R()*2),74,landOk]);
+  for(let i=0;i<cnt(4);i++)feats.push(['stone',1,74,landOk]);
   for(let i=0;i<cnt(3);i++)feats.push(['bush',5,44,landOk]);
-  for(let i=0;i<cnt(7);i++)feats.push(['iron',1+Math.floor(R()*2),72,landOk]);
+  for(let i=0;i<cnt(3);i++)feats.push(['iron',1,72,landOk]);
   for(let i=0;i<cnt(2);i++)feats.push(['oil',1,40,landOk]);
-  for(let i=0;i<cnt(3);i++)feats.push(['gold',1+Math.floor(R()*2),62,landOk]);
+  for(let i=0;i<cnt(2);i++)feats.push(['gold',1,62,landOk]);
   for(let i=0;i<cnt(10);i++)feats.push(['fish',4+Math.floor(R()*2),55,waterOk.fish]);
   for(let i=0;i<cnt(6);i++)feats.push(['dolphin',2+Math.floor(R()*2),50,waterOk.dolphin]);
   for(let i=0;i<cnt(4);i++)feats.push(['whale',1+Math.floor(R()*2),70,waterOk.whale]);
@@ -157,7 +157,9 @@ function forestPass(bases,pre){
   if(cutN||trees.some(t=>t.dead)){for(const t of trees)if(t.dead)G.byId.delete(t.id);G.ents=G.ents.filter(e=>!e.dead)}
   G.forestCut=cutN}
 /* Wilde Tiere: Rehe in der Nähe der Startgebiete, Wölfe in Wäldern, Bären weit draußen, Tiger in der Mitte. Immer punktsymmetrisch, damit beide Seiten gleich viele haben. */
+function wildAmt(){try{return localStorage.getItem('ek-wild')||'normal'}catch(_){return'normal'}}
 function spawnAnimals(R,bases,A){
+  const wm={none:0,half:.25,normal:.5,double:1}[wildAmt()]??.5,nn=n=>Math.round(n*wm); /* Wildtiere: Menge aus den Optionen */
   const treesNear=(x,y,r)=>{let n=0;for(const e of G.ents)if(e.kind==='node'&&e.type==='tree'&&Math.hypot(e.x-x,e.y-y)<r)n++;return n};
   const good=(x,y)=>{if(x<90||y<90||x>W-90||y>H-90)return false;for(let k=0;k<8;k++){const a=k*.785;if(terrAt(x+Math.cos(a)*22,y+Math.sin(a)*22)!==2)return false}return navDyn[navCell(x,y)]===0&&MAINLAND[Math.max(0,Math.min(TH-1,(y/TG)|0))*TW+Math.max(0,Math.min(TW-1,(x/TG)|0))]===1};
   const farBase=(x,y,d)=>bases.every(b=>Math.hypot(b.x-x,b.y-y)>d);
@@ -168,15 +170,15 @@ function spawnAnimals(R,bases,A){
       if(pts.length<Math.min(n,2))continue;
       for(const q of pts){const sp=late?(x,y)=>G.late.push({type,x,y}):(x,y)=>addAnimal(type,x,y);sp(q.x,q.y);if(good(W-q.x,H-q.y))sp(W-q.x,H-q.y)}return true}
     return false};
-  for(let i=0;i<3;i++)place('deer',2+Math.floor(R()*2),A,380,950,(x,y)=>farBase(x,y,360));
-  for(let i=0;i<6;i++)place('wolf',2+Math.floor(R()*2),A,850,2200,(x,y)=>farBase(x,y,750)&&treesNear(x,y,170)>=4);
-  for(let i=0;i<3;i++)place('bear',1,A,1100,2800,(x,y)=>farBase(x,y,950)&&treesNear(x,y,170)>=2);
-  for(let i=0;i<2;i++)place('mammoth',1,A,700,2200,(x,y)=>farBase(x,y,650));
-  place('sabertooth',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
-  for(let i=0;i<2;i++)place('sabertooth',1,A,1000,2600,(x,y)=>farBase(x,y,900)&&treesNear(x,y,170)>=2);
-  place('tiger',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
+  for(let i=0;i<nn(3);i++)place('deer',2+Math.floor(R()*2),A,380,950,(x,y)=>farBase(x,y,360));
+  for(let i=0;i<nn(6);i++)place('wolf',2+Math.floor(R()*2),A,850,2200,(x,y)=>farBase(x,y,750)&&treesNear(x,y,170)>=4);
+  for(let i=0;i<nn(3);i++)place('bear',1,A,1100,2800,(x,y)=>farBase(x,y,950)&&treesNear(x,y,170)>=2);
+  for(let i=0;i<nn(2);i++)place('mammoth',1,A,700,2200,(x,y)=>farBase(x,y,650));
+  if(wm>=.5)place('sabertooth',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
+  for(let i=0;i<nn(2);i++)place('sabertooth',1,A,1000,2600,(x,y)=>farBase(x,y,900)&&treesNear(x,y,170)>=2);
+  if(wm>=.5)place('tiger',2,{x:W/2,y:H/2},0,750,(x,y)=>farBase(x,y,800));
   const shallow=(x,y)=>{if(x<90||y<90||x>W-90||y>H-90)return false;for(let k=0;k<8;k++){const a=k*.785;if(terrAt(x+Math.cos(a)*26,y+Math.sin(a)*26)!==1)return false}return terrAt(x,y)===1&&navDyn[navCell(x,y)]===0};
-  for(let n=0,k=0;n<4&&k<600;k++){const a=R()*6.283,d=420+R()*1500,x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!shallow(x,y)||!farBase(x,y,380))continue;G.late.push({type:'croc',x,y});if(shallow(W-x,H-y))G.late.push({type:'croc',x:W-x,y:H-y});n++}
+  for(let n=0,k=0;n<Math.round(4*wm)&&k<600;k++){const a=R()*6.283,d=420+R()*1500,x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!shallow(x,y)||!farBase(x,y,380))continue;G.late.push({type:'croc',x,y});if(shallow(W-x,H-y))G.late.push({type:'croc',x:W-x,y:H-y});n++}
 }
 function renderBg(seed){
   const K=.75; /* Bodentextur in 75 % Auflösung (spart Zeit und Speicher); alle Zeichenbefehle bleiben in Spielpixeln */

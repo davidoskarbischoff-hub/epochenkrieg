@@ -221,3 +221,11 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Mine direkt auf dem Vorkommen, 8 Bergleute, erschöpft = dunkel, Abriss gibt Minenlager zurück
 - [x] Reiter sitzen mit angewinkelten Beinen; Lanzen-/Speerreiter und Schwertreiter
 - [ ] Fischernetze am Boot (kein passendes Modell vorhanden)
+- [ ] Schwere Reiterei: Pferd und Reiter mit Rüstung (Pferdedecke/Harnisch) – Release 3
+
+## v0.2.1 – Leistung und Hauptmenü (2026-10-11)
+- [x] Leistung im Langzeitspiel: Wegsuche ~5× schneller, KI-Turmsuche gedrosselt, Gelände in Stücken (nur Sichtbares wird gezeichnet), Vorkommen ausserhalb des Bildes übersprungen, dynamische Auflösung bei wenig FPS.
+- [x] Hauptmenü (`js/mainmenu.js`, `css/mainmenu.css`): Ladebildschirm „Epochenkrieg – Daveson für Deus Vult Infidel“, Hauptseite mit eigener Musik und fliegender Kamera über die Karte, Einzelspieler-Seite mit Kartenkacheln, Reglern (Kartengröße, Schwierigkeit, Wildtiere) und Gegner-Kacheln; Mehrspieler mit Beta-Hinweis; Tutorial (Release 3) und Story (Release 4) als „Bald“.
+- [ ] Tutorial (Release 3), Story (Release 4).
+- [ ] Altes `showStart` in ui.js entfernen, sobald das neue Menü bewährt ist.
+- [ ] Eigenes, langes Menü-Musikstück (jetzt: Greensleeves-Synthesizer).

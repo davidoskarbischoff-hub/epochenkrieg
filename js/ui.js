@@ -33,6 +33,7 @@ function renderOptions(){
     +row('Lebensbalken',seg('oHp',[['hurt','Verletzte'],['all','Alle'],['off','Aus']],OPT.hpBars),'Wann Balken über Einheiten und Gebäuden stehen')
     +row('Hinweise beim Verweilen',tog('oTips',OPT.tips),'Text erscheint, wenn die Maus kurz auf einem Symbol liegt')
     +row('Meldungen',tog('oToasts',OPT.toasts),'Kleine Texte am Rand (Warnungen bleiben immer)')
+    +row('Wildtiere (nächstes Spiel)',seg('oWild',[['none','Keine'],['half','Wenige'],['normal','Normal'],['double','Viele']],wildAmt()),'Wie viele wilde Tiere auf der Karte leben')
     +row('Sprache',seg('oLang',[['de','Deutsch'],['en','English']],LANG));
   if(optTab==='gfx')body=row('Qualität',seg('oGfx',[[0,'Niedrig'],[1,'Mittel'],[2,'Hoch'],[3,'Ultra']],gfxQ),'Schärfe, Schatten, Gras, Leuchten und Rauch – „Ultra“ braucht eine gute Grafikkarte')
     +row('Schatten',tog('oShadow',OPT.shadows),'Aus macht das Spiel auf schwachen Geräten schneller')
@@ -71,6 +72,7 @@ function renderOptions(){
   bind('oZoom',e=>e.oninput=()=>{optSet('zoomSpeed',+e.value);q('oZoomo').textContent=(+e.value).toFixed(1)+'×'});
   segB('oHp',v=>optSet('hpBars',v));bind('oTips',e=>e.onchange=()=>optSet('tips',e.checked));bind('oToasts',e=>e.onchange=()=>optSet('toasts',e.checked));
   segB('oLang',v=>{applyLang(v);renderOptions()});
+  segB('oWild',v=>{try{localStorage.setItem('ek-wild',v)}catch(_){}renderOptions()});
   document.querySelectorAll('.kmbtn').forEach(b=>b.onclick=()=>{b.textContent=tr('Taste drücken …');b.classList.add('wait');
     const h=ev=>{ev.preventDefault();ev.stopPropagation();removeEventListener('keydown',h,true);if(ev.key!=='Escape'&&ev.key!=='Shift'&&ev.key!=='Control'&&ev.key!=='Alt'&&ev.key!=='Meta'){keySet(b.dataset.a,ev.key.length===1?ev.key.toLowerCase():ev.key)}renderOptions()};addEventListener('keydown',h,true)});
   bind('kmReset',e=>e.onclick=()=>{keysReset();renderOptions()});
@@ -82,7 +84,7 @@ function renderOptions(){
   bind('advChk',e=>e.onchange=()=>{advOn=e.checked;try{localStorage.setItem('ek-advisor',advOn?'1':'0')}catch(_){}if(!advOn)advisor.cur=null});
   bind('oAuto',e=>e.onchange=()=>{advisor.auto=e.checked;advisor.autoAt=(G?G.t:0)+2});
   segB('oStrat',v=>{advisor.strat=v;advisor.ignore={};advisor.cur=null;advisor.next=0;advisor.reacted=null});
-  bind('abChk',e=>e.onchange=()=>{autoBuildOn=e.checked;try{localStorage.setItem('ek-autobuild',autoBuildOn?'1':'0')}catch(_){}});
+  bind('abChk',e=>e.onchange=()=>{autoBuildOn=e.checked;try{localStorage.setItem('ek-autobuild2',autoBuildOn?'1':'0')}catch(_){}});
   segB('oAiS',v=>{aiStyle=v});segB('oDiff',v=>{diff=v});
   q('oReset').onclick=()=>{optReset();setGfx(1);renderOptions()};q('oBack').onclick=renderMenu;
 }

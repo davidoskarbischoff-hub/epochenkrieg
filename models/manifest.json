@@ -768,7 +768,7 @@
      "file": "neu/Spear.glb",
      "scale": 0.14,
      "rot": [
-      -90,
+      180,
       0,
       0
      ],
@@ -826,9 +826,9 @@
     ],
     "hand": {
      "file": "neu/Spear.glb",
-     "scale": 0.14,
+     "scale": 0.15,
      "rot": [
-      -90,
+      180,
       0,
       0
      ],
@@ -858,7 +858,7 @@
      "scale": 0.16,
      "rot": [
       0,
-      0,
+      180,
       0
      ],
      "pos": [
@@ -889,9 +889,9 @@
     ],
     "hand": {
      "file": "neu/Sword.glb",
-     "scale": 0.45,
+     "scale": 0.3,
      "rot": [
-      -90,
+      180,
       0,
       0
      ],
@@ -963,7 +963,7 @@
      "scale": 0.16,
      "rot": [
       0,
-      0,
+      180,
       0
      ],
      "pos": [
@@ -1072,7 +1072,7 @@
      "scale": 0.16,
      "rot": [
       0,
-      0,
+      180,
       0
      ],
      "pos": [
@@ -1099,7 +1099,21 @@
     "hide": [
      "^Sword$"
     ],
-    "human": true
+    "human": true,
+    "hand": {
+     "file": "neu/Wooden Bow.glb",
+     "scale": 0.45,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    },
    {
     "file": "neu/Soldier.glb",
@@ -1119,7 +1133,7 @@
      "scale": 0.16,
      "rot": [
       0,
-      0,
+      180,
       0
      ],
      "pos": [
@@ -1149,7 +1163,7 @@
     "scale": 0.16,
     "rot": [
      0,
-     0,
+     180,
      0
     ],
     "pos": [
@@ -1178,7 +1192,7 @@
     "scale": 0.16,
     "rot": [
      0,
-     0,
+     180,
      0
     ],
     "pos": [
@@ -1296,7 +1310,7 @@
     "file": "neu/Wooden Torch.glb",
     "scale": 0.45,
     "rot": [
-     -90,
+     90,
      0,
      0
     ],
@@ -1621,8 +1635,7 @@
    },
    "rider": {
     "as": [
-     "spear",
-     "sword"
+     "rider_m"
     ],
     "seat": 0.72
    },
@@ -1638,7 +1651,7 @@
    },
    "rider": {
     "as": [
-     "sword"
+     "rider_m"
     ],
     "seat": 0.72
    },
@@ -1654,8 +1667,7 @@
    },
    "rider": {
     "as": [
-     "spear",
-     "sword"
+     "rider_m"
     ],
     "seat": 0.72
    },
@@ -1671,6 +1683,144 @@
    },
    "rider": {
     "as": "sword",
+    "seat": 0.72
+   },
+   "yaw": 90
+  },
+  "rider_m": [
+   {
+    "file": "neu/Medieval.glb",
+    "epochs": [
+     3,
+     4
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
+    },
+    "hide": [
+     "^Sword$"
+    ],
+    "hand": {
+     "file": "neu/Spear.glb",
+     "scale": 0.15,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "human": true
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sword.glb",
+     "scale": 0.25,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
+   }
+  ],
+  "rider_r": [
+   {
+    "file": "neu/Medieval.glb",
+    "epochs": [
+     3
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact"
+    },
+    "hide": [
+     "^Sword$"
+    ],
+    "human": true,
+    "hand": {
+     "file": "neu/Wooden Bow.glb",
+     "scale": 0.45,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     4,
+     5,
+     6
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
+   }
+  ],
+  "hbow": {
+   "file": "neu/White Horse.glb",
+   "height": 2.9,
+   "anim": {
+    "idle": "Idle_2",
+    "walk": "Walk",
+    "attack": "Attack_Kick"
+   },
+   "rider": {
+    "as": [
+     "rider_r"
+    ],
     "seat": 0.72
    },
    "yaw": 90
