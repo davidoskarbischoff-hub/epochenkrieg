@@ -1398,14 +1398,6 @@
     "fit": 1.0
    },
    {
-    "file": "neu/Houses-vCoDG5hFyI.glb",
-    "epochs": [
-     3,
-     4
-    ],
-    "fit": 1.0
-   },
-   {
     "file": "neu/Houses-gEjAC1UvVU.glb",
     "epochs": [
      5
@@ -1418,6 +1410,20 @@
      6
     ],
     "fit": 1.0
+   },
+   {
+    "file": "neu/Houses-vCoDG5hFyI.glb",
+    "epochs": [
+     3
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Castle Fortress.glb",
+    "epochs": [
+     4
+    ],
+    "fit": 1.1
    }
   ],
   "house": [
@@ -1490,25 +1496,23 @@
    {
     "file": "neu/Wooden Encampment.glb",
     "epochs": [
-     0,
-     1
+     0
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Wooden Fortress.glb",
+    "epochs": [
+     1,
+     2,
+     3
     ],
     "fit": 1.0
    },
    {
     "file": "neu/Castle.glb",
     "epochs": [
-     2,
-     3,
      4
-    ],
-    "fit": 1.0
-   },
-   {
-    "file": "neu/Large Building-h7Jaq7bqMq.glb",
-    "epochs": [
-     5,
-     6
     ],
     "fit": 1.0
    }
