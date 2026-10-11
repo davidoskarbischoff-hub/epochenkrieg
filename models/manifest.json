@@ -1376,7 +1376,13 @@
      2
     ],
     "yaw": 90,
-    "scale": 0.55
+    "scale": 0.55,
+    "rider": {
+     "as": "worker",
+     "seat": 0.1,
+     "free": true,
+     "x": -0.3
+    }
    },
    {
     "file": "neu/boat-sail-a.glb",
@@ -1614,7 +1620,10 @@
     "attack": "Attack_Kick"
    },
    "rider": {
-    "as": "sword",
+    "as": [
+     "spear",
+     "sword"
+    ],
     "seat": 0.72
    },
    "yaw": 90
@@ -1628,7 +1637,9 @@
     "attack": "Attack_Kick"
    },
    "rider": {
-    "as": "sword",
+    "as": [
+     "sword"
+    ],
     "seat": 0.72
    },
    "yaw": 90
@@ -1642,7 +1653,10 @@
     "attack": "Attack_Kick"
    },
    "rider": {
-    "as": "sword",
+    "as": [
+     "spear",
+     "sword"
+    ],
     "seat": 0.72
    },
    "yaw": 90

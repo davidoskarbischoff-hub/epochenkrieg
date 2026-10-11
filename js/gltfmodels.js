@@ -114,7 +114,7 @@ const EKMODELS=(()=>{
       const k=(en.human?(2.4/1.84):en.height?en.height/(sz.y||1):(en.fit==='length'||(kind==='animal'&&!en.fit))?ref.m/(Math.max(sz.x,sz.y,sz.z)||1):ref.h/(sz.y||1))*(en.scale||1);
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y+(en.lift||0),-c.z);
       dress(root,wrap,en,k,u.team,u);
-      const rig={g:wrap,gltf:true,bend:en.human?findBone(root,/^(Abdomen|Spine|Spine1|spine|DEF-spine\.?001)$/i):null,bendA:0,human:!!(en.human||en.rider),legs:[],arms:[],tools:{},acts:{},cur:null};
+      const rig={g:wrap,gltf:true,bend:en.human?findBone(root,/^(Abdomen|Spine|Spine1|spine|DEF-spine\.?001)$/i):null,bendA:0,human:!!(en.human||(en.rider&&!en.rider.free)),legs:[],arms:[],tools:{},acts:{},cur:null};
       if(gl.animations&&gl.animations.length){rig.mixer=new THREE.AnimationMixer(root);const A=en.anim||{},cl=gl.animations;
         const map={idle:pickClip(cl,[A.idle],/idle|stand|rest/i),walk:pickClip(cl,[A.walk],/walk|run|move/i),attack:pickClip(cl,[A.attack],/attack|hit|strike|shoot|fire/i),work:pickClip(cl,[A.work],/work|gather|chop|mine|build|dig/i)};
         for(const n in map)if(map[n])rig.acts[n]=rig.mixer.clipAction(map[n]);
@@ -123,7 +123,8 @@ const EKMODELS=(()=>{
             if(w.tool&&hb){const h=attach(root,hb,w.tool,k);if(h){h.visible=false;rig.wtools[kd]=h}}}}
         const first=rig.acts.idle||rig.acts.walk;if(first){first.play();rig.cur=first===rig.acts.idle?'idle':'walk'}}
       /* Reiter: Pferd + Figur einer anderen Truppenlinie (rider.as) im selben Zeitalter, sitzt auf dem Rücken */
-      if(en.rider){const rr=makeUnit(Object.assign({},u,{type:en.rider.as}),origMake,'unit');if(rr){const hb=box(wrap);rr.g.position.set(en.rider.x||0,(hb.max.y-hb.min.y)*(en.rider.seat||.55)-1.05,0);wrap.add(rr.g);rig.rider=rr}}
+      if(en.rider){let rr=null;for(const as of[].concat(en.rider.as)){if(entryFor('unit',as,u.lvl||0)){rr=makeUnit(Object.assign({},u,{type:as}),origMake,'unit');break}}if(rr){
+        /* sitzen: Oberschenkel nach vorn und leicht gespreizt (wird nach jeder Animation aufgesetzt) */rr.sit=['L','R'].map(s=>findBone(rr.g,new RegExp('^(UpperLeg|thigh|DEF-thigh)\\.?'+s+'$','i'))).filter(Boolean);rr.shin=['L','R'].map(s=>findBone(rr.g,new RegExp('^(LowerLeg|shin|DEF-shin)\\.?'+s+'$','i'))).filter(Boolean);if(en.rider.scale)rr.g.scale.multiplyScalar(en.rider.scale);const hb=box(wrap);rr.g.position.set(en.rider.x||0,(hb.max.y-hb.min.y)*(en.rider.seat||.55)-1.05,0);wrap.add(rr.g);rig.rider=rr}}
       return rig}catch(err){console.warn('glTF-Einheit',u.type,err);return null}}
   function makeBld(type,R_,ep,team,origMake){
     const en=entryFor('bld',type,ep);if(!en)return null;const gl=files.get(en.file);
@@ -168,7 +169,7 @@ const EKMODELS=(()=>{
     g.userData.mix=mix;return g}
   /* Animationen pro Bild: passenden Clip wählen, weich überblenden */
   function animate(rig,want,dt,speedScale,kind){
-    if(rig.rider)animate(rig.rider,want==='walk'||want==='work'?'idle':want,dt,1);
+    if(rig.rider){const r=rig.rider,pose=k=>{if(r.sit)r.sit.forEach((b,i)=>{b.rotation.x-=1.35*k;b.rotation.z+=(i?-.35:.35)*k});if(r.shin)r.shin.forEach(b=>{b.rotation.x+=1.3*k})};if(r.posed)pose(-1);animate(r,want==='walk'||want==='work'?'idle':want,dt,1);pose(1);r.posed=1}
     if(!rig.mixer)return;if(typeof G!=='undefined')dt*=G.paused||G.netPause?0:(G.speed||1);
     if(rig.wtools){for(const kd in rig.wtools)rig.wtools[kd].visible=(want==='work'&&kind===kd);if(rig.hand)rig.hand.visible=!(want==='work'&&rig.wtools[kind])}
     const wkey=want==='work'&&kind&&rig.acts['w:'+kind]?'w:'+kind:null;
