@@ -7,7 +7,7 @@ window.run=async(list,cols)=>{
  const W=200,H=200,rows=Math.ceil(list.length/cols),out=document.getElementById('out');out.width=cols*W;out.height=rows*H;const c=out.getContext('2d');c.fillStyle='#3a4a3a';c.fillRect(0,0,out.width,out.height);
  const rd=new T.WebGLRenderer({canvas:document.getElementById('gl'),antialias:true,preserveDrawingBuffer:true});rd.setSize(W,H,false);
  const sc=new T.Scene();sc.background=new T.Color(0x56705a);sc.add(new T.HemisphereLight(0xffffff,0x556655,1.6));const dl=new T.DirectionalLight(0xffffff,2.2);dl.position.set(3,6,4);sc.add(dl);
- const cam=new T.PerspectiveCamera(35,1,.01,500);const ld=new EKGLTF.GLTFLoader();
+ const cam=new T.PerspectiveCamera(35,1,.01,500);const mg=new T.LoadingManager();const cmq=new URLSearchParams(location.search).get('cm');if(cmq)mg.setURLModifier(u=>/colormap\.png$/.test(u)?'../models/neu/variation-'+cmq+'.png':u);const ld=new EKGLTF.GLTFLoader(mg);
  for(let i=0;i<list.length;i++){
   const [p,flt]=list[i].split('#');let g;try{g=await ld.loadAsync(p)}catch(e){c.fillStyle='#f55';c.fillText('ERR',(i%cols)*W+5,Math.floor(i/cols)*H+20);continue}
   const m=g.scene;if(flt)m.traverse(o=>{if(o.isMesh&&o.name!==flt.replace(/\./g,''))o.visible=false});if(g.animations.length){const mx=new T.AnimationMixer(m);const cr=new URLSearchParams(location.search).get('clip');const a=(cr&&g.animations.find(a=>new RegExp(cr,'i').test(a.name)))||g.animations.find(a=>/idle/i.test(a.name))||g.animations[0];mx.clipAction(a).play();mx.update(.1)}
