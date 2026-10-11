@@ -39,7 +39,8 @@ function advFindSpot(type){
   for(const need of[true,false])for(let d=100;d<=(need?420:320);d+=20)for(let k=0;k<36;k++){const a=base+(k%2?1:-1)*Math.ceil(k/2)*.17;const x=hq.x+Math.cos(a)*d,y=hq.y+Math.sin(a)*d;if(placeBlock(type,x,y))continue;if(need&&!free(x,y))continue;return{x,y}}
   return null}
 /* Platz für eine Mine: nahe dem nächsten Vorkommen (Eisen oder Gold), das noch keine Mine hat */
-function advMineSpot(rt,hq){const nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||(minedBy(0,nd)&&(MINE_RT[rt]!=='mine'||mineOf(0,nd))))return null;
+function advMineSpot(rt,hq){if(MINE_RT[rt]==='mine'){if(G.ents.some(b=>b.type==='mine'&&b.team===0&&!b.dead&&b.built&&!b.empty&&minersIn(b)<MINE_CAP&&mineNode(b,{lvl:9,team:0})&&mineNode(b,{lvl:9,team:0}).rt===rt))return null;const n=mineFree(rt,hq.x,hq.y,0);return n&&!placeBlock('mine',n.x,n.y)?{x:n.x,y:n.y}:null}
+  const nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||minedBy(0,nd))return null;
   for(let d=34;d<=MINE_RNG*.8;d+=12)for(let k=0;k<20;k++){const a=k*.314,x=nd.x+Math.cos(a)*d,y=nd.y+Math.sin(a)*d;if(!placeBlock(MINE_RT[rt],x,y))return{x,y}}return null}
 function advBuild(type,at){
   const spot=at||advFindSpot(type),d=BLDS[type];if(!spot){toast(tr('Kein passender Platz gefunden.'));sfx('error');return false}

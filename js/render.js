@@ -125,7 +125,7 @@ function draw(){
   if(placing&&mouse.in){pw=toWorld(mouse.x,mouse.y);
     if(placing==='wall'&&wallDrag&&wallDrag.line){wl=wallPreview(pw);wl.segs.forEach((s,i)=>wallGhost('wall',s.x,s.y,wl.a,!s.ok?1:i<wl.affIdx?0:2));for(const q of[wl.A,wl.B])rings.push({x:q.x,y:q.y,r:q.snap?9:6,c:q.snap?0xf3d48a:0xecdfc3,o:.9})}
     else if(placing==='wall'||placing==='gate'){const sn=wallSnap(pw.x,pw.y);ghostOk=!placeBlock(placing,sn.x,sn.y);wallGhost(placing,sn.x,sn.y,sn.a,ghostOk?0:1);rings.push({x:sn.x,y:sn.y,r:BLDS[placing].r+3,c:ghostOk?0x8fbf63:0xd0533c,o:.9})}
-    else{ghostOk=!placeBlock(placing,pw.x,pw.y);r3Ghost(placing,pw.x,pw.y,ghostOk);R3.ghostOn=true;rings.push({x:pw.x,y:pw.y,r:BLDS[placing].r+3,c:ghostOk?0x8fbf63:0xd0533c,o:.9})}}
+    else{if(placing==='mine'){const sn=mineSnap(pw.x,pw.y);if(sn)pw={x:sn.x,y:sn.y}}ghostOk=!placeBlock(placing,pw.x,pw.y);r3Ghost(placing,pw.x,pw.y,ghostOk);R3.ghostOn=true;rings.push({x:pw.x,y:pw.y,r:BLDS[placing].r+3,c:ghostOk?0x8fbf63:0xd0533c,o:.9})}}
   wallGhostsEnd();
   r3Frame(list,rings,dt);
   // Anzeigen darüber

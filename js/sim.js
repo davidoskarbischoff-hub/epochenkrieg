@@ -23,7 +23,7 @@ const towerSpec=buildSpec;
 function pay(t,c){if(!afford(t,c))return false;RES.forEach(r=>G.res[t][r]-=c[r]||0);return true}
 /* Abreißen: eigenes Gebäude (nicht Hauptlager) entfernen; fertig = 50 % der Kosten zurück, unfertig = alles zurück */
 function demolish(team,id){if(NET.client&&team===0){NET.send({c:'demo',id});return true}const b=G.byId.get(id);if(!b||b.dead||b.kind!=='bld'||b.team!==team||b.type==='hq')return false;
-  const k=b.built?.5:1,c={};for(const r in BLDS[b.type].cost)c[r]=Math.round(BLDS[b.type].cost[r]*k);refund(team,c);kill(b);return true}
+  const k=b.built?.5:1,c={};for(const r in BLDS[b.type].cost)c[r]=Math.round(BLDS[b.type].cost[r]*k);for(const r in b.st||{})c[r]=(c[r]||0)+Math.floor(b.st[r]);refund(team,c);kill(b);return true}
 function refund(t,c){RES.forEach(r=>G.res[t][r]+=c[r]||0)}
 function missing(t,c){const m=RES.filter(r=>(G.res[t][r]||0)<(c[r]||0)).map(r=>rn(r));return tr('Nicht genug {0}',m.join(tr(' und ')))}
 
@@ -156,7 +156,7 @@ function updUnit(u,dt){
     if(!b||b.dead||!b.built||b.team!==u.team){mineOut(u);break}
     if(u.inm!==b.id){if(reach(u,b)){if(minersIn(b)>=MINE_CAP){if(u.team===0)toast(tr('Die Mine ist voll (höchstens {0} Arbeiter).',MINE_CAP));u.state='idle';break}u.inm=b.id;u.pf=null;sel.delete(u.id)}else{moveToward(u,b.x,b.y,dt,b.id);break}}
     u.x=b.x;u.y=b.y;const st=b.st||(b.st={});if(Object.values(st).reduce((a,v)=>a+v,0)>=MINE_STOCK)break;
-    const n=mineNode(b,u);if(!n){mineOut(u);if(u.team===0&&G.t-(b.emptyMsg||-99)>20){b.emptyMsg=G.t;toast(tr('Kein abbaubares Vorkommen mehr bei dieser Mine.'))}break}
+    const n=mineNode(b,u);if(!n){mineOut(u);if(!G.ents.some(e=>e.kind==='node'&&!e.dead&&MINE_RT[e.rt]==='mine'&&Math.hypot(e.x-b.x,e.y-b.y)<e.r+b.r+8))b.empty=1;if(u.team===0&&G.t-(b.emptyMsg||-99)>20){b.emptyMsg=G.t;toast(tr('Kein abbaubares Vorkommen mehr bei dieser Mine.'))}break}
     if((u.gt=(u.gt||0)-dt)<=0){u.gt=1.4+Math.random()*.6;if(Math.random()<.35)sfx('mine',b)}
     const amt=Math.min(gRate(u,n)*dt*.7*(b.spec==='deep'?1.3:1),n.amount);n.amount-=amt;st[n.rt]=(st[n.rt]||0)+amt;if(n.amount<=.001)kill(n);break}
   case 'haul':{const b=get(u.home); /* Lore: holt Erz an der Mine, bringt es zum nächsten Lager; wird sie zerstört, ist die Ladung weg */
@@ -296,8 +296,8 @@ function startUpgrade(team,key){key=key||'all';if(NET.client&&team===0){NET.send
   if(team===0){panelSig='';infoCache='';sfx('click');toast(tr('Upgrade gestartet: {0} ruhen, bis es fertig ist.',job.label))}return true}
 /* Minen: Hilfsfunktionen */
 function minersIn(b){let n=0;for(const e of G.ents)if(e.inm===b.id&&!e.dead)n++;return n}
-function mineOf(team,n){let best=null,bd=1e9;for(const b of G.ents){if(b.kind!=='bld'||b.type!=='mine'||!b.built||b.dead||b.team!==team)continue;const d=Math.hypot(b.x-n.x,b.y-n.y);if(d<MINE_RNG&&minersIn(b)<MINE_CAP&&d<bd){bd=d;best=b}}return best}
-function mineNode(b,u){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='node'||e.dead||MINE_RT[e.rt]!=='mine'||e.amount<=0||!canGather(u,e)||(u.team===0&&!nodeKnown(e)))continue;const d=Math.hypot(e.x-b.x,e.y-b.y);if(d<MINE_RNG&&d<bd){bd=d;best=e}}return best}
+function mineOf(team,n){let best=null,bd=1e9;for(const b of G.ents){if(b.kind!=='bld'||b.type!=='mine'||!b.built||b.dead||b.team!==team)continue;const d=Math.hypot(b.x-n.x,b.y-n.y);if(d<n.r+b.r+8&&!b.empty&&minersIn(b)<MINE_CAP&&d<bd){bd=d;best=b}}return best}
+function mineNode(b,u){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='node'||e.dead||MINE_RT[e.rt]!=='mine'||e.amount<=0||!canGather(u,e)||(u.team===0&&!nodeKnown(e)))continue;const d=Math.hypot(e.x-b.x,e.y-b.y);if(d<e.r+b.r+8&&d<bd){bd=d;best=e}}return best}
 function mineOut(u){const b=u.inm&&G.byId.get(u.inm);if(u.inm){u.x=b?b.x:u.x;u.y=(b?b.y+b.r+8:u.y+20)}u.inm=null;u.state='idle';u.tid=null;u.pf=null}
 function mineRelease(team,id){if(NET.client&&team===0){NET.send({c:'unmine',id});return}for(const e of G.ents)if(e.inm===id&&e.team===team&&!e.dead)mineOut(e)}
 function mineCarts(){for(const b of G.ents){if(b.kind!=='bld'||b.type!=='mine'||!b.built||b.dead)continue;const want=b.spec==='rails'?2:1,have=G.ents.filter(c=>c.type==='cart'&&!c.dead&&c.home===b.id).length;
@@ -321,7 +321,11 @@ function advance(team,nat){
   if(ep===5&&nat&&NATIONS[nat]){G.nation[team]=nat;G.nfx[team]=nationFx(nat);recount()}
   G.adv[team]={t:0,time:EPOCHS[ep].time};if(team===0){panelSig='';toast(tr('Aufstieg in die {0} begonnen.',tr(EPOCHS[ep+1].name)))}return true;
 }
-function validSpot(x,y,r,anyTerrain){if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)return false;if(!anyTerrain&&(!onLand(x,y)||!onLand(x+r,y)||!onLand(x-r,y)||!onLand(x,y+r)||!onLand(x,y-r)))return false;if(!anyTerrain&&slopeNear(x,y,r)>.9)return false;for(const e of G.ents){if(e.dead||e.kind==='unit')continue;if(Math.hypot(e.x-x,e.y-y)<e.r+r+5)return false}return true}
+function validSpot(x,y,r,anyTerrain,ore){if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)return false;if(!anyTerrain&&(!onLand(x,y)||!onLand(x+r,y)||!onLand(x-r,y)||!onLand(x,y+r)||!onLand(x,y-r)))return false;if(!anyTerrain&&slopeNear(x,y,r)>.9)return false;for(const e of G.ents){if(e.dead||e.kind==='unit'||(ore&&e.kind==='node'&&MINE_RT[e.rt]==='mine'))continue;if(Math.hypot(e.x-x,e.y-y)<e.r+r+5)return false}return true}
+/* freies Vorkommen (ohne Mine) für eine neue Mine, nächstes zuerst */
+function mineFree(rt,x,y,team){let best=null,bd=2600;for(const n of G.ents){if(n.kind!=='node'||n.dead||n.rt!==rt||(team===0&&!nodeKnown(n)))continue;const d=Math.hypot(n.x-x,n.y-y);if(d<bd&&!G.ents.some(b=>b.type==='mine'&&!b.dead&&Math.hypot(b.x-n.x,b.y-n.y)<12)&&validSpot(n.x,n.y,BLDS.mine.r,false,true)){bd=d;best=n}}return best}
+/* Mine: rastet auf das nächste Stein-/Eisen-/Goldvorkommen ein (ohne eigene Mine darauf) */
+function mineSnap(x,y){let best=null,bd=80;for(const n of G.ents){if(n.kind!=='node'||n.dead||MINE_RT[n.rt]!=='mine'||!nodeKnown(n))continue;const d=Math.hypot(n.x-x,n.y-y);if(d<bd&&!G.ents.some(b=>b.type==='mine'&&!b.dead&&Math.hypot(b.x-n.x,b.y-n.y)<12)){bd=d;best=n}}return best}
 function separate(){
   const us=G.ents.filter(e=>e.kind==='unit'&&!e.dead&&!e.gar&&!e.inm&&!UNITS[e.type].air),CU=40,ug=new Map();
   us.forEach((u,i)=>{u._i=i;const k=((u.x/CU)|0)*4096+((u.y/CU)|0);const l=ug.get(k);if(l)l.push(u);else ug.set(k,[u])});

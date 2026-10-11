@@ -104,7 +104,7 @@ const RAGE={dur:6,cd:35,dmg:1.35,spd:1.25}; /* Fähigkeit Kampfrausch (Taste F) 
 /* Einheiten ändern ihren Namen mit dem Zeitalter (Sanitäter-Reihe) */
 /* Truppenlinien: ab einem späteren Zeitalter ist eine Einheit veraltet und nicht mehr ausbildbar (upto = letztes Zeitalter); vorhandene bleiben. uOk prüft beides. */
 /* Minen: bis MINE_CAP Arbeiter arbeiten drinnen, das Erz sammelt sich im Minenlager (MINE_STOCK) und eine Lore (Einheit cart) fährt es zum nächsten Lager */
-const MINE_CAP=5,MINE_STOCK=300,CART_LOAD=60;
+const MINE_CAP=8,MINE_STOCK=300,CART_LOAD=60;
 const UPTO={sling:0,club:1,archer:2,warship:2,crossbow:3,catapult:3,ram:3,spear:4,sword:4,musket:4,cannon:4,galleon:4,knight:5};for(const k in UPTO)UNITS[k].upto=UPTO[k];
 const uOk=(k,ep)=>UNITS[k].ep<=ep&&!(UNITS[k].upto<ep);
 const UNAMES={healer:['Schamane','Heiler','Priester','Feldscher','Sanitäter','Medizintechniker']};

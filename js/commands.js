@@ -149,6 +149,7 @@ function placeWallLine(x0,y0,x1,y1,raw,append){
   return n}
 function tryPlace(wx,wy,keep){
   let wa=null;if(placing==='wall'||placing==='gate'){const sn=wallSnap(wx,wy);wx=sn.x;wy=sn.y;wa=sn.a}
+  if(placing==='mine'){const sn=mineSnap(wx,wy);if(sn){wx=sn.x;wy=sn.y}}
   const d=BLDS[placing],blk=placeBlock(placing,wx,wy);if(blk){toast(blk);sfx('error');return}
   if(NET.client){if(!afford(0,d.cost)){toast(missing(0,d.cost)+'.');placing=null;return}NET.send({c:'place',type:placing,x:wx,y:wy,ang:wa,keep:!!keep,ids:ownSel().filter(u=>UNITS[u.type].builds).map(u=>u.id)});sfx('click');if(!keep)placing=null;return}
   if(!pay(0,d.cost)){toast(missing(0,d.cost)+'.');placing=null;return}

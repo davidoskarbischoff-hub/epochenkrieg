@@ -157,7 +157,8 @@ function infoHTML(s){
       h+='</div>'}
     if(e.type==='mine'&&e.built){const n=minersIn(e),tot=Object.values(e.st||{}).reduce((a,v)=>a+v,0);
       h+=`<div class="line">${tr('Bergleute: {0} / {1}',n,MINE_CAP)}</div><div class="chips"><span class="q">${tr('Minenlager')}: ${Math.floor(tot)} / ${MINE_STOCK}<span class="qb"><span style="width:${Math.min(100,tot/MINE_STOCK*100)}%"></span></span></span></div>`;
-      if(e.team===0&&!n)h+='<div class="line"><em>'+tr('Arbeiter per Rechtsklick auf die Mine oder das Vorkommen schicken. Eine Lore bringt das Erz zum Lager.')+'</em></div>'}
+      if(e.empty)h+='<div class="line"><em>'+tr('Vorkommen erschöpft – Mine abreißen, um den Rest aus dem Minenlager zu bekommen.')+'</em></div>';
+      else if(e.team===0&&!n)h+='<div class="line"><em>'+tr('Arbeiter per Rechtsklick auf die Mine oder das Vorkommen schicken. Eine Lore bringt das Erz zum Lager.')+'</em></div>'}
     if(e.team===0&&e.built)h+=techBlock(e);
     if(e.team===0&&e.queue.length){h+='<div class="chips">'+e.queue.map((q,i)=>`<button class="q${q.blocked?' blocked':''}" data-q="${i}" title="${tr('Klicken zum Abbrechen')}">${q.tech?'⚗ '+tr(TECH[q.tech].name):tr(UNITS[q.type].name)}${q.blocked?' – '+tr(q.tech?'Rohstoffe fehlen':'Platz fehlt'):''}<span class="qb"><span style="width:${i===0?(q.t/(q.tech?TECH[q.tech].time:UNITS[q.type].time)*100).toFixed(0):0}%"></span></span></button>`).join('')+'</div>'}
     if(e.team===0&&e.built&&(e.type==='hq'||e.type==='barracks')&&!e.queue.length)h+='<div class="line"><em>'+tr('Rechtsklick auf die Karte setzt den Sammelpunkt.')+'</em></div>';
