@@ -33,12 +33,22 @@ const GQ=[{n:'Niedrig',pr:.7,sh:1024,grass:.25,bloom:0,smoke:0,rad:1},{n:'Mittel
 let gfxQ=2;try{const q=localStorage.getItem('ek-gfx2');if(q!==null)gfxQ=Math.max(0,Math.min(3,+q||0));else{const o=localStorage.getItem('ek-gfx');if(o!==null)gfxQ=Math.max(0,Math.min(3,(+o||0)+1))}}catch(_){}
 function setGfx(q,temp){const old=gfxQ;gfxQ=q;try{r3.scene.traverse(o=>{if(o.userData&&o.userData.veg)o.castShadow=q>=2})}catch(_){}if(!temp)try{localStorage.setItem('ek-gfx2',q)}catch(_){}if(!R3.ok)return;const g=GQ[q],sz=Math.min(g.sh,r3.maxTex);if(r3.sun.shadow.mapSize.x!==sz){r3.sun.shadow.mapSize.set(sz,sz);if(r3.sun.shadow.map){r3.sun.shadow.map.dispose();r3.sun.shadow.map=null}}
   r3.sun.shadow.radius=g.rad;r3Resize();if(typeof optApply==='function')optApply();if(GQ[old].grass!==g.grass&&r3.i_tuft&&typeof W!=='undefined')r3Grass()}
-function r3Resize(){if(!R3.ok)return;r3.rd.setPixelRatio(Math.max(.5,Math.min(GQ[gfxQ].pr,Math.max(1,window.devicePixelRatio||1)*1.5)));r3.rd.setSize(VW,VH,false);camUpdate()}
+function r3Resize(){if(!R3.ok)return;r3.rd.setPixelRatio(Math.max(.4,Math.min(GQ[gfxQ].pr,Math.max(1,window.devicePixelRatio||1)*1.5)*(R3.dyn||1)));r3.rd.setSize(VW,VH,false);camUpdate()}
 
 /* ---------- Gelände ---------- */
 const hgrid={w:0,h:0,a:null};
 function hAt(xp,yp){const g=hgrid;if(!g.a)return 0;const fx=Math.max(0,Math.min(g.w-1.001,xp/R3.S)),fz=Math.max(0,Math.min(g.h-1.001,yp/R3.S)),ix=fx|0,iz=fz|0,tx=fx-ix,tz=fz-iz,a=g.a,W1=g.w;
   return(a[iz*W1+ix]*(1-tx)+a[iz*W1+ix+1]*tx)*(1-tz)+(a[(iz+1)*W1+ix]*(1-tx)+a[(iz+1)*W1+ix+1]*tx)*tz}
+/* Gelände in Kacheln (gemeinsame Punkte, je Kachel eigener Index): nur sichtbare Kacheln werden gezeichnet */
+function r3Chunks(g,NX,NZ,mat,C){C=C||32;const grp=new THREE.Group(),pos=g.attributes.position;grp.material=mat;grp.geometry=g;
+  for(let cz=0;cz<NZ-1;cz+=C)for(let cx=0;cx<NX-1;cx+=C){const idx=[],x1=Math.min(NX-1,cx+C),z1=Math.min(NZ-1,cz+C);let y0=1e9,y1=-1e9;
+    for(let j=cz;j<z1;j++)for(let i=cx;i<x1;i++){const a=j*NX+i,b=a+1,c=a+NX,d=c+1;idx.push(a,c,b,c,d,b)}
+    for(let j=cz;j<=z1;j++)for(let i=cx;i<=x1;i++){const y=pos.getY(j*NX+i);if(y<y0)y0=y;if(y>y1)y1=y}
+    const cg=new THREE.BufferGeometry();for(const k in g.attributes)cg.setAttribute(k,g.attributes[k]);cg.setIndex(idx);
+    cg.boundingBox=new THREE.Box3(new THREE.Vector3(cx,y0,cz),new THREE.Vector3(x1,y1,z1));cg.boundingSphere=cg.boundingBox.getBoundingSphere(new THREE.Sphere());
+    const m=new THREE.Mesh(cg,mat);grp.add(m)}
+  Object.defineProperty(grp,'renderOrder',{set(v){grp.children.forEach(c=>c.renderOrder=v)},get(){return grp.children[0]?grp.children[0].renderOrder:0}});
+  return grp}
 function r3Map(){
   const S=R3.S,{scene}=r3;
   for(const o of R3.reg.values())r3.gEnt.remove(o.obj);R3.reg.clear();
@@ -71,10 +81,10 @@ function r3Map(){
   tm.onBeforeCompile=sh=>{sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vWp;').replace('#include <begin_vertex>','#include <begin_vertex>\nvWp=(modelMatrix*vec4(position,1.0)).xyz;');
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vWp;\nfloat h21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\nfloat vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}')
       .replace('#include <map_fragment>','#include <map_fragment>\n{float n=vn(vWp.xz*0.035)*0.55+vn(vWp.xz*0.11)*0.3+vn(vWp.xz*0.4)*0.15;float k=0.86+0.3*n;diffuseColor.rgb*=vec3(k*1.02,k,k*0.97);}')};
-  const mesh=new THREE.Mesh(g,tm);mesh.receiveShadow=true;scene.add(mesh);r3.terrain=mesh;
+  const mesh=r3Chunks(g,NX,NZ,tm);mesh.children.forEach(c=>c.receiveShadow=true);scene.add(mesh);r3.terrain=mesh;
   if(r3.waves)for(const w of r3.waves)scene.remove(w);r3.waves=[];
   for(const[sp,rep,op]of[[1,SX/9,.32],[-1,SX/5.3,.22]]){const wt=new THREE.CanvasTexture(r3.waveTex);wt.wrapS=wt.wrapT=THREE.RepeatWrapping;wt.repeat.set(rep,rep*SZ/SX);const wm=new THREE.Mesh(new THREE.PlaneGeometry(SX,SZ).rotateX(-Math.PI/2).translate(SX/2,0,SZ/2),new THREE.MeshBasicMaterial({map:wt,transparent:true,opacity:op,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));wm.position.y=-.34;wm.renderOrder=1;wm.userData.sp=sp;scene.add(wm);r3.waves.push(wm)}
-  const ovMat=(cv,order,op)=>{const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,fog:false}));m.renderOrder=order;m.material.opacity=op;scene.add(m);return m};
+  const ovMat=(cv,order,op)=>{const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;const m=r3Chunks(g,NX,NZ,new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,fog:false}));m.renderOrder=order;m.material.opacity=op;scene.add(m);return m};
   /* Küstenschaum: helle, weich verlaufende Linie im flachen Wasser am Ufer; pulsiert wie anlaufende Wellen */
   if(r3.foam){scene.remove(r3.foam);r3.foam.material.map.dispose()}
   {const K=4,fc=document.createElement('canvas');fc.width=TW*K;fc.height=TH*K;const fx=fc.getContext('2d');
@@ -83,7 +93,7 @@ function r3Map(){
       const a=n1?.95:n2?.4:0;if(a){fx.fillStyle='rgba(255,255,255,'+a+')';fx.fillRect(x*K,y*K,K,K)}}
     const f2=document.createElement('canvas');f2.width=fc.width;f2.height=fc.height;const x2=f2.getContext('2d');x2.filter='blur(5px)';x2.drawImage(fc,0,0);
     const t=new THREE.CanvasTexture(f2);t.colorSpace=THREE.SRGBColorSpace;
-    const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,opacity:.5,fog:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));m.renderOrder=1;scene.add(m);r3.foam=m}
+    const m=r3Chunks(g,NX,NZ,new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,opacity:.5,fog:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));m.renderOrder=1;scene.add(m);r3.foam=m}
   r3.terrOv=ovMat(terrCv,2,.75);r3.fogOv=ovMat(fogCv,3,1);
   r3NodesInit();R3.bgRef=bg;R3.gRef=G;
 }
@@ -170,7 +180,8 @@ function r3Nodes(){
   if(!_o){_o=new THREE.Object3D();_c=new THREE.Color()}
   const S=R3.S,cnt={pine:0,broad:0,bush:0},I=r3;
   const put=(m,key,x,y,z,ry,sx,sy,col)=>{const n=cnt[key]++;if(n>=m.instanceMatrix.count)return;_o.position.set(x,y,z);_o.rotation.set(0,ry,0);_o.scale.set(sx,sy,sx);_o.updateMatrix();m.setMatrixAt(n,_o.matrix);m.setColorAt(n,col)};
-  for(const e of G.ents){if(e.dead||e.kind!=='node'||e.sea||e.type==='field')continue;
+  const V=R3.view,M=260;R3.nodeV=V&&{x:(V.x0+V.x1)/2,y:(V.y0+V.y1)/2,w:V.x1-V.x0}; /* nur Vorkommen im Bild (+Rand) zeichnen */
+  for(const e of G.ents){if(e.dead||e.kind!=='node'||e.sea||e.type==='field')continue;if(V&&(e.x<V.x0-M||e.x>V.x1+M||e.y<V.y0-M||e.y>V.y1+M))continue;
     const k=Math.max(.5,Math.sqrt(e.amount/e.maxAmt)),sh=fogShade(e.x,e.y),h=hAt(e.x,e.y),x=e.x/S,z=e.y/S,sd=e.seed;
     if(e.type==='tree'){const s=e.r/11*.62*(.85+sd*.35)*(.55+.45*k),pine=sd<.5,v=.9+((sd*97)%1)*.2;_c.setRGB(v*sh,(.95+((sd*53)%1)*.12)*v*sh,v*sh);put(pine?I.i_pine:I.i_broad,pine?'pine':'broad',x,h,z,sd*6.28,s,s*(.9+((sd*31)%1)*.3),_c)}
     else if(e.type==='bush'){const s=e.r/10*(.55+.45*k);_c.setRGB(sh,sh,sh);put(I.i_bush,'bush',x,h,z,sd*6.28,s,s,_c)}
@@ -321,13 +332,17 @@ function r3Ghost(type,x,y,ok){
   r3.ghost.visible=true;r3.ghost.position.set(x/R3.S,hAt(x,y),y/R3.S);r3.ghost.traverse(o=>{if(o.isMesh&&o.material.emissive)o.material.emissive.setHex(ok?0x1c3a10:0x4a1208)})}
 
 /* ---------- Ein Bild zeichnen ---------- */
-function r3Frame(list,rings,dt){
+/* Dynamische Auflösung: läuft das Bild zäh (< ~40 FPS), wird die Auflösung schrittweise gesenkt, bei flüssigem Bild wieder angehoben */
+function r3Dyn(dt){if(!(dt>0)||dt>.5)return;R3.dyn=R3.dyn||1;R3.dynA=(R3.dynA||1/60)*.95+dt*.05;R3.dynT=(R3.dynT||0)+dt;if(R3.dynT<1.5)return;R3.dynT=0;
+  const f=1/R3.dynA,old=R3.dyn;if(f<38&&R3.dyn>.5)R3.dyn=Math.max(.5,R3.dyn-.1);else if(f>55&&R3.dyn<1)R3.dyn=Math.min(1,R3.dyn+.05);if(R3.dyn!==old)r3Resize();R3.slow=f<30}
+function r3Frame(list,rings,dt){r3Dyn(dt);
   const t=(performance.now()-R3.t0)/1000;WIND.value=t;
   if(R3.bgRef!==bg||R3.gRef!==G)r3Map();
   camUpdate();
   if(r3.foam)r3.foam.material.opacity=.42+.3*Math.sin(t*1.4)+.1*Math.sin(t*3.1);
   for(const w of r3.waves){const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
+  {const V=R3.view,N=R3.nodeV;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>120||Math.abs((V.y0+V.y1)/2-N.y)>120||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
   R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}
   r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
@@ -385,6 +400,7 @@ function r3Smoke(dt,t){
 /* Leuchten (Bloom): verkleinerte Kopie des Bildes liegt weichgezeichnet und aufgehellt per „Bildschirm“-Überblendung über der Welt – helle Stellen (Sonnenlicht auf Wasser, Fenster, Feuer) strahlen sanft nach.
    Billiger Ersatz für eine echte Nachbearbeitung; abschaltbar im Menü (Grafik). */
 function r3Bloom(){
+  if(R3.slow||(R3.dyn||1)<1){if(!R3.bloomOff){R3.bloomOff=1;const c=document.getElementById('bloom');if(c)c.width=c.width}return}R3.bloomOff=0; /* zähes Bild: Leuchten aus (leeren) */
   if(!OPT.bloom||!GQ[gfxQ].bloom||R3.saverOn)return;const c=document.getElementById('bloom');if(!c||c.hidden)return;
   R3.bloomN=(R3.bloomN||0)+1;if(R3.bloomN%2)return;
   const w=Math.max(160,Math.round(r3.rd.domElement.width/5)),h=Math.max(90,Math.round(r3.rd.domElement.height/5));if(c.width!==w||c.height!==h){c.width=w;c.height=h}
