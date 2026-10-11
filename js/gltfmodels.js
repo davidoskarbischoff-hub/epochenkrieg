@@ -60,12 +60,18 @@ const EKMODELS=(()=>{
     const add=(g,mesh,x,y,z)=>{mesh.position.set(x,y,z);mesh.castShadow=true;g.add(mesh);return mesh};
     const hips=findBone(root,/hips|pelvis/i);
     if(hips){const g=new THREE.Group(),f=fur(en.pelt),bt=lea(en.belt||'#3b2a1a');
-      add(g,new THREE.Mesh(new THREE.CylinderGeometry(.2,.255,.2,10,1,true),f),0,-.07,0);
-      for(let i=0;i<8;i++){const a=i/8*6.283,z=new THREE.Mesh(new THREE.ConeGeometry(.05,.2,4),f);z.rotation.x=Math.PI;add(g,z,Math.cos(a)*.24,-.26,Math.sin(a)*.24)}
-      add(g,new THREE.Mesh(new THREE.CylinderGeometry(.208,.208,.04,10,1,true),bt),0,.03,0);
-      add(g,new THREE.Mesh(new THREE.BoxGeometry(.03,.09,.05),bt),.21,0,0);
+      add(g,new THREE.Mesh(new THREE.CylinderGeometry(.175,.215,.2,10,1,true),f),0,-.07,0);
+      for(let i=0;i<8;i++){const a=i/8*6.283,z=new THREE.Mesh(new THREE.ConeGeometry(.05,.2,4),f);z.rotation.x=Math.PI;add(g,z,Math.cos(a)*.2,-.26,Math.sin(a)*.2)}
+      add(g,new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.04,10,1,true),bt),0,.03,0);
+      add(g,new THREE.Mesh(new THREE.BoxGeometry(.03,.09,.05),bt),.185,0,0);
       mount(hips,g,0,.02,0)}
     const ch=findBone(root,/spine\.?003|spine\.?002/i);
+    /* Steinzeit-Oberteil: Fellweste über der Brust mit Schulterriemen */
+    const sp1=findBone(root,/spine\.?002|spine\.?001/i);
+    if(sp1&&en.pelt){const g=new THREE.Group(),f=fur(en.top||en.pelt);
+      add(g,new THREE.Mesh(new THREE.CylinderGeometry(.185,.175,.34,10,1,true),f),0,.1,0);
+      const st=add(g,new THREE.Mesh(new THREE.BoxGeometry(.05,.36,.42),f),0,.18,0);st.rotation.x=.55;
+      mount(sp1,g,0,0,0)}
     if(ch&&en.cape){const g=new THREE.Group(),f=fur(en.cape);
       add(g,new THREE.Mesh(new THREE.CylinderGeometry(.27,.33,.2,10,1,true,Math.PI/2+.7,Math.PI*2-1.4),f),0,.05,0);
       const s2=add(g,new THREE.Mesh(new THREE.SphereGeometry(.12,6,5),f),-.06,.14,.22);s2.scale.set(1.2,.5,1);const s3=add(g,new THREE.Mesh(new THREE.SphereGeometry(.12,6,5),f),-.06,.14,-.22);s3.scale.set(1.2,.5,1);
