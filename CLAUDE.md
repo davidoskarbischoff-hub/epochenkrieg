@@ -131,3 +131,12 @@ Idee für später: echte Nachbearbeitung (SSAO, Bloom mit Render-Target) braucht
 - Klänge: `sounds/` (Kenney-Geräusche) und `music/jingles/` (Fanfaren) werden über `SAMPLES` in `js/audio.js` den Ereignissen zugeordnet (`playSample` ersetzt den Synthesizer, sobald geladen; Rückfall = Synthesizer; Stimmen grunt/yell/horn/growl/deer bleiben synthetisch). Lange Musikstücke fehlen noch → Musik bleibt synthetisch (Satie, Pachelbel, Grieg). `SND.dbg()` zeigt Ladestand. Desktop-App kopiert `sounds` und `music`.
 - Qualitäts-Leitung: Agent `epochen-qa` (`.claude/agents/epochen-qa.md`) prüft jede fertige Aufgabe im laufenden Spiel (Figuren, Ausrichtung, Animation, Ton, Spielgefühl, Zeitalter-Stimmigkeit, Balance, Leistung, Mehrspieler) und führt `QA.md` (Maßstäbe + offene Mängel). In Workflows als Prüf-Stufe einsetzen (`agentType:'epochen-qa'`), bevor committet wird.
 - Release-Leitung: Agent `epochen-release` (`.claude/agents/epochen-release.md`) plant und priorisiert bis Release 2 (v0.2.0), hält das große Bild und den Code schlank, stimmt sich mit `epochen-qa` ab, entscheidet Go/No-Go; Plan in `RELEASE-2.md`. Ablauf je Runde: Release-Leitung plant → Bearbeiter setzen um → `epochen-qa` prüft → commit → Release-Leitung bewertet den Stand.
+
+## Release 2 – Runde 1
+- Minen (`sim.js`: `minersIn`, `mineOf`, `mineNode`, `mineOut`, `mineRelease`, `mineCarts`; Zustände `mine` und `haul`): Stein/Eisen/Gold nur mit Mine (`MINE_RT`), bis `MINE_CAP` Arbeiter drinnen (`u.inm`, unsichtbar über `shown`), Erz im Minenlager `b.st` (max `MINE_STOCK`), Lore = Einheit `cart` (zählt nicht zur Bevölkerung, Modell `UNIT3.cart`, Ladung `CART_LOAD`) fährt zum nächsten Lager; `BSPEC.mine` Schienen (2 Loren, Tempo ×2 über `u.spk`) / Tiefer Stollen (+30 %). Mehrspieler: `im` im Stand, Befehl `unmine`.
+- Truppenlinien: `UPTO` (letztes Zeitalter einer Einheit) und `uOk(k,ep)` in data.js; KI/Berater/Knöpfe nutzen `uOk`.
+- Abreißen: `demolish(team,id)` (sim.js), Knopf im Info-Feld (zweimal klicken), Mehrspieler `demo`.
+- Wälder: `genForests`/`forestPass` (map.js), `nodeOpen` (nav.js, nur Randbäume); Karten-Zufall nur über `R()`.
+- Figuren: glTF-Menschen (`rig.human`) haben Arbeitergröße (r3Make); `EKMODELS.animate` rechnet mit `G.speed`, Pause = Stillstand; eigene Waffe blendet eingebaute Schwerter (`^Sword`) aus.
+- Kenney-Bausätze: Farbtabelle `cmap` im Manifest (LoadingManager-URL-Umleitung in gltfmodels.js).
+- Obere Leiste: `css/topbar.css` (zwei feste Ebenen, nach style.css geladen).

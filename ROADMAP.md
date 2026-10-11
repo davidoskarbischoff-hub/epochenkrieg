@@ -181,3 +181,20 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Modelle beschaffen (CC0-Pakete, KI-Generator oder Auftrag) und erste Einheit/Gebäude je Zeitalter austauschen
 - [ ] glTF für Tiere, Bäume und Felsen (Instanzen), Mauern/Tore, Sterbe-Animation
 - [ ] Spätere Entscheidung: Engine-Wechsel (Godot) nur bei Steam-/Konsolenplänen oder sehr vielen animierten Einheiten
+
+## Release 2 – Runde 1 (2026-10-11)
+- [x] Mauer durch Ziehen bauen
+- [x] Dichte Wälder mit Durchgängen, nur Randbäume fällbar; KI holt Holz auch weiter weg (60-Minuten-Test: Holz geht nicht aus)
+- [x] Arbeitsgeräusche (Axt, Beeren, Bauen) passend und gleich laut; Tiere schauen in Laufrichtung
+- [x] Obere Leiste in zwei festen Ebenen (springt nicht mehr)
+- [x] Alle Menschen in Arbeitergröße, kein Schwert bei Schützen, Speer kürzer, Feldarbeit mit Sense, Animationen im Spieltempo
+- [x] Veraltete Truppen in späteren Zeitaltern nicht mehr ausbildbar (`UPTO`/`uOk`)
+- [x] Gebäude abreißen (50 % zurück)
+- [x] Minen neu: Stein/Eisen/Gold nur mit Mine, Bergleute drinnen, Lore zum Lager, Ausbau Schienen/Tiefer Stollen
+- [x] Kenney-Schiffe/Katapult/Ramme mit Farbtabelle, Bäume größer, Erze als gleiche Felsart, Kaserne je Zeitalter, Hauptlager Renaissance
+- [x] Desktop-App kopiert alle benutzten Modelldateien
+- [ ] Einheiten-Kontinuität (ein Grundkörper je Truppenlinie, Ausrüstung je Zeitalter); Heiler-Modell; Klötzchen-Figuren ersetzen
+- [ ] Ritter mit echtem Pferd; Bohrturm/Raffinerie-Modelle; Ölfelder unregelmäßiger
+- [ ] Englisch vollständig (21 Texte), Fenster „Mitwirkende“ (CC-BY-Namensnennung)
+- [ ] Unbenutzte Modelle in Archiv-Ordner, Code-Modelle auslagern, Verschlanken (siehe RELEASE-2.md)
+- [ ] Leistung: nur sichtbare Bäume zeichnen
