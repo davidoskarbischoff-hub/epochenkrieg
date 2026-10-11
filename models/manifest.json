@@ -1781,9 +1781,7 @@
     "file": "neu/Storage House.glb",
     "epochs": [
      3,
-     4,
-     5,
-     6
+     4
     ],
     "fit": 1.0
    }
@@ -1815,35 +1813,47 @@
   ],
   "harbor": [
    {
-    "file": "neu/Port.glb",
+    "file": "neu/Dock Wide.glb",
     "epochs": [
      0,
-     1,
-     2
+     1
     ],
     "fit": 1.0
    },
    {
-    "file": "neu/Shipping Port.glb",
+    "file": "neu/Port.glb",
+    "epochs": [
+     2,
+     3
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Docks.glb",
+    "epochs": [
+     4
+    ],
+    "fit": 1.0
+   }
+  ],
+  "castle": [
+   {
+    "file": "neu/Castle-y15yE6kWLY.glb",
     "epochs": [
      3,
-     4,
+     4
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Castle Fortress.glb",
+    "epochs": [
      5,
      6
     ],
     "fit": 1.0
    }
   ],
-  "castle": {
-   "file": "neu/Castle Fortress.glb",
-   "epochs": [
-    3,
-    4,
-    5,
-    6
-   ],
-   "fit": 1.0
-  },
   "farm": {
    "file": "neu/Farm-91wMLb9kKo.glb",
    "epochs": [
@@ -1888,16 +1898,16 @@
   ],
   "tower": [
    {
-    "file": "neu/Small Watch Tower.glb",
+    "file": "neu/Watch Tower.glb",
     "epochs": [
-     0,
-     1
+     0
     ],
     "fit": 1.0
    },
    {
     "file": "neu/Watch Tower-VJZZW37Vsk.glb",
     "epochs": [
+     1,
      2
     ],
     "fit": 1.0
@@ -1906,9 +1916,7 @@
     "file": "neu/Stone Tower.glb",
     "epochs": [
      3,
-     4,
-     5,
-     6
+     4
     ],
     "fit": 1.0
    }
