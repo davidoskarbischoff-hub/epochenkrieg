@@ -149,12 +149,12 @@ Wichtig: Die KI sucht Rohstoffe nur bis 900 px um ihr Hauptlager (`ai.js`, `near
 - Code-Rückfallmodelle auf einfache Platzhalter kürzen (V4b)
 - Spielstand speichern, Brücken, Diktaturen/Asien-Zweig
 
-## Offene Entscheidungen für David
-- **E1 Truppenlinien:** Sollen veraltete Einheiten ab einem späteren Zeitalter nicht mehr ausbildbar sein (z. B. Armbrustschütze nur Mittelalter–Renaissance, Speerträger bis zur Renaissance)? Vorhandene bleiben stehen. *Empfehlung: Ja* – weniger Modelle, klareres Bild, behebt „Armbrustschützen/Musketiere in der Industriezeit unpassend“.
-- **E2 Minen (Option A):** (a) Braucht auch Stein eine Mine? (b) Darf man Eisen/Gold noch ohne Mine von Hand abbauen? (c) Gehen die Arbeiter in die Mine (unsichtbar, wie Besatzung) oder arbeiten sie sichtbar davor? (d) Ein Karren je Mine? *Empfehlung:* (a) nein, (b) nein, (c) hinein (höchstens 5, Anzeige im Info-Feld), (d) ein Karren, mit Schienen ein zweiter.
-- **E3 Abriss:** 50 % Rückerstattung für fertige Gebäude in Ordnung?
-- **E4 `models/neu`:** 784 von ~874 Dateien (169 MB) sind unbenutzt. In ein Archiv auslagern und nur Benutztes + Geplantes behalten?
-- **E5 Code-Modelle als Rückfall:** behalten (sicher, mehr Code) oder nach dem Release auf einfache Platzhalter kürzen?
+## Entscheidungen von David (2026-10-11)
+- **E1 Truppenlinien:** Ja – in jedem Zeitalter sind nur die aktuellen Einheiten ausbildbar; veraltete nicht mehr (vorhandene bleiben stehen).
+- **E2 Minen (Option A):** (a) Auch Stein braucht eine Mine. (b) Eisen/Gold/Stein ohne Mine nicht abbaubar. (c) Arbeiter gehen in die Mine (bis 5 je Mine); im Info-Feld ein Balken, der sich füllt; Knopf „Arbeiter herausholen“. (d) Zahl der Karren je Mine ausprobieren, so wie es gut aussieht und ausbalanciert ist.
+- **E3 Abriss:** 50 % Rückerstattung für fertige Gebäude ist in Ordnung (unfertige: bezahlter Anteil zurück).
+- **E4 `models/neu`:** Unbenutzte Dateien prüfen und in einen Archiv-Ordner verschieben (nicht löschen, später wieder nutzbar). Erst nach Runde 3 (Modelle), damit nichts Benötigtes verschoben wird; Desktop-App/Pages laden das Archiv nicht.
+- **E5 Code-Modelle:** In eine eigene Datei/Ordner auslagern, wo sie nicht stören und später wiederzufinden sind (Rückfall bleibt möglich). In der Verschlanken-Runde.
 
 ## Reihenfolge und Datei-Belegung
 
