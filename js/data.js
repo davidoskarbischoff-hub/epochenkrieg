@@ -100,6 +100,9 @@ const ANIMALS={
 const CTR={spear:{cav:1.8},cav:{rng:1.4,siege:1.4,med:1.4},rng:{inf:1.2,spear:1.15},inf:{rng:1.25,siege:1.3,med:1.3},spear_:{}};
 const RAGE={dur:6,cd:35,dmg:1.35,spd:1.25}; /* Fähigkeit Kampfrausch (Taste F) */
 /* Einheiten ändern ihren Namen mit dem Zeitalter (Sanitäter-Reihe) */
+/* Truppenlinien: ab einem späteren Zeitalter ist eine Einheit veraltet und nicht mehr ausbildbar (upto = letztes Zeitalter); vorhandene bleiben. uOk prüft beides. */
+const UPTO={sling:0,club:1,archer:2,warship:2,crossbow:3,catapult:3,ram:3,spear:4,sword:4,musket:4,cannon:4,galleon:4,knight:5};for(const k in UPTO)UNITS[k].upto=UPTO[k];
+const uOk=(k,ep)=>UNITS[k].ep<=ep&&!(UNITS[k].upto<ep);
 const UNAMES={healer:['Schamane','Heiler','Priester','Feldscher','Sanitäter','Medizintechniker']};
 /* Nationen (ab der Industriezeit wählbar): Gruppe, Region, Farbe, Bonus (fx), Spezialeinheiten. fx: art = Artillerie-Schaden, gather = Sammeltempo, oilgold = Öl und Gold, tankCost = Panzerkosten, foodCost = Nahrungskosten der Truppen, prod = Ausbildungstempo, hp = Leben der Truppen, navhp = Leben der Schiffe, pop = Bevölkerung, air = Flugzeug-Leben */
 const NATIONS={

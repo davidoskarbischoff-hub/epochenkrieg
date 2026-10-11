@@ -148,7 +148,7 @@ const EN={
   'Technologien':'Technologies',
   'Erforschen':'Research',
   'Forschung':'Research',
-  'Technologie nötig: {0}':'Technology needed: {0}',
+  'Veraltet – in diesem Zeitalter nicht mehr ausbildbar.':'Obsolete – can no longer be trained in this age.','Technologie nötig: {0}':'Technology needed: {0}',
   'Technologie nötig':'Technology needed',
   'Dafür fehlt das passende Gebäude.':'The matching building is missing.',
   'Forschung gestartet: {0}':'Research started: {0}',

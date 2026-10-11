@@ -225,6 +225,7 @@ function enqueue(b,type,team){
   if(NET.client&&team===0){NET.send({c:'train',b:b.id,type});return true}
   const d=UNITS[type];
   if(d.ep>G.epoch[team]){if(team===0){toast(tr('Erst ab der {0} verfügbar.',tr(EPOCHS[d.ep].name)));sfx('error')}return false}
+  if(d.upto<G.epoch[team]){if(team===0){toast(tr('Veraltet – in diesem Zeitalter nicht mehr ausbildbar.'));sfx('error')}return false}
   if(d.tech&&!G.tech[team].has(d.tech)){if(team===0){toast(tr('Technologie nötig: {0}',tr(TECH[d.tech].name)));sfx('error')}return false}
   if(b.queue.length>=10){if(team===0){toast(tr('Die Warteschlange ist voll (max. 10).'));sfx('error')}return false}
   if(d.nation&&G.nation[team]!==d.nation){if(team===0){toast(tr('Diese Einheit gehört zu einer anderen Nation.'));sfx('error')}return false}

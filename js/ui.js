@@ -103,7 +103,7 @@ function actionsFor(s){
     return acts;
   }
   if(f.kind==='bld'&&f.built){
-    for(const [k,d] of Object.entries(UNITS))if(d.from===f.type&&d.ep<=ep&&(!d.nation||d.nation===G.nation[0])){const nt=d.tech&&!G.tech[0].has(d.tech);acts.push({key:'t'+k,nm:tr(UNAMES[k]?UNAMES[k][Math.min(5,G.epoch[0])]:d.name),cost:ucost(0,k),need:nt?tr('Technologie nötig: {0}',tr(TECH[d.tech].name)):null,sub:nt?tr('Technologie nötig'):null,run:()=>enqueue(f,k,0),unit:k})}
+    for(const [k,d] of Object.entries(UNITS))if(d.from===f.type&&uOk(k,ep)&&(!d.nation||d.nation===G.nation[0])){const nt=d.tech&&!G.tech[0].has(d.tech);acts.push({key:'t'+k,nm:tr(UNAMES[k]?UNAMES[k][Math.min(5,G.epoch[0])]:d.name),cost:ucost(0,k),need:nt?tr('Technologie nötig: {0}',tr(TECH[d.tech].name)):null,sub:nt?tr('Technologie nötig'):null,run:()=>enqueue(f,k,0),unit:k})}
     if(BSPEC[f.type]&&f.team===0&&!f.spec)for(const [k,sp] of Object.entries(BSPEC[f.type]).filter(([k,sp])=>(sp.ep||0)<=G.epoch[0])){acts.push({key:'ts'+k,nm:tr(sp.name),cost:sp.cost,sub:tr(sp.sub),adv:true,run:()=>{if(!buildSpec(0,f.id,k))toast(tr('Nicht genug Rohstoffe.'),'warn')}})}
     if(f.type==='market')for(const rt of['food','wood','stone','iron'])for(const dir of['sell','buy']){const lot=TRADE.lot,g=Math.round(lot*TRADE.sell*(1+SF(0).trade)),c=Math.round(lot*TRADE.buy);
       acts.push({key:'tr'+dir+rt,nm:dir==='sell'?tr('{0} → Gold',lot+' '+rn(rt)):tr('Gold → {0}',lot+' '+rn(rt)),cost:dir==='sell'?{[rt]:lot}:{gold:c},sub:dir==='sell'?tr('Du erhältst {0} Gold',g):tr('Du erhältst {0}',lot+' '+rn(rt)),run:()=>{if(NET.client)NET.send({c:'trade',rt,dir});else if(!trade(0,rt,dir))toast(tr('Nicht genug Rohstoffe.'),'warn')}})}
