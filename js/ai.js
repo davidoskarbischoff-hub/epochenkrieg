@@ -66,6 +66,7 @@ function aiTick(){
   // Felder: Nahrung, die nachwächst (ab Bronzezeit), wenn Beeren und Wild knapp werden
   if(ep>=1&&workers.length>=8&&G.t>(ai.farmT||0)&&!unbuilt.some(b=>b.type==='farm')){ai.farmT=G.t+35;const nf=blds.filter(b=>b.type==='farm').length;
     if(nf<Math.min(2+ep,5)&&r.wood>=BLDS.farm.cost.wood+60&&(r.food<400||nf<2))aiPlace('farm',hq,60,150)}
+  for(const b of blds)if(b.type==='mine'&&b.empty&&!G.ents.some(c=>c.type==='cart'&&c.home===b.id&&!c.dead))demolish(1,b.id); // erschöpfte Minen abtragen
   // Minen für Eisen und Gold, Markt für Gold
   if(ep>=1&&workers.length>=6&&G.t>(ai.mineT||0)&&!unbuilt.some(b=>b.type==='mine'||b.type==='derrick')){ai.mineT=G.t+25;
     for(const rt of['stone','iron','gold','oil']){if(ep<RES_EP[rt])continue;const bt=MINE_RT[rt];if(!afford(1,BLDS[bt].cost))continue;
