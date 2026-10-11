@@ -1375,7 +1375,8 @@
      1,
      2
     ],
-    "yaw": 0
+    "yaw": 90,
+    "scale": 0.55
    },
    {
     "file": "neu/boat-sail-a.glb",
@@ -1413,7 +1414,7 @@
   "catapult": {
    "file": "neu/siege-catapult.glb",
    "fit": "length",
-   "yaw": 90
+   "yaw": 0
   },
   "plane": {
    "file": "neu/Aeroplane by Gilang Romadhan - 9VeIc0cybp4.glb",
@@ -1602,7 +1603,7 @@
   "ram": {
    "file": "neu/siege-ram.glb",
    "fit": "length",
-   "yaw": 90
+   "yaw": 0
   },
   "knight": {
    "file": "neu/White Horse.glb",
