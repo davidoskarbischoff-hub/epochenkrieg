@@ -68,3 +68,5 @@ body{--t1h:38px;--t2h:36px;--tbf:13.5px;--tbb:5px;--epf:18px;--rsf:16.5px;--rsi:
 #top .tr .res[hidden]>*{visibility:hidden}
 #top .tr .res[hidden]::after{content:"◆";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:calc(var(--rsf)*.55);color:var(--fr);opacity:.28}
 /* Mehrspieler: Pause/Tempo sind ausgeblendet; das Menü bleibt trotzdem rechts (margin-right:auto am Arbeiter-Knopf). */
+/* Mitwirkende im Menü */
+.credits{line-height:1.5;font-size:14px}.credits h4{margin:12px 0 4px;color:var(--fr,#d8b46a)}.credits ul{margin:0;padding-left:18px}
