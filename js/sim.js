@@ -167,7 +167,11 @@ function updUnit(u,dt){
   case 'idle':
     if(!d.passive&&((u.ft=(u.ft||0)-dt)<=0)){u.ft=.25+Math.random()*.1;const t=findEnemy(u,150);if(t){u.tid=t.id;u.state='attack'}}
     break;
-  case 'explore':{const g=exGrid(u.team);if(!u.ex||G.t>u.ex.until||g[u.ex.i]){u.ex=pickExplore(u);if(!u.ex){u.state='idle';break}u.ex.until=G.t+45;u.pf=null}
+  case 'explore':{ /* Späher-Kreislauf: erst zum Gegner (Lage auskundschaften), dann Unerforschtes, dann wieder zum Gegner … */
+    if(!u.exPh)u.exPh=d.naval?'map':'enemy';
+    if(u.exPh==='enemy'){const hq=G.ents.find(e=>e.type==='hq'&&!e.dead&&e.team>=0&&e.team!==u.team),tx=hq?hq.x:W-u.x,ty=hq?hq.y:H-u.y;
+      if(Math.hypot(tx-u.x,ty-u.y)<d.sight*.9||(u.pf&&u.pf.fail)){u.exPh='map';u.pf=null;u.ex=null}else{moveToward(u,tx,ty,dt);break}}
+    const g=exGrid(u.team);if(!u.ex||G.t>u.ex.until||g[u.ex.i]){u.ex=pickExplore(u);if(!u.ex){if(d.naval){u.state='idle'}else{u.exPh='enemy';u.pf=null}break}u.ex.until=G.t+45;u.pf=null}
     const done=moveToward(u,u.ex.x,u.ex.y,dt);if(u.pf&&u.pf.fail){(u.badEx||(u.badEx={}))[u.ex.i]=G.t;u.ex=null;u.pf=null}else if(done)u.ex=null;break}
   case 'move':if(moveToward(u,u.dest.x,u.dest.y,dt))u.state='idle';break;
   case 'amove':{const t=((u.ft=(u.ft||0)-dt)<=0)?(u.ft=.2+Math.random()*.1,findEnemy(u,140)):null;if(t){u.tid=t.id;u.state='attack';break}if(moveToward(u,u.amove.x,u.amove.y,dt)){u.state='idle';u.amove=null}break}
