@@ -170,11 +170,31 @@ let navT=null,navDyn=null;
 const navSeen=new Uint32Array(NW*NH),navG=new Float32Array(NW*NH),navPar=new Int32Array(NW*NH);let navGen=0;
 function navInit(){navT=new Uint8Array(NW*NH);navDyn=new Uint8Array(NW*NH);
   for(let y=0;y<NH;y++)for(let x=0;x<NW;x++)navT[y*NW+x]=terrAt((x+.5)*NS,(y+.5)*NS)}
-/* Gebäude und feste Ressourcen blockieren die Felder in ihrem Umkreis (+5 für die Breite der Einheiten) */
-function navStamp(e,sign){const r=e.r+5,x0=Math.max(0,Math.floor((e.x-r)/NS)),x1=Math.min(NW-1,Math.floor((e.x+r)/NS)),y0=Math.max(0,Math.floor((e.y-r)/NS)),y1=Math.min(NH-1,Math.floor((e.y+r)/NS));
+/* Gebäude und feste Ressourcen blockieren die Felder in ihrem Umkreis (+5 für die Breite der Einheiten).
+   navVer zählt jede Änderung am Raster mit (für gemerkte Ergebnisse wie nodeOpen). */
+let navVer=0;
+function navStamp(e,sign){const r=e.r+5,x0=Math.max(0,Math.floor((e.x-r)/NS)),x1=Math.min(NW-1,Math.floor((e.x+r)/NS)),y0=Math.max(0,Math.floor((e.y-r)/NS)),y1=Math.min(NH-1,Math.floor((e.y+r)/NS));navVer++;
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const dx=(x+.5)*NS-e.x,dy=(y+.5)*NS-e.y;if(dx*dx+dy*dy<=r*r)navDyn[y*NW+x]+=sign}}
 const navOpen=(i,naval)=>navDyn[i]===0&&(naval?navT[i]<=1:(navT[i]===1||navT[i]===2));
 const navCell=(x,y)=>Math.max(0,Math.min(NH-1,(y/NS)|0))*NW+Math.max(0,Math.min(NW-1,(x/NS)|0));
+/* Dichter Wald: Fällen kann man nur Bäume am Waldrand. Ein Baum ist "offen", wenn ein freies Feld in Arbeiter-Reichweite liegt
+   (so weit, wie die Wegsuche einen Arbeiter heranführt) und dieses Feld zu einem grösseren freien Gebiet gehört (keine
+   eingeschlossene Lücke mitten im Wald). Stirbt ein Randbaum, werden seine Felder frei und der Baum dahinter wird offen.
+   Das Ergebnis wird je Baum gemerkt, bis sich das Raster ändert, höchstens aber 1 s Spielzeit lang (billig, wird oft gefragt). */
+const OPEN_ROOM=40,_opSeen=new Uint32Array(NW*NH),_opQ=new Int32Array(OPEN_ROOM+8);let _opGen=0;
+function _opRoom(i){ /* begrenzte Flutfüllung: hängt Feld i an mindestens OPEN_ROOM freien Feldern? */
+  if(++_opGen>=4294967295){_opGen=1;_opSeen.fill(0)}const g=_opGen;let h=0,t=0;_opQ[t++]=i;_opSeen[i]=g;
+  while(h<t){if(t>=OPEN_ROOM)return true;const c=_opQ[h++],x=c%NW;
+    for(const j of[x>0?c-1:-1,x<NW-1?c+1:-1,c>=NW?c-NW:-1,c+NW<NW*NH?c+NW:-1]){if(j<0||_opSeen[j]===g||!navOpen(j,false))continue;_opSeen[j]=g;_opQ[t++]=j;if(t>=OPEN_ROOM)return true}}
+  return false}
+function nodeOpen(n){
+  if(!n||n.kind!=='node'||n.sea||n.type!=='tree'||!navDyn)return true;
+  const t=G?G.t:0;if(n._opV===navVer||(n._opT!==undefined&&t>=n._opT&&t-n._opT<1))return n._op;
+  n._opV=navVer;n._opT=t;
+  const R=(n.r+10)/NS+.5,gx=n.x/NS,gy=n.y/NS,x0=Math.max(0,Math.floor(gx-R)),x1=Math.min(NW-1,Math.floor(gx+R)),y0=Math.max(0,Math.floor(gy-R)),y1=Math.min(NH-1,Math.floor(gy+R));
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=y*NW+x;if(!navOpen(i,false))continue;const dx=Math.abs(x+.5-gx),dy=Math.abs(y+.5-gy);
+    if(Math.max(dx,dy)+.4142*Math.min(dx,dy)<=R&&_opRoom(i))return n._op=true}
+  return n._op=false}
 /* Gelände allein (ohne Gebäude): darf diese Einheit hier stehen? */
 function terrOk(x,y,naval){const t=terrAt(x,y);return naval?t<=1:(t===1||t===2)}
 /* Freie Sicht zwischen zwei Punkten bis zur Länge 'len'? Felder nahe am Start zählen nicht (Start darf im Rand eines Hindernisses liegen) */

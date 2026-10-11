@@ -1,4 +1,4 @@
-/* Epochenkrieg – Klang. Alles wird im Browser erzeugt (Web Audio), keine Audiodateien. */
+/* Epochenkrieg – Klang. Synthesizer im Browser (Web Audio) plus kurze Aufnahmen aus sounds/ und music/jingles/ (siehe SAMPLES). */
 const SND=(()=>{
 let flags={war:true,voice:true},cur=null,ac=null,master,sfxG,musG,musBase,musWar,musHi,muted=false,bat=0,noiseBuf,musicV=.7,sfxV=.7,musTimer=null,epoch=0,fight=0,alertV=0,tn=0,mdst=null;
 const last={};
@@ -6,10 +6,12 @@ try{muted=localStorage.getItem('ek-mute')==='1'}catch(_){}
 try{const m=localStorage.getItem('ek-music-v'),f=localStorage.getItem('ek-sfx-v');if(m!==null)musicV=+m;if(f!==null)sfxV=+f}catch(_){}
 const save=()=>{try{localStorage.setItem('ek-music-v',musicV);localStorage.setItem('ek-sfx-v',sfxV)}catch(_){}};
 
+/* Hauptregler mit Kompressor (verhindert Übersteuern, wenn viel gleichzeitig klingt) */
+function outChain(c){const m=c.createGain(),cp=c.createDynamicsCompressor();m.gain.value=.8;cp.threshold.value=-14;cp.ratio.value=4;cp.attack.value=.01;cp.release.value=.25;m.connect(cp);cp.connect(c.destination);return m}
 function init(){
   if(ac){if(ac.state==='suspended')ac.resume();return}
   const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
-  ac=new C();master=ac.createGain();master.gain.value=muted?0:.8;{const cp=ac.createDynamicsCompressor();cp.threshold.value=-14;cp.ratio.value=4;cp.attack.value=.01;cp.release.value=.25;master.connect(cp);cp.connect(ac.destination)}
+  ac=new C();master=outChain(ac);master.gain.value=muted?0:.8;
   sfxG=ac.createGain();sfxG.gain.value=sfxV*.57;sfxG.connect(master);
   musG=ac.createGain();musG.gain.value=musicV*.45;musG.connect(master);setTimeout(()=>loadSamples(),0);
   musBase=ac.createGain();musBase.connect(musG);musWar=ac.createGain();musWar.gain.value=0;musWar.connect(musG);musHi=ac.createGain();musHi.gain.value=0;musHi.connect(musG);mdst=musBase;
@@ -32,11 +34,12 @@ function tone(f,t,dur,{type='sine',vol=.3,to=null,dest=cur||sfxG,atk=.005}={}){
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+atk);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   o.connect(g);g.connect(dest);o.start(t);o.stop(t+dur+.05);
 }
-function noise(t,dur,{f=1000,to=null,q=1,type='bandpass',vol=.3,dest=cur||sfxG}={}){
+function noise(t,dur,{f=1000,to=null,q=1,type='bandpass',vol=.3,dest=cur||sfxG,atk=0}={}){
   const s=ac.createBufferSource();s.buffer=noiseBuf;s.loop=true;
   const fl=ac.createBiquadFilter();fl.type=type;fl.Q.value=q;fl.frequency.setValueAtTime(f,t);
   if(to)fl.frequency.exponentialRampToValueAtTime(to,t+dur);
-  const g=ac.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  /* atk: langsam einblenden (z. B. Sausen eines Schwungs), sonst sofort laut und dann abklingend */
+  const g=ac.createGain();if(atk){g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+atk)}else g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
   s.connect(fl);fl.connect(g);g.connect(dest);s.start(t,Math.random()*.5);s.stop(t+dur+.05);
 }
 
@@ -49,16 +52,22 @@ const FX={
   select:t=>{tone(330,t,.06,{type:'triangle',vol:.15});tone(495,t+.04,.07,{type:'triangle',vol:.12})},
   order:t=>tone(250,t,.09,{type:'triangle',vol:.16,to:190}),
   error:t=>{tone(140,t,.18,{type:'sawtooth',vol:.14});tone(120,t+.07,.18,{type:'sawtooth',vol:.12})},
-  /* Holz: Axthieb – scharfes Knacken, dumpfes "Tock" und ein kurzes Hohlklingen des Stamms */
-  chop:t=>{noise(t,.03,{f:3500,q:.7,vol:.6});noise(t,.09,{f:700,to:350,q:1.2,vol:.6});
-    tone(rnd(150,190),t,.16,{type:'triangle',vol:.35,to:80});tone(rnd(300,380),t+.01,.12,{type:'sine',vol:.12,to:200})},
+  /* Holz: Axthieb – leises Sausen beim Ausholen, dann trifft die Klinge: heller Knack, dumpfes "Tschock" (Rauschen, das nach unten fällt),
+     tiefer Schlag in den Stamm und knisternde Holzfasern. Absichtlich ohne klingenden Ton – ein klarer Ton klingt nach Hämmern. */
+  chop:t=>{const p=rnd(.92,1.08),k=t+.06;
+    noise(t,.075,{f:700,to:1900,q:1.2,vol:.34,atk:.06});
+    noise(k,.035,{f:2800*p,q:.4,vol:1.45});noise(k+.001,.18,{f:1100*p,to:500*p,q:1.6,vol:1.8});noise(k+.002,.26,{f:420*p,to:230,q:1.3,vol:1.12});
+    tone(rnd(105,120),k,.18,{type:'sine',vol:.56,to:58,atk:.002});
+    for(let i=0;i<6;i++)noise(k+.01+i*rnd(.012,.022),rnd(.02,.03),{f:rnd(1800,4200),q:1.6,vol:rnd(.34,.62)*(1-i*.12)})},
   /* Stein: Spitzhacke – metallisches "Ting", Steinsplitter, schwerer Aufprall */
-  mine:t=>{metal(t,rnd(900,1250),.28,.16);noise(t,.04,{f:6000,type:'highpass',q:.5,vol:.35});
-    noise(t+.03,.12,{f:2800,to:1500,q:1.5,vol:.18});tone(95,t,.12,{type:'sine',vol:.4,to:55})},
-  /* Beeren: Rascheln im Gebüsch – mehrere leise, helle Rauschstösse und ein sanftes Zupfen */
-  pick:t=>{for(let i=0;i<4;i++)noise(t+i*rnd(.045,.08),rnd(.05,.09),{f:rnd(4500,7500),to:rnd(2500,4000),q:.6,vol:rnd(.12,.22)});
-    tone(rnd(700,950),t+.17,.05,{vol:.07,to:500})},
-  hammer:t=>{noise(t,.03,{f:2500,q:.8,vol:.45});metal(t,rnd(500,620),.14,.07);tone(200,t,.1,{type:'triangle',vol:.3,to:110})},
+  mine:t=>{metal(t,rnd(900,1250),.28,.48);noise(t,.04,{f:6000,type:'highpass',q:.5,vol:1.05});
+    noise(t+.03,.12,{f:2800,to:1500,q:1.5,vol:.54});tone(95,t,.12,{type:'sine',vol:.6,to:55})},
+  /* Beeren: Rascheln im Strauch – viele kurze, helle Rauschkörner (Blätter), weiches Wackeln der Zweige und das Knacken eines Stiels */
+  pick:t=>{for(let i=0;i<9;i++)noise(t+i*rnd(.018,.032),rnd(.04,.08),{f:rnd(2500,6000),q:rnd(.8,1.6),vol:rnd(1,1.9)*(1-i*.08)});
+    noise(t,.3,{f:1300,to:800,q:.7,vol:1,atk:.03});noise(t+rnd(.08,.14),.03,{f:rnd(1800,2600),q:3,vol:1.9})},
+  /* Bauen: Hammer klopft auf Holz – heller, kurz klingender Ton ("Tock") und ein leiser Nagel-Klang (Ersatz, falls die Aufnahme fehlt) */
+  hammer:t=>{const f=rnd(880,1020);noise(t,.02,{f:3000,q:.6,vol:2.2});tone(f,t,.14,{type:'sine',vol:1.4,atk:.001});tone(f*1.52,t,.07,{type:'sine',vol:.5,atk:.001});
+    tone(rnd(190,220),t,.09,{type:'triangle',vol:1.1,to:120,atk:.001});metal(t,rnd(2400,2800),.08,.12)},
   drop:t=>{tone(400,t,.06,{type:'triangle',vol:.14});tone(560,t+.05,.09,{type:'triangle',vol:.14})},
   /* Nahkampf: Klingenschlag – Metall, Schleifen, dumpfer Treffer. Tonhöhe variiert */
   /* Stimmen: kurze Brummlaute aus gefiltertem Rauschen und Grundton (Formanten), kein Sprachsample */
@@ -88,17 +97,25 @@ const FX={
 };
 const GAP={grunt:.5,yell:1.2,horn:4,growl:.8,deer:.6,chop:.18,mine:.18,pick:.18,hammer:.18,hit:.06,arrow:.06,die:.05,click:.03,select:.05,order:.05,drop:.1,crumble:.2};
 /* ---- Aufnahmen (Ordner sounds/ und music/jingles/): ersetzen die Synthesizer-Geräusche, sobald sie geladen sind; fehlt eine Datei, bleibt der Synthesizer ----
-   Pro Name eine Liste (zufällig gewählt), v = Lautstärke, r = Tonhöhen-Streuung. Neue Aufnahmen: hier eintragen. */
+   Pro Name eine Liste f (zufällig gewählt), v = Lautstärke, r = Tonhöhen-Streuung. Neue Aufnahmen: hier eintragen.
+   Zusätze: ['datei',zahl] = Angleich-Faktor für eine besonders leise/laute Datei, p = Grund-Tonhöhe (1 = original),
+   fx = den Synthesizer-Klang zusätzlich mit dieser Lautstärke daruntermischen, at = Aufnahme so viele Sekunden später starten.
+   Arbeitsgeräusche (Holz, Busch, Bauen, Stein) sind gemessen gleich laut eingestellt (ffmpeg, Lautheit in 400 ms):
+   die Angleich-Faktoren bringen jede Datei auf die Lautheit von chop.ogg. */
 const SAMPLES={
   click:{f:['sounds/click_001.ogg','sounds/click_002.ogg','sounds/click_003.ogg'],v:.5},
   select:{f:['sounds/select_001.ogg','sounds/select_002.ogg','sounds/select_003.ogg'],v:.45},
   order:{f:['sounds/tick_002.ogg','sounds/tick_004.ogg','sounds/switch_001.ogg'],v:.5},
   error:{f:['sounds/error_002.ogg','sounds/error_003.ogg'],v:.5},
   drop:{f:['sounds/handleCoins2.ogg','sounds/dropLeather.ogg'],v:.6,r:.1},
-  chop:{f:['sounds/chop.ogg'],v:.8,r:.12},
-  mine:{f:['sounds/impactMetal_light_004.ogg','sounds/impactPlate_light_004.ogg'],v:.55,r:.15},
-  pick:{f:['sounds/cloth4.ogg','sounds/handleSmallLeather.ogg','sounds/handleSmallLeather2.ogg'],v:.6,r:.1},
-  hammer:{f:['sounds/impactWood_medium_004.ogg','sounds/impactPlank_medium_004.ogg'],v:.7,r:.12},
+  /* Axt: der Synthesizer-Hieb (FX.chop) trägt den Klang, darunter ein echter dumpfer Tritt als natürlicher Holzkörper (zum Aufprall verschoben) */
+  chop:{f:[['sounds/footstep08.ogg',1],['sounds/footstep06.ogg',1.97],['sounds/footstep07.ogg',1.8]],v:.45,p:1.15,r:.08,at:.045,fx:1},
+  /* Spitzhacke: Metall-Klirren plus Steinsplitter und Aufprall aus FX.mine */
+  mine:{f:[['sounds/impactMetal_light_004.ogg',1.27],['sounds/impactPlate_light_004.ogg',1.76]],v:1.1,r:.15,fx:.5},
+  /* Busch: Rascheln (Stoff/Leder, stark angehoben – die Dateien sind sehr leise) plus Blätter-Körner und Stiel-Knacken aus FX.pick */
+  pick:{f:[['sounds/cloth4.ogg',6.6],['sounds/handleSmallLeather.ogg',7.85],['sounds/handleSmallLeather2.ogg',10.5]],v:.6,r:.12,fx:.36},
+  /* Bauen: das klare Holz-Klopfen klingt nach Hammer (früher fälschlich beim Holzfällen) */
+  hammer:{f:['sounds/chop.ogg'],v:.8,r:.1},
   hit:{f:['sounds/impactPunch_heavy_004.ogg','sounds/knifeSlice.ogg','sounds/impactMetal_medium_004.ogg'],v:.6,r:.15},
   arrow:{f:['sounds/knifeSlice2.ogg','sounds/drawKnife1.ogg'],v:.5,r:.1},
   die:{f:['sounds/impactPunch_heavy_004.ogg','sounds/dropLeather.ogg'],v:.7,r:.2},
@@ -111,13 +128,18 @@ const SAMPLES={
   lose:{f:['music/jingles/jingles_STEEL16.ogg'],v:.75}
 };
 const SBUF={};
+const fname=e=>Array.isArray(e)?e[0]:e;
 function loadSamples(){
   if(!ac||typeof fetch==='undefined')return;
-  for(const k in SAMPLES)for(const f of SAMPLES[k].f){if(SBUF[f]!==undefined)continue;SBUF[f]=null;
+  for(const k in SAMPLES)for(const e of SAMPLES[k].f){const f=fname(e);if(SBUF[f]!==undefined)continue;SBUF[f]=null;
     fetch(f).then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(b=>new Promise((ok,no)=>ac.decodeAudioData(b,ok,no))).then(buf=>{SBUF[f]=buf}).catch(()=>{SBUF[f]=false})}}
 function playSample(name,n,dest){
-  const d=SAMPLES[name];if(!d)return false;const ok=d.f.filter(f=>SBUF[f]);if(!ok.length)return false;
-  const src=ac.createBufferSource(),g=ac.createGain();src.buffer=SBUF[ok[(Math.random()*ok.length)|0]];g.gain.value=d.v||.6;if(d.r)src.playbackRate.value=1+(Math.random()-.5)*2*d.r;src.connect(g);g.connect(dest);src.start(n);return true}
+  const d=SAMPLES[name];if(!d)return false;const ok=d.f.filter(e=>SBUF[fname(e)]);if(!ok.length)return false;
+  const e=ok[(Math.random()*ok.length)|0],src=ac.createBufferSource(),g=ac.createGain();src.buffer=SBUF[fname(e)];
+  g.gain.value=(d.v||.6)*(Array.isArray(e)?e[1]:1);src.playbackRate.value=(d.p||1)*(d.r?1+(Math.random()-.5)*2*d.r:1);
+  src.connect(g);g.connect(dest);src.start(n+(d.at||0));
+  if(d.fx&&FX[name]){const l=ac.createGain();l.gain.value=d.fx;l.connect(dest);cur=l;FX[name](n)} // Schicht: Synthesizer dazu
+  return true}
 function play(name,pan=0,vol=1){
   if(!ac||sfxV<=0||!FX[name])return;if(!flags.voice&&(name==='grunt'||name==='yell'||name==='horn'))return;
   const n=ac.currentTime;if(last[name]&&n-last[name]<(GAP[name]||.02))return;last[name]=n;
@@ -290,7 +312,15 @@ function applyGains(){
   if(!ac)return;const n=ac.currentTime;
   musG.gain.setTargetAtTime(musicV*.45,n,.1);sfxG.gain.setTargetAtTime(sfxV*.57,n,.05);
 }
-return{dbg:()=>({n:Object.keys(SBUF).length,ok:Object.values(SBUF).filter(Boolean).length,bad:Object.entries(SBUF).filter(e=>e[1]===false).map(e=>e[0])}),
+/* Zum Prüfen (Tests): spielt ein Geräusch stumm in einen Offline-Kontext – gleiche Kette wie im Spiel (Ton-Regler, Hauptregler, Kompressor; ohne Hall) –
+   und liefert die Aufnahme als [links, rechts]. Konsole: SND.render('chop').then(console.log) */
+function render(name,len=1.2,vol=1){
+  if(!ac||typeof OfflineAudioContext==='undefined')return Promise.resolve(null);
+  const oc=new OfflineAudioContext(2,Math.ceil(len*ac.sampleRate),ac.sampleRate),keep=[ac,sfxG,last[name]];
+  ac=oc;sfxG=oc.createGain();sfxG.gain.value=sfxV*.57;sfxG.connect(outChain(oc));last[name]=0;
+  try{play(name,0,vol)}finally{ac=keep[0];sfxG=keep[1];last[name]=keep[2]}
+  return oc.startRendering().then(b=>[b.getChannelData(0),b.getChannelData(1)])}
+return{render,dbg:()=>({n:Object.keys(SBUF).length,ok:Object.values(SBUF).filter(Boolean).length,bad:Object.entries(SBUF).filter(e=>e[1]===false).map(e=>e[0])}),
   init,play,
   setEpoch(e){epoch=Math.max(0,Math.min(PIECES.length-1,e|0))},
   setFlags(f){Object.assign(flags,f)},

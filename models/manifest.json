@@ -1635,24 +1635,28 @@
    }
   },
   "bear": {
-   "file": "neu/Bear.glb"
+   "file": "neu/Bear.glb",
+   "yaw": 90
   },
   "mammoth": {
    "file": "neu/Bizon.glb",
    "scale": 0.62,
-   "yaw": 180
+   "yaw": 90
   },
   "sabertooth": {
    "file": "neu/Cat.glb",
-   "tintAll": "#c79a5a"
+   "tintAll": "#c79a5a",
+   "yaw": 90
   },
   "tiger": {
    "file": "neu/Cat.glb",
-   "tintAll": "#d9792b"
+   "tintAll": "#d9792b",
+   "yaw": 90
   },
   "croc": {
    "file": "neu/Lizard.glb",
-   "tintAll": "#4f6b3a"
+   "tintAll": "#4f6b3a",
+   "yaw": 90
   }
  },
  "nodes": {

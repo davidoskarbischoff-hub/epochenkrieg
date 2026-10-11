@@ -68,7 +68,7 @@ function clientStep(dt){
 /* Befehl des Gastes ausführen (Gastgeber): Teams kurz vertauschen, damit der Gast "Team 0" ist */
 function execRemote(m){
   if(!NET.host||!G||!G.running||G.over||!m)return;
-  const saveSel=[...sel],savePl=placing,msgs=[];
+  const saveSel=[...sel],savePl=placing,saveWA=wallAng,msgs=[];
   flipTeams();sel.clear();(m.ids||[]).forEach(id=>sel.add(id));NET.cap=msgs;NET.trust=true;
   try{
     switch(m.c){
@@ -77,6 +77,8 @@ function execRemote(m){
       case'rage':useRage(0,(m.ids||[]).slice(0,80));break;
       case'trade':if(RES.includes(m.rt)&&m.rt!=='gold')trade(0,m.rt,m.dir==='buy'?'buy':'sell');break;
       case'place':placing=m.type;wallAng=typeof m.ang==='number'?m.ang:null;if(BLDS[m.type]&&BLDS[m.type].ep<=G.epoch[0])tryPlace(m.x,m.y,!!m.keep);break;
+      /* Mauerlinie des Gastes: Endpunkte sind bei ihm schon eingerastet, jedes Stück wird hier noch einmal geprüft und bezahlt */
+      case'wline':if([m.x0,m.y0,m.x1,m.y1].every(Number.isFinite)&&BLDS.wall.ep<=G.epoch[0]){placing='wall';placeWallLine(m.x0,m.y0,m.x1,m.y1,true,!!m.app)}break;
       case'train':{const b=get(m.b);if(b&&b.team===0&&b.built&&UNITS[m.type]&&UNITS[m.type].from===b.type)enqueue(b,m.type,0);break}
       case'adv':advance(0,m.nation);break;
       case'upg':startUpgrade(0,m.key);break;
@@ -88,7 +90,7 @@ function execRemote(m){
       case'loop':toggleLoopSel();break;
       case'clr':clearChainSel();break}
   }catch(err){console.error('Fehler bei Fernbefehl',err)}
-  finally{NET.cap=null;NET.tgtSet=false;NET.tgt=null;NET.trust=false;placing=savePl;flipTeams();sel.clear();saveSel.forEach(id=>sel.add(id));panelSig='';infoCache=''}
+  finally{NET.cap=null;NET.tgtSet=false;NET.tgt=null;NET.trust=false;placing=savePl;wallAng=saveWA;flipTeams();sel.clear();saveSel.forEach(id=>sel.add(id));panelSig='';infoCache=''}
   if(msgs.length&&NET.send)NET.send({t:'msgs',list:msgs.slice(0,4)})}
 function startMP(o){
   NetLog.saverReset();

@@ -40,9 +40,12 @@ function giveOrder(u,o,append){
   (u.q||(u.q=[])).push(o)}
 function nextOrder(u){while(u.q&&u.q.length){const o=u.q.shift();if(orderValid(o)){applyOrder(u,o);return true}}return false}
 const ordPos=o=>{if(o.x!==undefined)return{x:o.x,y:o.y};const e=o.tid?get(o.tid):null;return e?{x:e.x,y:e.y}:null};
-/* Sammelbefehl auf ein Vorkommen: jeder Arbeiter bekommt ein eigenes (erst eines pro Baum/Busch, dann zwei), die nächsten zur Klickstelle */
+/* Sammelbefehl auf ein Vorkommen: jeder Arbeiter bekommt ein eigenes (erst eines pro Baum/Busch, dann zwei), die nächsten zur Klickstelle.
+   Im dichten Wald kommen nur die Randbäume in Frage (nodeOpen); liegt im Umkreis keiner, wird weiter gesucht. */
 function spreadGather(units,t){
-  const same=G.solids.filter(n=>n.kind==='node'&&!n.dead&&n.rt===t.rt&&!!n.sea===!!t.sea&&Math.hypot(n.x-t.x,n.y-t.y)<260&&!(MINE_RT[n.rt]&&!minedBy(0,n))&&!(n.regen&&n.amount<30)).sort((a,b)=>Math.hypot(a.x-t.x,a.y-t.y)-Math.hypot(b.x-t.x,b.y-t.y));
+  const pick=rad=>G.solids.filter(n=>n.kind==='node'&&!n.dead&&n.rt===t.rt&&!!n.sea===!!t.sea&&Math.hypot(n.x-t.x,n.y-t.y)<rad&&!(MINE_RT[n.rt]&&!minedBy(0,n))&&!(n.regen&&n.amount<30)&&nodeOpen(n));
+  let same=pick(260);if(!same.length&&!nodeOpen(t))same=pick(700);
+  same.sort((a,b)=>Math.hypot(a.x-t.x,a.y-t.y)-Math.hypot(b.x-t.x,b.y-t.y));
   const cnt={},out=new Map();
   for(const lim of[1,2,3,99])for(const u of units){if(out.has(u.id))continue;let best=null,bd=1e9;
     for(const n of same){const c=(G.load[n.id]||0)+(cnt[n.id]||0);if(c>=Math.min(lim,NODES[n.type].cap))continue;const d=Math.hypot(n.x-u.x,n.y-u.y)+c*60;if(d<bd){bd=d;best=n}}
@@ -52,7 +55,8 @@ function command(wx,wy,append,sp){
   const s=ownSel();if(!s.length)return;
   const t=NET.tgtSet?NET.tgt:entityAt(wx,wy,sp);
   if(NET.client){NET.send({c:'cmd',ids:s.map(e=>e.id),x:wx,y:wy,tid:t?t.id:0,append:!!append});fxMark(wx,wy,t&&t.team===1?'attack':'move');return}
-  if(s[0].kind==='bld'){s.forEach(b=>{if(b.kind==='bld')b.rally={x:wx,y:wy,id:t&&t.kind==='node'?t.id:null,nodeType:t&&t.kind==='node'?t.rt:null}});fxMark(wx,wy,'rally');return}
+  if(s[0].kind==='bld'){const rn0=t&&t.kind==='node'?(nodeOpen(t)?t:(spreadGather([t],t).get(t.id)||t)):null; /* Sammelpunkt im Wald: nächster Randbaum */
+    s.forEach(b=>{if(b.kind==='bld')b.rally={x:wx,y:wy,id:rn0?rn0.id:null,nodeType:rn0?rn0.rt:null}});fxMark(wx,wy,'rally');return}
   const units=s.filter(e=>e.kind==='unit');const csp=Math.max(11,Math.max(1,...units.map(u=>u.r))*2.6);const mv=units.filter(u=>!UNITS[u.type].gather&&!UNITS[u.type].naval),movers=new Map();if(!t&&mv.length>1){const sp3=formationSpots(mv,wx,wy,curForm);mv.forEach((u,k)=>movers.set(u.id,sp3[k]))}const spread=t&&t.kind==='node'?spreadGather(units.filter(u=>UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval),t):null;const cols=Math.ceil(Math.sqrt(units.length));let i=0;
   for(const u of units){
     if(t&&t.kind==='node'&&UNITS[u.type].gather&&!!t.sea===!!UNITS[u.type].naval&&!minedBy(0,t)){if(!u.mineMsg||G.t-u.mineMsg>4){u.mineMsg=G.t;toast(tr(MINE_RT[t.rt]==='derrick'?'Für {0} brauchst du einen fertigen Bohrturm in der Nähe.':'Für {0} brauchst du eine fertige Mine in der Nähe.',rn(t.rt)));sfx('error')}}
@@ -100,6 +104,47 @@ function wallSnap(wx,wy){
   let nb=null;bd=34;for(const n of G.ents){if(n.dead||n.kind!=='node'||n.sea||n.r<18)continue;const d=Math.hypot(n.x-wx,n.y-wy)-n.r;if(d<bd){bd=d;nb=n}}
   if(nb){const a=Math.atan2(wy-nb.y,wx-nb.x),dd=nb.r+BLDS.wall.r+1;return{x:nb.x+Math.cos(a)*dd,y:nb.y+Math.sin(a)*dd,a:wallAng!==null?wallAng:a+Math.PI/2}}
   return{x:wx,y:wy,a:wallAng!==null?wallAng:0}}
+/* ---------- Mauer ziehen: Maustaste halten, ziehen, loslassen = durchgehende Mauer von A nach B ----------
+   Endpunkt einrasten: an ein Mauerende (genau dort, damit die neue Mauer anschliesst) oder an den Rand eines grossen Vorkommens (Seite zum anderen Ende hin). */
+const WALL_MAX=80;
+function wallEnd(wx,wy,tx,ty){
+  let best=null,bd=36;for(const w of G.ents){if(w.dead||w.kind!=='bld'||(w.type!=='wall'&&w.type!=='gate'))continue;const a=w.ang||0;for(const s of[-1,1]){const ex=w.x+Math.cos(a)*WALLHALF*s,ey=w.y+Math.sin(a)*WALLHALF*s,d=Math.hypot(ex-wx,ey-wy);if(d<bd){bd=d;best={x:ex,y:ey,snap:1}}}}
+  if(best)return best;
+  let nb=null;bd=26;for(const n of G.ents){if(n.dead||n.kind!=='node'||n.sea||n.r<18||!nodeKnown(n))continue;const d=Math.hypot(n.x-wx,n.y-wy)-n.r;if(d<bd){bd=d;nb=n}}
+  if(nb){const far=Math.hypot(tx-nb.x,ty-nb.y)>nb.r+4,a=far?Math.atan2(ty-nb.y,tx-nb.x):Math.atan2(wy-nb.y,wx-nb.x),dd=nb.r+2;return{x:nb.x+Math.cos(a)*dd,y:nb.y+Math.sin(a)*dd,snap:2}}
+  return{x:wx,y:wy,snap:0}}
+/* Teilstücke entlang der Linie: das erste beginnt genau bei A, das letzte endet (so gut es geht) bei B; Abstand höchstens etwas mehr als ein Stück,
+   damit sich die Stücke berühren bzw. leicht überlappen (keine Lücken). raw = Endpunkte nicht mehr einrasten (Mehrspieler: kommen schon eingerastet vom Gast). */
+function wallLine(x0,y0,x1,y1,raw){
+  const A=raw?{x:x0,y:y0,snap:0}:wallEnd(x0,y0,x1,y1),B=raw?{x:x1,y:y1,snap:0}:wallEnd(x1,y1,A.x,A.y);
+  const dx=B.x-A.x,dy=B.y-A.y,L=Math.hypot(dx,dy),S=2*WALLHALF,segs=[];
+  if(L<2)return{A,B,a:0,segs};
+  const a=Math.atan2(dy,dx),ux=dx/L,uy=dy/L,n=Math.max(1,Math.min(WALL_MAX,Math.round(L/S)));
+  if(n===1){const k=L>S?L/2:WALLHALF;segs.push({x:A.x+ux*k,y:A.y+uy*k})}
+  else{const st=Math.max(S*.8,Math.min(S*1.06,(L-S)/(n-1)));for(let i=0;i<n;i++){const k=WALLHALF+i*st;segs.push({x:A.x+ux*k,y:A.y+uy*k})}}
+  return{A,B,a,segs}}
+/* Wer baut die Mauer? Ausgewählte Bauarbeiter, sonst bis zu 3 untätige Arbeiter in der Nähe des Anfangs */
+function wallBuilders(x,y){
+  const s=ownSel().filter(u=>u.kind==='unit'&&UNITS[u.type].builds&&!u.upj);if(s.length)return s;
+  return G.ents.filter(u=>!u.dead&&u.team===0&&u.kind==='unit'&&UNITS[u.type].builds&&u.state==='idle'&&!u.upj&&Math.hypot(u.x-x,u.y-y)<400).sort((a,b)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(b.x-x,b.y-y)).slice(0,3)}
+/* Mauerlinie setzen: freie Stücke der Reihe nach bezahlen und anlegen (blockierte werden ausgelassen, ohne Rohstoffe ist Schluss).
+   Die Bauarbeiter teilen sich die Strecke: jeder beginnt an einer anderen Stelle und hilft danach bei den übrigen Stücken. */
+function placeWallLine(x0,y0,x1,y1,raw,append){
+  const d=BLDS.wall,Ln=wallLine(x0,y0,x1,y1,raw);if(!Ln.segs.length)return 0;
+  if(NET.client){const ok=Ln.segs.filter(s=>!placeBlock('wall',s.x,s.y)).length;if(!ok){toast(tr('Hier ist kein Platz.'));sfx('error');return 0}if(!afford(0,d.cost)){toast(missing(0,d.cost)+'.');placing=null;return 0}
+    NET.send({c:'wline',x0:Ln.A.x,y0:Ln.A.y,x1:Ln.B.x,y1:Ln.B.y,app:!!append,ids:ownSel().filter(u=>u.kind==='unit'&&UNITS[u.type].builds).map(u=>u.id)});sfx('click');if(!afford(0,d.cost))placing=null;return ok}
+  const placed=[];let bad=0,poor=false;
+  for(const s of Ln.segs){if(placeBlock('wall',s.x,s.y)){bad++;continue}if(!pay(0,d.cost)){poor=true;break}const b=addBld('wall',0,s.x,s.y,false);b.ang=Ln.a;placed.push(b)}
+  if(!placed.length){if(poor)toast(missing(0,d.cost)+'.');else toast(tr('Hier ist kein Platz.'));sfx('error');if(!afford(0,d.cost))placing=null;return 0}
+  lastPlaced=placed[placed.length-1];
+  const us=wallBuilders(Ln.A.x,Ln.A.y),k=us.length,n=placed.length;
+  us.forEach((u,j)=>{const off=Math.floor(j*n/k),app=append||u.state==='build'||!!(u.q&&u.q.some(o=>o.t==='build'));
+    for(let i=0;i<n;i++)giveOrder(u,{t:'build',tid:placed[(off+i)%n].id},i>0||app)});
+  if(poor)toast(missing(0,d.cost)+' – '+tr('{0} von {1} Mauerstücken gesetzt.',n,Ln.segs.length-bad),'warn');
+  else if(bad)toast(tr('{0} Mauerstücke ausgelassen (kein Platz).',bad));
+  sfx('click');
+  if(!afford(0,d.cost))placing=null;
+  return n}
 function tryPlace(wx,wy,keep){
   let wa=null;if(placing==='wall'||placing==='gate'){const sn=wallSnap(wx,wy);wx=sn.x;wy=sn.y;wa=sn.a}
   const d=BLDS[placing],blk=placeBlock(placing,wx,wy);if(blk){toast(blk);sfx('error');return}

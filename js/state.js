@@ -25,10 +25,20 @@ function terrUpdate(){
 }
 /* Warum darf hier nicht gebaut werden? (null = erlaubt) */
 function harborOk(x,y,r){if(terrAt(x,y)!==1)return false;let land=0,water=0;for(let k=0;k<16;k++){const a=k*.3927,px=x+Math.cos(a)*(r+24),py=y+Math.sin(a)*(r+24);if(onLand(px,py))land++;else if(terrAt(px,py)<=1&&navDyn[navCell(px,py)]===0)water++}return land>=2&&water>=3}
+/* Mauern und Tore dürfen an andere Mauerstücke, Vorkommen und Gebäude anstossen (sonst bliebe zwischen den Stücken immer eine Lücke).
+   Nur fast deckungsgleiche Mauerstücke sind verboten; Einheiten und Tiere stören nicht (sie gehen zur Seite). */
+function wallSpot(x,y,r){
+  if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)return false;
+  if(!onLand(x,y)||!onLand(x+r,y)||!onLand(x-r,y)||!onLand(x,y+r)||!onLand(x,y-r))return false;
+  if(slopeNear(x,y,r)>.9)return false;
+  for(const e of G.ents){if(e.dead||e.kind==='unit'||e.kind==='animal')continue;const d=Math.hypot(e.x-x,e.y-y);
+    if(e.kind==='bld'&&(e.type==='wall'||e.type==='gate')){if(d<(e.r+r)*.62)return false}
+    else if(d<e.r+r+(e.kind==='node'?-3:1))return false}
+  return true}
 function placeBlock(type,x,y){
   const d=BLDS[type];
   if(type==='harbor'){if(!validSpot(x,y,d.r,true))return tr('Hier ist kein Platz.');if(!harborOk(x,y,d.r))return tr('Der Hafen muss zwischen Land und flachem Wasser stehen.')}
-  else if(!validSpot(x,y,d.r))return tr('Hier ist kein Platz.');
+  else if(!((type==='wall'||type==='gate')?wallSpot(x,y,d.r):validSpot(x,y,d.r)))return tr('Hier ist kein Platz.');
   if((type==='mine'||type==='derrick')&&!G.ents.some(n=>n.kind==='node'&&!n.dead&&MINE_RT[n.rt]===type&&nodeKnown(n)&&Math.hypot(n.x-x,n.y-y)<MINE_RNG*.85))return type==='mine'?tr('Eine Mine muss in der Nähe von Eisen oder Gold stehen.'):tr('Ein Bohrturm muss in der Nähe eines entdeckten Ölfelds stehen.');
   if(NET.trust)return null;
   if(!fogEx[fogIdx(x,y)])return tr('Dieses Gebiet ist noch unerkundet.');
@@ -62,6 +72,8 @@ const NET={mp:false,host:false,client:false,send:null,cap:null,tgtSet:false,tgt:
 const SFXNET=new Set(['grunt','yell','hit','arrow','boom','shot','die','crumble','chop','mine','pick','hammer']);
 const sel=new Set();
 let placing=null,armed=false,drag=null,panelSig='',uiT=0,lastClick={t:0,id:-1};
+/* Mauer ziehen: {sx,sy = Bildschirmpunkt beim Drücken, x,y = Spielpunkt, line = schon gezogen (sonst einfacher Klick), shift} */
+let wallDrag=null;
 const mouse={x:0,y:0,in:false,type:'mouse'};
 const keys={};
 

@@ -124,7 +124,7 @@ function moveToward(u,tx,ty,dt,ignore){
 }
 /* Eisen und Gold lassen sich nur abbauen, wenn eine eigene, fertige Mine in der Nähe steht */
 function minedBy(team,n){if(!MINE_RT[n.rt]||team<0)return true;for(const b of G.ents)if(b.kind==='bld'&&b.type===MINE_RT[n.rt]&&b.built&&!b.dead&&b.team===team&&Math.hypot(b.x-n.x,b.y-n.y)<MINE_RNG)return true;return false}
-function nearestNode(rt,x,y,max,u,free){const naval=!!(u&&UNITS[u.type].naval);let best=null,bd=max;for(const e of G.solids){if(e.kind!=='node'||e.dead||(rt&&e.rt!==rt)||!!e.sea!==naval||(e.regen&&e.amount<30))continue;if(u&&!minedBy(u.team,e))continue;if(u&&u.team===0&&!G.mp&&!nodeKnown(e))continue;if(u&&u.bad&&u.bad[e.id]&&G.t-u.bad[e.id]<40)continue;if(free&&(G.load[e.id]||0)>=NODES[e.type].cap)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
+function nearestNode(rt,x,y,max,u,free){const naval=!!(u&&UNITS[u.type].naval);let best=null,bd=max;for(const e of G.solids){if(e.kind!=='node'||e.dead||(rt&&e.rt!==rt)||!!e.sea!==naval||(e.regen&&e.amount<30))continue;if(u&&!minedBy(u.team,e))continue;if(u&&u.team===0&&!G.mp&&!nodeKnown(e))continue;if(u&&u.bad&&u.bad[e.id]&&G.t-u.bad[e.id]<40)continue;if(free&&(G.load[e.id]||0)>=NODES[e.type].cap)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd&&(e.type!=='tree'||nodeOpen(e))){bd=d;best=e}}return best}
 function nearestDrop(t,x,y,naval,rt){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='bld'||e.team!==t||!e.built||e.dead)continue;if(rt==='oil'?!BLDS[e.type].dropOil:!BLDS[e.type].drop)continue;if(naval&&e.type!=='harbor')continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
 function findEnemy(s,rad,unitsOnly){let best=null,bd=1e9;for(const e of G.ents){if(e.dead||e.team===s.team)continue;if(e.team<0&&!(e.kind==='animal'&&e.state==='chase'))continue;if(unitsOnly&&e.kind!=='unit'&&e.kind!=='animal')continue;if(e.gar&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;if(UNITS[e.type]&&UNITS[e.type].air&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;const d=Math.hypot(e.x-s.x,e.y-s.y)-e.r-s.r;if(d>rad)continue;const sc=d+(e.kind==='bld'?80:0);if(sc<bd){bd=sc;best=e}}return best}
 const reach=(u,t)=>dist(u,t)<=u.r+t.r+5;
@@ -306,8 +306,10 @@ function separate(){
 function animalMove(a,tx,ty,dt,spd){
   const dx=tx-a.x,dy=ty-a.y,d=Math.hypot(dx,dy);if(d<2)return true;
   const st=Math.min(d,spd*dt),ux=dx/d,uy=dy/d;let moved=false;
+  /* Blickrichtung = tatsächlich gegangener Schritt (auch beim seitlichen Gleiten), sonst „krebsen“ die Tiere; winzige Gleitschritte zählen nicht als Bewegung */
   for(const[mx,my]of[[ux,uy],[ux,0],[0,uy],[ux*.5+uy*.7,uy*.5-ux*.7],[ux*.5-uy*.7,uy*.5+ux*.7]]){
-    const nx=a.x+mx*st,ny=a.y+my*st;if(terrAt(nx,ny)===(ANIMALS[a.type].water?1:2)&&navDyn[navCell(nx,ny)]===0){a.x=nx;a.y=ny;a.fa=Math.atan2(my||uy,mx||ux);a.mvT=G.t;moved=true;break}}
+    if(Math.hypot(mx,my)<.3)continue;
+    const nx=a.x+mx*st,ny=a.y+my*st;if(terrAt(nx,ny)===(ANIMALS[a.type].water?1:2)&&navDyn[navCell(nx,ny)]===0){a.x=nx;a.y=ny;a.fa=Math.atan2(my,mx);a.mvT=G.t;moved=true;break}}
   a.stk=moved?Math.max(0,(a.stk||0)-dt):(a.stk||0)+dt;
   /* festgeklemmt (z. B. in/neben einem Vorkommen): nach 0,7 s zum nächsten freien Feld im Umkreis springen */
   if(!moved&&a.stk>.7){const okc=ANIMALS[a.type].water?1:2;outer:for(let r=10;r<=90;r+=10)for(let k=0;k<12;k++){const an=k/12*6.283,nx=a.x+Math.cos(an)*r,ny=a.y+Math.sin(an)*r;if(terrAt(nx,ny)===okc&&navDyn[navCell(nx,ny)]===0){a.x=nx;a.y=ny;a.stk=0;break outer}}}
