@@ -27,7 +27,13 @@ function advIntelText(I){
 function advFindSpot(type){
   const hq=G.ents.find(e=>e.type==='hq'&&e.team===0&&!e.dead);if(!hq)return null;const d0=BLDS[type];
   const base=Math.atan2(H/2-hq.y,W/2-hq.x),far=type==='tower';
-  for(let d=far?200:100;d<=(far?330:320);d+=20)for(let k=0;k<36;k++){const a=base+(k%2?1:-1)*Math.ceil(k/2)*.17;const x=hq.x+Math.cos(a)*d,y=hq.y+Math.sin(a)*d;if(!placeBlock(type,x,y))return{x,y}}
+  if(far){/* Türme verteilt: möglichst weit weg von eigenen Türmen/Burgen (mind. 300 px), bevorzugt Richtung Gegner, Ring wächst mit der Anzahl */
+    const tw=G.ents.filter(e=>!e.dead&&e.team===0&&(e.type==='tower'||e.type==='castle'));let best=null,bs=-1e9;
+    for(let d=220;d<=420+tw.length*40;d+=20)for(let k=0;k<48;k++){const a=base+k*.1309,x=hq.x+Math.cos(a)*d,y=hq.y+Math.sin(a)*d;if(placeBlock(type,x,y))continue;
+      let g=1e9;for(const t of tw)g=Math.min(g,Math.hypot(t.x-x,t.y-y));if(g<300)continue;
+      const da=Math.abs(Math.atan2(Math.sin(a-base),Math.cos(a-base)));const sc=Math.min(g,700)-da*120-Math.abs(d-300)*.3;if(sc>bs){bs=sc;best={x,y}}}
+    return best}
+  for(let d=100;d<=320;d+=20)for(let k=0;k<36;k++){const a=base+(k%2?1:-1)*Math.ceil(k/2)*.17;const x=hq.x+Math.cos(a)*d,y=hq.y+Math.sin(a)*d;if(!placeBlock(type,x,y))return{x,y}}
   return null}
 /* Platz für eine Mine: nahe dem nächsten Vorkommen (Eisen oder Gold), das noch keine Mine hat */
 function advMineSpot(rt,hq){const nd=nearestNode(rt,hq.x,hq.y,2600);if(!nd||minedBy(0,nd))return null;
