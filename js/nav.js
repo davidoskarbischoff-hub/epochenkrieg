@@ -9,13 +9,13 @@ let TERR=null,MAINLAND=null;
 /* ---------- Gelände erzeugen ---------- */
 /* Kartenarten: mid/ends = Breite der Landzunge in der Mitte und an den Enden, amp = Unregelmäßigkeit, full = nur Land, mount = Berge, cliff = Klippen an der Küste (Zugänge nur an Lücken), bank = Sandbänke */
 const MAPS={
-  coast:{name:'Küste und Landzunge',desc:'Geschwungene Küste, Hügel, Plateaus, Fischgründe',mid:430,ends:920,amp:1.25,wind:.8,plat:.55,bank:.6,mount:1,cliff:0,lakes:1.1,mthr0:0.62},
+  coast:{name:'Küste und Landzunge',desc:'Geschwungene Küste, Hügel, Plateaus, Fischgründe',mid:820,ends:1450,amp:1.25,wind:.8,plat:.55,bank:.6,mount:1,cliff:0,lakes:1.1,mthr0:0.62},
   land:{name:'Festland',desc:'Nur Land mit Hügeln und Plateaus, kein Meer',full:1,amp:1,plat:.65,bank:.6,mount:1,cliff:0,mthr0:0.58},
   lakes:{name:'Seenplatte',desc:'Viele Seen und Teiche, Fische im Binnenland',full:1,amp:1,plat:.4,bank:.6,mount:1,cliff:0,lakes:1.7,mthr0:0.62},
-  mountains:{name:'Bergland',desc:'Hohe Berge und Klippen, Häfen nur an Zugängen',mid:440,ends:930,amp:1.15,wind:.7,plat:.3,bank:.6,mount:1,cliff:1,lakes:.9},
+  mountains:{name:'Bergland',desc:'Hohe Berge und Klippen, Häfen nur an Zugängen',mid:760,ends:1350,amp:1.15,wind:.7,plat:.3,bank:.6,mount:1,cliff:1,lakes:.9},
   river:{name:'Flusstal',desc:'Ein Fluss trennt die Basen, nur wenige Furten führen hinüber',full:1,amp:1,plat:.5,bank:.6,mount:1,cliff:0,river:1,mthr0:0.62},
   pass:{name:'Gebirgspass',desc:'Bergmassiv mit engen Pässen als Engstellen',full:1,amp:1,plat:.2,bank:.6,mount:1,cliff:0,mthr0:.4},
-  bay:{name:'Große Bucht',desc:'Viel Wasser, breite Landbrücke',mid:320,ends:840,amp:1,wind:1,plat:.45,bank:.5,mount:1,cliff:0,lakes:.8,mthr0:0.62},
+  bay:{name:'Große Bucht',desc:'Viel Wasser, breite Landbrücke',mid:600,ends:1250,amp:1,wind:1,plat:.45,bank:.5,mount:1,cliff:0,lakes:.8,mthr0:0.62},
 };
 /* Höhenfeld (HL, in Einheiten à 10 px, pro Gelände-Feld), Abstand zur Küste (DSEA), Startpunkt des Hauptlandes (MAINPT) */
 let HL=null,DSEA=null,MAINPT=null;
@@ -143,8 +143,13 @@ function mapPreview(id){
   if(_mpCache[id])return _mpCache[id];
   const sT=TERR,sM=MAINLAND,sH=HL,sD=DSEA,sP=MAINPT;MAINPT=null;genTerrain(11,id);
   const c=document.createElement('canvas');c.width=TW;c.height=TH;const x=c.getContext('2d'),im=x.createImageData(TW,TH);
-  const col=[[28,66,98],[62,142,160],[104,142,66],[122,118,110]];
-  for(let i=0;i<TW*TH;i++){const k=col[TERR[i]],j=i*4;const sh=TERR[i]===2?((i%TW+((i/TW)|0))%7<1?-8:0):0;im.data[j]=k[0]+sh;im.data[j+1]=k[1]+sh;im.data[j+2]=k[2]+sh;im.data[j+3]=255}
+  /* Farben wie im Spiel: Wasser nach Tiefe, Land nach Höhe (Wiese → Hügel → Fels → Schnee), dazu Hangschatten von Nordwest */
+  const lerp=(a,b,t)=>a.map((v,k)=>v+(b[k]-v)*t),hl=i=>Math.max(0,HL[i]||0);
+  for(let i=0;i<TW*TH;i++){const t=TERR[i],cx=i%TW,cy=(i/TW)|0,j=i*4;let k;
+    if(t===0)k=[26,64,96];else if(t===1)k=[58,128,148];
+    else{const h=hl(i);k=t===2?(h<1?[98,138,62]:h<3?lerp([98,138,62],[120,128,70],(h-1)/2):lerp([120,128,70],[132,120,96],Math.min(1,(h-3)/4))):h>=12?lerp([205,210,214],[240,244,248],Math.min(1,(h-12)/4)):lerp([118,112,104],[150,144,136],Math.min(1,h/11));
+      if(cx>0&&cy>0){const d=hl(i)-hl(i-TW-1);k=k.map(v=>v+Math.max(-34,Math.min(34,d*9)))}}
+    im.data[j]=k[0];im.data[j+1]=k[1];im.data[j+2]=k[2];im.data[j+3]=255}
   x.putImageData(im,0,0);
   x.fillStyle='#4a8fe0';x.strokeStyle='#10202f';x.lineWidth=1;for(const[px,py,cl]of[[.17,.83,'#4a8fe0'],[.83,.17,'#e0533c']]){x.fillStyle=cl;x.beginPath();x.arc(px*TW,py*TH,4,0,6.283);x.fill();x.stroke()}
   TERR=sT;MAINLAND=sM;HL=sH;DSEA=sD;MAINPT=sP;return _mpCache[id]=c.toDataURL()}
