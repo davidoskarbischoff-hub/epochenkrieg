@@ -5497,18 +5497,12 @@
  "sea": {
   "fish": {
    "files": [
-    "neu/Clownfish.glb",
-    "neu/Blue Tang.glb",
-    "neu/Yellow Tang.glb",
-    "neu/Koi.glb",
-    "neu/Red Snapper.glb",
-    "neu/Butterfly Fish.glb",
-    "neu/Royal Gramma.glb",
-    "neu/Tuna.glb"
+    "neu/Tuna.glb",
+    "neu/Red Snapper.glb"
    ],
-   "count": 6,
-   "size": 1.3,
-   "spread": 1.4,
+   "count": 4,
+   "size": 1.0,
+   "spread": 1.5,
    "yaw": 90
   },
   "dolphin": {

@@ -48,7 +48,7 @@ const ROOM={on:false,ready:false,g:null,K:520,DESK:-6,mode:'game',t:0,fly:null,a
     ROOM.ready=true;ROOM.apply()};
   /* an/aus: Hintergrund, Meer nur auf dem Brett, Sichtweite */
   ROOM.apply=function(){if(!R3.ok)return;const on=ROOM.ready&&!(typeof OPT!=='undefined'&&OPT.room===false);ROOM.on=on;if(ROOM.g)ROOM.g.visible=on;
-    const sc=r3.scene;if(on&&ROOM.bg){sc.background=ROOM.bg;sc.backgroundBlurriness=.45;sc.backgroundIntensity=.8;sc.fog.color.set(0x8f877a)}
+    const sc=r3.scene;if(on&&ROOM.bg){sc.background=ROOM.bg;sc.backgroundBlurriness=.15;sc.backgroundIntensity=1;sc.fog.color.set(0x8f877a)}
     if(r3.sea){if(on){r3.sea.scale.set(W/R3.S/3600,1,H/R3.S/3600)}else r3.sea.scale.set(1,1,1)}
     r3.camera.far=on?9000:1400;r3.camera.updateProjectionMatrix()};
   /* Raum-Kamera: Blick von schräg oben auf Tisch und Brett, kreist langsam (Hauptmenü) */
