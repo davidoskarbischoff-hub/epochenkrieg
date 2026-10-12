@@ -341,9 +341,9 @@ const EKMODELS=(()=>{
     for(let i=0;i<n;i++){const gl=files.get(L[(e.id+i*3)%L.length]),root=EKGLTF.SkeletonUtils.clone(gl.scene),w=new THREE.Group();w.add(root);prepare(root,0);root.rotation.order='YXZ';root.rotation.y=(en.yaw||0)*Math.PI/180;root.rotation.x=(en.roll||0)*Math.PI/180;
       if(en.tint)root.traverse(o=>{if(o.isMesh){const f=m=>{const c=m.clone();c.color.set(en.tint);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}});
       let b=box(w),sz=b.getSize(new THREE.Vector3());const k=(en.size||1)*(.85+((e.id*7+i*13)%10)/33)/(Math.max(sz.x,sz.y,sz.z)||1);root.scale.multiplyScalar(k);b=box(w);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-c.y,-c.z);
-      const a=i/n*6.283+e.id,r=n>1?(en.spread||1.1)*1.7*(.5+((i*37+e.id)%5)/8):0;w.position.set(Math.cos(a)*r,0,Math.sin(a)*r);w.rotation.y=-(a+1.5708);w.userData.ph=i;
+      /* gleichmässig verteilt: zwei Ringe, gleiche Winkelgeschwindigkeit → Abstand bleibt, kein Übereinander */const a=i/n*6.283+e.id,r=n>1?(en.spread||1.1)*1.7*(i%2?1:.62):0;w.position.set(Math.cos(a)*r,(i%2?.12:-.12),Math.sin(a)*r);w.rotation.y=-(a+1.5708);w.userData.ph=i;
       const cl=gl.animations.find(c=>/swim.*(normal|idle)|swim/i.test(c.name))||gl.animations[0];if(cl){const m=new THREE.AnimationMixer(root);m.clipAction(cl).play();m.update(Math.random()*2);mix.push(m)}
-      if(n>1)(g.userData.school||(g.userData.school=[])).push({w,a,r,sp:.35+((i*17+e.id)%5)/25});
+      if(n>1)(g.userData.school||(g.userData.school=[])).push({w,a,r,sp:(.35+(e.id%5)/25)*(i%2?.62:1)});
       g.add(w)}
     const ring=new THREE.Mesh(new THREE.RingGeometry(.82,1,40).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xbfe8ff,transparent:true,opacity:.75,depthWrite:false,fog:false}));ring.userData.ring=true;g.add(ring);
     g.userData.mix=mix;return g}
