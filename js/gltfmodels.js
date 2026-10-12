@@ -111,7 +111,26 @@ const EKMODELS=(()=>{
     if(en.extras)for(const x of en.extras)attach(root,root,x,k);
     let hh=null;if(en.hand)hh=attach(root,findBone(root,/hand\.?r|wrist\.?r/i),en.hand,k);wrap.userData.handHolder=hh;
     if(en.left)attach(root,findBone(root,/hand\.?l|wrist\.?l/i),en.left,k);
+    if(en.wear)for(const w of en.wear)wear(root,w,k,team);
     if(en.pelt||en.cape||en.tooth)cloth(root,en,k,id);}
+  /* Ausrüstung aus echten Modellen an einen Knochen hängen (Helm, Brustpanzer): wear:[{file,bone,mesh,scale,rot,pos,tint}]
+     bone = Regex des Knochens (Standard Head), mesh = nur diese Teilmodelle behalten (z. B. Helmet_01 aus einer ganzen Figur; Skin-Meshes
+     werden in Ruhelage zu festen Meshes), Mitte des Teils liegt am Knochen, pos verschiebt (Modell-Einheiten der Figur), tint je Material ('team') */
+  function wear(root,w,k,team){
+    const bone=findBone(root,new RegExp(w.bone||'^Head$','i')),gl=files.get(w.file);if(!bone||!gl)return null;
+    const p=EKGLTF.SkeletonUtils.clone(gl.scene);p.updateMatrixWorld(true);const part=new THREE.Group(),re=w.mesh&&new RegExp(w.mesh,'i');
+    p.traverse(o=>{if(!o.isMesh||(re&&!re.test(o.name)))return;let g=o.geometry;
+      if(o.isSkinnedMesh){g=g.clone();const P=g.attributes.position,v=new THREE.Vector3();for(let i=0;i<P.count;i++){v.fromBufferAttribute(P,i);o.applyBoneTransform(i,v);P.setXYZ(i,v.x,v.y,v.z)}
+        ['skinIndex','skinWeight'].forEach(a=>g.deleteAttribute(a));g.computeVertexNormals()}/* Ruhelage einbacken */
+      const m=new THREE.Mesh(g,o.material);m.name=o.name;m.applyMatrix4(o.matrixWorld);part.add(m)});
+    prepare(part,0);if(w.tint){const t={};for(const n in w.tint)t[n]=w.tint[n]==='team'?TC[team]:w.tint[n];tintMats(part,t)}
+    const c=box(part).getCenter(new THREE.Vector3());part.children.forEach(m=>m.position.sub(c));
+    const r=w.rot||[0,0,0],D=Math.PI/180,inner=new THREE.Group();inner.rotation.set(r[0]*D,r[1]*D,r[2]*D);inner.scale.setScalar(w.scale||1);inner.add(part);
+    const holder=new THREE.Group();holder.add(inner);bone.add(holder);root.updateMatrixWorld(true);
+    const ws=new THREE.Vector3();bone.getWorldScale(ws);const sc=k/(ws.x||1);holder.scale.setScalar(sc);
+    const qb=new THREE.Quaternion(),qr=new THREE.Quaternion();bone.getWorldQuaternion(qb);root.getWorldQuaternion(qr);holder.quaternion.copy(qr.invert().multiply(qb).invert());/* an der Figur ausrichten: oben = +Y, vorn = +X */
+    const q=w.pos||[0,0,0];holder.position.set(q[0],q[1],q[2]).applyQuaternion(holder.quaternion).multiplyScalar(sc);
+    return holder}
   /* Fischernetz (work.<art>.net = {file,len,tint,grip,hands,pitch,yaw,bend,twist,cycle}): hängt nicht an der Hand, sondern vor der Figur
      (Halter im Figurenraum: vorn +X, oben +Y, rechts +Z). Im Modell liegt der Stiel entlang −Z mit dem Netz am −Z-Ende → nach +X gedreht,
      Griffende am Halter, Gesamtlänge len. Beide Hände greifen per IK an den Stiel (netPose), Finger zur Faust (erstes Bild eines Punch-Clips). */
@@ -360,7 +379,7 @@ const EKMODELS=(()=>{
     /* Kenney-Bausätze verweisen auf Textures/colormap.png: stattdessen die Farbtabelle aus dem Manifest (cmap) nehmen */
     const mgr=new THREE.LoadingManager();if(manifest.cmap)mgr.setURLModifier(u=>/colormap\.png$/.test(u)?'models/'+manifest.cmap:u);
     loader=new EKGLTF.GLTFLoader(mgr);try{loader.setMeshoptDecoder(EKGLTF.MeshoptDecoder)}catch(_){}
-    const want=new Set();if(manifest.ual)want.add(manifest.ual);for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off){want.add(x.file);for(const f of x.vary||[])want.add(f);if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work)){if(w.tool&&w.tool.file)want.add(w.tool.file);if(w.net&&w.net.file)want.add(w.net.file)}if(x.extra&&x.extra.file)want.add(x.extra.file);for(const l of Object.values(x.load||{}))if(l&&l.file)want.add(l.file);for(const pr of(x.props||[]).concat(x.extras||[]))if(pr&&pr.file)want.add(pr.file)}
+    const want=new Set();if(manifest.ual)want.add(manifest.ual);for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off){want.add(x.file);for(const f of x.vary||[])want.add(f);if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work)){if(w.tool&&w.tool.file)want.add(w.tool.file);if(w.net&&w.net.file)want.add(w.net.file)}if(x.extra&&x.extra.file)want.add(x.extra.file);for(const l of Object.values(x.load||{}))if(l&&l.file)want.add(l.file);for(const pr of(x.props||[]).concat(x.extras||[],x.wear||[]))if(pr&&pr.file)want.add(pr.file)}
     await Promise.all([...want].map(async f=>{try{files.set(f,await loader.loadAsync('models/'+f))}catch(err){failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}}));
     pCache.clear();R.ready=true;R.ver++;/* Einheiten/Gebäude/Tiere: Signaturen ändern sich über tag() von selbst; Bäume/Felsen: Instanzen neu aufbauen */try{if(typeof r3!=='undefined'&&r3.scene&&typeof G!=='undefined'&&G&&G.ents&&G.ents.length)r3NodesInit()}catch(_){}
     try{if(typeof ICON3!=='undefined'){ICON3.clear();document.querySelectorAll('[data-ic]').forEach(el=>{el.innerHTML=ART.icon(el.dataset.ic)})}}catch(_){}}

@@ -17,6 +17,8 @@
 - [x] Sounds: Geräusche (Axt, Spitzhacke, Rascheln im Busch, Schwert, Pfeil, Alarm, Fanfare), Knöpfe Musik/Ton, Tasten M und N
 - [x] Musik: klassische, gemeinfreie Stücke je Epoche (Satie, Pachelbel, Grieg)
 
+- [x] Krieger-Linien mit einem Grundkörper (Adventurer) durch alle Zeitalter, Teamfarbe ab Mittelalter, Brustpanzer/Stahlhelm als echte Modelle (`wear`)
+- [ ] Armbrust-Modell für den Armbrustschützen besorgen (trägt noch Bogen)
 ## Ideen für die nächsten Schritte
 Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortieren.
 
