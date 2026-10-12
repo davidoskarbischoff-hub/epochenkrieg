@@ -11,17 +11,17 @@ const ROOM={on:false,ready:false,g:null,K:520,DESK:-6,mode:'game',t:0,fly:null,a
     {f:'book_encyclopedia_set_01',x:620,z:-90,ry:0},
     {f:'chess_set',x:380,z:-170,ry:0},
     {f:'vintage_oil_lamp',x:-160,z:380,ry:0},
-    {f:'tea_set_01',x:660,z:380,ry:.3},
+    {f:'tea_set_01',x:560,z:420,ry:.3},
     {f:'stationery_supplies',x:630,z:200,ry:-1.57}];
   const FLOOR_PROPS=[
     /* Rückwand (hinten = kleines z), in einer Reihe */
-    {f:'metal_tool_chest',x:-500,z:-1000,ry:0},
-    {f:'CoffeeCart_01',x:240,z:-1000,ry:0,top:[{f:'vintage_radio_transceiver',dx:-60,ry:0},{f:'filmstrip_projector_8mm',dx:70,ry:0}]},
-    {f:'wooden_ladder',x:950,z:-1050,ry:0},
-    {f:'industrial_pipe_lamp',x:1400,z:-950,ry:0},
+    {f:'metal_tool_chest',x:-600,z:-1900,ry:0},
+    {f:'CoffeeCart_01',x:240,z:-1900,ry:0},
+    {f:'wooden_ladder',x:950,z:-1950,ry:0},
+    {f:'industrial_pipe_lamp',x:1500,z:-1850,ry:0},
     /* Sitzecke seitlich, zum Tisch gedreht */
-    {f:'sofa_02',x:-1250,z:250,ry:1.57},
-    {f:'mid_century_lounge_chair',x:1500,z:300,ry:-1.57},
+    {f:'sofa_02',x:-1950,z:250,ry:1.57},
+    {f:'mid_century_lounge_chair',x:2000,z:300,ry:-1.57},
     {f:'plastic_monobloc_chair_01',x:240,z:720,ry:3.14},
     {f:'Chandelier_01',x:240,z:160,ry:0,ceil:1}];
   const load=(L,f)=>new Promise(r=>L.load(B+f+'/'+f+'_1k.gltf',g=>r(g.scene),undefined,e=>{console.warn('Raum-Modell',f,e&&e.message);r(null)}));
