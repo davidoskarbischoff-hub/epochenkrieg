@@ -12,8 +12,7 @@ const ROOM={on:false,ready:false,g:null,K:520,DESK:-6,mode:'game',t:0,fly:null,a
     {f:'tea_set_01',x:610,z:250,ry:.4},
     {f:'stationery_supplies',x:560,z:400,ry:-.2},
     {f:'vintage_stapler',x:-60,z:410,ry:.9},
-    {f:'postcard_set_01',x:160,z:440,ry:.15},
-    {f:'chess_set',x:330,z:-90,ry:.2},
+    {f:'chess_set',x:380,z:-170,ry:.2},
     {f:'vintage_oil_lamp',x:650,z:110,ry:0},
     {f:'long_life_food',x:-150,z:330,ry:.5},
     {f:'filmstrip_projector_8mm',x:90,z:-95,ry:-.4}];
