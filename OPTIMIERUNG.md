@@ -20,11 +20,13 @@ Hilfsmittel:
 - Kontaktbögen: `sheet2.js` (Einheiten/Gebäude je Zeitalter) und `raw.js` (rohe GLB-Dateien).
 
 ## Offene Punkte (Reihenfolge = Priorität)
-- [ ] **R1:** Davids neue Modelle einbauen (Workflow läuft) und die Ergebnisse zusammenführen:
-  - Natur-Paket (Bäume, Beerensträucher, Getreide, Schnee-Varianten)
-  - Türme
-  - Fischernetz für den Angler mit Animation
-  - mittelalterliche Menschen
+- [ ] **R1:** Davids neue Modelle einbauen:
+  - [x] Natur-Paket: Birke, Weide, Herbstbäume, Beerensträucher, Getreide auf Feldern, Baumstümpfe, Berg-Deko mit Schnee (zusammengeführt 12.10.)
+  - [x] Türme: Ballisten-Türme als Wehrturm Eisenzeit/Mittelalter. Statt gebauter Zusätze echte Palisaden, wehrhafter Steinturm und Heißluftballon (zusammengeführt 12.10.)
+  - [ ] Fischernetz für den Angler mit Animation (Workflow wf_1b33fd27 läuft)
+  - [ ] mittelalterliche Menschen (Workflow wf_1b33fd27 läuft)
+  - Offen aus Natur: Kiefern (neu/Pine) im anderen Stil als die Low-Poly-Laubbäume. Im Natur-Paket gibt es keine Nadelbäume.
+  - Offen aus Türme: Code-Zusätze der anderen Ausbauten (Hauptlager eco/cmd, Kaserne usw. in `specModel`) sind noch aus Formen gebaut → durch echte Modelle (props) ersetzen
 - [ ] **R2:** Truppenlinien-Durchsicht. Gesamtbogen: scratchpad `s11.png`. Stand:
   - [x] Rammbock, Katapult und Lore waren rosa (falsche Kenney-Farbtabelle) → Holz-Tönung `#9c8a78`, neues Manifest-Feld `cmap` je Eintrag
   - [x] Kradmelder ohne Fahrer → Fahrer (rider rifle, free)
