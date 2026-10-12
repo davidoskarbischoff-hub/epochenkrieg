@@ -17,15 +17,22 @@ function nameOf(e){return e.kind==='animal'?tr(ANIMALS[e.type].name):e.kind==='u
 /* ---------- map ---------- */
 /* Ein Platz taugt nur, wenn rundherum (Abstand r) Land des Hauptlandes ist */
 function landSpot(x,y,r){if(x<24||y<24||x>W-24||y>H-24)return false;for(let k=0;k<8;k++){const a=k*.785,px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;if(px<10||py<10||px>W-10||py>H-10||!onLand(px,py))return false}const c=Math.max(0,Math.min(TH-1,(y/TG)|0))*TW+Math.max(0,Math.min(TW-1,(x/TG)|0));return MAINLAND[c]===1}
+/* Startplätze immer frei: Fels/Randgebirge (TERR 3) im Umkreis der Basen wird zu Land, Höhe sanft auf die Basis abgesenkt */
+function clearBases(bases){const RC=300;for(const b of bases){const h0=HL[Math.floor(b.y/TG)*TW+Math.floor(b.x/TG)]||0;
+  for(let y=Math.max(0,Math.floor((b.y-RC)/TG));y<Math.min(TH,Math.ceil((b.y+RC)/TG));y++)for(let x=Math.max(0,Math.floor((b.x-RC)/TG));x<Math.min(TW,Math.ceil((b.x+RC)/TG));x++){const i=y*TW+x,d=Math.hypot((x+.5)*TG-b.x,(y+.5)*TG-b.y);if(d>RC)continue;
+    if(TERR[i]===3){TERR[i]=2;const k=sm3(RC,RC*.6,d);HL[i]=HL[i]*(1-k)+Math.min(HL[i],h0+.6)*k}}}
+  computeMainland()}
 function genMap(seed){
   const R=mulberry(seed);
   const okSpot=landSpot;
   // Basis A: auf der Diagonale, möglichst nah an der Küste (Hafen soll früh erreichbar sein)
+  /* Startplatz mit Abstand zum Randgebirge (applyPlayRect, playF) */
+  const inPlay=c=>Math.abs(c.x-W/2)<W*playF/2-380&&Math.abs(c.y-H/2)<H*playF/2-380;
   const Ld=Math.hypot(W,H),nx=H/Ld,ny=W/Ld;let A=null;
-  for(let pp=700;pp>=0&&!A;pp-=20){const c={x:W/2+(.17*W+nx*pp-W/2)*startK,y:H/2+(.83*H+ny*pp-H/2)*startK};if(okSpot(c.x,c.y,175))A=c}
-  if(!A)A={x:W/2+(.17*W-W/2)*startK,y:H/2+(.83*H-H/2)*startK};
+  for(let pp=700;pp>=0&&!A;pp-=20){const c={x:W/2+(.17*W+nx*pp-W/2)*startK,y:H/2+(.83*H+ny*pp-H/2)*startK};if(inPlay(c)&&okSpot(c.x,c.y,175))A=c}
+  if(!A){A={x:W/2+(.17*W-W/2)*startK,y:H/2+(.83*H-H/2)*startK};A.x=Math.max(W/2-W*playF/2+380,A.x);A.y=Math.min(H/2+H*playF/2-380,A.y)}
   const bases=[{x:A.x,y:A.y,s:1},{x:W-A.x,y:H-A.y,s:-1}];
-  genRelief(A,bases[1],seed,curMap);applyPlayRect(playF);navInit(); // Hügel, Plateaus, Klippen
+  genRelief(A,bases[1],seed,curMap);applyPlayRect(playF);clearBases(bases);navInit(); // Hügel, Plateaus, Klippen
   if(MAPS[curMap]&&MAPS[curMap].cliff){carveCoast(A.x,A.y,380);carveCoast(W-A.x,H-A.y,380);navInit()}
   const GAP={tree:15,bush:12,stone:14,iron:14,gold:14,oil:16,fish:10,dolphin:14,whale:20};
   const free=(x,y,r,type)=>!G.ents.some(e=>Math.hypot(e.x-x,e.y-y)<e.r+r+GAP[type]);

@@ -108,7 +108,8 @@ const ANIMALS={
 };
 /* Gegenstücke: Schadensfaktor Angreifer-Klasse -> Ziel-Klasse (Speer schlägt Reiter, Reiter jagen Fernkämpfer, Fernkämpfer schwächen Nahkämpfer, Nahkämpfer erreichen Fernkämpfer und Belagerung) */
 const CTR={spear:{cav:1.8},cav:{rng:1.4,siege:1.4,med:1.4},rng:{inf:1.2,spear:1.15},inf:{rng:1.25,siege:1.3,med:1.3},spear_:{}};
-const RAGE={dur:6,cd:35,dmg:1.35,spd:1.25}; /* Fähigkeit Kampfrausch (Taste F) */
+const RAGE={dur:6,cd:35,dmg:1.35,spd:1.12}; /* Fähigkeit Kampfrausch (Taste F) */
+const MOVE_K=.9; /* alle Landeinheiten etwas gemächlicher (David: Truppen liefen zu schnell) */
 /* Einheiten ändern ihren Namen mit dem Zeitalter (Sanitäter-Reihe) */
 /* Truppenlinien: ab einem späteren Zeitalter ist eine Einheit veraltet und nicht mehr ausbildbar (upto = letztes Zeitalter); vorhandene bleiben. uOk prüft beides. */
 /* Minen: bis MINE_CAP Arbeiter arbeiten drinnen, das Erz sammelt sich im Minenlager (MINE_STOCK) und eine Lore (Einheit cart) fährt es zum nächsten Lager */
@@ -169,7 +170,7 @@ const UPG_TIME={base:5,each:.7,max:40}; // Dauer in Sekunden
 const TECHS=[
   {id:'baskets',bld:'hq',ep:0,name:'Tragekörbe',desc:'Arbeiter tragen 50 % mehr pro Fuhre',cost:{food:90,wood:70},time:18,fx:{carry:.5}},
   {id:'commune',bld:'hq',ep:0,name:'Dorfgemeinschaft',desc:'+10 Bevölkerungslimit',cost:{food:120,wood:100},time:22,fx:{pop:10}},
-  {id:'shoes',bld:'hq',ep:1,name:'Lederschuhe',desc:'Arbeiter laufen 20 % schneller',cost:{food:150,wood:120},time:24,fx:{wspeed:.2}},
+  {id:'shoes',bld:'hq',ep:1,name:'Lederschuhe',desc:'Arbeiter laufen 12 % schneller',cost:{food:150,wood:120},time:24,fx:{wspeed:.12}},
   {id:'bronzetools',bld:'hq',ep:1,name:'Bronzewerkzeuge',desc:'Arbeiter sammeln 20 % schneller',cost:{food:200,wood:150,stone:60},time:30,fx:{gather:.2}},
   {id:'townlaw',bld:'hq',ep:2,name:'Stadtrecht',desc:'+15 Bevölkerungslimit',cost:{food:300,wood:250,stone:150},time:34,fx:{pop:15}},
   {id:'irontools',bld:'hq',ep:2,name:'Eisenwerkzeuge',desc:'Arbeiter sammeln 25 % schneller',cost:{food:300,wood:200,iron:100},time:36,fx:{gather:.25}},
