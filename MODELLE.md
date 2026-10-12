@@ -52,6 +52,8 @@ Ein Modell kann im Manifest „angezogen“ werden, damit man nicht für jede Ei
 - `hide`: Teile ausblenden (Namensmuster), z. B. `["^Sword$"]` versteckt das mitgelieferte Schwert.
 - `hand` / `left`: Waffe oder Werkzeug in die rechte/linke Hand: `{"file":"neu/Spear.glb","scale":0.5,"rot":[-90,0,0],"pos":[0,0,0]}`.
 - `pelt`: Fell-Hüftrock in dieser Farbe, z. B. `"#6b4a2b"`.
+- `work`: Werkzeug und Clip je Tätigkeit (`chop`, `mine`, `pick`, `build`, `farm`, `hunt`, `fish`), z. B. `"chop":{"clip":"Sword_Slash","tool":{…}}`. Beim Fischen statt `tool` ein **Netz** `net`: `{"file":"props/Fishing Net….glb","len":2.8,"tint":{"fishnet_main":"#7a5532"}}` – die Figur hält es mit beiden Händen vorn ins Wasser, schwenkt es und hebt es ab und zu heraus. Weitere Felder: `pitch` (Neigung nach unten, Grad), `grip` (Griffpunkt vorn/oben/rechts), `cycle` (Sekunden bis zum Herausheben), `bend`, `twist`.
+- `rider.net` (Boot mit Ruderer): `{"turn":90,"pitch":16}` – beim Fischen dreht sich der Ruderer zur Bordwand und hält das Netz flacher über Bord.
 Beispiel: Steinzeit-Keulenträger = Basisfigur + Hautfarbe + Fellrock + Keule (`Wooden Torch`).
 
 ## Natur: Bäume, Büsche, Felsen, Deko (Abschnitt `nodes`)
