@@ -46,7 +46,11 @@ function r3Chunks(g,NX,NZ,mat,C){C=C||32;const grp=new THREE.Group(),pos=g.attri
     for(let j=cz;j<=z1;j++)for(let i=cx;i<=x1;i++){const y=pos.getY(j*NX+i);if(y<y0)y0=y;if(y>y1)y1=y}
     const cg=new THREE.BufferGeometry();for(const k in g.attributes)cg.setAttribute(k,g.attributes[k]);cg.setIndex(idx);
     cg.boundingBox=new THREE.Box3(new THREE.Vector3(cx,y0,cz),new THREE.Vector3(x1,y1,z1));cg.boundingSphere=cg.boundingBox.getBoundingSphere(new THREE.Sphere());
-    const m=new THREE.Mesh(cg,mat);grp.add(m)}
+    const m=new THREE.Mesh(cg,mat);grp.add(m);
+    /* grobe Fassung (jeder 2. Eckpunkt, 1/4 der Dreiecke) für die Fernsicht – gleiche Eckpunkt-Daten, nur andere Dreiecke */
+    if((x1-cx)%2===0&&(z1-cz)%2===0){const id2=[];for(let j=cz;j<z1;j+=2)for(let i=cx;i<x1;i+=2){const a=j*NX+i,b=a+2,c=a+2*NX,d=c+2;id2.push(a,c,b,c,d,b)}
+      const lg=new THREE.BufferGeometry();for(const k in g.attributes)lg.setAttribute(k,g.attributes[k]);lg.setIndex(id2);lg.boundingBox=cg.boundingBox;lg.boundingSphere=cg.boundingSphere;m.userData.hi=cg;m.userData.lo=lg;if(R3.lodOn)m.geometry=lg}}
+  (R3.chunkGrps||(R3.chunkGrps=new Set())).add(grp);
   Object.defineProperty(grp,'renderOrder',{set(v){grp.children.forEach(c=>c.renderOrder=v)},get(){return grp.children[0]?grp.children[0].renderOrder:0}});
   return grp}
 function r3Map(){
@@ -136,7 +140,7 @@ function lodGeo(g,div){if(!g.attributes.color||g.attributes.uv&&g.attributes.uv.
   const pos=[],col=[];for(let t=0;t<nt;t++){const v=[0,1,2].map(q=>id[I?I.getX(t*3+q):t*3+q]);if(v[0]===v[1]||v[1]===v[2]||v[0]===v[2])continue;for(const j of v){const a=acc[j];pos.push(a[0]/a[6],a[1]/a[6],a[2]/a[6]);col.push(a[3]/a[6],a[4]/a[6],a[5]/a[6])}}
   if(pos.length/9>nt*.7)return null;const o=new THREE.BufferGeometry();o.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));o.setAttribute('color',new THREE.Float32BufferAttribute(col,3));o.computeVertexNormals();o.computeBoundingSphere();return o}
 const LOD_Z=.95; /* unterhalb dieses Zooms (weiter weg) zeichnen Bäume ihre vereinfachte Fassung */
-function r3Lod(){const on=cam.z<LOD_Z;if(on===R3.lodOn||!r3.ns)return;R3.lodOn=on;for(const k in r3.ns)for(const m of r3.ns[k].L)if(m.isMulti)for(const q of m.parts)if(q.userData.lo)q.geometry=on?q.userData.lo:q.userData.hi}
+function r3Lod(){const on=cam.z<LOD_Z;if(on===R3.lodOn||!r3.ns)return;R3.lodOn=on;for(const gp of R3.chunkGrps||[]){if(!gp.parent){R3.chunkGrps.delete(gp);continue}for(const c of gp.children)if(c.userData.lo)c.geometry=on?c.userData.lo:c.userData.hi}for(const k in r3.ns)for(const m of r3.ns[k].L)if(m.isMulti)for(const q of m.parts)if(q.userData.lo)q.geometry=on?q.userData.lo:q.userData.hi}
 function r3Multi(parts,n,wind){
   const ms=parts.map(p=>{const mt=p.mat;if(wind)windify(mt,wind);const m=new THREE.InstancedMesh(p.geo,mt,Math.max(1,n));if(wind){if(p.lo===undefined)p.lo=lodGeo(p.geo,9);if(p.lo){m.userData.hi=p.geo;m.userData.lo=p.lo;if(R3.lodOn)m.geometry=p.lo}}m.userData.veg=true;m.castShadow=gfxQ>=2;/* Schatten der vielen Bäume nur ab Grafik „Hoch“ (spart die Hälfte der Zeichenarbeit) */m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);return m});
   return{isMulti:true,parts:ms,setMatrixAt(i,mx){ms.forEach(m=>m.setMatrixAt(i,mx))},setColorAt(i,c){ms.forEach(m=>m.setColorAt(i,c))},dispose(){ms.forEach(m=>m.dispose())}}}
@@ -216,7 +220,11 @@ function r3Nodes(){
   const S=R3.S,B={},V=R3.view,M=260,fr=R3.fr=(R3.fr||0)+1,tl=R3.tl;
   /* Instanz vormerken: Schlüssel ohne eigene Modelle → Ersatz (alt) */
   const add=(key,v,x,y,z,ry,sx,sy,r,g,b)=>{let d;while((!r3.ns[key]||!r3.ns[key].L.length)&&(d=NSET[key])&&d.alt)key=d.alt;const s=r3.ns[key];if(!s||!s.L.length)return;const bb=B[key]||(B[key]=[]),i=v%s.L.length;(bb[i]||(bb[i]=[])).push(x,y,z,ry,sx,sy,r,g,b)};
-  const inV=(x,y,m)=>!V||(x>=V.x0-m&&x<=V.x1+m&&y>=V.y0-m&&y<=V.y1+m);
+  const inV0=(x,y,m)=>!V||(x>=V.x0-m&&x<=V.x1+m&&y>=V.y0-m&&y<=V.y1+m);
+  /* genauer: Fusspunkt auf dem Bildschirm (Rand links/rechts 170 px, oben 120 px, unten 300 px für hohe Bäume, deren Krone ins Bild ragt) */
+  const sv=r3.vec,pm=new THREE.Matrix4().multiplyMatrices(r3.camera.projectionMatrix,r3.camera.matrixWorldInverse),mx=1+340/Math.max(1,VW),myT=1+240/Math.max(1,VH),myB=1+600/Math.max(1,VH);
+  const onS=(x,y)=>{sv.set(x/S,hAt(x,y),y/S).applyMatrix4(pm);return sv.z<1&&sv.x>-mx&&sv.x<mx&&sv.y<myT&&sv.y>-myB};
+  const inV=(x,y,m)=>inV0(x,y,m)&&onS(x,y);
   R3.nodeV=V&&{x:(V.x0+V.x1)/2,y:(V.y0+V.y1)/2,w:V.x1-V.x0}; /* nur Vorkommen im Bild (+Rand) zeichnen */
   const fields=new Map(),farms=[];
   for(const e of G.ents){
@@ -399,7 +407,7 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   if(r3.foam)r3.foam.material.opacity=.42+.3*Math.sin(t*1.4)+.1*Math.sin(t*3.1);
   for(const w of r3.waves){const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
-  {const V=R3.view,N=R3.nodeV;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>120||Math.abs((V.y0+V.y1)/2-N.y)>120||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
+  {const V=R3.view,N=R3.nodeV;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
   r3Lod();R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}else r3GrassView()
   r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
