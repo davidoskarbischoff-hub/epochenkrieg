@@ -100,3 +100,5 @@ Hilfsmittel:
   - Mauer, Tor, Graben (Mauerlogik mit Drehung/Pfosten: eigene Runde)
   - Bohrturm, Raffinerie, Flugplatz: keine passenden Modelle → David bitten (Ölförderung, Hangar)
 - [x] Fell-Umhang, Fellrock und Zahnkette (aus Formen gebaut, `cloth()`) an allen Figuren entfernt. Die Zeitalter unterscheiden sich jetzt über die Kleidungsfarben, Späher sind grün, Heiler hell.
+
+- Erledigt (12.10. c): „Military man“ (1,5 MB) durch `archiv/Stahlhelm.glb` (227 KB) ersetzt; Nationen-Einheiten/Ingenieur nutzen den gemeinsamen Grundkörper Adventurer (weniger verschiedene Skelette/Dateien).

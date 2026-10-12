@@ -274,3 +274,5 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Lore-Schieber: Hände noch leicht über den Holmen, eigenes Schiebe-Paket wäre besser
 - [ ] Bogenschießen und Axthieb von oben: nicht in UAL1 (evtl. UAL2)
 - [ ] Neue Gebäude (Bank, Krankenhaus, Laden, Häuser, Wohnblöcke): Texturdatei fehlt, deshalb noch nicht benutzt
+
+- [x] Ufer-Fischen für Arbeiter, Fischer auf Segelboot/Kutter, Nationen-Einheiten auf Adventurer, Pferde kleiner, Stahlhelm als eigene Datei
