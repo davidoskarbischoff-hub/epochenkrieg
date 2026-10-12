@@ -129,8 +129,16 @@ function windify(mat,amp){mat.customProgramCacheKey=()=>"wind"+amp;/* eigener Pr
   #endif`)};return mat}
 /* ---------- Instanzen für Bäume, Büsche, Felsen, Deko ---------- */
 /* Mehrteilige Instanzen (glTF-Bäume/Felsen: ein InstancedMesh je Teil), sieht von aussen wie ein einzelnes InstancedMesh aus */
+/* Vereinfachte Fassung eines Modells für die Fernsicht (Eckpunkte in einem Raster zusammenlegen, Farben mitteln, flach schattiert) */
+function lodGeo(g,div){if(!g.attributes.color||g.attributes.uv&&g.attributes.uv.count&&!g.attributes.color)return null;const P=g.attributes.position,C=g.attributes.color,I=g.index,nt=(I?I.count:P.count)/3;if(nt<300)return null;
+  g.computeBoundingBox();const b=g.boundingBox,sz=b.getSize(new THREE.Vector3()),cs=Math.max(sz.x,sz.y,sz.z)/div,key=new Map(),acc=[],id=new Int32Array(P.count);
+  for(let i=0;i<P.count;i++){const k=Math.floor((P.getX(i)-b.min.x)/cs)+'|'+Math.floor((P.getY(i)-b.min.y)/cs)+'|'+Math.floor((P.getZ(i)-b.min.z)/cs);let j=key.get(k);if(j===undefined){j=acc.length;key.set(k,j);acc.push([0,0,0,0,0,0,0])}const a=acc[j];a[0]+=P.getX(i);a[1]+=P.getY(i);a[2]+=P.getZ(i);a[3]+=C.getX(i);a[4]+=C.getY(i);a[5]+=C.getZ(i);a[6]++;id[i]=j}
+  const pos=[],col=[];for(let t=0;t<nt;t++){const v=[0,1,2].map(q=>id[I?I.getX(t*3+q):t*3+q]);if(v[0]===v[1]||v[1]===v[2]||v[0]===v[2])continue;for(const j of v){const a=acc[j];pos.push(a[0]/a[6],a[1]/a[6],a[2]/a[6]);col.push(a[3]/a[6],a[4]/a[6],a[5]/a[6])}}
+  if(pos.length/9>nt*.7)return null;const o=new THREE.BufferGeometry();o.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));o.setAttribute('color',new THREE.Float32BufferAttribute(col,3));o.computeVertexNormals();o.computeBoundingSphere();return o}
+const LOD_Z=.95; /* unterhalb dieses Zooms (weiter weg) zeichnen Bäume ihre vereinfachte Fassung */
+function r3Lod(){const on=cam.z<LOD_Z;if(on===R3.lodOn||!r3.ns)return;R3.lodOn=on;for(const k in r3.ns)for(const m of r3.ns[k].L)if(m.isMulti)for(const q of m.parts)if(q.userData.lo)q.geometry=on?q.userData.lo:q.userData.hi}
 function r3Multi(parts,n,wind){
-  const ms=parts.map(p=>{const mt=p.mat;if(wind)windify(mt,wind);const m=new THREE.InstancedMesh(p.geo,mt,Math.max(1,n));m.userData.veg=true;m.castShadow=gfxQ>=2;/* Schatten der vielen Bäume nur ab Grafik „Hoch“ (spart die Hälfte der Zeichenarbeit) */m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);return m});
+  const ms=parts.map(p=>{const mt=p.mat;if(wind)windify(mt,wind);const m=new THREE.InstancedMesh(p.geo,mt,Math.max(1,n));if(wind){if(p.lo===undefined)p.lo=lodGeo(p.geo,9);if(p.lo){m.userData.hi=p.geo;m.userData.lo=p.lo;if(R3.lodOn)m.geometry=p.lo}}m.userData.veg=true;m.castShadow=gfxQ>=2;/* Schatten der vielen Bäume nur ab Grafik „Hoch“ (spart die Hälfte der Zeichenarbeit) */m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);return m});
   return{isMulti:true,parts:ms,setMatrixAt(i,mx){ms.forEach(m=>m.setMatrixAt(i,mx))},setColorAt(i,c){ms.forEach(m=>m.setColorAt(i,c))},dispose(){ms.forEach(m=>m.dispose())}}}
 function r3DropInst(m){if(!m)return;if(m.isMulti)m.parts.forEach(p=>r3.scene.remove(p));else r3.scene.remove(m);m.dispose()}
 /* Natur-Sätze: je Schlüssel eine Instanz-Gruppe pro Modell-Variante (Liste in manifest.nodes). geo = Code-Modell (Rückfall und Grössenmassstab),
@@ -391,7 +399,7 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   for(const w of r3.waves){const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   {const V=R3.view,N=R3.nodeV;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>120||Math.abs((V.y0+V.y1)/2-N.y)>120||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
-  R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}else r3GrassView()
+  r3Lod();R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}else r3GrassView()
   r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;
