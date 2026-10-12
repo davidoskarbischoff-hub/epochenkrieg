@@ -47,14 +47,14 @@
       <div class="mm-go"><button class="go" id="goBtn">${tr('Spiel starten')}</button></div></div>`;
     $('mmBack').onclick=()=>{sfx('click');main()};
     /* Spielzimmer: das Brett auf dem Tisch zeigt die gewählte Karte (auch beim Drüberfahren) in der gewählten Grösse; derselbe Zufallswert gilt beim Start */
-    let pvT=0;const pseed=(Math.random()*1e9)|0,preview=(m,sz)=>{clearTimeout(pvT);pvT=setTimeout(()=>{if(!window.ROOM||!ROOM.on)return;const k=m+'|'+sz;if(k===ROOM.pkey)return;ROOM.pkey=k;try{newGame(diff,false,{map:m,aiStyle,size:sz,seed:pseed});G.running=false;music()}catch(err){console.warn(err)}},300)};
+    let pvT=0;const pseed=(Math.random()*1e9)|0,preview=(m,sz)=>{clearTimeout(pvT);pvT=setTimeout(()=>{if(typeof ROOM==='undefined'||!ROOM.on)return;const k=m+'|'+sz;if(k===ROOM.pkey)return;ROOM.pkey=k;try{newGame(diff,false,{map:m,aiStyle,size:sz,seed:pseed});G.running=false;music()}catch(err){console.warn(err)}},300)};
     o.querySelectorAll('[data-map]').forEach(b=>{b.onclick=()=>{curMap=b.dataset.map;o.querySelectorAll('[data-map]').forEach(x=>x.setAttribute('aria-pressed',x===b));preview(curMap,spSize)};b.onmouseenter=()=>preview(b.dataset.map,spSize);b.onmouseleave=()=>preview(curMap,spSize)});
     preview(curMap,spSize);
     o.querySelectorAll('[data-as]').forEach(b=>b.onclick=()=>{aiStyle=b.dataset.as;o.querySelectorAll('[data-as]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
     const bindSl=(id,list,set)=>{const el=$(id),upd=()=>{const k=+el.value;set(list[k][0]);el.parentNode.querySelectorAll('[data-k]').forEach(s=>s.classList.toggle('on',+s.dataset.k===k))};el.oninput=upd;el.parentNode.querySelectorAll('[data-k]').forEach(s=>s.onclick=()=>{el.value=s.dataset.k;upd()})};
     bindSl('mmSize',SIZES_SP,v=>{spSize=v;preview(curMap,v)});bindSl('mmDiff',DIFFS,v=>diff=v);bindSl('mmWild',WILD,v=>{try{localStorage.setItem('ek-wild',v)}catch(_){}});
     $('goBtn').onclick=()=>{music();$('goBtn').disabled=true;$('goBtn').textContent=tr('Karte wird erzeugt …');requestAnimationFrame(()=>setTimeout(()=>{bg(false);o.className='';
-      newGame(diff,false,{map:curMap,aiStyle,size:spSize,seed:pseed});if(window.ROOM)ROOM.pkey=null;G.running=true;G.started=true;o.hidden=true;toast(tr('Tipp: Wähle deine Arbeiter aus und schick sie per Rechtsklick zu Beeren oder Bäumen.'))},20))}}
+      newGame(diff,false,{map:curMap,aiStyle,size:spSize,seed:pseed});if(typeof ROOM!=='undefined')ROOM.pkey=null;G.running=true;G.started=true;o.hidden=true;toast(tr('Tipp: Wähle deine Arbeiter aus und schick sie per Rechtsklick zu Beeren oder Bäumen.'))},20))}}
   /* Einstieg: beim ersten Mal Ladebildschirm, danach (Neues Spiel, Zurück aus der Lobby) direkt Hauptseite */
   window.showStart=function(){if(NET.mp){endMP();if(window.Lobby)Lobby.leave()}if(splashDone)main();else splash()};
 })();
