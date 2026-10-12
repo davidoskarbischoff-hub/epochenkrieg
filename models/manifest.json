@@ -2117,19 +2117,462 @@
   }
  },
  "nodes": {
+  "_info": "Natur (Quaternius-Natur-Paket in models/nature): je Schlüssel eine Liste von Varianten. k = fester Massstab (Modell-Einheiten → Spiel), height = Höhe, sonst Höhe des Code-Modells; colors färbt einzelne Materialien um. broad = Laubbäume, birch = Birkenhaine, willow = Weiden am Wasser, autumn = Herbst-Farbtupfer, bush = Beerenstrauch, bushE = abgeernteter Strauch, stump = Baumstumpf nach dem Fällen, wheat = Getreide auf dem Feld (rows = Reihen [z, x von, x bis] im Feld-Modell „for“), alpine/snowy = Deko auf Bergen unter/über der Schneegrenze.",
   "pine": {
    "file": "neu/Pine.glb",
    "scale": 1.35
   },
-  "broad": {
-   "file": "neu/dorf/Tree-t9KbsfYdXz.glb",
-   "scale": 1.35
+  "broad": [
+   {
+    "file": "nature/CommonTree_1.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#4a7f31",
+     "DarkGreen": "#36632c",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/CommonTree_2.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#4a7f31",
+     "DarkGreen": "#36632c",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/CommonTree_3.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#4a7f31",
+     "DarkGreen": "#36632c",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/CommonTree_4.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#4a7f31",
+     "DarkGreen": "#36632c",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/CommonTree_5.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#4a7f31",
+     "DarkGreen": "#36632c",
+     "Wood": "#6b4630"
+    }
+   }
+  ],
+  "birch": [
+   {
+    "file": "nature/BirchTree_1.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#5a9238",
+     "DarkGreen": "#40722f",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    }
+   },
+   {
+    "file": "nature/BirchTree_2.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#5a9238",
+     "DarkGreen": "#40722f",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    }
+   },
+   {
+    "file": "nature/BirchTree_3.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#5a9238",
+     "DarkGreen": "#40722f",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    }
+   },
+   {
+    "file": "nature/BirchTree_4.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#5a9238",
+     "DarkGreen": "#40722f",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    }
+   },
+   {
+    "file": "nature/BirchTree_5.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#5a9238",
+     "DarkGreen": "#40722f",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    }
+   }
+  ],
+  "willow": [
+   {
+    "file": "nature/Willow_1.glb",
+    "k": 0.025,
+    "colors": {
+     "DarkGreen": "#447a33",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/Willow_2.glb",
+    "k": 0.025,
+    "colors": {
+     "DarkGreen": "#447a33",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/Willow_3.glb",
+    "k": 0.025,
+    "colors": {
+     "DarkGreen": "#447a33",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/Willow_4.glb",
+    "k": 0.025,
+    "colors": {
+     "DarkGreen": "#447a33",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/Willow_5.glb",
+    "k": 0.025,
+    "colors": {
+     "DarkGreen": "#447a33",
+     "Wood": "#6b4630"
+    }
+   }
+  ],
+  "autumn": [
+   {
+    "file": "nature/CommonTree_Autumn_1.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#cf5f26",
+     "LightOrange": "#e6a33a",
+     "Wood": "#6b4630",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "LightWood": "#8a5a3a"
+    }
+   },
+   {
+    "file": "nature/CommonTree_Autumn_2.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#cf5f26",
+     "LightOrange": "#e6a33a",
+     "Wood": "#6b4630",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "LightWood": "#8a5a3a"
+    }
+   },
+   {
+    "file": "nature/CommonTree_Autumn_4.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#cf5f26",
+     "LightOrange": "#e6a33a",
+     "Wood": "#6b4630",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "LightWood": "#8a5a3a"
+    }
+   },
+   {
+    "file": "nature/BirchTree_Autumn_2.glb",
+    "k": 0.02,
+    "colors": {
+     "Orange": "#cf5f26",
+     "LightOrange": "#e6a33a",
+     "Wood": "#6b4630",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "LightWood": "#8a5a3a"
+    }
+   },
+   {
+    "file": "nature/BirchTree_Autumn_3.glb",
+    "k": 0.02,
+    "colors": {
+     "Orange": "#cf5f26",
+     "LightOrange": "#e6a33a",
+     "Wood": "#6b4630",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "LightWood": "#8a5a3a"
+    }
+   }
+  ],
+  "bush": [
+   {
+    "file": "nature/BushBerries_1.glb",
+    "k": 0.014,
+    "colors": {
+     "Green": "#4a7f31",
+     "Berry": "#d81f30"
+    }
+   },
+   {
+    "file": "nature/BushBerries_2.glb",
+    "k": 0.014,
+    "colors": {
+     "Green": "#4a7f31",
+     "Berry": "#d81f30"
+    }
+   }
+  ],
+  "bushE": [
+   {
+    "file": "nature/Bush_1.glb",
+    "k": 0.013,
+    "colors": {
+     "Green": "#55863a"
+    }
+   },
+   {
+    "file": "nature/Bush_2.glb",
+    "k": 0.013,
+    "colors": {
+     "Green": "#55863a"
+    }
+   }
+  ],
+  "stump": [
+   {
+    "file": "nature/TreeStump.glb",
+    "k": 0.0095,
+    "colors": {
+     "Wood": "#6b4630",
+     "LightWood": "#c49a66",
+     "Green": "#4f8c34"
+    }
+   }
+  ],
+  "wheat": {
+   "file": "nature/Wheat.glb",
+   "k": 0.011,
+   "for": "neu/Farm-91wMLb9kKo.glb",
+   "y": 0.015,
+   "step": 0.06,
+   "rows": [
+    [
+     -0.295,
+     0.0,
+     0.42
+    ],
+    [
+     -0.145,
+     0.0,
+     0.42
+    ],
+    [
+     0.03,
+     -0.34,
+     0.42
+    ],
+    [
+     0.19,
+     -0.34,
+     0.42
+    ],
+    [
+     0.365,
+     -0.34,
+     0.42
+    ]
+   ],
+   "colors": {
+    "Yellow": "#dcb64c"
+   }
   },
-  "bush": {
-   "file": "neu/Bush.glb",
-   "tint": "#5a9a42",
-   "scale": 0.9
-  },
+  "alpine": [
+   {
+    "file": "neu/Pine.glb",
+    "k": 0.6,
+    "w": 3
+   },
+   {
+    "file": "neu/Pine.glb",
+    "k": 0.5,
+    "w": 3
+   },
+   {
+    "file": "nature/CommonTree_Dead_2.glb",
+    "k": 0.021,
+    "colors": {
+     "Wood": "#6b4a36",
+     "White": "#ddd8cc",
+     "Black": "#3a3631"
+    },
+    "w": 1
+   },
+   {
+    "file": "nature/CommonTree_Dead_4.glb",
+    "k": 0.021,
+    "colors": {
+     "Wood": "#6b4a36",
+     "White": "#ddd8cc",
+     "Black": "#3a3631"
+    },
+    "w": 1
+   },
+   {
+    "file": "nature/BirchTree_Dead_2.glb",
+    "k": 0.021,
+    "colors": {
+     "Wood": "#6b4a36",
+     "White": "#ddd8cc",
+     "Black": "#3a3631"
+    },
+    "w": 1
+   },
+   {
+    "file": "neu/Rock Medium.glb",
+    "k": 0.8,
+    "w": 2
+   },
+   {
+    "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
+    "k": 0.75,
+    "w": 2
+   }
+  ],
+  "snowy": [
+   {
+    "file": "nature/CommonTree_Dead_Snow_1.glb",
+    "k": 0.021,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 1
+   },
+   {
+    "file": "nature/CommonTree_Dead_Snow_2.glb",
+    "k": 0.021,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 1
+   },
+   {
+    "file": "nature/CommonTree_Dead_Snow_3.glb",
+    "k": 0.021,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 1
+   },
+   {
+    "file": "nature/BirchTree_Dead_Snow_2.glb",
+    "k": 0.021,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 1
+   },
+   {
+    "file": "nature/CommonTree_Snow_3.glb",
+    "k": 0.021,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 2
+   },
+   {
+    "file": "nature/Rock_Snow_7.glb",
+    "k": 0.026,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 3
+   },
+   {
+    "file": "nature/Rock_Snow_7.glb",
+    "k": 0.02,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 3
+   },
+   {
+    "file": "nature/Bush_Snow_1.glb",
+    "k": 0.014,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 2
+   }
+  ],
   "stone": [
    {
     "file": "neu/Rock Medium.glb",

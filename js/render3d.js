@@ -120,31 +120,44 @@ function toWorld(sx,sy){
 
 /* Wind: Bäume, Büsche und Gras wiegen sich (Vertex-Shader-Zusatz; Ausschlag wächst mit der Höhe, jede Instanz hat eine andere Phase) */
 const WIND={value:0};
-function windify(mat,amp){mat.onBeforeCompile=sh=>{sh.uniforms.uWind=WIND;
+function windify(mat,amp){mat.customProgramCacheKey=()=>"wind"+amp;/* eigener Programm-Schlüssel je Ausschlag (sonst teilen sich gleiche Materialien das zuerst übersetzte Programm) */mat.onBeforeCompile=sh=>{sh.uniforms.uWind=WIND;
   sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform float uWind;').replace('#include <begin_vertex>',`#include <begin_vertex>
   #ifdef USE_INSTANCING
   float hw=max(position.y,0.0);float pw=instanceMatrix[3].x*0.55+instanceMatrix[3].z*0.43;
   transformed.x+=(sin(uWind*1.7+pw)+0.4*sin(uWind*3.3+pw*1.7))*${amp.toFixed(3)}*hw*hw;
   transformed.z+=cos(uWind*1.3+pw*0.8)*${(amp*.6).toFixed(3)}*hw*hw;
   #endif`)};return mat}
-/* ---------- Instanzen für Bäume, Büsche, Felsen ---------- */
+/* ---------- Instanzen für Bäume, Büsche, Felsen, Deko ---------- */
 /* Mehrteilige Instanzen (glTF-Bäume/Felsen: ein InstancedMesh je Teil), sieht von aussen wie ein einzelnes InstancedMesh aus */
 function r3Multi(parts,n,wind){
   const ms=parts.map(p=>{const mt=p.mat;if(wind)windify(mt,wind);const m=new THREE.InstancedMesh(p.geo,mt,Math.max(1,n));m.userData.veg=true;m.castShadow=gfxQ>=2;/* Schatten der vielen Bäume nur ab Grafik „Hoch“ (spart die Hälfte der Zeichenarbeit) */m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);return m});
-  const o={isMulti:true,parts:ms,instanceMatrix:{count:Math.max(1,n),set needsUpdate(v){ms.forEach(m=>m.instanceMatrix.needsUpdate=v)}},
-    get instanceColor(){return{set needsUpdate(v){ms.forEach(m=>{if(m.instanceColor)m.instanceColor.needsUpdate=v})}}},
-    set count(v){ms.forEach(m=>m.count=v)},get count(){return ms[0].count},
-    setMatrixAt(i,mx){ms.forEach(m=>m.setMatrixAt(i,mx))},setColorAt(i,c){ms.forEach(m=>m.setColorAt(i,c))},dispose(){ms.forEach(m=>m.dispose())}};
-  return o}
+  return{isMulti:true,parts:ms,setMatrixAt(i,mx){ms.forEach(m=>m.setMatrixAt(i,mx))},setColorAt(i,c){ms.forEach(m=>m.setColorAt(i,c))},dispose(){ms.forEach(m=>m.dispose())}}}
 function r3DropInst(m){if(!m)return;if(m.isMulti)m.parts.forEach(p=>r3.scene.remove(p));else r3.scene.remove(m);m.dispose()}
+/* Natur-Sätze: je Schlüssel eine Instanz-Gruppe pro Modell-Variante (Liste in manifest.nodes). geo = Code-Modell (Rückfall und Grössenmassstab),
+   alt = Ersatz-Schlüssel ohne eigene Modelle, rock = 3 feste Varianten (Felsen/Erze), low = flach am Boden (kein Schatten). Puffer wachsen bei Bedarf (nsBuild). */
+const NSET={pine:{geo:()=>treeGeo(true),wind:.022},broad:{geo:()=>treeGeo(false),wind:.03},birch:{wind:.03,alt:'broad'},willow:{wind:.03,alt:'broad'},autumn:{wind:.03,alt:'broad'},
+  bush:{geo:()=>bushGeoC(),wind:.05},bushE:{wind:.05,alt:'bush'},stump:{},wheat:{wind:.12,low:1},alpine:{wind:.015},snowy:{wind:.012},stone:{rock:1},iron:{rock:1},gold:{rock:1},oil:{rock:1}};
+function nsBuild(key,cap){const d=NSET[key],old=r3.ns[key];if(old)old.L.forEach(r3DropInst);const L=[];
+  const mk=geo=>{const mt=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.92,flatShading:!!d.rock});if(d.wind)windify(mt,d.wind);const m=new THREE.InstancedMesh(geo,mt,cap);m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);r3.scene.add(m);return m};
+  const n=d.rock?3:EKMODELS.nodeN(key);
+  for(let v=0;v<n;v++){const ref=d.rock?rockGeoC(key,v):d.geo?d.geo():null,ps=EKMODELS.nodeParts(key,v,ref);
+    if(ps){const m=r3Multi(ps,cap,d.wind);m.parts.forEach(p=>{if(d.low){p.castShadow=false;p.userData.veg=false}r3.scene.add(p)});L.push(m)}else if(ref)L.push(mk(ref))}
+  if(!L.length&&d.geo)L.push(mk(d.geo()));
+  return r3.ns[key]={L,cap}}
 function r3NodesInit(){
-  const{scene}=r3;for(const k of['pine','broad','bush'])if(r3['i_'+k])r3DropInst(r3['i_'+k]);if(r3.rocks)for(const m of Object.values(r3.rocks))r3DropInst(m);r3.rocks={}
-  const cnt={tree:0,bush:0,stone:0,iron:0,gold:0,oil:0};for(const e of G.ents)if(e.kind==='node'&&cnt[e.type]!==undefined)cnt[e.type]++;
-  const mk=(geo,n,flat,wind)=>{const mt=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.92,flatShading:!!flat});if(wind)windify(mt,wind);const m=new THREE.InstancedMesh(geo,mt,Math.max(1,n));m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(m);return m};
-  const mk2=(key,v,geo,n,flat,wind)=>{const ps=EKMODELS.nodeParts(key,v,geo);if(!ps)return mk(geo,n,flat,wind);const m=r3Multi(ps,n,wind);m.parts.forEach(p=>scene.add(p));return m};
-  r3.i_pine=mk2('pine',0,treeGeo(true),cnt.tree,false,.022);r3.i_broad=mk2('broad',0,treeGeo(false),cnt.tree,false,.03);r3.i_bush=mk2('bush',0,bushGeoC(),cnt.bush,false,.05);for(const kd of['stone','iron','gold','oil'])for(let v=0;v<3;v++)r3.rocks[kd+v]=mk2(kd,v,rockGeoC(kd,v),(cnt[kd]||0)*6+6,true);
-  r3Grass();R3.nodeT=0;
+  if(r3.ns)for(const k in r3.ns)r3.ns[k].L.forEach(r3DropInst);r3.ns={};
+  const cnt={};for(const e of G.ents)if(e.kind==='node')cnt[e.type]=(cnt[e.type]||0)+1;
+  for(const k in NSET)nsBuild(k,NSET[k].rock?(cnt[k]||0)*6+6:k==='bush'||k==='bushE'?(cnt.bush||0)+4:64);
+  r3Deco();r3Grass();R3.nodeT=0;
 }
+/* Berg-Deko ohne Spielwirkung: auf Fels (TERR 3, nicht am Rand) knorrige Bäume, Kiefern, Felsbrocken; oberhalb der Schneegrenze (wie in r3Map) verschneite Bäume und Felsen */
+function r3Deco(){const R=mulberry(9173),L=[],rock=(x,y)=>x>=0&&y>=0&&x<TW&&y<TH&&TERR[y*TW+x]===3;let my=0;for(let i=0;i<TERR.length;i++)if(TERR[i]===3&&HL[i]>my)my=HL[i];
+  const pick=(key,r)=>{const L=EKMODELS.nodeL(key);let t=0;for(const x of L)t+=x.w||1;let a=r*t;for(let i=0;i<L.length;i++){a-=L[i].w||1;if(a<=0)return i}return 0}; /* Variante nach Gewicht w im Manifest */
+  const cl=(x,y)=>.2+1.6*smooth3(.45,.8,.5+.25*Math.sin(x*.011+1.3)*Math.cos(y*.013-.4)+.25*Math.sin((x+y)*.023)); /* Dichte in Gruppen statt gleichmässig gestreut */
+  if(EKMODELS.nodeN('alpine')||EKMODELS.nodeN('snowy'))for(let ty=2;ty<TH-2;ty++)for(let tx=2;tx<TW-2;tx++){if(!rock(tx,ty)||R()>.075*cl(tx*TG,ty*TG))continue;let ok=true;for(let dy=-2;dy<=2&&ok;dy++)for(let dx=-2;dx<=2;dx++)if(!rock(tx+dx,ty+dy)){ok=false;break}if(!ok)continue;
+    const x=(tx+.15+R()*.7)*TG,y=(ty+.15+R()*.7)*TG,sn=my>2.2?smooth3(my*.46,my*.56,hlAt(x,y)):0;let h=hAt(x,y);for(let k=0;k<4;k++)h=Math.min(h,hAt(x+Math.cos(k*1.57)*8,y+Math.sin(k*1.57)*8));
+    const key=sn>.5?'snowy':'alpine';L.push({x,y,h:h-.05,key,v:pick(key,R()),ry:R()*6.283,s:.75+R()*.5})}
+  R3.deco=L}
 /* Grasbüschel und Blumen: viele winzige Instanzen auf dem Land, damit der Boden aus der Nähe lebendig wirkt */
 function r3Grass(){
   const{scene}=r3;for(const k of['i_tuft','i_flower'])if(r3[k]){scene.remove(r3[k]);r3[k].dispose();r3[k]=null}
@@ -176,18 +189,47 @@ function r3GrassShade(){
 }
 let _o=null,_c=null;
 function fogShade(x,y){const i=fogIdx(x,y),a=(1-visF[i])*(165-95*exF[i])/255;return 1-a*.82}
+/* Baum-Art (einmal je Baum bestimmt): Nadelbaum, Laubbaum, Birken in Hainen, Weiden am Wasser, Herbstfarben als Flecken in der Landschaft */
+function treeKind(e){let c=R3.tk.get(e.id);if(c)return c;const sd=e.seed,x=e.x,y=e.y,h1=(sd*7919.3)%1,h2=(sd*104.729)%1;
+  if(sd<.5)c={k:'pine',v:(h1*997)|0};
+  else{let wet=false;for(let k=0;k<8&&!wet;k++){const a=k*.785;for(const d of[36,66])if(terrAt(x+Math.cos(a)*d,y+Math.sin(a)*d)<2){wet=true;break}}
+    const au=Math.sin(x*.0023+.7)*Math.sin(y*.0019+1.9)+.35*Math.sin((x-y)*.006),bi=Math.sin(x*.0041+2.1)*Math.cos(y*.0037+.4);
+    c={k:wet&&h1<.8?'willow':h2<.03+.35*smooth3(.5,.95,au)?'autumn':h1<.12+.5*smooth3(-.2,.7,bi)?'birch':'broad',v:((h1+h2)*997)|0}}
+  R3.tk.set(e.id,c);return c}
+const hsh=(a,b)=>{const t=Math.sin(a*12.9898+b*78.233)*43758.5453;return t-Math.floor(t)};
 function r3Nodes(){
   if(!_o){_o=new THREE.Object3D();_c=new THREE.Color()}
-  const S=R3.S,cnt={pine:0,broad:0,bush:0},I=r3;
-  const put=(m,key,x,y,z,ry,sx,sy,col)=>{const n=cnt[key]++;if(n>=m.instanceMatrix.count)return;_o.position.set(x,y,z);_o.rotation.set(0,ry,0);_o.scale.set(sx,sy,sx);_o.updateMatrix();m.setMatrixAt(n,_o.matrix);m.setColorAt(n,col)};
-  const V=R3.view,M=260;R3.nodeV=V&&{x:(V.x0+V.x1)/2,y:(V.y0+V.y1)/2,w:V.x1-V.x0}; /* nur Vorkommen im Bild (+Rand) zeichnen */
-  for(const e of G.ents){if(e.dead||e.kind!=='node'||e.sea||e.type==='field')continue;if(V&&(e.x<V.x0-M||e.x>V.x1+M||e.y<V.y0-M||e.y>V.y1+M))continue;
+  if(R3.natG!==G){R3.natG=G;R3.tk=new Map();R3.tl=new Map();R3.stumps=[]} /* neue Partie: Baum-Arten und Stümpfe vergessen */
+  const S=R3.S,B={},V=R3.view,M=260,fr=R3.fr=(R3.fr||0)+1,tl=R3.tl;
+  /* Instanz vormerken: Schlüssel ohne eigene Modelle → Ersatz (alt) */
+  const add=(key,v,x,y,z,ry,sx,sy,r,g,b)=>{let d;while((!r3.ns[key]||!r3.ns[key].L.length)&&(d=NSET[key])&&d.alt)key=d.alt;const s=r3.ns[key];if(!s||!s.L.length)return;const bb=B[key]||(B[key]=[]),i=v%s.L.length;(bb[i]||(bb[i]=[])).push(x,y,z,ry,sx,sy,r,g,b)};
+  const inV=(x,y,m)=>!V||(x>=V.x0-m&&x<=V.x1+m&&y>=V.y0-m&&y<=V.y1+m);
+  R3.nodeV=V&&{x:(V.x0+V.x1)/2,y:(V.y0+V.y1)/2,w:V.x1-V.x0}; /* nur Vorkommen im Bild (+Rand) zeichnen */
+  const fields=new Map(),farms=[];
+  for(const e of G.ents){
+    if(e.kind==='bld'){if(e.type==='farm'&&e.built&&!e.dead&&inV(e.x,e.y,M)&&(e.team!==1||shown(e)))farms.push(e);continue}
+    if(e.dead||e.kind!=='node'||e.sea)continue;
+    if(e.type==='tree'){const t=tl.get(e.id);if(t)t.f=fr;else tl.set(e.id,{x:e.x,y:e.y,r:e.r,sd:e.seed,f:fr})}
+    if(e.type==='field'){fields.set(e.farm,e.amount/e.maxAmt);continue}
+    if(!inV(e.x,e.y,M))continue;
     const k=Math.max(.5,Math.sqrt(e.amount/e.maxAmt)),sh=fogShade(e.x,e.y),h=hAt(e.x,e.y),x=e.x/S,z=e.y/S,sd=e.seed;
-    if(e.type==='tree'){const s=e.r/11*.62*(.85+sd*.35)*(.55+.45*k),pine=sd<.5,v=.9+((sd*97)%1)*.2;_c.setRGB(v*sh,(.95+((sd*53)%1)*.12)*v*sh,v*sh);put(pine?I.i_pine:I.i_broad,pine?'pine':'broad',x,h,z,sd*6.28,s,s*(.9+((sd*31)%1)*.3),_c)}
-    else if(e.type==='bush'){const s=e.r/10*(.55+.45*k);_c.setRGB(sh,sh,sh);put(I.i_bush,'bush',x,h,z,sd*6.28,s,s,_c)}
-    else{if(HIDDEN_NODES.has(e.type)&&!nodeKnown(e))continue;const key=e.type+(Math.floor(sd*3)%3),m=I.rocks[key],base=e.r/10*(.6+.4*k)*.78;if(!m)continue;cnt[key]=cnt[key]||0;
-      const nn=e.type==='oil'?1:5;for(let j=0;j<nn;j++){const a=sd*20+j*1.9,dd=j?e.r/S*.62:0,sz=base*(j?.55+((j*37+sd*50)%7)/14:1.05),xx=x+Math.cos(a)*dd,zz=z+Math.sin(a)*dd;_c.setRGB(sh*(.92+(j%3)*.05),sh*(.92+(j%3)*.05),sh*(.95+(j%2)*.05));put(m,key,xx,hAt(xx*S,zz*S)-.1,zz,a,sz,sz*(j?1:1.15),_c)}}}
-  for(const[k,m]of[['pine',I.i_pine],['broad',I.i_broad],['bush',I.i_bush],...Object.entries(I.rocks)]){m.count=Math.min(cnt[k]||0,m.instanceMatrix.count);m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true}
+    if(e.type==='tree'){const s=e.r/11*.62*(.85+sd*.35)*(.55+.45*k),tk=treeKind(e),v=.9+((sd*97)%1)*.2;add(tk.k,tk.v,x,h-.05,z,sd*6.28,s,s*(.9+((sd*31)%1)*.3),v*sh,(.95+((sd*53)%1)*.12)*v*sh,v*sh)}
+    else if(e.type==='bush'){const s=e.r/10*(.55+.45*k);add(e.amount<e.maxAmt*.25?'bushE':'bush',(sd*97)|0,x,h-.03,z,sd*6.28,s,s,sh,sh,sh)} /* fast leer gepflückt: Busch ohne Beeren */
+    else{if(HIDDEN_NODES.has(e.type)&&!nodeKnown(e))continue;if(!NSET[e.type])continue;const kv=Math.floor(sd*3)%3,base=e.r/10*(.6+.4*k)*.78;
+      const nn=e.type==='oil'?1:5;for(let j=0;j<nn;j++){const a=sd*20+j*1.9,dd=j?e.r/S*.62:0,sz=base*(j?.55+((j*37+sd*50)%7)/14:1.05),xx=x+Math.cos(a)*dd,zz=z+Math.sin(a)*dd,cc=sh*(.92+(j%3)*.05);add(e.type,kv,xx,hAt(xx*S,zz*S)-.1,zz,a,sz,sz*(j?1:1.15),cc,cc,sh*(.95+(j%2)*.05))}}}
+  /* Baumstümpfe: wo ein Baum gefällt wurde (verschwindet aus der Liste), bleibt ein Stumpf stehen – nur Deko, unter Gebäuden ausgeblendet */
+  for(const[id,t]of tl)if(t.f!==fr){tl.delete(id);R3.stumps.push({x:t.x,y:t.y,s:t.r/11*(1+t.sd*.35),ry:t.sd*40,v:id});if(R3.stumps.length>1500)R3.stumps.shift()}
+  for(const t of R3.stumps){if(!inV(t.x,t.y,M)||(r3.blk&&r3.blk[fogIdx(t.x,t.y)]))continue;const sh=fogShade(t.x,t.y);add('stump',t.v,t.x/S,hAt(t.x,t.y)-.03,t.y/S,t.ry,t.s,t.s,sh,sh,sh)}
+  /* Getreide auf den Feldern: Reihen aus manifest.nodes.wheat (rows = [z, x von, x bis] im Feld-Modell, Breite 1), Höhe wächst mit der Nahrung im Feld */
+  const wm=farms.length&&EKMODELS.nodeMeta('wheat');
+  if(wm&&wm.rows)for(const e of farms){if(wm.for&&!EKMODELS.tag(e).includes(wm.for))continue;const W=e.r/S*1.05*2.5*(wm.fit||1),gr=fields.has(e.id)?fields.get(e.id):1,gy=.3+.7*gr,sh=fogShade(e.x,e.y),y0=hAt(e.x,e.y)+(wm.y||0)*W,st=(wm.step||.08)*(gfxQ?1:1.6);let i=0;
+    for(const[rz,a,b]of wm.rows)for(let nx=a;nx<=b+1e-6;nx+=st){i++;const j1=hsh(i,e.id),j2=hsh(e.id,i),sc=.85+.3*j1;add('wheat',i,e.x/S+(nx+(j2-.5)*st*.5)*W,y0,e.y/S+(rz+(j1-.5)*.03)*W,j2*6.283,sc*1.6,sc*gy,sh*(.95+.1*j2),sh,sh)}}
+  /* Berg-Deko (r3Deco), nicht bei Grafik „Niedrig“/Sparmodus */
+  if(gfxQ>0)for(const d of R3.deco||[]){if(!inV(d.x,d.y,140))continue;const sh=fogShade(d.x,d.y);add(d.key,d.v,d.x/S,d.h,d.y/S,d.ry,d.s,d.s,sh,sh,sh)}
+  /* in die Instanz-Puffer schreiben (nur den benutzten Teil hochladen); reicht ein Puffer nicht, wird der Satz grösser neu gebaut */
+  for(const key in r3.ns){let s=r3.ns[key];const bb=B[key]||[];let need=0;for(const a of bb)if(a&&a.length/9>need)need=a.length/9;if(need>s.cap)s=nsBuild(key,Math.ceil(need*1.4)+16);
+    s.L.forEach((m,v)=>{const a=bb[v],n=a?a.length/9:0;for(let i=0;i<n;i++){const j=i*9;_o.position.set(a[j],a[j+1],a[j+2]);_o.rotation.set(0,a[j+3],0);_o.scale.set(a[j+4],a[j+5],a[j+4]);_o.updateMatrix();m.setMatrixAt(i,_o.matrix);_c.setRGB(a[j+6],a[j+7],a[j+8]);m.setColorAt(i,_c)}
+      for(const p of m.isMulti?m.parts:[m]){p.count=n;p.visible=n>0;if(!n)continue;const im=p.instanceMatrix,ic=p.instanceColor;im.clearUpdateRanges();im.addUpdateRange(0,n*16);im.needsUpdate=true;if(ic){ic.clearUpdateRanges();ic.addUpdateRange(0,n*3);ic.needsUpdate=true}}})}
 }
 
 /* ---------- Meeresbewohner ---------- */
