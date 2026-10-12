@@ -45,7 +45,7 @@ Hilfsmittel:
 - [ ] **R3:** Gebäude-Durchsicht je Zeitalter:
   - Gebäude: hq, house, store, barracks, tower, harbor, market, castle, mine, farm, wall, gate, airfield, derrick, refinery, trench
   - Prüfen: fehlende Modelle (Code-Rückfall), Größenverhältnisse, Teamfarbe/Flagge, eigener Stil der Eisenzeit
-- [ ] **R4:** Tiere und Natur:
+- [~] **R4:** Tiere und Natur (12.10.: Blickrichtung und Größe von Reh, Wolf, Bär, Tiger und allen Dinos im Spiel geprüft, passt. Mammut/Säbelzahntiger werden nicht mehr aufgestellt (Dinos ersetzen sie), ihre Einträge sind ungenutzt. Fische/Wale verteilt und an Bootsgröße gebunden. Offen: Animationen im Detail, Skelette):
   - Blickrichtung und Größe im Vergleich (Reh, Wolf, Dinos, Menschen)
   - Animationen
   - Fische und Wale
