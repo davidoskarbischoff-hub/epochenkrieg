@@ -43,3 +43,12 @@ Bekannte Grenzen (Release 3): Fischernetze, Galeere, Bohrturm/Raffinerie/Beton-H
 - [x] Lore mit Schieber bleibt im (seichten) Wasser stecken → Loren meiden Wasser ganz und fahren außen herum
 - [x] Ausbau im Hauptlager (Handelshof/Kommandozentrale) ohne Bild → eleganter darstellen
 - [x] Upgrade-/Technologie-Liste im Hauptlager wirkt wie eine Tabelle → kompakter und schöner (Kacheln statt ganzer Zeilen)
+
+## Offene Mängel aus der Prüfung (2026-10-12, Stränge Netz/Menschen)
+- Finger (Ring3R) bleibt nach direktem Wechsel Fischen → Hacken/Angriff 60° gebeugt (nur bei erzwungenem Uferfischen sichtbar); Restore vor dem Aktionswechsel in animate() setzen.
+- Ruderboot: Netzseite hängt nur an der Figurennummer, kann über Sand hängen → Seite zum tieferen Wasser wählen.
+- netRig klont die getönten Netz-Materialien je Arbeiter (Cache wie teamMats).
+- Ruderer-Beine ragen unter dem Ruderboot heraus.
+- Meeres-Fischmodelle an den Fischquellen sehr groß.
+- Arbeiter haben keine Teamfarbe am Modell (gegnerische Arbeiter schwer erkennbar).
+- Mittelalter-Schwertkämpfer (neu/Medieval.glb) hält das Schwert im Stand waagrecht nach vorn wie ein Gewehr.

@@ -21,7 +21,7 @@ Laut David von itch.io bzw. poly.pizza heruntergeladen. Eingetragen ist, was im 
 
 | Ordner / Dateien | Quelle | Autor/in (laut Datei) | Lizenz | Geändert? |
 |---|---|---|---|---|
-| `props/Fishing Net by J-Toastie - Z11I3AUBO9.glb` | poly.pizza (Namensschema „… by Autor - ID“) | J-Toastie | auf poly.pizza meist CC BY – Namensnennung | nein |
+| `props/Fishing Net by J-Toastie - Z11I3AUBO9.glb` | poly.pizza (Namensschema „… by Autor - ID“) | J-Toastie | auf poly.pizza meist CC BY – Namensnennung | umgefärbt je Zeitalter |
 | `dino/` (Apatosaurus, Parasaurolophus, Stegosaurus, T-Rex, Triceratops, Velociraptor) | itch.io / poly.pizza (GLB, erzeugt mit FBX2glTF) | unbekannt | unbekannt | nein |
 | `military/` (Ambulance Car, Bike, Helicopter, Jeep, Light Tank, Military Boat, Military Motorbike, Tank, Truck) | itch.io / poly.pizza | unbekannt | unbekannt | nein |
 | `torture/` (Galgen, Pranger, Käfige, Guillotine, Eiserne Jungfrau u. a.) | itch.io / poly.pizza | unbekannt | unbekannt | nein |

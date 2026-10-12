@@ -498,7 +498,7 @@
       "clip": "Sword_Slash",
       "tool": {
        "file": "neu/Scythe.glb",
-       "scale": 0.4,
+       "scale": 0.26,
        "rot": [
         -90,
         0,
@@ -515,7 +515,7 @@
       "clip": "Sword_Slash",
       "tool": {
        "file": "neu/Spear.glb",
-       "scale": 0.25,
+       "scale": 0.17,
        "rot": [
         -90,
         0,
