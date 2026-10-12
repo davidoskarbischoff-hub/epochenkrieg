@@ -154,3 +154,9 @@ Idee für später: echte Nachbearbeitung (SSAO, Bloom mit Render-Target) braucht
 - Figuren: `mergeSkin` (gltfmodels.js) fasst alle Hautteile mit gleichem Glanz/gleicher Textur zu einem SkinnedMesh mit gemeinsamem Skelett zusammen; Laufzeit-Änderungen an einzelnen Materialien einer Figur wirken danach nicht mehr einzeln.
 - Außerhalb des Bildes: Objekte in `R3.reg` werden versteckt (`o.off`) statt gelöscht. Schattenkarte jedes 2. Bild (`R3.shF`).
 - Karren: `rider.push` = Figur geht hinter dem Fahrzeug und schiebt. Einheiten-Hinweise: `unitTip` (ui.js).
+
+## Animationen/Avatare/Lore (Runde 12.10. b)
+- `EKMODELS.animate(rig,want,dt,ss,kind,opt)`: `opt.v` (Welteinheiten/s) koppelt das Lauf-Tempo an die gemessene Schrittweite (`natOf`, Cache `natCache`, Faktor .6–1.9), schnelle Einheiten nehmen `jog`; `opt.hit` spielt einmalig `anim.hit` (Standard UAL:Hit_Chest/Hit_Head); `opt.fight` nutzt `anim.ready`/`anim.run`.
+- Avatare: Ep. 3/4 `neu/Medieval.glb`, Ep. 5/6 `neu/Soldier.glb`; Farbe `"team"` in `tint` = Teamfarbe.
+- Lore: Manifest `load:{stone|iron|gold:{file,tint,h,y,n,dx}}` (sichtbar bei `e.carry`), Schieber `rider.push` mit `arm`/`armAx` (Arm-Drehung), `clip` optional (Push_Loop war zu flach gebeugt).
+- Krieger-Grundkörper (R2): alle Truppen-Linien = `neu/Adventurer.glb` in jedem Zeitalter, ab Ep. 3 Hemd in Teamfarbe; Ausrüstung über Manifest `wear:[{file,bone,mesh,scale,rot,pos,tint}]` (`wear()` in gltfmodels.js, Skin-Teile werden in Ruhelage eingebacken, z. B. Helm `mesh:'^Helmet'` aus „Military man“).

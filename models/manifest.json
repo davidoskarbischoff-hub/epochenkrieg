@@ -802,27 +802,102 @@
     ]
    },
    {
-    "file": "neu/Medieval.glb",
+    "file": "neu/Adventurer.glb",
     "epochs": [
-     3,
+     3
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Interact",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ]
+    },
+    "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "^Sword",
+     "Shield",
+     "Gun",
+     "Rifle"
+    ],
+    "tint": {
+     "Green": "#4a5e36",
+     "LightGreen": "team",
+     "Brown": "#4a3a2a",
+     "Brown2": "#3e3024",
+     "Grey": "#4a3a2a",
+     "Black": "#2a2018",
+     "Gold": "#9aa0a6"
+    }
+   },
+   {
+    "file": "neu/Adventurer.glb",
+    "epochs": [
      4
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Interact",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ]
     },
     "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
     "hide": [
      "^Sword",
      "Shield",
      "Gun",
      "Rifle"
-    ]
+    ],
+    "tint": {
+     "Green": "#4a5e36",
+     "LightGreen": "team",
+     "Brown": "#e4dccb",
+     "Brown2": "#d6ccb4",
+     "Grey": "#2a2018",
+     "Black": "#1c1c1c",
+     "Gold": "#c9a24a"
+    }
    },
    {
     "file": "neu/Adventurer.glb",
+    "epochs": [
+     5
+    ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
@@ -830,9 +905,35 @@
      "work": "Interact"
     },
     "human": true,
-    "epochs": [
-     5
-    ]
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "^Sword",
+     "Shield",
+     "Gun",
+     "Rifle"
+    ],
+    "tint": {
+     "Green": "#4a5e36",
+     "LightGreen": "team",
+     "Brown": "#3a3f4a",
+     "Brown2": "#2f3346",
+     "Grey": "#1c1c1c",
+     "Black": "#1c1c1c",
+     "Gold": "#9aa0a6"
+    }
    },
    {
     "file": "military/Military Motorbike.glb",
@@ -982,27 +1083,101 @@
     ]
    },
    {
-    "file": "neu/Medieval.glb",
+    "file": "neu/Adventurer.glb",
     "epochs": [
-     3,
+     3
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "UAL:Spell_Simple_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ]
+    },
+    "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack",
+     "^Sword",
+     "Shield",
+     "Gun",
+     "Rifle"
+    ],
+    "tint": {
+     "Green": "#ece6d6",
+     "LightGreen": "team",
+     "Brown": "#4a3a2a",
+     "Brown2": "#3e3024",
+     "Grey": "#4a3a2a",
+     "Black": "#2a2018",
+     "Gold": "#9aa0a6"
+    }
+   },
+   {
+    "file": "neu/Adventurer.glb",
+    "epochs": [
      4
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
      "attack": "UAL:Spell_Simple_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ]
     },
     "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
     "hide": [
+     "Backpack",
      "^Sword",
      "Shield",
      "Gun",
      "Rifle"
-    ]
+    ],
+    "tint": {
+     "Green": "#ece6d6",
+     "LightGreen": "team",
+     "Brown": "#e4dccb",
+     "Brown2": "#d6ccb4",
+     "Grey": "#2a2018",
+     "Black": "#1c1c1c",
+     "Gold": "#c9a24a"
+    }
    },
    {
-    "file": "neu/Soldier.glb",
+    "file": "neu/Adventurer.glb",
     "epochs": [
      5
     ],
@@ -1010,15 +1185,43 @@
      "idle": "Idle",
      "walk": "Walk",
      "attack": "UAL:Spell_Simple_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ]
     },
     "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
     "hide": [
+     "Backpack",
      "^Sword",
      "Shield",
      "Gun",
      "Rifle"
-    ]
+    ],
+    "tint": {
+     "Green": "#ece6d6",
+     "LightGreen": "team",
+     "Brown": "#3a3f4a",
+     "Brown2": "#2f3346",
+     "Grey": "#1c1c1c",
+     "Black": "#1c1c1c",
+     "Gold": "#9aa0a6"
+    }
    },
    {
     "file": "military/Ambulance Car.glb",
@@ -1277,20 +1480,49 @@
     ]
    },
    {
-    "file": "neu/Medieval.glb",
+    "file": "neu/Adventurer.glb",
     "epochs": [
-     3,
-     4
+     3
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Sword_Slash",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Sword",
+     "run": "Run"
     },
-    "hide": [
-     "^Sword$"
+    "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
     ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#8c8f94",
+     "Brown": "#4a3a2a",
+     "Brown2": "#3e3024",
+     "Grey": "#4a3a2a",
+     "Black": "#2a2018",
+     "Gold": "#9aa0a6"
+    },
     "hand": {
      "file": "neu/Spear.glb",
      "scale": 0.15,
@@ -1305,27 +1537,72 @@
       0
      ]
     },
-    "human": true
+    "wear": [
+     {
+      "file": "archiv/Armor Metal.glb",
+      "bone": "^Chest$",
+      "scale": 0.42,
+      "pos": [
+       0,
+       -0.03,
+       0
+      ],
+      "tint": {
+       "LightSteel": "#a9adb3"
+      }
+     }
+    ]
    },
    {
-    "file": "neu/Soldier.glb",
+    "file": "neu/Adventurer.glb",
     "epochs": [
-     5,
-     6
+     4
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
-     "attack": "Gun_Shoot",
-     "work": "Interact"
+     "attack": "Sword_Slash",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Sword",
+     "run": "Run"
     },
     "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#e8e0cc",
+     "Brown": "#e4dccb",
+     "Brown2": "#d6ccb4",
+     "Grey": "#2a2018",
+     "Black": "#1c1c1c",
+     "Gold": "#c9a24a"
+    },
     "hand": {
-     "file": "neu/Sniper Rifle.glb",
-     "scale": 0.16,
+     "file": "neu/Spear.glb",
+     "scale": 0.15,
      "rot": [
-      0,
       180,
+      0,
       0
      ],
      "pos": [
@@ -1333,7 +1610,22 @@
       0,
       0
      ]
-    }
+    },
+    "wear": [
+     {
+      "file": "archiv/Armor Metal.glb",
+      "bone": "^Chest$",
+      "scale": 0.42,
+      "pos": [
+       0,
+       -0.03,
+       0
+      ],
+      "tint": {
+       "LightSteel": "#c9b37a"
+      }
+     }
+    ]
    }
   ],
   "sword": [
@@ -1405,38 +1697,172 @@
     ]
    },
    {
-    "file": "neu/Medieval.glb",
+    "file": "neu/Adventurer.glb",
     "epochs": [
-     3,
+     3
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Sword",
+     "run": "Run"
+    },
+    "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#8c8f94",
+     "Brown": "#4a3a2a",
+     "Brown2": "#3e3024",
+     "Grey": "#4a3a2a",
+     "Black": "#2a2018",
+     "Gold": "#9aa0a6"
+    },
+    "wear": [
+     {
+      "file": "archiv/Armor Metal.glb",
+      "bone": "^Chest$",
+      "scale": 0.42,
+      "pos": [
+       0,
+       -0.03,
+       0
+      ],
+      "tint": {
+       "LightSteel": "#a9adb3"
+      }
+     }
+    ],
+    "hand": {
+     "file": "neu/Sword.glb",
+     "scale": 0.3,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "left": {
+     "file": "neu/Shield Heater.glb",
+     "scale": 0.22,
+     "rot": [
+      0,
+      -90,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
+   },
+   {
+    "file": "neu/Adventurer.glb",
+    "epochs": [
      4
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Sword_Slash",
-     "work": "Interact"
-    },
-    "human": true
-   },
-   {
-    "file": "neu/Soldier.glb",
-    "epochs": [
-     5,
-     6
-    ],
-    "anim": {
-     "idle": "Idle",
-     "walk": "Walk",
-     "attack": "Gun_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Sword",
+     "run": "Run"
     },
     "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#e8e0cc",
+     "Brown": "#e4dccb",
+     "Brown2": "#d6ccb4",
+     "Grey": "#2a2018",
+     "Black": "#1c1c1c",
+     "Gold": "#c9a24a"
+    },
+    "wear": [
+     {
+      "file": "archiv/Armor Metal.glb",
+      "bone": "^Chest$",
+      "scale": 0.42,
+      "pos": [
+       0,
+       -0.03,
+       0
+      ],
+      "tint": {
+       "LightSteel": "#c9b37a"
+      }
+     }
+    ],
     "hand": {
-     "file": "neu/Sniper Rifle.glb",
-     "scale": 0.16,
+     "file": "neu/Sword.glb",
+     "scale": 0.3,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "left": {
+     "file": "neu/Shield Heater.glb",
+     "scale": 0.22,
      "rot": [
       0,
-      180,
+      -90,
       0
      ],
      "pos": [
@@ -1553,84 +1979,51 @@
       0
      ]
     }
-   },
-   {
-    "file": "neu/Medieval.glb",
-    "epochs": [
-     3,
-     4
-    ],
-    "anim": {
-     "idle": "Idle",
-     "walk": "Walk",
-     "attack": "Gun_Shoot",
-     "work": "Interact"
-    },
-    "hide": [
-     "^Sword$"
-    ],
-    "human": true,
-    "hand": {
-     "file": "neu/Wooden Bow.glb",
-     "scale": 0.45,
-     "rot": [
-      0,
-      0,
-      90
-     ],
-     "pos": [
-      0,
-      0,
-      0
-     ]
-    }
-   },
-   {
-    "file": "neu/Soldier.glb",
-    "epochs": [
-     5,
-     6
-    ],
-    "anim": {
-     "idle": "Idle",
-     "walk": "Walk",
-     "attack": "Gun_Shoot",
-     "work": "Interact"
-    },
-    "human": true,
-    "hand": {
-     "file": "neu/Sniper Rifle.glb",
-     "scale": 0.16,
-     "rot": [
-      0,
-      180,
-      0
-     ],
-     "pos": [
-      0,
-      0,
-      0
-     ]
-    }
    }
   ],
   "crossbow": [
    {
-    "file": "neu/Medieval.glb",
+    "file": "neu/Adventurer.glb",
     "epochs": [
-     3,
-     4
+     3
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Gun_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ]
     },
-    "hide": [
-     "^Sword$"
-    ],
     "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#8c8f94",
+     "Brown": "#4a3a2a",
+     "Brown2": "#3e3024",
+     "Grey": "#4a3a2a",
+     "Black": "#2a2018",
+     "Gold": "#9aa0a6"
+    },
     "hand": {
      "file": "neu/Wooden Bow.glb",
      "scale": 0.45,
@@ -1644,21 +2037,66 @@
       0,
       0
      ]
-    }
-   },
+    },
+    "wear": [
+     {
+      "file": "archiv/Armor Leather.glb",
+      "bone": "^Chest$",
+      "scale": 0.4,
+      "pos": [
+       0,
+       -0.03,
+       0
+      ]
+     }
+    ]
+   }
+  ],
+  "musket": [
    {
-    "file": "neu/Soldier.glb",
+    "file": "neu/Adventurer.glb",
     "epochs": [
-     5,
-     6
+     4
     ],
     "anim": {
-     "idle": "Idle",
+     "idle": "Idle_Gun",
      "walk": "Walk",
      "attack": "Gun_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
     },
     "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#e8e0cc",
+     "Brown": "#e4dccb",
+     "Brown2": "#d6ccb4",
+     "Grey": "#2a2018",
+     "Black": "#1c1c1c",
+     "Gold": "#c9a24a"
+    },
     "hand": {
      "file": "neu/Sniper Rifle.glb",
      "scale": 0.16,
@@ -1675,122 +2113,338 @@
     }
    }
   ],
-  "musket": {
-   "file": "neu/Soldier.glb",
-   "epochs": [
-    4,
-    5,
-    6
-   ],
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Gun_Shoot",
-    "work": "Interact"
-   },
-   "human": true,
-   "hand": {
-    "file": "neu/Sniper Rifle.glb",
-    "scale": 0.16,
-    "rot": [
-     0,
-     180,
-     0
+  "rifle": [
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     4
     ],
-    "pos": [
-     0,
-     0,
-     0
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#cbb98e",
+     "Grey": "#2a2018"
+    }
+   },
+   {
+    "file": "neu/Adventurer.glb",
+    "epochs": [
+     5
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#3a3f4a",
+     "Brown": "#3a3f4a",
+     "Brown2": "#2f3346",
+     "Grey": "#1c1c1c",
+     "Black": "#1c1c1c",
+     "Gold": "#9aa0a6"
+    },
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "wear": [
+     {
+      "file": "archiv/Military man by madtrollstudio - 3AiqeNLKkP.glb",
+      "mesh": "^Helmet",
+      "pos": [
+       -0.04,
+       0.12,
+       0.04
+      ],
+      "tint": {},
+      "scale": 1.4
+     }
+    ]
+   },
+   {
+    "file": "neu/Adventurer.glb",
+    "epochs": [
+     6
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#5a5c44",
+     "Brown": "#52543a",
+     "Brown2": "#4a4c34",
+     "Grey": "#3d2c1e",
+     "Black": "#2a2018",
+     "Gold": "#6b6a50"
+    },
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "wear": [
+     {
+      "file": "archiv/Military man by madtrollstudio - 3AiqeNLKkP.glb",
+      "mesh": "^Helmet",
+      "pos": [
+       -0.04,
+       0.12,
+       0.04
+      ],
+      "tint": {},
+      "scale": 1.4
+     }
     ]
    }
-  },
-  "rifle": {
-   "file": "neu/Soldier.glb",
-   "epochs": [
-    4,
-    5,
-    6
-   ],
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Gun_Shoot",
-    "work": "Interact"
-   },
-   "human": true,
-   "hand": {
-    "file": "neu/Sniper Rifle.glb",
-    "scale": 0.16,
-    "rot": [
-     0,
-     180,
-     0
+  ],
+  "assault": [
+   {
+    "file": "neu/Adventurer.glb",
+    "epochs": [
+     6
     ],
-    "pos": [
-     0,
-     0,
-     0
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#5a5c44",
+     "Brown": "#52543a",
+     "Brown2": "#4a4c34",
+     "Grey": "#3d2c1e",
+     "Black": "#2a2018",
+     "Gold": "#6b6a50"
+    },
+    "hand": {
+     "file": "neu/Assault Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "wear": [
+     {
+      "file": "archiv/Military man by madtrollstudio - 3AiqeNLKkP.glb",
+      "mesh": "^Helmet",
+      "pos": [
+       -0.04,
+       0.12,
+       0.04
+      ],
+      "scale": 1.4,
+      "tint": {}
+     }
     ]
    }
-  },
-  "assault": {
-   "file": "neu/Soldier.glb",
-   "epochs": [
-    4,
-    5,
-    6
-   ],
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Gun_Shoot",
-    "work": "Interact"
-   },
-   "human": true,
-   "hand": {
-    "file": "neu/Assault Rifle.glb",
-    "scale": 0.16,
-    "rot": [
-     0,
-     0,
-     0
+  ],
+  "mg": [
+   {
+    "file": "neu/Adventurer.glb",
+    "epochs": [
+     6
     ],
-    "pos": [
-     0,
-     0,
-     0
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#5a5c44",
+     "Brown": "#52543a",
+     "Brown2": "#4a4c34",
+     "Grey": "#3d2c1e",
+     "Black": "#2a2018",
+     "Gold": "#6b6a50"
+    },
+    "hand": {
+     "file": "neu/Assault Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "wear": [
+     {
+      "file": "archiv/Military man by madtrollstudio - 3AiqeNLKkP.glb",
+      "mesh": "^Helmet",
+      "pos": [
+       -0.04,
+       0.12,
+       0.04
+      ],
+      "scale": 1.4,
+      "tint": {}
+     }
     ]
    }
-  },
-  "mg": {
-   "file": "neu/Soldier.glb",
-   "epochs": [
-    4,
-    5,
-    6
-   ],
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Gun_Shoot",
-    "work": "Interact"
-   },
-   "human": true,
-   "hand": {
-    "file": "neu/Assault Rifle.glb",
-    "scale": 0.16,
-    "rot": [
-     0,
-     0,
-     0
-    ],
-    "pos": [
-     0,
-     0,
-     0
-    ]
-   }
-  },
+  ],
   "tank": {
    "file": "neu/Tank.glb",
    "fit": "length",
@@ -2064,10 +2718,16 @@
   "alpini": {
    "file": "neu/Soldier.glb",
    "anim": {
-    "idle": "Idle",
+    "idle": "Idle_Gun",
     "walk": "Walk",
     "attack": "Gun_Shoot",
-    "work": "Interact"
+    "work": "Interact",
+    "hit": [
+     "HitRecieve",
+     "HitRecieve_2"
+    ],
+    "ready": "Idle_Gun_Pointing",
+    "run": "Run_Shoot"
    },
    "human": true,
    "hand": {
@@ -2083,15 +2743,26 @@
      0,
      0
     ]
+   },
+   "tint": {
+    "Black": "#66674a",
+    "Swat": "#52543a",
+    "Grey": "#3d2c1e"
    }
   },
   "sturm": {
    "file": "neu/Swat.glb",
    "anim": {
-    "idle": "Idle",
+    "idle": "Idle_Gun",
     "walk": "Walk",
     "attack": "Gun_Shoot",
-    "work": "Interact"
+    "work": "Interact",
+    "hit": [
+     "HitRecieve",
+     "HitRecieve_2"
+    ],
+    "ready": "Idle_Gun_Pointing",
+    "run": "Run_Shoot"
    },
    "human": true,
    "hand": {
@@ -2107,15 +2778,25 @@
      0,
      0
     ]
+   },
+   "tint": {
+    "Swat": "#5c6150",
+    "Swat_Black": "#3a3d30"
    }
   },
   "rekrut": {
    "file": "neu/Soldier.glb",
    "anim": {
-    "idle": "Idle",
+    "idle": "Idle_Gun",
     "walk": "Walk",
     "attack": "Gun_Shoot",
-    "work": "Interact"
+    "work": "Interact",
+    "hit": [
+     "HitRecieve",
+     "HitRecieve_2"
+    ],
+    "ready": "Idle_Gun_Pointing",
+    "run": "Run_Shoot"
    },
    "human": true,
    "hand": {
@@ -2131,15 +2812,26 @@
      0,
      0
     ]
+   },
+   "tint": {
+    "Black": "#66674a",
+    "Swat": "#52543a",
+    "Grey": "#3d2c1e"
    }
   },
   "doughboy": {
    "file": "neu/Soldier.glb",
    "anim": {
-    "idle": "Idle",
+    "idle": "Idle_Gun",
     "walk": "Walk",
     "attack": "Gun_Shoot",
-    "work": "Interact"
+    "work": "Interact",
+    "hit": [
+     "HitRecieve",
+     "HitRecieve_2"
+    ],
+    "ready": "Idle_Gun_Pointing",
+    "run": "Run_Shoot"
    },
    "human": true,
    "hand": {
@@ -2155,15 +2847,26 @@
      0,
      0
     ]
+   },
+   "tint": {
+    "Black": "#66674a",
+    "Swat": "#52543a",
+    "Grey": "#3d2c1e"
    }
   },
   "janit": {
    "file": "neu/Soldier.glb",
    "anim": {
-    "idle": "Idle",
+    "idle": "Idle_Gun",
     "walk": "Walk",
     "attack": "Gun_Shoot",
-    "work": "Interact"
+    "work": "Interact",
+    "hit": [
+     "HitRecieve",
+     "HitRecieve_2"
+    ],
+    "ready": "Idle_Gun_Pointing",
+    "run": "Run_Shoot"
    },
    "human": true,
    "hand": {
@@ -2179,15 +2882,26 @@
      0,
      0
     ]
+   },
+   "tint": {
+    "Black": "#66674a",
+    "Swat": "#52543a",
+    "Grey": "#3d2c1e"
    }
   },
   "banzai": {
    "file": "neu/Swat.glb",
    "anim": {
-    "idle": "Idle",
+    "idle": "Idle_Gun",
     "walk": "Walk",
     "attack": "Gun_Shoot",
-    "work": "Interact"
+    "work": "Interact",
+    "hit": [
+     "HitRecieve",
+     "HitRecieve_2"
+    ],
+    "ready": "Idle_Gun_Pointing",
+    "run": "Run_Shoot"
    },
    "human": true,
    "hand": {
@@ -2203,15 +2917,25 @@
      0,
      0
     ]
+   },
+   "tint": {
+    "Swat": "#5c6150",
+    "Swat_Black": "#3a3d30"
    }
   },
   "bersag": {
    "file": "neu/Soldier.glb",
    "anim": {
-    "idle": "Idle",
+    "idle": "Idle_Gun",
     "walk": "Walk",
     "attack": "Gun_Shoot",
-    "work": "Interact"
+    "work": "Interact",
+    "hit": [
+     "HitRecieve",
+     "HitRecieve_2"
+    ],
+    "ready": "Idle_Gun_Pointing",
+    "run": "Run_Shoot"
    },
    "human": true,
    "hand": {
@@ -2227,6 +2951,11 @@
      0,
      0
     ]
+   },
+   "tint": {
+    "Black": "#66674a",
+    "Swat": "#52543a",
+    "Grey": "#3d2c1e"
    }
   },
   "ram": {
@@ -2301,20 +3030,49 @@
   },
   "rider_m": [
    {
-    "file": "neu/Medieval.glb",
+    "file": "neu/Adventurer.glb",
     "epochs": [
-     3,
-     4
+     3
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Sword_Slash",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Sword",
+     "run": "Run"
     },
-    "hide": [
-     "^Sword$"
+    "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
     ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#8c8f94",
+     "Brown": "#4a3a2a",
+     "Brown2": "#3e3024",
+     "Grey": "#4a3a2a",
+     "Black": "#2a2018",
+     "Gold": "#9aa0a6"
+    },
     "hand": {
      "file": "neu/Spear.glb",
      "scale": 0.15,
@@ -2329,19 +3087,178 @@
       0
      ]
     },
-    "human": true
+    "wear": [
+     {
+      "file": "archiv/Armor Metal.glb",
+      "bone": "^Chest$",
+      "scale": 0.42,
+      "pos": [
+       0,
+       -0.03,
+       0
+      ]
+     }
+    ]
    },
    {
-    "file": "neu/Soldier.glb",
+    "file": "neu/Adventurer.glb",
     "epochs": [
-     5,
-     6
+     4
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Sword",
+     "run": "Run"
+    },
+    "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#e8e0cc",
+     "Brown": "#e4dccb",
+     "Brown2": "#d6ccb4",
+     "Grey": "#2a2018",
+     "Black": "#1c1c1c",
+     "Gold": "#c9a24a"
+    },
+    "hand": {
+     "file": "neu/Spear.glb",
+     "scale": 0.15,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "wear": [
+     {
+      "file": "archiv/Armor Metal.glb",
+      "bone": "^Chest$",
+      "scale": 0.42,
+      "pos": [
+       0,
+       -0.03,
+       0
+      ]
+     }
+    ]
+   },
+   {
+    "file": "neu/Adventurer.glb",
+    "epochs": [
+     5
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
      "attack": "Gun_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#3a3f4a",
+     "Brown": "#3a3f4a",
+     "Brown2": "#2f3346",
+     "Grey": "#1c1c1c",
+     "Black": "#1c1c1c",
+     "Gold": "#9aa0a6"
+    },
+    "hand": {
+     "file": "neu/Sword.glb",
+     "scale": 0.25,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "wear": [
+     {
+      "file": "archiv/Military man by madtrollstudio - 3AiqeNLKkP.glb",
+      "mesh": "^Helmet",
+      "pos": [
+       -0.04,
+       0.12,
+       0.04
+      ],
+      "scale": 1.4,
+      "tint": {}
+     }
+    ]
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     6
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
     },
     "human": true,
     "hand": {
@@ -2357,12 +3274,17 @@
       0,
       0
      ]
+    },
+    "tint": {
+     "Black": "#66674a",
+     "Swat": "#52543a",
+     "Grey": "#3d2c1e"
     }
    }
   ],
   "rider_r": [
    {
-    "file": "neu/Medieval.glb",
+    "file": "neu/Adventurer.glb",
     "epochs": [
      3
     ],
@@ -2370,12 +3292,39 @@
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Gun_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ]
     },
-    "hide": [
-     "^Sword$"
-    ],
     "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#8c8f94",
+     "Brown": "#4a3a2a",
+     "Brown2": "#3e3024",
+     "Grey": "#4a3a2a",
+     "Black": "#2a2018",
+     "Gold": "#9aa0a6"
+    },
     "hand": {
      "file": "neu/Wooden Bow.glb",
      "scale": 0.45,
@@ -2392,17 +3341,152 @@
     }
    },
    {
+    "file": "neu/Adventurer.glb",
+    "epochs": [
+     4
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#e8e0cc",
+     "Brown": "#e4dccb",
+     "Brown2": "#d6ccb4",
+     "Grey": "#2a2018",
+     "Black": "#1c1c1c",
+     "Gold": "#c9a24a"
+    },
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
+   },
+   {
+    "file": "neu/Adventurer.glb",
+    "epochs": [
+     5
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#3a3f4a",
+     "Brown": "#3a3f4a",
+     "Brown2": "#2f3346",
+     "Grey": "#1c1c1c",
+     "Black": "#1c1c1c",
+     "Gold": "#9aa0a6"
+    },
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "wear": [
+     {
+      "file": "archiv/Military man by madtrollstudio - 3AiqeNLKkP.glb",
+      "mesh": "^Helmet",
+      "pos": [
+       -0.04,
+       0.12,
+       0.04
+      ],
+      "scale": 1.4,
+      "tint": {}
+     }
+    ]
+   },
+   {
     "file": "neu/Soldier.glb",
     "epochs": [
-     4,
-     5,
      6
     ],
     "anim": {
-     "idle": "Idle",
+     "idle": "Idle_Gun",
      "walk": "Walk",
      "attack": "Gun_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
     },
     "human": true,
     "hand": {
@@ -2418,6 +3502,11 @@
       0,
       0
      ]
+    },
+    "tint": {
+     "Black": "#66674a",
+     "Swat": "#52543a",
+     "Grey": "#3d2c1e"
     }
    }
   ],
@@ -2447,7 +3536,7 @@
      3,
      4
     ],
-    "len": 2.4,
+    "len": 3.2,
     "yaw": 90,
     "tint": {
      "colormap": "#9c8a78"
@@ -2455,7 +3544,34 @@
     "rider": {
      "as": "worker",
      "push": true,
-     "x": 0.05
+     "x": -0.25,
+     "armAx": "y",
+     "arm": 0.35
+    },
+    "load": {
+     "stone": {
+      "file": "neu/Rock Medium.glb",
+      "tint": "#ece8e0",
+      "h": 0.42,
+      "y": 0.55,
+      "n": 3,
+      "dx": 0.24
+     },
+     "iron": {
+      "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
+      "tint": "#d6b4a4",
+      "h": 0.42,
+      "y": 0.55,
+      "n": 3,
+      "dx": 0.24
+     },
+     "gold": {
+      "file": "neu/Gold Ingots.glb",
+      "h": 0.3,
+      "y": 0.55,
+      "n": 2,
+      "dx": 0.25
+     }
     }
    },
    {
@@ -2465,7 +3581,32 @@
      6
     ],
     "len": 3.2,
-    "yaw": 90
+    "yaw": 90,
+    "load": {
+     "stone": {
+      "file": "neu/Rock Medium.glb",
+      "tint": "#ece8e0",
+      "h": 0.42,
+      "y": 0.55,
+      "n": 3,
+      "dx": 0.24
+     },
+     "iron": {
+      "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
+      "tint": "#d6b4a4",
+      "h": 0.42,
+      "y": 0.55,
+      "n": 3,
+      "dx": 0.24
+     },
+     "gold": {
+      "file": "neu/Gold Ingots.glb",
+      "h": 0.3,
+      "y": 0.55,
+      "n": 2,
+      "dx": 0.25
+     }
+    }
    }
   ],
   "ironclad": [
@@ -2528,7 +3669,7 @@
     "epochs": [
      1
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Bonfire.glb",
@@ -2549,19 +3690,19 @@
     "epochs": [
      0
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "neu/Hut.glb",
       "h": 2.6,
-      "x": -1.0,
+      "x": -1,
       "z": -0.75,
       "ry": 20
      },
      {
       "file": "archiv/Hut-4MJWbyd6vw.glb",
       "h": 2.4,
-      "x": 1.0,
+      "x": 1,
       "z": -0.8,
       "ry": -25
      },
@@ -2591,7 +3732,7 @@
     "epochs": [
      2
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "arch/Arch.glb",
@@ -2606,21 +3747,21 @@
     "epochs": [
      5
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Large Building-ppwtREejXg.glb",
     "epochs": [
      6
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Houses-vCoDG5hFyI.glb",
     "epochs": [
      3
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "arch/Church.glb",
@@ -2689,7 +3830,7 @@
     "epochs": [
      1
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Hay.glb",
@@ -2704,7 +3845,7 @@
     "epochs": [
      0
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Bonfire.glb",
@@ -2725,7 +3866,7 @@
     "epochs": [
      2
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/House-RSwoYSLblu.glb",
@@ -2733,21 +3874,21 @@
      3,
      4
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/House-k6tP5nFUd2.glb",
     "epochs": [
      5
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Small Building-gyjF60t7CG.glb",
     "epochs": [
      6
     ],
-    "fit": 1.0
+    "fit": 1
    }
   ],
   "store": [
@@ -2756,19 +3897,19 @@
     "epochs": [
      1
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "archiv/Shack.glb",
     "epochs": [
      0
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Hay.glb",
       "h": 0.8,
-      "x": 1.0,
+      "x": 1,
       "z": 0.8
      },
      {
@@ -2791,7 +3932,7 @@
     "epochs": [
      2
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Storage House.glb",
@@ -2799,7 +3940,7 @@
      3,
      4
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "arch/Barn.glb",
@@ -2807,7 +3948,7 @@
      5,
      6
     ],
-    "fit": 1.0
+    "fit": 1
    }
   ],
   "barracks": [
@@ -2816,14 +3957,14 @@
     "epochs": [
      1
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Wooden Encampment.glb",
     "epochs": [
      0
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Bonfire.glb",
@@ -2851,13 +3992,13 @@
      2,
      3
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "torture/Pilory-2aK6iL6NAY.glb",
       "h": 1.1,
       "x": 1.3,
-      "z": 1.0,
+      "z": 1,
       "ry": -20
      }
     ]
@@ -2867,26 +4008,26 @@
     "epochs": [
      4
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "archiv/Large Building-sxXonOmtct.glb",
     "epochs": [
      5
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/dorf/Practice Dummy.glb",
       "h": 1.6,
       "x": 1.2,
-      "z": 1.0
+      "z": 1
      },
      {
       "file": "archiv/dorf/Target.glb",
       "h": 1.4,
       "x": -1.2,
-      "z": 1.0
+      "z": 1
      }
     ]
    },
@@ -2895,7 +4036,7 @@
     "epochs": [
      6
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Tent.glb",
@@ -2914,7 +4055,7 @@
      {
       "file": "military/Jeep.glb",
       "h": 1.2,
-      "x": -1.0,
+      "x": -1,
       "z": 1.15,
       "ry": 30
      },
@@ -2935,7 +4076,7 @@
      0,
      1
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Fish Bone.glb",
@@ -2951,14 +4092,14 @@
      2,
      3
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Docks.glb",
     "epochs": [
      4
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "archiv/Shipping Port-rDX8W8uqip.glb",
@@ -2966,7 +4107,7 @@
      5,
      6
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/cargo-pile-a.glb",
@@ -2984,7 +4125,7 @@
      3,
      4
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "torture/Gallows.glb",
@@ -2997,7 +4138,7 @@
       "file": "torture/Pilory.glb",
       "h": 1.2,
       "x": -1.3,
-      "z": 1.0
+      "z": 1
      },
      {
       "file": "torture/Cage-TAqDCvxcxd.glb",
@@ -3013,7 +4154,7 @@
      5,
      6
     ],
-    "fit": 1.0
+    "fit": 1
    }
   ],
   "farm": {
@@ -3026,7 +4167,7 @@
     5,
     6
    ],
-   "fit": 1.0
+   "fit": 1
   },
   "mine": {
    "file": "neu/Mine.glb",
@@ -3047,7 +4188,7 @@
      3,
      4
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "people/rich_citizens_2.glb",
@@ -3079,7 +4220,7 @@
      5,
      6
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "arch/Ferris Wheel.glb",
@@ -3097,14 +4238,14 @@
     "epochs": [
      1
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Watch Tower.glb",
     "epochs": [
      0
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Skull.glb",
@@ -3119,7 +4260,7 @@
     "epochs": [
      2
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Stone Tower.glb",
@@ -3129,7 +4270,7 @@
      5,
      6
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "towers/ballista_1.glb",
@@ -3137,7 +4278,7 @@
      2
     ],
     "spec": "def",
-    "fit": 1.0,
+    "fit": 1,
     "pal": {
      "#ffebd3": "#a49a86",
      "#fff1c9": "#b3a993",
@@ -3160,7 +4301,7 @@
      3
     ],
     "spec": "def",
-    "fit": 1.0,
+    "fit": 1,
     "pal": {
      "#ffebd3": "#a49a86",
      "#fff1c9": "#b3a993",
@@ -3183,7 +4324,7 @@
      0
     ],
     "spec": "def",
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Wooden Wall-L0TxLurnES.glb",
@@ -3221,7 +4362,7 @@
      1
     ],
     "spec": "def",
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Wooden Wall-L0TxLurnES.glb",
@@ -3259,7 +4400,7 @@
      0
     ],
     "spec": "obs",
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Hot air balloon by Poly by Google - 7Fej0Jd3_Di.glb",
@@ -3277,7 +4418,7 @@
      2
     ],
     "spec": "obs",
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Hot air balloon by Poly by Google - 7Fej0Jd3_Di.glb",
@@ -3297,7 +4438,7 @@
      6
     ],
     "spec": "obs",
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Hot air balloon by Poly by Google - 7Fej0Jd3_Di.glb",
@@ -3316,7 +4457,7 @@
      6
     ],
     "spec": "def",
-    "fit": 1.0
+    "fit": 1
    }
   ]
  },
@@ -3421,7 +4562,7 @@
     "attack": "Armature|TRex_Attack",
     "work": "Armature|TRex_Idle"
    },
-   "len": 7.0
+   "len": 7
   }
  },
  "nodes": {
@@ -3625,12 +4766,12 @@
    "rows": [
     [
      -0.295,
-     0.0,
+     0,
      0.42
     ],
     [
      -0.145,
-     0.0,
+     0,
      0.42
     ],
     [

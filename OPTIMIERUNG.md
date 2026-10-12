@@ -35,10 +35,13 @@ Hilfsmittel:
 - [ ] **R2:** Truppenlinien-Durchsicht. Gesamtbogen: scratchpad `s11.png`. Stand:
   - [x] Rammbock, Katapult und Lore waren rosa (falsche Kenney-Farbtabelle) → Holz-Tönung `#9c8a78`, neues Manifest-Feld `cmap` je Eintrag
   - [x] Kradmelder ohne Fahrer → Fahrer (rider rifle, free)
-  - [ ] Kriegerlinie bricht: Adventurer (bärtiger Mann, 0–2) → Medieval (Frau mit Kapuze, 3–4) → Soldier (Soldatin, 5–6). Ziel: ein Grundkörper durch alle Zeitalter.
+  - [x] Kriegerlinie bricht: Adventurer (bärtiger Mann, 0–2) → Medieval (Frau mit Kapuze, 3–4) → Soldier (Soldatin, 5–6). Ziel: ein Grundkörper durch alle Zeitalter.
     - Kandidaten: neue mittelalterliche Menschen (Strang Menschen, falls animierbar) oder Adventurer mit echter Rüstung/Helm aus dem Archiv (Armor Metal/Leather, Helmet_01 aus „Military man“, Knights Character Kit)
     - Entscheidung nach dem Ergebnis des Strangs Menschen
-  - [ ] Heiler 3–5 (Medieval/Soldier) entsprechend angleichen
+  - [x] Heiler 3–5 (Medieval/Soldier) entsprechend angleichen
+    - Erledigt: alle Krieger-Linien, Heiler, Späher, Reiter nutzen jetzt in jedem Zeitalter `neu/Adventurer.glb`. Ab Zeitalter 3 Hemd = Teamfarbe; neues Manifest-Feld `wear` (gltfmodels.js `wear()`): Brustpanzer Armor Metal (Speer/Schwert/Ritter 3–4, Ep. 4 messingfarben), Armor Leather (Armbrust), Stahlhelm Helmet_01 aus „Military man“ (Gewehr/Sturm/MG/Reiter 5–6). Tote Manifest-Einträge (Zeitalter ausserhalb `uOk`) entfernt; das war auch der Grund für „ERR … not valid JSON“ im Kontaktbogen und für die „gleichen“ Speer/Schwert/Bogen in 5/6 (die gibt es im Spiel gar nicht).
+    - Verworfen: Medieval/Soldier (andere Figur, Frau), Knights Character Kit (nur unbenannte Einzelteile, anderer Stil).
+    - Neue Funde: Armbrustschütze trägt noch einen Bogen (kein Armbrust-Modell vorhanden → Paket nötig); Military-man-Datei 1,5 MB nur für den Helm (verkleinern mit glbslim); Ep. 6 Hemd in Teamfarbe zur Tarnhose wirkt bunt, aber nötig für die Erkennbarkeit; rider_m/rider_r Ep. 6 (Soldier) ungenutzt
   - Ursprüngliche Aufgabe: Jede Linie von Zeitalter 0 bis 6 als Kontaktbogen prüfen und Brüche beheben:
   - Linien: Arbeiter, Keule/Speer, Schwert, Bogen → Armbrust → Muskete → Gewehr, Späher, Heiler, Reiterei, Belagerung, Schiffe, Flieger
   - Prüfen: gleicher Grundkörper, wachsende Ausrüstung, Waffe richtig gehalten, Blickrichtung, Größe, Teamfarbe erkennbar

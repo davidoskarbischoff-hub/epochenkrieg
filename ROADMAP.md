@@ -17,6 +17,8 @@
 - [x] Sounds: Geräusche (Axt, Spitzhacke, Rascheln im Busch, Schwert, Pfeil, Alarm, Fanfare), Knöpfe Musik/Ton, Tasten M und N
 - [x] Musik: klassische, gemeinfreie Stücke je Epoche (Satie, Pachelbel, Grieg)
 
+- [x] Krieger-Linien mit einem Grundkörper (Adventurer) durch alle Zeitalter, Teamfarbe ab Mittelalter, Brustpanzer/Stahlhelm als echte Modelle (`wear`)
+- [ ] Armbrust-Modell für den Armbrustschützen besorgen (trägt noch Bogen)
 ## Ideen für die nächsten Schritte
 Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortieren.
 
@@ -266,6 +268,9 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 ## Release 3 – Animationen (2026-10-13)
 - [x] Universal Animation Library wird beim Laden auf unsere Figuren übertragen (`ualFor` in gltfmodels.js, `UAL:Name` im Manifest): Sterben (Death01), Karren schieben (Push_Loop), kniend bauen (Fixing_Kneeling)
 - [x] Wikingerboot = Kriegsschiff, großes Segelschiff = Galeone
-- [ ] Weitere UAL-Bewegungen: Heiler (Spell_Simple), Sitzen für Reiter/Ruderer, Treffer-Reaktionen (Hit_Chest), Aufheben beim Pflücken
+- [x] Treffer-Reaktionen (Hit-Clips), Kampfhaltung je Waffe, Lauftempo an Geschwindigkeit gekoppelt, Lore mit sichtbarer Ladung und Schieber am Griff, Avatare Mittelalter/Neuzeit mit Teamfarbe
+- [ ] Weitere UAL-Bewegungen: Sitzen für Reiter/Ruderer, Aufheben beim Pflücken
+- [ ] Truppenlinien in Ep. 5/6 (Speer/Schwert/Bogen = gleiche Soldier-Figur) besser unterscheiden; Teamfarbe in Ep. 6 (Tarnfarbe) kaum sichtbar
+- [ ] Lore-Schieber: Hände noch leicht über den Holmen, eigenes Schiebe-Paket wäre besser
 - [ ] Bogenschießen und Axthieb von oben: nicht in UAL1 (evtl. UAL2)
 - [ ] Neue Gebäude (Bank, Krankenhaus, Laden, Häuser, Wohnblöcke): Texturdatei fehlt, deshalb noch nicht benutzt

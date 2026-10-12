@@ -52,3 +52,10 @@ Bekannte Grenzen (Release 3): Fischernetze, Galeere, Bohrturm/Raffinerie/Beton-H
 - Meeres-Fischmodelle an den Fischquellen sehr groß.
 - Arbeiter haben keine Teamfarbe am Modell (gegnerische Arbeiter schwer erkennbar).
 - Mittelalter-Schwertkämpfer (neu/Medieval.glb) hält das Schwert im Stand waagrecht nach vorn wie ein Gewehr.
+
+## Prüfung Commit a24133c – Krieger-Linien Adventurer (2026-10-12)
+- [x] Helm (Stahlhelm „Military man“) sass zu hoch/hinten, Haare ragten vorn heraus → `wear.pos` [-0.04,0.12,0.04], `scale` 1.4 (behoben).
+- [ ] (sollte) Nationen-Einheiten der Weltkriegszeit (alpini, rekrut, janit, bersag, doughboy = `Soldier.glb`; sturm, banzai = `Swat.glb`) und Ingenieur (`Worker.glb`, wirkt kleiner) nutzen nicht den Adventurer-Grundkörper → Bruch mit der einheitlichen Linie. Auf Adventurer + `wear` umstellen.
+- [ ] (sollte) Musketier Ep. 4 und Gewehrschütze Ep. 5 tragen dasselbe moderne Zielfernrohr-Gewehr wie Ep. 6 – keine erkennbare Waffenentwicklung, Muskete wirkt anachronistisch.
+- [ ] (schön wäre) Bogenreiter/Ritter Ep. 5: Reiter sitzt klein auf dem Pferd (Grössenverhältnis prüfen); Späher Ep. 6 auf Motorrad hat keinen Helm.
+- Geprüft ok: alle 63 gültigen Linien×Zeitalter laden (`EKMODELS.failed` leer), Teamfarbe blau/rot erkennbar, Waffen in rechter Hand, Blickrichtung im Kampf zum Gegner, Konsole ohne Fehler, ~250–280 Draw-Calls bei 12 Kämpfern.
