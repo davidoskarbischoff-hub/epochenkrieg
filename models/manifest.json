@@ -2441,6 +2441,18 @@
   },
   "cart": [
    {
+    "file": "archiv/cart.glb",
+    "epochs": [
+     0,
+     1,
+     2,
+     3,
+     4
+    ],
+    "len": 2.4,
+    "yaw": 90
+   },
+   {
     "file": "military/Truck.glb",
     "epochs": [
      5,
@@ -2448,6 +2460,58 @@
     ],
     "len": 3.2,
     "yaw": 90
+   }
+  ],
+  "ironclad": [
+   {
+    "file": "archiv/ship-ocean-liner-small.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "len": 9,
+    "yaw": 90,
+    "tintAll": "#5d6670"
+   }
+  ],
+  "howitzer": [
+   {
+    "file": "military/Light Tank.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "len": 3.6,
+    "yaw": 90,
+    "tint": {
+     "Yellow_LightTank": "#7a6a48",
+     "Green_LightTank": "#4f5236",
+     "GasTank_LightTank": "#5a5038"
+    }
+   }
+  ],
+  "skoda": [
+   {
+    "file": "military/Light Tank.glb",
+    "len": 4.2,
+    "yaw": 90,
+    "tint": {
+     "Yellow_LightTank": "#7a6a48",
+     "Green_LightTank": "#4f5236",
+     "GasTank_LightTank": "#5a5038"
+    }
+   }
+  ],
+  "bertha": [
+   {
+    "file": "military/Light Tank.glb",
+    "len": 4.2,
+    "yaw": 90,
+    "tint": {
+     "Yellow_LightTank": "#7a6a48",
+     "Green_LightTank": "#4f5236",
+     "GasTank_LightTank": "#5a5038"
+    }
    }
   ]
  },
@@ -2760,6 +2824,64 @@
      4
     ],
     "fit": 1.0
+   },
+   {
+    "file": "archiv/Large Building-sxXonOmtct.glb",
+    "epochs": [
+     5
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/dorf/Practice Dummy.glb",
+      "h": 1.6,
+      "x": 1.2,
+      "z": 1.0
+     },
+     {
+      "file": "archiv/dorf/Target.glb",
+      "h": 1.4,
+      "x": -1.2,
+      "z": 1.0
+     }
+    ]
+   },
+   {
+    "file": "archiv/Tent.glb",
+    "epochs": [
+     6
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Tent.glb",
+      "h": 2.6,
+      "x": -1.15,
+      "z": -0.5,
+      "ry": 90
+     },
+     {
+      "file": "archiv/Tent.glb",
+      "h": 2.6,
+      "x": 1.15,
+      "z": -0.5,
+      "ry": 90
+     },
+     {
+      "file": "military/Jeep.glb",
+      "h": 1.2,
+      "x": -1.0,
+      "z": 1.15,
+      "ry": 30
+     },
+     {
+      "file": "military/Truck.glb",
+      "h": 1.4,
+      "x": 1.05,
+      "z": 1.15,
+      "ry": -20
+     }
+    ]
    }
   ],
   "harbor": [
@@ -2793,6 +2915,22 @@
      4
     ],
     "fit": 1.0
+   },
+   {
+    "file": "archiv/Shipping Port-rDX8W8uqip.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/cargo-pile-a.glb",
+      "h": 1.2,
+      "x": -0.9,
+      "z": -0.8
+     }
+    ]
    }
   ],
   "castle": [

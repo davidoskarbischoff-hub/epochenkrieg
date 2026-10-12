@@ -65,10 +65,15 @@ Hilfsmittel:
 ## Funde aus Davids Test (2026-10-12)
 - [x] Keulenkrieger fiel in der Bronzezeit auf die alte Code-Figur zurück. Behoben: eigener Eintrag für Zeitalter 1. Außerdem nimmt `entryFor` bei Einheiten jetzt immer das nächstgelegene echte Modell.
 - [x] Selbst gebaute Steinzeit-/Bronzezeit-Gebäude (`js/eramodels.js`) entfernt. Stattdessen echte Modelle (Town Center mit Hirsch-Totem, Hütten, Shack, Encampment, Wachtürme, Steg) mit echtem Beiwerk (Lagerfeuer, Schädel, Heu, Fischgräten).
-- [ ] Restliche Code-Rückfälle laut `node tools/modell-luecken.js` mit echten Modellen schließen:
-  - Kanone, Haubitze, Panzerschiff, Skoda, Bertha
-  - Lore vor der Industriezeit
-  - Kaserne, Hafen und Turm in Zeitalter 5–6
-  - Mauer, Tor, Graben
-  - Bohrturm, Raffinerie, Flugplatz
+- [x] Code-Rückfälle geschlossen:
+  - Lore 0–4: Holzkarren
+  - Panzerschiff: grauer Dampfer
+  - Haubitze, Skoda, Bertha: Light Tank, oliv umgefärbt
+  - Kaserne 5: Backsteinbau mit Übungspuppe/Zielscheibe; Kaserne 6: Zeltlager mit Jeep und Lastwagen
+  - Hafen 5–6: Frachthafen
+- [ ] Noch Code-Rückfall:
+  - Kanone (Renaissance): kein passendes Modell vorhanden → David um ein Artillerie-/Kanonen-Paket bitten
+  - Turm 5–6 (Strang Türme)
+  - Mauer, Tor, Graben (Mauerlogik mit Drehung/Pfosten: eigene Runde)
+  - Bohrturm, Raffinerie, Flugplatz: keine passenden Modelle → David bitten (Ölförderung, Hangar)
 - [x] Fell-Umhang, Fellrock und Zahnkette (aus Formen gebaut, `cloth()`) an allen Figuren entfernt. Die Zeitalter unterscheiden sich jetzt über die Kleidungsfarben, Späher sind grün, Heiler hell.
