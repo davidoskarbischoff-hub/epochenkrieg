@@ -1,0 +1,27 @@
+<!doctype html><html><head><script type="importmap">{"imports":{"three":"/nm/three/build/three.module.js","three/addons/":"/nm/three/examples/jsm/"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';import {GLTFExporter} from 'three/addons/exporters/GLTFExporter.js';
+window.THREE=THREE;
+/* job: {src:'/repo/House_01_full.fbx', tex:{'house_texture_atlas.png':'/repo/x.png'}, flat:bool} */
+window.convert=async(job)=>{
+  const mgr=new THREE.LoadingManager();mgr.setURLModifier(u=>{const b=decodeURIComponent(u.split(/[\\/]/).pop()).toLowerCase().replace(/\.png\.\d+$/,'.png');return job.tex&&job.tex[b]?job.tex[b]:u});
+  const ld=new FBXLoader(mgr);const obj=await ld.loadAsync(job.src);
+  await new Promise(r=>{if(mgr.itemsLoaded>=mgr.itemsTotal)return r();mgr.onLoad=r;setTimeout(r,4000)});
+  const info={meshes:[],mats:[],anims:(obj.animations||[]).map(a=>a.name+':'+a.duration.toFixed(2)),bones:0};
+  obj.traverse(o=>{if(o.isBone)info.bones++;if(o.isMesh){info.meshes.push(o.name+(o.isSkinnedMesh?'(skin)':''));for(const m of[].concat(o.material)){if(!info.mats.includes(m.name))info.mats.push(m.name+(m.map?'(tex:'+(m.map.image?'ok':'missing')+')':'')+' #'+m.color.getHexString())}}});
+  /* Optionen: noflip = Textur nicht spiegeln, rotX = Drehung (Z-oben → Y-oben), dark = Farben waren doppelt in linear umgerechnet */
+  obj.traverse(o=>{if(o.isMesh)for(const m of[].concat(o.material)){if(m.map&&job.noflip){m.map.flipY=false;m.map.needsUpdate=true}if(job.dark&&m.color)m.color.convertLinearToSRGB()}});
+  /* rig: Figur mit Unreal-Skelett neu aufbauen + Animationen übertragen (retarget.js); nocol: Vertexfarben entfernen */
+  if(job.rig){const {rebuild}=await import('/repo/tools/fbx2glb/retarget.js');const r=await rebuild(obj,job);info.rig=r.info;return await finish(r.root,info,job)}
+  if(job.nocol)obj.traverse(o=>{if(o.isMesh&&o.geometry.attributes.color){o.geometry.deleteAttribute('color');for(const m of[].concat(o.material))m.vertexColors=false}});
+  if(job.rotX){const w=new THREE.Group();w.add(obj);obj.rotation.x=job.rotX*Math.PI/180;w.updateMatrixWorld(true);w.animations=obj.animations;return await finish(w,info,job)}
+  return await finish(obj,info,job)};
+async function finish(obj,info,job){
+  /* Phong → Standard, damit es im Spiel wie die anderen Modelle aussieht */
+  obj.traverse(o=>{if(o.isMesh){const cv=m=>{const n=new THREE.MeshStandardMaterial({name:m.name,color:m.color,map:m.map&&m.map.image?m.map:null,roughness:.85,metalness:0,transparent:m.transparent,opacity:m.opacity,alphaTest:m.alphaTest,side:m.side,vertexColors:m.vertexColors});return n};o.material=Array.isArray(o.material)?o.material.map(cv):cv(o.material)}});
+  const bb=new THREE.Box3().setFromObject(obj);info.size=bb.getSize(new THREE.Vector3()).toArray().map(v=>+v.toFixed(2));
+  const ex=new GLTFExporter();const buf=await ex.parseAsync(obj,{binary:true,animations:obj.animations||[],onlyVisible:true});
+  let s='';const u8=new Uint8Array(buf);for(let i=0;i<u8.length;i+=32768)s+=String.fromCharCode.apply(null,u8.subarray(i,i+32768));
+  return {info,b64:btoa(s)}}
+window.ready=true;
+</script></body></html>

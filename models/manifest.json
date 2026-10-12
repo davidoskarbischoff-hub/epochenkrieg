@@ -17,7 +17,6 @@
      "Black": "#9c6a48",
      "Gold": "#e8dcc0"
     },
-    "pelt": "#8a6338",
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
@@ -31,7 +30,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
     "human": true,
     "work": {
      "chop": {
@@ -123,20 +121,15 @@
       }
      },
      "fish": {
-      "clip": "Interact",
-      "tool": {
-       "file": "neu/Fishing Rod.glb",
-       "scale": 0.5,
-       "rot": [
-        -90,
-        0,
-        0
-       ],
-       "pos": [
-        0,
-        0,
-        0
-       ]
+      "clip": "Idle",
+      "net": {
+       "file": "props/Fishing Net by J-Toastie - Z11I3AUBO9.glb",
+       "len": 2.8,
+       "tint": {
+        "fishnet_main": "#7a5532",
+        "fisnhet_shade2": "#4a3420",
+        "fishnet_net": "#c8b48a"
+       }
       }
      }
     },
@@ -178,7 +171,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
     "human": true,
     "work": {
      "chop": {
@@ -270,20 +262,15 @@
       }
      },
      "fish": {
-      "clip": "Interact",
-      "tool": {
-       "file": "neu/Fishing Rod.glb",
-       "scale": 0.5,
-       "rot": [
-        -90,
-        0,
-        0
-       ],
-       "pos": [
-        0,
-        0,
-        0
-       ]
+      "clip": "Idle",
+      "net": {
+       "file": "props/Fishing Net by J-Toastie - Z11I3AUBO9.glb",
+       "len": 2.8,
+       "tint": {
+        "fishnet_main": "#7a5532",
+        "fisnhet_shade2": "#4a3420",
+        "fishnet_net": "#c8b48a"
+       }
       }
      }
     },
@@ -325,7 +312,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
     "human": true,
     "work": {
      "chop": {
@@ -417,20 +403,15 @@
       }
      },
      "fish": {
-      "clip": "Interact",
-      "tool": {
-       "file": "neu/Fishing Rod.glb",
-       "scale": 0.5,
-       "rot": [
-        -90,
-        0,
-        0
-       ],
-       "pos": [
-        0,
-        0,
-        0
-       ]
+      "clip": "Idle",
+      "net": {
+       "file": "props/Fishing Net by J-Toastie - Z11I3AUBO9.glb",
+       "len": 2.8,
+       "tint": {
+        "fishnet_main": "#6e4c2c",
+        "fisnhet_shade2": "#3e2c1c",
+        "fishnet_net": "#bfa97c"
+       }
       }
      }
     },
@@ -517,7 +498,7 @@
       "clip": "Sword_Slash",
       "tool": {
        "file": "neu/Scythe.glb",
-       "scale": 0.4,
+       "scale": 0.26,
        "rot": [
         -90,
         0,
@@ -534,7 +515,7 @@
       "clip": "Sword_Slash",
       "tool": {
        "file": "neu/Spear.glb",
-       "scale": 0.25,
+       "scale": 0.17,
        "rot": [
         -90,
         0,
@@ -548,22 +529,29 @@
       }
      },
      "fish": {
-      "clip": "Interact",
-      "tool": {
-       "file": "neu/Fishing Rod.glb",
-       "scale": 0.5,
-       "rot": [
-        -90,
-        0,
-        0
-       ],
-       "pos": [
-        0,
-        0,
-        0
-       ]
+      "clip": "Idle",
+      "net": {
+       "file": "props/Fishing Net by J-Toastie - Z11I3AUBO9.glb",
+       "len": 2.8,
+       "tint": {
+        "fishnet_main": "#8a6a44",
+        "fisnhet_shade2": "#3e2c1c",
+        "fishnet_net": "#b8a682"
+       }
       }
      }
+    },
+    "vary": [
+     "neu/Farmer.glb",
+     "people/peasant_1.glb",
+     "people/peasant_2.glb",
+     "people/peasant_3.glb",
+     "people/peasant_4.glb",
+     "people/peasant_5.glb",
+     "people/peasant_6.glb"
+    ],
+    "tint": {
+     "People_texture_map": "#d0c8c0"
     }
    },
    {
@@ -669,20 +657,15 @@
       }
      },
      "fish": {
-      "clip": "Interact",
-      "tool": {
-       "file": "neu/Fishing Rod.glb",
-       "scale": 0.5,
-       "rot": [
-        -90,
-        0,
-        0
-       ],
-       "pos": [
-        0,
-        0,
-        0
-       ]
+      "clip": "Idle",
+      "net": {
+       "file": "props/Fishing Net by J-Toastie - Z11I3AUBO9.glb",
+       "len": 2.8,
+       "tint": {
+        "fishnet_main": "#6f7378",
+        "fisnhet_shade2": "#2a2a2a",
+        "fishnet_net": "#3a4a3c"
+       }
       }
      }
     }
@@ -692,15 +675,14 @@
    {
     "file": "neu/Adventurer.glb",
     "tint": {
-     "Green": "#7a5634",
-     "LightGreen": "#93693f",
+     "Green": "#4f6b34",
+     "LightGreen": "#62803f",
      "Brown": "skin",
      "Brown2": "skin",
      "Grey": "skin",
      "Black": "#9c6a48",
      "Gold": "#e8dcc0"
     },
-    "pelt": "#8a6338",
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
@@ -714,9 +696,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#3d5a2e",
-    "tooth": true,
     "human": true,
     "hide": [
      "Backpack",
@@ -739,8 +718,8 @@
    {
     "file": "neu/Adventurer.glb",
     "tint": {
-     "Green": "#b9a27a",
-     "LightGreen": "#a08a62",
+     "Green": "#556f3a",
+     "LightGreen": "#6a8548",
      "Brown": "#6b4a2e",
      "Brown2": "#5a3c22",
      "Grey": "#7a5532",
@@ -760,8 +739,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#3d5a2e",
     "human": true,
     "hide": [
      "Backpack",
@@ -784,8 +761,8 @@
    {
     "file": "neu/Adventurer.glb",
     "tint": {
-     "Green": "#6f6a48",
-     "LightGreen": "#857e58",
+     "Green": "#4a5e36",
+     "LightGreen": "#5d7244",
      "Brown": "#5a4632",
      "Brown2": "#4a3a2a",
      "Grey": "#4a3a2a",
@@ -808,8 +785,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#3d5a2e",
     "human": true,
     "hide": [
      "Backpack",
@@ -844,8 +819,7 @@
      "Shield",
      "Gun",
      "Rifle"
-    ],
-    "cape": "#3d5a2e"
+    ]
    },
    {
     "file": "neu/Adventurer.glb",
@@ -866,22 +840,29 @@
      6
     ],
     "len": 2.6,
-    "yaw": 90
+    "yaw": 90,
+    "rider": {
+     "as": [
+      "rifle"
+     ],
+     "seat": 0.42,
+     "free": true,
+     "x": -0.15
+    }
    }
   ],
   "healer": [
    {
     "file": "neu/Adventurer.glb",
     "tint": {
-     "Green": "#7a5634",
-     "LightGreen": "#93693f",
+     "Green": "#d8cdb0",
+     "LightGreen": "#c9bd9c",
      "Brown": "skin",
      "Brown2": "skin",
      "Grey": "skin",
      "Black": "#9c6a48",
      "Gold": "#e8dcc0"
     },
-    "pelt": "#8a6338",
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
@@ -895,9 +876,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#e6e0cc",
-    "tooth": true,
     "human": true,
     "hide": [
      "Backpack",
@@ -920,8 +898,8 @@
    {
     "file": "neu/Adventurer.glb",
     "tint": {
-     "Green": "#b9a27a",
-     "LightGreen": "#a08a62",
+     "Green": "#e4dccb",
+     "LightGreen": "#d6ccb4",
      "Brown": "#6b4a2e",
      "Brown2": "#5a3c22",
      "Grey": "#7a5532",
@@ -941,8 +919,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#e6e0cc",
     "human": true,
     "hide": [
      "Backpack",
@@ -965,8 +941,8 @@
    {
     "file": "neu/Adventurer.glb",
     "tint": {
-     "Green": "#6f6a48",
-     "LightGreen": "#857e58",
+     "Green": "#ece6d6",
+     "LightGreen": "#dcd4c0",
      "Brown": "#5a4632",
      "Brown2": "#4a3a2a",
      "Grey": "#4a3a2a",
@@ -989,8 +965,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#e6e0cc",
     "human": true,
     "hide": [
      "Backpack",
@@ -1154,20 +1128,15 @@
      }
     },
     "fish": {
-     "clip": "Interact",
-     "tool": {
-      "file": "neu/Fishing Rod.glb",
-      "scale": 0.5,
-      "rot": [
-       -90,
-       0,
-       0
-      ],
-      "pos": [
-       0,
-       0,
-       0
-      ]
+     "clip": "Idle",
+     "net": {
+      "file": "props/Fishing Net by J-Toastie - Z11I3AUBO9.glb",
+      "len": 2.8,
+      "tint": {
+       "fishnet_main": "#6f7378",
+       "fisnhet_shade2": "#2a2a2a",
+       "fishnet_net": "#3a4a3c"
+      }
      }
     }
    }
@@ -1228,8 +1197,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#6b4a2b",
     "human": true,
     "hairs": [
      "#2a1a10",
@@ -1297,8 +1264,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#6b4a2b",
     "human": true,
     "hairs": [
      "#2a1a10",
@@ -1427,8 +1392,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#5a4a3a",
     "human": true,
     "hairs": [
      "#2a1a10",
@@ -1526,8 +1489,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#8a6a40",
     "human": true,
     "hairs": [
      "#2a1a10",
@@ -1581,8 +1542,6 @@
      "#a8734d",
      "#d49a72"
     ],
-    "belt": "#3b2a1a",
-    "cape": "#8a6a40",
     "human": true,
     "hairs": [
      "#2a1a10",
@@ -1864,63 +1823,114 @@
    },
    "scale": 0.5
   },
-  "club": {
-   "file": "neu/Adventurer.glb",
-   "tint": {
-    "Green": "#7a5634",
-    "LightGreen": "#93693f",
-    "Brown": "skin",
-    "Brown2": "skin",
-    "Grey": "skin",
-    "Black": "#9c6a48",
-    "Gold": "#e8dcc0"
-   },
-   "pelt": "#8a6338",
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Sword_Slash",
-    "work": "Interact"
-   },
-   "hand": {
-    "file": "neu/Wooden Torch.glb",
-    "scale": 0.45,
-    "rot": [
-     180,
-     0,
+  "club": [
+   {
+    "file": "neu/Adventurer.glb",
+    "tint": {
+     "Green": "#7a5634",
+     "LightGreen": "#93693f",
+     "Brown": "skin",
+     "Brown2": "skin",
+     "Grey": "skin",
+     "Black": "#9c6a48",
+     "Gold": "#e8dcc0"
+    },
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
+    },
+    "hand": {
+     "file": "neu/Wooden Torch.glb",
+     "scale": 0.45,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "human": true,
+    "epochs": [
      0
     ],
-    "pos": [
-     0,
-     0,
-     0
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
     ]
    },
-   "skins": [
-    "#e0ac85",
-    "#c68c63",
-    "#eab994",
-    "#a8734d",
-    "#d49a72"
-   ],
-   "belt": "#3b2a1a",
-   "cape": "#7a5a38",
-   "tooth": true,
-   "human": true,
-   "epochs": [
-    0
-   ],
-   "hairs": [
-    "#2a1a10",
-    "#4a2e18",
-    "#1c1410",
-    "#6b4a2a",
-    "#3a2414"
-   ],
-   "hide": [
-    "Backpack"
-   ]
-  },
+   {
+    "file": "neu/Adventurer.glb",
+    "tint": {
+     "Green": "#b9a27a",
+     "LightGreen": "#a08a62",
+     "Brown": "#6b4a2e",
+     "Brown2": "#5a3c22",
+     "Grey": "#7a5532",
+     "Black": "#3b2a1a",
+     "Gold": "#c08a3a"
+    },
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
+    },
+    "hand": {
+     "file": "neu/Wooden Torch.glb",
+     "scale": 0.45,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "human": true,
+    "epochs": [
+     1
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ]
+   }
+  ],
   "sling": {
    "file": "neu/Adventurer.glb",
    "tint": {
@@ -1932,7 +1942,6 @@
     "Black": "#9c6a48",
     "Gold": "#e8dcc0"
    },
-   "pelt": "#8a6338",
    "anim": {
     "idle": "Idle",
     "walk": "Walk",
@@ -1960,7 +1969,6 @@
     "#a8734d",
     "#d49a72"
    ],
-   "belt": "#3b2a1a",
    "human": true,
    "epochs": [
     0
@@ -1991,7 +1999,11 @@
      "as": "worker",
      "seat": 0.1,
      "free": true,
-     "x": -0.3
+     "x": -0.3,
+     "net": {
+      "turn": 90,
+      "pitch": 16
+     }
     }
    },
    {
@@ -2030,7 +2042,10 @@
   "catapult": {
    "file": "neu/siege-catapult.glb",
    "fit": "length",
-   "yaw": 0
+   "yaw": 0,
+   "tint": {
+    "colormap": "#9c8a78"
+   }
   },
   "plane": {
    "file": "neu/Aeroplane by Gilang Romadhan - 9VeIc0cybp4.glb",
@@ -2219,7 +2234,10 @@
   "ram": {
    "file": "neu/siege-ram.glb",
    "fit": "length",
-   "yaw": 0
+   "yaw": 0,
+   "tint": {
+    "colormap": "#9c8a78"
+   }
   },
   "knight": {
    "file": "neu/White Horse.glb",
@@ -2423,6 +2441,21 @@
   },
   "cart": [
    {
+    "file": "archiv/cart.glb",
+    "epochs": [
+     0,
+     1,
+     2,
+     3,
+     4
+    ],
+    "len": 2.4,
+    "yaw": 90,
+    "tint": {
+     "colormap": "#9c8a78"
+    }
+   },
+   {
     "file": "military/Truck.glb",
     "epochs": [
      5,
@@ -2431,10 +2464,125 @@
     "len": 3.2,
     "yaw": 90
    }
+  ],
+  "ironclad": [
+   {
+    "file": "archiv/ship-ocean-liner-small.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "len": 9,
+    "yaw": 90,
+    "tintAll": "#5d6670"
+   }
+  ],
+  "howitzer": [
+   {
+    "file": "military/Light Tank.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "len": 3.6,
+    "yaw": 90,
+    "tint": {
+     "Yellow_LightTank": "#7a6a48",
+     "Green_LightTank": "#4f5236",
+     "GasTank_LightTank": "#5a5038"
+    }
+   }
+  ],
+  "skoda": [
+   {
+    "file": "military/Light Tank.glb",
+    "len": 4.2,
+    "yaw": 90,
+    "tint": {
+     "Yellow_LightTank": "#7a6a48",
+     "Green_LightTank": "#4f5236",
+     "GasTank_LightTank": "#5a5038"
+    }
+   }
+  ],
+  "bertha": [
+   {
+    "file": "military/Light Tank.glb",
+    "len": 4.2,
+    "yaw": 90,
+    "tint": {
+     "Yellow_LightTank": "#7a6a48",
+     "Green_LightTank": "#4f5236",
+     "GasTank_LightTank": "#5a5038"
+    }
+   }
   ]
  },
  "buildings": {
   "hq": [
+   {
+    "file": "neu/Wooden house tower.glb",
+    "epochs": [
+     1
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Bonfire.glb",
+      "h": 0.8,
+      "x": 0.9,
+      "z": 1.05
+     },
+     {
+      "file": "archiv/Cooking Pot.glb",
+      "h": 0.5,
+      "x": -0.9,
+      "z": 1.05
+     }
+    ]
+   },
+   {
+    "file": "archiv/Town Center-76GTkSh4KM.glb",
+    "epochs": [
+     0
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "neu/Hut.glb",
+      "h": 2.6,
+      "x": -1.0,
+      "z": -0.75,
+      "ry": 20
+     },
+     {
+      "file": "archiv/Hut-4MJWbyd6vw.glb",
+      "h": 2.4,
+      "x": 1.0,
+      "z": -0.8,
+      "ry": -25
+     },
+     {
+      "file": "archiv/Bonfire.glb",
+      "h": 0.9,
+      "x": 0.55,
+      "z": 1.1
+     },
+     {
+      "file": "archiv/Skull.glb",
+      "h": 0.45,
+      "x": -0.55,
+      "z": 1.15,
+      "ry": 30
+     },
+     {
+      "file": "archiv/Hay.glb",
+      "h": 0.8,
+      "x": -1.15,
+      "z": 0.7
+     }
+    ]
+   },
    {
     "file": "neu/Tower House.glb",
     "epochs": [
@@ -2477,6 +2625,27 @@
       "x": -1.35,
       "z": -0.5,
       "ry": 90
+     },
+     {
+      "file": "people/king.glb",
+      "h": 2.5,
+      "x": 0.3,
+      "z": 1.18,
+      "anim": "Idle",
+      "tint": {
+       "People_texture_map": "#d0c8c0"
+      }
+     },
+     {
+      "file": "people/queen.glb",
+      "h": 2.4,
+      "x": 0.62,
+      "z": 1.13,
+      "ry": -15,
+      "anim": "Idle",
+      "tint": {
+       "People_texture_map": "#d0c8c0"
+      }
      }
     ]
    },
@@ -2485,10 +2654,69 @@
     "epochs": [
      4
     ],
-    "fit": 1.1
+    "fit": 1.1,
+    "props": [
+     {
+      "file": "people/king.glb",
+      "h": 2.5,
+      "x": -0.2,
+      "z": 1.25,
+      "anim": "Idle",
+      "tint": {
+       "People_texture_map": "#d0c8c0"
+      }
+     },
+     {
+      "file": "people/queen.glb",
+      "h": 2.4,
+      "x": 0.15,
+      "z": 1.25,
+      "ry": -15,
+      "anim": "Idle",
+      "tint": {
+       "People_texture_map": "#d0c8c0"
+      }
+     }
+    ]
    }
   ],
   "house": [
+   {
+    "file": "archiv/Hut-4MJWbyd6vw.glb",
+    "epochs": [
+     1
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Hay.glb",
+      "h": 0.7,
+      "x": 0.95,
+      "z": 0.8
+     }
+    ]
+   },
+   {
+    "file": "neu/Hut.glb",
+    "epochs": [
+     0
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Bonfire.glb",
+      "h": 0.6,
+      "x": 0.9,
+      "z": 0.85
+     },
+     {
+      "file": "archiv/Fish Bone.glb",
+      "h": 0.15,
+      "x": -0.8,
+      "z": 0.95
+     }
+    ]
+   },
    {
     "file": "neu/House-YlADpCJU8U.glb",
     "epochs": [
@@ -2521,6 +2749,41 @@
   ],
   "store": [
    {
+    "file": "neu/Storage Hut.glb",
+    "epochs": [
+     1
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "archiv/Shack.glb",
+    "epochs": [
+     0
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Hay.glb",
+      "h": 0.8,
+      "x": 1.0,
+      "z": 0.8
+     },
+     {
+      "file": "archiv/Hay.glb",
+      "h": 0.7,
+      "x": 0.75,
+      "z": 1.05,
+      "ry": 40
+     },
+     {
+      "file": "archiv/Fish Bone.glb",
+      "h": 0.15,
+      "x": -0.9,
+      "z": 0.95
+     }
+    ]
+   },
+   {
     "file": "neu/Storage shed-fkTsDdpQAA.glb",
     "epochs": [
      2
@@ -2545,6 +2808,40 @@
    }
   ],
   "barracks": [
+   {
+    "file": "neu/Wooden Fortress.glb",
+    "epochs": [
+     1
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Wooden Encampment.glb",
+    "epochs": [
+     0
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Bonfire.glb",
+      "h": 0.9,
+      "x": 0,
+      "z": 0
+     },
+     {
+      "file": "archiv/Skull.glb",
+      "h": 0.5,
+      "x": -0.35,
+      "z": 1.1
+     },
+     {
+      "file": "archiv/Skull-ExZmhOIjka.glb",
+      "h": 0.45,
+      "x": 0.4,
+      "z": 1.1
+     }
+    ]
+   },
    {
     "file": "arch/Colosseum.glb",
     "epochs": [
@@ -2574,9 +2871,83 @@
      4
     ],
     "fit": 1.0
+   },
+   {
+    "file": "archiv/Large Building-sxXonOmtct.glb",
+    "epochs": [
+     5
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/dorf/Practice Dummy.glb",
+      "h": 1.6,
+      "x": 1.2,
+      "z": 1.0
+     },
+     {
+      "file": "archiv/dorf/Target.glb",
+      "h": 1.4,
+      "x": -1.2,
+      "z": 1.0
+     }
+    ]
+   },
+   {
+    "file": "archiv/Tent.glb",
+    "epochs": [
+     6
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Tent.glb",
+      "h": 2.6,
+      "x": -1.15,
+      "z": -0.5,
+      "ry": 90
+     },
+     {
+      "file": "archiv/Tent.glb",
+      "h": 2.6,
+      "x": 1.15,
+      "z": -0.5,
+      "ry": 90
+     },
+     {
+      "file": "military/Jeep.glb",
+      "h": 1.2,
+      "x": -1.0,
+      "z": 1.15,
+      "ry": 30
+     },
+     {
+      "file": "military/Truck.glb",
+      "h": 1.4,
+      "x": 1.05,
+      "z": 1.15,
+      "ry": -20
+     }
+    ]
    }
   ],
   "harbor": [
+   {
+    "file": "neu/Dock Wide.glb",
+    "epochs": [
+     0,
+     1
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Fish Bone.glb",
+      "h": 0.15,
+      "x": 0.4,
+      "z": 0.3
+     }
+    ]
+   },
    {
     "file": "neu/Port.glb",
     "epochs": [
@@ -2591,6 +2962,22 @@
      4
     ],
     "fit": 1.0
+   },
+   {
+    "file": "archiv/Shipping Port-rDX8W8uqip.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/cargo-pile-a.glb",
+      "h": 1.2,
+      "x": -0.9,
+      "z": -0.8
+     }
+    ]
    }
   ],
   "castle": [
@@ -2663,7 +3050,31 @@
      3,
      4
     ],
-    "fit": 1.0
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "people/rich_citizens_2.glb",
+      "h": 2.4,
+      "x": 0.5,
+      "z": 1.15,
+      "ry": -30,
+      "anim": "Idle",
+      "tint": {
+       "People_texture_map": "#d0c8c0"
+      }
+     },
+     {
+      "file": "people/rich_citizens_1.glb",
+      "h": 2.45,
+      "x": 0.85,
+      "z": 0.95,
+      "ry": -60,
+      "anim": "Idle",
+      "tint": {
+       "People_texture_map": "#d0c8c0"
+      }
+     }
+    ]
    },
    {
     "file": "neu/Market Stalls.glb",
@@ -2687,6 +3098,28 @@
    {
     "file": "neu/Watch Tower-VJZZW37Vsk.glb",
     "epochs": [
+     1
+    ],
+    "fit": 1.0
+   },
+   {
+    "file": "neu/Watch Tower.glb",
+    "epochs": [
+     0
+    ],
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Skull.glb",
+      "h": 0.5,
+      "x": 0.9,
+      "z": 0.9
+     }
+    ]
+   },
+   {
+    "file": "neu/Watch Tower-VJZZW37Vsk.glb",
+    "epochs": [
      2
     ],
     "fit": 1.0
@@ -2695,8 +3128,197 @@
     "file": "neu/Stone Tower.glb",
     "epochs": [
      3,
-     4
+     4,
+     5,
+     6
     ],
+    "fit": 1.0
+   },
+   {
+    "file": "towers/ballista_1.glb",
+    "epochs": [
+     2
+    ],
+    "spec": "def",
+    "fit": 1.0,
+    "pal": {
+     "#ffebd3": "#a49a86",
+     "#fff1c9": "#b3a993",
+     "#92929b": "#8a8478",
+     "#727272": "#7f786c",
+     "#6c6e7c": "#665f56",
+     "#527654": "team",
+     "#3e5b40": "#544f4a"
+    },
+    "flag": {
+     "x": 0.5,
+     "z": 0.2,
+     "y": 0.78,
+     "h": 1.3
+    }
+   },
+   {
+    "file": "towers/ballista_2.glb",
+    "epochs": [
+     3
+    ],
+    "spec": "def",
+    "fit": 1.0,
+    "pal": {
+     "#ffebd3": "#a49a86",
+     "#fff1c9": "#b3a993",
+     "#92929b": "#8a8478",
+     "#727272": "#7f786c",
+     "#6c6e7c": "#665f56",
+     "#527654": "team",
+     "#3e5b40": "#544f4a"
+    },
+    "flag": {
+     "x": 0.5,
+     "z": 0.2,
+     "y": 0.78,
+     "h": 1.3
+    }
+   },
+   {
+    "file": "neu/Watch Tower.glb",
+    "epochs": [
+     0
+    ],
+    "spec": "def",
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Wooden Wall-L0TxLurnES.glb",
+      "h": 1.3,
+      "x": 0,
+      "z": 1.15,
+      "ry": 0
+     },
+     {
+      "file": "archiv/Wooden Wall-L0TxLurnES.glb",
+      "h": 1.3,
+      "x": 0,
+      "z": -1.15,
+      "ry": 0
+     },
+     {
+      "file": "archiv/Wooden Wall-L0TxLurnES.glb",
+      "h": 1.3,
+      "x": 1.15,
+      "z": 0,
+      "ry": 90
+     },
+     {
+      "file": "archiv/Wooden Wall-L0TxLurnES.glb",
+      "h": 1.3,
+      "x": -1.15,
+      "z": 0,
+      "ry": 90
+     }
+    ]
+   },
+   {
+    "file": "neu/Watch Tower-VJZZW37Vsk.glb",
+    "epochs": [
+     1
+    ],
+    "spec": "def",
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Wooden Wall-L0TxLurnES.glb",
+      "h": 1.3,
+      "x": 0,
+      "z": 1.15,
+      "ry": 0
+     },
+     {
+      "file": "archiv/Wooden Wall-L0TxLurnES.glb",
+      "h": 1.3,
+      "x": 0,
+      "z": -1.15,
+      "ry": 0
+     },
+     {
+      "file": "archiv/Wooden Wall-L0TxLurnES.glb",
+      "h": 1.3,
+      "x": 1.15,
+      "z": 0,
+      "ry": 90
+     },
+     {
+      "file": "archiv/Wooden Wall-L0TxLurnES.glb",
+      "h": 1.3,
+      "x": -1.15,
+      "z": 0,
+      "ry": 90
+     }
+    ]
+   },
+   {
+    "file": "neu/Watch Tower.glb",
+    "epochs": [
+     0
+    ],
+    "spec": "obs",
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Hot air balloon by Poly by Google - 7Fej0Jd3_Di.glb",
+      "h": 3.2,
+      "x": 0,
+      "z": 0,
+      "y": 1.25
+     }
+    ]
+   },
+   {
+    "file": "neu/Watch Tower-VJZZW37Vsk.glb",
+    "epochs": [
+     1,
+     2
+    ],
+    "spec": "obs",
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Hot air balloon by Poly by Google - 7Fej0Jd3_Di.glb",
+      "h": 3.2,
+      "x": 0,
+      "z": 0,
+      "y": 1.25
+     }
+    ]
+   },
+   {
+    "file": "neu/Stone Tower.glb",
+    "epochs": [
+     3,
+     4,
+     5,
+     6
+    ],
+    "spec": "obs",
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "archiv/Hot air balloon by Poly by Google - 7Fej0Jd3_Di.glb",
+      "h": 3.2,
+      "x": 0,
+      "z": 0,
+      "y": 1.25
+     }
+    ]
+   },
+   {
+    "file": "archiv/Watch Tower-cMxuj2gt7D.glb",
+    "epochs": [
+     4,
+     5,
+     6
+    ],
+    "spec": "def",
     "fit": 1.0
    }
   ]
@@ -2806,19 +3428,462 @@
   }
  },
  "nodes": {
+  "_info": "Natur (Quaternius-Natur-Paket in models/nature): je Schlüssel eine Liste von Varianten. k = fester Massstab (Modell-Einheiten → Spiel), height = Höhe, sonst Höhe des Code-Modells; colors färbt einzelne Materialien um. broad = Laubbäume, birch = Birkenhaine, willow = Weiden am Wasser, autumn = Herbst-Farbtupfer, bush = Beerenstrauch, bushE = abgeernteter Strauch, stump = Baumstumpf nach dem Fällen, wheat = Getreide auf dem Feld (rows = Reihen [z, x von, x bis] im Feld-Modell „for“), alpine/snowy = Deko auf Bergen unter/über der Schneegrenze.",
   "pine": {
    "file": "neu/Pine.glb",
    "scale": 1.35
   },
-  "broad": {
-   "file": "neu/dorf/Tree-t9KbsfYdXz.glb",
-   "scale": 1.35
+  "broad": [
+   {
+    "file": "nature/CommonTree_1.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#4a7f31",
+     "DarkGreen": "#36632c",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/CommonTree_2.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#4a7f31",
+     "DarkGreen": "#36632c",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/CommonTree_3.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#4a7f31",
+     "DarkGreen": "#36632c",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/CommonTree_4.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#4a7f31",
+     "DarkGreen": "#36632c",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/CommonTree_5.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#4a7f31",
+     "DarkGreen": "#36632c",
+     "Wood": "#6b4630"
+    }
+   }
+  ],
+  "birch": [
+   {
+    "file": "nature/BirchTree_1.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#5a9238",
+     "DarkGreen": "#40722f",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    }
+   },
+   {
+    "file": "nature/BirchTree_2.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#5a9238",
+     "DarkGreen": "#40722f",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    }
+   },
+   {
+    "file": "nature/BirchTree_3.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#5a9238",
+     "DarkGreen": "#40722f",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    }
+   },
+   {
+    "file": "nature/BirchTree_4.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#5a9238",
+     "DarkGreen": "#40722f",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    }
+   },
+   {
+    "file": "nature/BirchTree_5.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#5a9238",
+     "DarkGreen": "#40722f",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    }
+   }
+  ],
+  "willow": [
+   {
+    "file": "nature/Willow_1.glb",
+    "k": 0.025,
+    "colors": {
+     "DarkGreen": "#447a33",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/Willow_2.glb",
+    "k": 0.025,
+    "colors": {
+     "DarkGreen": "#447a33",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/Willow_3.glb",
+    "k": 0.025,
+    "colors": {
+     "DarkGreen": "#447a33",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/Willow_4.glb",
+    "k": 0.025,
+    "colors": {
+     "DarkGreen": "#447a33",
+     "Wood": "#6b4630"
+    }
+   },
+   {
+    "file": "nature/Willow_5.glb",
+    "k": 0.025,
+    "colors": {
+     "DarkGreen": "#447a33",
+     "Wood": "#6b4630"
+    }
+   }
+  ],
+  "autumn": [
+   {
+    "file": "nature/CommonTree_Autumn_1.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#cf5f26",
+     "LightOrange": "#e6a33a",
+     "Wood": "#6b4630",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "LightWood": "#8a5a3a"
+    }
+   },
+   {
+    "file": "nature/CommonTree_Autumn_2.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#cf5f26",
+     "LightOrange": "#e6a33a",
+     "Wood": "#6b4630",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "LightWood": "#8a5a3a"
+    }
+   },
+   {
+    "file": "nature/CommonTree_Autumn_4.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#cf5f26",
+     "LightOrange": "#e6a33a",
+     "Wood": "#6b4630",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "LightWood": "#8a5a3a"
+    }
+   },
+   {
+    "file": "nature/BirchTree_Autumn_2.glb",
+    "k": 0.02,
+    "colors": {
+     "Orange": "#cf5f26",
+     "LightOrange": "#e6a33a",
+     "Wood": "#6b4630",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "LightWood": "#8a5a3a"
+    }
+   },
+   {
+    "file": "nature/BirchTree_Autumn_3.glb",
+    "k": 0.02,
+    "colors": {
+     "Orange": "#cf5f26",
+     "LightOrange": "#e6a33a",
+     "Wood": "#6b4630",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "LightWood": "#8a5a3a"
+    }
+   }
+  ],
+  "bush": [
+   {
+    "file": "nature/BushBerries_1.glb",
+    "k": 0.014,
+    "colors": {
+     "Green": "#4a7f31",
+     "Berry": "#d81f30"
+    }
+   },
+   {
+    "file": "nature/BushBerries_2.glb",
+    "k": 0.014,
+    "colors": {
+     "Green": "#4a7f31",
+     "Berry": "#d81f30"
+    }
+   }
+  ],
+  "bushE": [
+   {
+    "file": "nature/Bush_1.glb",
+    "k": 0.013,
+    "colors": {
+     "Green": "#55863a"
+    }
+   },
+   {
+    "file": "nature/Bush_2.glb",
+    "k": 0.013,
+    "colors": {
+     "Green": "#55863a"
+    }
+   }
+  ],
+  "stump": [
+   {
+    "file": "nature/TreeStump.glb",
+    "k": 0.0095,
+    "colors": {
+     "Wood": "#6b4630",
+     "LightWood": "#c49a66",
+     "Green": "#4f8c34"
+    }
+   }
+  ],
+  "wheat": {
+   "file": "nature/Wheat.glb",
+   "k": 0.011,
+   "for": "neu/Farm-91wMLb9kKo.glb",
+   "y": 0.015,
+   "step": 0.06,
+   "rows": [
+    [
+     -0.295,
+     0.0,
+     0.42
+    ],
+    [
+     -0.145,
+     0.0,
+     0.42
+    ],
+    [
+     0.03,
+     -0.34,
+     0.42
+    ],
+    [
+     0.19,
+     -0.34,
+     0.42
+    ],
+    [
+     0.365,
+     -0.34,
+     0.42
+    ]
+   ],
+   "colors": {
+    "Yellow": "#dcb64c"
+   }
   },
-  "bush": {
-   "file": "neu/Bush.glb",
-   "tint": "#5a9a42",
-   "scale": 0.9
-  },
+  "alpine": [
+   {
+    "file": "neu/Pine.glb",
+    "k": 0.6,
+    "w": 3
+   },
+   {
+    "file": "neu/Pine.glb",
+    "k": 0.5,
+    "w": 3
+   },
+   {
+    "file": "nature/CommonTree_Dead_2.glb",
+    "k": 0.021,
+    "colors": {
+     "Wood": "#6b4a36",
+     "White": "#ddd8cc",
+     "Black": "#3a3631"
+    },
+    "w": 1
+   },
+   {
+    "file": "nature/CommonTree_Dead_4.glb",
+    "k": 0.021,
+    "colors": {
+     "Wood": "#6b4a36",
+     "White": "#ddd8cc",
+     "Black": "#3a3631"
+    },
+    "w": 1
+   },
+   {
+    "file": "nature/BirchTree_Dead_2.glb",
+    "k": 0.021,
+    "colors": {
+     "Wood": "#6b4a36",
+     "White": "#ddd8cc",
+     "Black": "#3a3631"
+    },
+    "w": 1
+   },
+   {
+    "file": "neu/Rock Medium.glb",
+    "k": 0.8,
+    "w": 2
+   },
+   {
+    "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
+    "k": 0.75,
+    "w": 2
+   }
+  ],
+  "snowy": [
+   {
+    "file": "nature/CommonTree_Dead_Snow_1.glb",
+    "k": 0.021,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 1
+   },
+   {
+    "file": "nature/CommonTree_Dead_Snow_2.glb",
+    "k": 0.021,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 1
+   },
+   {
+    "file": "nature/CommonTree_Dead_Snow_3.glb",
+    "k": 0.021,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 1
+   },
+   {
+    "file": "nature/BirchTree_Dead_Snow_2.glb",
+    "k": 0.021,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 1
+   },
+   {
+    "file": "nature/CommonTree_Snow_3.glb",
+    "k": 0.021,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 2
+   },
+   {
+    "file": "nature/Rock_Snow_7.glb",
+    "k": 0.026,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 3
+   },
+   {
+    "file": "nature/Rock_Snow_7.glb",
+    "k": 0.02,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 3
+   },
+   {
+    "file": "nature/Bush_Snow_1.glb",
+    "k": 0.014,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "w": 2
+   }
+  ],
   "stone": [
    {
     "file": "neu/Rock Medium.glb",

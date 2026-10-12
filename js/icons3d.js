@@ -9,7 +9,7 @@ const ICON3=(()=>{
       cam=new THREE.PerspectiveCamera(28,1,.1,200)}catch(e){rd=null;return false}
     return true}
   function shot(g,dir,focus){
-    scene.add(g);g.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(g),c=bb.getCenter(new THREE.Vector3()),sz=bb.getSize(new THREE.Vector3());let R=Math.max(sz.x,sz.y,sz.z)*.62+.01;
+    scene.add(g);g.updateMatrixWorld(true);const bb=new THREE.Box3();g.traverse(o=>{if(o.isMesh){let v=true;for(let p=o;p;p=p.parent)if(!p.visible){v=false;break}if(v)bb.expandByObject(o)}}) /* nur Sichtbares (z. B. ohne verstecktes Fischernetz) */;const c=bb.getCenter(new THREE.Vector3()),sz=bb.getSize(new THREE.Vector3());let R=Math.max(sz.x,sz.y,sz.z)*.62+.01;
     if(focus){c.y=bb.max.y-sz.y*focus*.5;R=sz.y*focus*.62+.01}
     const dist=R/Math.tan(cam.fov*Math.PI/360);const v=(dir||new THREE.Vector3(1,.85,1.25)).clone().normalize();cam.position.copy(c).addScaledVector(v,dist);cam.lookAt(c);cam.updateProjectionMatrix();
     rd.render(scene,cam);const url=rd.domElement.toDataURL('image/png');scene.remove(g);
