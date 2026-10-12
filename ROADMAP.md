@@ -79,6 +79,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Brücken über tiefes Wasser
 - [x] Mehrspieler für zwei Spieler: Lobby mit Einladungslink, Kartenwahl, Seitenwahl; Gastgeber rechnet, Gast schickt Befehle (WebRTC über PeerJS, oder zwei Tabs lokal)
 - [x] Vier Karten: Küste und Landzunge, Festland, Bergland (Berge, Klippen, Hafen nur an Lücken), Große Bucht; Auswahl auch im Einzelspiel
+- [x] Mehrspieler-Fehler behoben: Gast-Aufstieg stufte dessen Einheiten wie bei der KI sofort hoch und schenkte alle Technologien („Alle upgraden“ beim Gast wirkungslos); Gast konnte keine Mine setzen (Gastgeber prüfte Erze gegen seinen eigenen Nebel)
 - [ ] Mehrspieler weiter ausbauen: Reconnect, Chat, Bereit-Knopf, Zuschauer, Spiel pausieren, 3–4 Spieler, Team-Farben wählbar, Sound-Events beim Gast
 - [ ] Mehrspieler: Berater und Pause im Mehrspieler; verzögerungsfreie Vorhersage für den Gast
 - [ ] Karten: Höhenstufen (Plateaus mit Rampen), Brücken, Karte-Zufallsauswahl, mehr Kartenarten

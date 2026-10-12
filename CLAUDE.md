@@ -166,3 +166,4 @@ Idee für später: echte Nachbearbeitung (SSAO, Bloom mit Render-Target) braucht
 - Pferde (knight/hbow) `height` 2,45 statt 2,9 → Reiter wirken so gross wie Fussvolk. Segelboot/Kutter haben einen Fischer (`rider` mit `net`, `scale` .73).
 - Nationen-Einheiten Ep. 6 und Ingenieur = `neu/Adventurer.glb` mit Nationsfarben (Hose/Ausrüstung), Hemd = Teamfarbe; Helm je Nation getönt bzw. ohne Helm (k.u.k., Zarenreich, Japan).
 - Ufer-Fischen: `shoreOf(n)`/`SHORE_R`/`SHORE_RATE` (sim.js): Arbeiter fischen kleine Schwärme (`fish`, ohne `lvl`), wenn trockenes Land ≤ 60 px entfernt ist; halbe Rate; `seaOk` in `nearestNode`, Rechtsklick in `command` (Mehrspieler über denselben `cmd`).
+- Mehrspieler-Korrektur: KI-Freigaben beim Aufstieg (`applyLevels`/`grantAiTechs` für Team 1) nur ohne `G.mp`; `nodeKnown` gilt bei `NET.trust` (Gast-Befehle) immer, weil der Gastgeber nur seinen eigenen Nebel kennt; `flipTeams` tauscht auch `G.sfx`.

@@ -7,7 +7,7 @@
    Code wie im Einzelspiel. */
 function flipTeams(){
   for(const e of G.ents)if(e.team>=0)e.team=1-e.team;
-  for(const k of ['res','epoch','adv','tech','rs','tfx','pop','cap','jobs','nation','nfx']){const a=G[k];[a[0],a[1]]=[a[1],a[0]]}
+  for(const k of ['res','epoch','adv','tech','rs','tfx','pop','cap','jobs','nation','nfx','sfx']){const a=G[k];if(a)[a[0],a[1]]=[a[1],a[0]]}
   const st=G.stats;[st.lost[0],st.lost[1]]=[st.lost[1],st.lost[0]];[st.trained[0],st.trained[1]]=[st.trained[1],st.trained[0]];
   for(const js of G.jobs)for(const j of js)j.team=1-j.team;
   if(G.over)G.over=G.over==='win'?'lose':'win'}

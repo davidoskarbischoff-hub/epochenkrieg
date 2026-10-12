@@ -13,7 +13,7 @@ function fogReset(){fogEx=new Uint8Array(FW*FH);fogVis=new Uint8Array(FW*FH);vis
 const fogIdx=(x,y)=>Math.max(0,Math.min(FH-1,y/FC|0))*FW+Math.max(0,Math.min(FW-1,x/FC|0));
 /* Erze, Gold und Öl sieht man erst, wenn das Gebiet erkundet wurde (Nebel des Krieges); Bäume und Büsche sieht man immer */
 const HIDDEN_NODES=new Set(['stone','iron','gold','oil']);
-function nodeKnown(e){return !HIDDEN_NODES.has(e.type)||!fogEx||fogEx[fogIdx(e.x,e.y)]===1}
+function nodeKnown(e){return NET.trust||!HIDDEN_NODES.has(e.type)||!fogEx||fogEx[fogIdx(e.x,e.y)]===1}
 function sightOf(e){return e.kind==='unit'?UNITS[e.type].sight:e.built?BLDS[e.type].sight*(e.spec==='obs'?2:1)*(1.2+.05*(G.epoch[e.team]||0)):50}
 /* Gebiet: jedes fertige Gebäude beansprucht einen Kreis; bei Überschneidung gewinnt das nähere Gebäude */
 const ss=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t)};
