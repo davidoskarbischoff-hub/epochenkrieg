@@ -67,6 +67,38 @@ const EKMODELS=(()=>{
     let hh=null;if(en.hand)hh=attach(root,findBone(root,/hand\.?r|wrist\.?r/i),en.hand,k);wrap.userData.handHolder=hh;
     if(en.left)attach(root,findBone(root,/hand\.?l|wrist\.?l/i),en.left,k);
     if(en.pelt||en.cape||en.tooth)cloth(root,en,k,id);}
+  /* Fischernetz (work.<art>.net = {file,len,tint,grip,hands,pitch,yaw,bend,twist,cycle}): hängt nicht an der Hand, sondern vor der Figur
+     (Halter im Figurenraum: vorn +X, oben +Y, rechts +Z). Im Modell liegt der Stiel entlang −Z mit dem Netz am −Z-Ende → nach +X gedreht,
+     Griffende am Halter, Gesamtlänge len. Beide Hände greifen per IK an den Stiel (netPose), Finger zur Faust (erstes Bild eines Punch-Clips). */
+  function netRig(rig,root,wrap,s,id,cl){
+    const gl=files.get(s.file);if(!gl)return null;const p=EKGLTF.SkeletonUtils.clone(gl.scene);prepare(p,0);
+    if(s.tint)p.traverse(o=>{if(!o.isMesh)return;const f=m=>{const c=s.tint[m.name];if(!c)return m;const n=m.clone();n.color.set(c);n.metalness=0;n.roughness=.85;n.name=m.name;return n};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)});
+    const D=Math.PI/180,r=s.rot||[0,-90,0],inner=new THREE.Group();p.rotation.set(r[0]*D,r[1]*D,r[2]*D);inner.add(p);
+    let b=box(inner);p.scale.multiplyScalar((s.len||2.8)/((b.max.x-b.min.x)||1));b=box(inner);p.position.x-=b.min.x;
+    const h=new THREE.Group();h.rotation.order='YXZ';h.add(inner);wrap.add(h);
+    const B=(n,sd)=>findBone(root,new RegExp('^('+n+')[._]?'+sd+'$','i'));
+    const arms=['R','L'].map(sd=>[B('UpperArm|Upperarm|upper_arm',sd),B('LowerArm|Lowerarm|forearm',sd),B('Wrist|Hand',sd)]);/* je Arm: Ober-, Unterarm, Handgelenk */
+    const fc=cl&&pickClip(cl,[s.fist],/punch/i),fist=[];if(fc)for(const tk of fc.tracks){const m=/^(.+)\.quaternion$/.exec(tk.name),b=m&&/^(index|middle|ring|pinky|thumb)\d/i.test(m[1])&&root.getObjectByName(m[1]);if(b&&b.isBone)fist.push([b,new THREE.Quaternion().fromArray(tk.values,0)])}
+    rig.net={h,s,t:0,ph:(id%7)*1.13,bend:0,chest:findBone(root,/^(chest|spine_?03|spine\.?003|spine2)$/i),arms,fist};netPose(rig,0,1);return h}
+  /* Zwei-Knochen-IK in Weltkoordinaten: Knochen so drehen, dass der Kindpunkt zum Ziel zeigt; Ellbogen Richtung „pole“ */
+  const V=[...Array(12)].map(()=>new THREE.Vector3()),Q=[0,1,2,3].map(()=>new THREE.Quaternion());
+  function turnW(b,q){b.parent.getWorldQuaternion(Q[1]);Q[2].copy(Q[1]).invert();b.quaternion.premultiply(q.premultiply(Q[2]).multiply(Q[1]))}/* Drehung q (Welt) auf Knochen b */
+  function aimBone(b,child,to){const P=b.getWorldPosition(V[0]),C=child.getWorldPosition(V[1]);turnW(b,Q[0].setFromUnitVectors(C.sub(P).normalize(),V[2].copy(to).sub(P).normalize()))}
+  function ik2(U,L,H,T,pole,off){const S=U.getWorldPosition(V[3]),a=S.distanceTo(L.getWorldPosition(V[4])),b=V[4].distanceTo(H.getWorldPosition(V[5])),n=V[6].copy(T).sub(S);
+    let d=n.length();n.divideScalar(d||1);d=Math.min(Math.max(d-off,Math.abs(a-b)+1e-3),(a+b)*.999);const x=(a*a-b*b+d*d)/(2*d),hh=Math.sqrt(Math.max(0,a*a-x*x));
+    const m=V[7].copy(pole).addScaledVector(n,-pole.dot(n)).normalize(),E=V[8].copy(S).addScaledVector(n,x).addScaledVector(m,hh),Tc=V[9].copy(S).addScaledVector(n,d);
+    aimBone(U,L,E);aimBone(L,H,Tc)}
+  /* Fischen mit dem Netz: Netz vorn-unten ins Wasser halten, langsam hin und her schwenken und eintauchen, alle paar Sekunden herausheben (Fang ansehen);
+     Oberkörper gebeugt (rig.bend) und zum Stiel gedreht, Hände am Stiel. only = nur den Halter stellen (beim Bauen der Figur) */
+  function netPose(rig,dt,only){const N=rig.net,s=N.s,h=N.h,t=(N.t+=dt)+N.ph,cy=s.cycle||7,c=t%cy,up=c>cy-1.8?Math.sin((c-cy+1.8)/1.8*Math.PI):0,D=Math.PI/180,g=s.grip||[.3,1.5,.08],sw=Math.sin(t*.8)*(1-.6*up),dip=Math.sin(t*1.4);
+    h.position.set(g[0]-.1*up,g[1]+.1*up+.04*dip,g[2]+.06*sw);h.rotation.set(0,(s.yaw||0)*D+.25*sw,-((s.pitch||45)*D+.07*dip)*(1-up)+.3*up);N.bend=(s.bend||.5)*(1-.6*up);if(only)return;
+    /* Mixer schreibt Knochen nur bei geänderten Werten → Ausgangslage merken und vor dem nächsten Mixer-Schritt zurücksetzen (sonst addieren sich die Drehungen) */
+    if(!N.sv)N.sv=[N.chest,...N.arms.flat(),...N.fist.map(f=>f[0])].filter(Boolean).map(b=>[b,new THREE.Quaternion()]);N.sv.forEach(([b,q])=>q.copy(b.quaternion));N.on=1;
+    const wq=h.parent.getWorldQuaternion(Q[3]),hs=s.hands||[.06,.28];
+    if(N.chest)turnW(N.chest,Q[0].setFromAxisAngle(V[0].set(0,1,0).applyQuaternion(wq),-(s.twist||.35)+.12*sw));
+    h.updateWorldMatrix(true,false);
+    N.fist.forEach(([b,q])=>b.quaternion.copy(q));N.arms.forEach(([U,L,H],i)=>{if(!U||!L||!H)return;const T=h.localToWorld(V[10].set(hs[i],0,0));
+      ik2(U,L,H,T,V[11].set(i?0:-.4,-1,i?-.7:.7).applyQuaternion(wq),s.palm||.06)})}
   /* Steinzeit-Kleidung aus Formen mit Fell-/Lederstruktur: Hüftrock mit Zipfeln, Gürtel, Fellumhang, Haare, Zahnkette */
   function cloth(root,en,k,id){
     root.updateMatrixWorld(true);
@@ -139,11 +171,11 @@ const EKMODELS=(()=>{
         for(const n in map)if(map[n])rig.acts[n]=rig.mixer.clipAction(map[n]);
         if(en.work){rig.wtools={};const hb=findBone(root,/hand\.?r|wrist\.?r/i);rig.hand=wrap.userData.handHolder||null;
           for(const kd in en.work){const w=en.work[kd],c=pickClip(cl,[w.clip],/work|interact/i);if(c)rig.acts['w:'+kd]=rig.mixer.clipAction(c);
-            if(w.tool&&hb){const h=attach(root,hb,w.tool,k);if(h){h.visible=false;rig.wtools[kd]=h}}}}
+            const h=w.net?netRig(rig,root,wrap,w.net,u.id||0,cl):w.tool&&hb?attach(root,hb,w.tool,k):null;if(h){h.visible=false;rig.wtools[kd]=h}}}
         const first=rig.acts.idle||rig.acts.walk;if(first){first.play();rig.cur=first===rig.acts.idle?'idle':'walk'}}
       /* Reiter: Pferd + Figur einer anderen Truppenlinie (rider.as) im selben Zeitalter, sitzt auf dem Rücken */
       if(en.rider){let rr=null;for(const as of[].concat(en.rider.as)){if(entryFor('unit',as,u.lvl||0)){rr=makeUnit(Object.assign({},u,{type:as}),origMake,'unit');break}}if(rr){
-        /* sitzen: Oberschenkel nach vorn und leicht gespreizt (wird nach jeder Animation aufgesetzt) */rr.sit=['L','R'].map(s=>findBone(rr.g,new RegExp('^(UpperLeg|thigh|DEF-thigh)\\.?'+s+'$','i'))).filter(Boolean);rr.shin=['L','R'].map(s=>findBone(rr.g,new RegExp('^(LowerLeg|shin|DEF-shin)\\.?'+s+'$','i'))).filter(Boolean);if(en.rider.scale)rr.g.scale.multiplyScalar(en.rider.scale);const hb=box(wrap);rr.g.position.set(en.rider.x||0,(hb.max.y-hb.min.y)*(en.rider.seat||.55)-1.05,0);wrap.add(rr.g);rig.rider=rr}}
+        /* sitzen: Oberschenkel nach vorn und leicht gespreizt (wird nach jeder Animation aufgesetzt) */rr.sit=['L','R'].map(s=>findBone(rr.g,new RegExp('^(UpperLeg|thigh|DEF-thigh)\\.?'+s+'$','i'))).filter(Boolean);rr.shin=['L','R'].map(s=>findBone(rr.g,new RegExp('^(LowerLeg|shin|DEF-shin)\\.?'+s+'$','i'))).filter(Boolean);if(en.rider.scale)rr.g.scale.multiplyScalar(en.rider.scale);if(en.rider.net&&rr.net){rr.net.s=Object.assign({},rr.net.s,en.rider.net);rr.net.side=(u.id||0)%2?1:-1}/* Netz-Haltung im Boot: turn = Drehung zur Bordwand, pitch flacher */const hb=box(wrap);rr.g.position.set(en.rider.x||0,(hb.max.y-hb.min.y)*(en.rider.seat||.55)-1.05,0);wrap.add(rr.g);rig.rider=rr}}
       return rig}catch(err){console.warn('glTF-Einheit',u.type,err);return null}}
   function makeBld(type,R_,ep,team,origMake,sp){
     const en=entryFor('bld',type,ep,sp);if(!en)return null;const gl=files.get(en.file);
@@ -213,24 +245,30 @@ const EKMODELS=(()=>{
     g.userData.mix=mix;return g}
   /* Animationen pro Bild: passenden Clip wählen, weich überblenden */
   function animate(rig,want,dt,speedScale,kind){
-    if(rig.rider){const r=rig.rider,pose=k=>{if(r.sit)r.sit.forEach((b,i)=>{b.rotation.x-=1.35*k;b.rotation.z+=(i?-.35:.35)*k});if(r.shin)r.shin.forEach(b=>{b.rotation.x+=1.3*k})};if(r.posed)pose(-1);animate(r,want==='walk'||want==='work'?'idle':want,dt,1);pose(1);r.posed=1}
+    if(rig.rider){const r=rig.rider,pose=k=>{if(r.sit)r.sit.forEach((b,i)=>{b.rotation.x-=1.35*k;b.rotation.z+=(i?-.35:.35)*k});if(r.shin)r.shin.forEach(b=>{b.rotation.x+=1.3*k})};if(r.posed)pose(-1);
+      /* Fischerboot: der Ruderer dreht sich zur Bordwand (net.turn, Seite je Boot) und hält das Netz ins Wasser */const rf=r.net&&want==='work'&&kind==='fish';
+      if(r.net){const tn=rf?(r.net.s.turn||0)*Math.PI/180*(r.net.side||1):0,sp=typeof G!=='undefined'&&(G.paused||G.netPause)?0:1;r.g.rotation.y+=(tn-r.g.rotation.y)*Math.min(1,dt*sp*3)}
+      animate(r,rf?'work':want==='walk'||want==='work'?'idle':want,dt,1,rf?'fish':'');pose(1);r.posed=1}
     if(!rig.mixer)return;if(typeof G!=='undefined')dt*=G.paused||G.netPause?0:(G.speed||1);
     if(rig.wtools){for(const kd in rig.wtools)rig.wtools[kd].visible=(want==='work'&&kind===kd);if(rig.hand)rig.hand.visible=!(want==='work'&&rig.wtools[kind])}
     const wkey=want==='work'&&kind&&rig.acts['w:'+kind]?'w:'+kind:null;
     if(want==='idle'&&!rig.acts.idle&&rig.cur){rig.acts[rig.cur].fadeOut(.2);rig.cur=null}if(want==='idle'&&!rig.acts.idle){rig.mixer.update(dt*(speedScale||1));return}
     const chain={attack:['attack','idle'],work:['work','idle'],walk:['walk','idle'],idle:['idle']},w=wkey||(chain[want]||['idle']).find(n=>rig.acts[n])||null;
-    if(w&&rig.cur!==w){const a=rig.acts[w],p=rig.cur&&rig.acts[rig.cur];a.reset().fadeIn(.2).play();if(p)p.fadeOut(.2);rig.cur=w}
-    if(rig.bend&&rig.bendP){rig.bend.rotation.x-=rig.bendP;rig.bendP=0}
+    /* gleicher Clip unter zwei Namen (z. B. Fischen = Idle) ist dieselbe Aktion: nicht ein- und zugleich ausblenden (sonst Gewicht 0 = Grundhaltung) */
+    if(w&&rig.cur!==w){const a=rig.acts[w],p=rig.cur&&rig.acts[rig.cur];if(a!==p){a.reset().fadeIn(.2).play();if(p)p.fadeOut(.2)}rig.cur=w}
+    if(rig.bend&&rig.bendP){rig.bend.rotation.x-=rig.bendP;rig.bendP=0}if(rig.net&&rig.net.on){rig.net.sv.forEach(([b,q])=>b.quaternion.copy(q));rig.net.on=0}
     rig.mixer.update(dt*(speedScale||1));
-    /* Beeren pflücken: Oberkörper nach vorn beugen (nach der Animation aufgesetzt) */
-    if(rig.bend){const t=want==='work'&&kind==='pick'?.75:0;rig.bendA+=(t-rig.bendA)*Math.min(1,dt*5);if(rig.bendA>.01){rig.bend.rotation.x+=rig.bendA;rig.bendP=rig.bendA}}}
+    /* Beeren pflücken / Fischen: Oberkörper nach vorn beugen (nach der Animation aufgesetzt), beim Fischen danach Netz-Pose */
+    const fish=rig.net&&want==='work'&&kind==='fish';
+    if(rig.bend){const t=want==='work'&&kind==='pick'?.75:fish?rig.net.bend:0;rig.bendA+=(t-rig.bendA)*Math.min(1,dt*5);if(rig.bendA>.01){rig.bend.rotation.x+=rig.bendA;rig.bendP=rig.bendA}}
+    if(fish)netPose(rig,dt)}
   async function init(url){
     if(typeof EKGLTF==='undefined'){return}
     try{const r=await fetch(url||'models/manifest.json',{cache:'no-cache'});if(!r.ok)return;manifest=await r.json()}catch(_){return}
     /* Kenney-Bausätze verweisen auf Textures/colormap.png: stattdessen die Farbtabelle aus dem Manifest (cmap) nehmen */
     const mgr=new THREE.LoadingManager();if(manifest.cmap)mgr.setURLModifier(u=>/colormap\.png$/.test(u)?'models/'+manifest.cmap:u);
     loader=new EKGLTF.GLTFLoader(mgr);try{loader.setMeshoptDecoder(EKGLTF.MeshoptDecoder)}catch(_){}
-    const want=new Set();for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off){want.add(x.file);if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work))if(w.tool&&w.tool.file)want.add(w.tool.file);if(x.extra&&x.extra.file)want.add(x.extra.file);for(const pr of(x.props||[]).concat(x.extras||[]))if(pr&&pr.file)want.add(pr.file)}
+    const want=new Set();for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off){want.add(x.file);if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work)){if(w.tool&&w.tool.file)want.add(w.tool.file);if(w.net&&w.net.file)want.add(w.net.file)}if(x.extra&&x.extra.file)want.add(x.extra.file);for(const pr of(x.props||[]).concat(x.extras||[]))if(pr&&pr.file)want.add(pr.file)}
     await Promise.all([...want].map(async f=>{try{files.set(f,await loader.loadAsync('models/'+f))}catch(err){failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}}));
     pCache.clear();R.ready=true;R.ver++;/* Einheiten/Gebäude/Tiere: Signaturen ändern sich über tag() von selbst; Bäume/Felsen: Instanzen neu aufbauen */try{if(typeof r3!=='undefined'&&r3.scene&&typeof G!=='undefined'&&G&&G.ents&&G.ents.length)r3NodesInit()}catch(_){}
     try{if(typeof ICON3!=='undefined'){ICON3.clear();document.querySelectorAll('[data-ic]').forEach(el=>{el.innerHTML=ART.icon(el.dataset.ic)})}}catch(_){}}
