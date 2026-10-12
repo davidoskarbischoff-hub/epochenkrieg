@@ -279,3 +279,12 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Neue Gebäude (Bank, Krankenhaus, Laden, Häuser, Wohnblöcke): Texturdatei fehlt, deshalb noch nicht benutzt
 
 - [x] Ufer-Fischen für Arbeiter, Fischer auf Segelboot/Kutter, Nationen-Einheiten auf Adventurer, Pferde kleiner, Stahlhelm als eigene Datei
+
+## Spielzimmer (12.10.)
+- [x] Karte als Brett auf echtem Schreibtisch in der Maler-Werkstatt (Rundum-Foto 4K als Raum mit Boden)
+- [x] Hauptmenü: Kamera kreist um den Tisch; Brett zeigt gewählte Karte (auch beim Drüberfahren) und Grösse
+- [x] Anflug vom Raum zum eigenen Hauptlager (~5 s), Menümusik „Die Moldau“
+- [x] Fische: ruhige Arten (Thunfisch, Schnapper), Schwarm mit Abstand
+- [ ] Raum-Auswahl (Werkstatt/Studio) im Menü anbieten
+- [ ] Bei kleiner Karte: Randgebirge auf dem Brett eher als Brettrand gestalten
+- [ ] Ladezeit: Raum-Modelle (~45 MB) erst nach dem Spiel laden bzw. verkleinern
