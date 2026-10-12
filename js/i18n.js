@@ -92,7 +92,7 @@ const EN={
   'Dorfgemeinschaft':'Village Community',
   '+10 Bevölkerungslimit':'+10 population limit',
   'Lederschuhe':'Leather Shoes',
-  'Arbeiter laufen 20 % schneller':'Workers walk 20 % faster',
+  'Arbeiter laufen 12 % schneller':'Workers walk 12 % faster',
   'Bronzewerkzeuge':'Bronze Tools',
   'Arbeiter sammeln 20 % schneller':'Workers gather 20 % faster',
   'Stadtrecht':'Town Charter',

@@ -208,6 +208,28 @@ function navLos(x0,y0,x1,y1,naval,len){
   const dx=x1-x0,dy=y1-y0,d=Math.hypot(dx,dy);if(d<1)return true;const L=Math.min(d,len===undefined?d:len);
   for(let s=4;s<=L;s+=4){const x=x0+dx/d*s,y=y0+dy/d*s;if(s>10&&!navOpen(navCell(x,y),naval))return false;if(!terrOk(x,y,naval))return false}
   return true}
+/* Entfernungsfeld (Dijkstra vom Ziel aus über die ganze Karte): für weite Wege, bei denen A* an die Suchgrenze stösst.
+   Gemerkt je Zielgebiet (150-px-Raster, Gruppen mit gestreuten Zielen teilen sich ein Feld), Zielradius und Einheitenart; 6 Felder, neu nach Rasteränderung frühestens nach 15 s. */
+const navFields=[];let navFieldT=-1;
+function navField(tx,ty,goalR,naval,peek){
+  const kx=Math.round(tx/150),ky=Math.round(ty/150),key=kx+','+ky+','+Math.round(goalR/20)+','+naval;
+  const now=typeof G!=='undefined'&&G?G.t:0;
+  let f=navFields.find(o=>o.key===key);
+  if(f&&(f.ver===navVer||now-f.t<15)){f.use=now;return f}
+  if(peek)return null;if(navFieldT===now)return f||null; /* höchstens ein Neuaufbau je Spielschritt (sonst Ruckler), solange reicht das alte Feld */
+  if(navFieldT===now)return null;navFieldT=now;
+  if(!f){if(navFields.length>=6){navFields.sort((a,b)=>a.use-b.use);f=navFields.shift();f.key=key}else f={key,d:new Float32Array(NW*NH)};navFields.push(f)}
+  f.ver=navVer;f.t=f.use=now;const d=f.d;d.fill(1e9);
+  const gx=tx/NS,gy=ty/NS,gr=Math.min(8,goalR/NS+.5),R=Math.ceil(gr)+1;let hn=0;
+  const push=(i,v)=>{if(hn>=NHI.length){const a=new Int32Array(hn*2),b=new Float32Array(hn*2);a.set(NHI);b.set(NHF);NHI=a;NHF=b}let k=hn++;while(k>0){const q=(k-1)>>1;if(NHF[q]<=v)break;NHI[k]=NHI[q];NHF[k]=NHF[q];k=q}NHI[k]=i;NHF[k]=v};
+  const pop=()=>{const r=NHI[0];hn--;if(hn>0){const li=NHI[hn],lf=NHF[hn];let k=0;for(;;){const l=2*k+1;if(l>=hn)break;let m=l;if(l+1<hn&&NHF[l+1]<NHF[l])m=l+1;if(NHF[m]>=lf)break;NHI[k]=NHI[m];NHF[k]=NHF[m];k=m}NHI[k]=li;NHF[k]=lf}return r};
+  const cx=gx|0,cy=gy|0,near=j=>Math.abs(j%NW-cx)<=R+2&&Math.abs(((j/NW)|0)-cy)<=R+2; /* Ziel im Gebäude: Felder direkt am Ziel zählen als offen */
+  for(let r=gr;!hn&&r<=gr+24;r+=3)for(let y=Math.max(0,cy-Math.ceil(r));y<=Math.min(NH-1,cy+Math.ceil(r));y++)for(let x=Math.max(0,cx-Math.ceil(r));x<=Math.min(NW-1,cx+Math.ceil(r));x++){const j=y*NW+x;if(Math.hypot(x+.5-gx,y+.5-gy)<=r&&(r===gr?terrOk((x+.5)*NS,(y+.5)*NS,naval):navOpen(j,naval))){d[j]=0;push(j,0)}} /* Ziel im Fels/Wasser: nächstgelegene freie Felder */
+  const ok=j=>navOpen(j,naval)||(near(j)&&terrOk((j%NW+.5)*NS,(((j/NW)|0)+.5)*NS,naval));
+  while(hn){const v=NHF[0],i=pop();if(v>d[i])continue;const x=i%NW,y=(i/NW)|0;
+    for(let k=0;k<8;k++){const nx=x+NDX[k],ny=y+NDY[k];if(nx<0||ny<0||nx>=NW||ny>=NH)continue;const j=ny*NW+nx;if(!ok(j))continue;
+      if(k>=4&&(!ok(y*NW+nx)||!ok(ny*NW+x)))continue;const g=v+(k<4?1:1.4142);if(g<d[j]){d[j]=g;push(j,g)}}}
+  return f}
 /* A*: Weg von (sx,sy) bis auf 'goalR' Abstand an (tx,ty). Gibt eine Liste von Wegpunkten zurück, oder null.
    'seed' != 0 würfelt die Kosten leicht, damit festgefahrene Einheiten einen anderen Weg nehmen. */
 let navCl=null;
@@ -220,21 +242,32 @@ function navPath(sx,sy,tx,ty,goalR,naval,seed){
   const push=(i,f)=>{if(hn>=NHI.length){const a=new Int32Array(hn*2),b=new Float32Array(hn*2);a.set(NHI);b.set(NHF);NHI=a;NHF=b}let k=hn++;while(k>0){const q=(k-1)>>1;if(NHF[q]<=f)break;NHI[k]=NHI[q];NHF[k]=NHF[q];k=q}NHI[k]=i;NHF[k]=f};
   const pop=()=>{const r=NHI[0];hn--;if(hn>0){const li=NHI[hn],lf=NHF[hn];let k=0;for(;;){const l=2*k+1;if(l>=hn)break;let m=l;if(l+1<hn&&NHF[l+1]<NHF[l])m=l+1;if(NHF[m]>=lf)break;NHI[k]=NHI[m];NHF[k]=NHF[m];k=m}NHI[k]=li;NHF[k]=lf}return r};
   if(!navCl||navCl.length!==NW*NH)navCl=new Uint32Array(NW*NH);
+  /* Start im Rand eines Gebäudes (z. B. Boot am Hafen): nur wenn das Startfeld selbst blockiert ist, zählt in den ersten Feldern um den Start nur das Gelände */
+  const sx0=s%NW,sy0=(s/NW)|0,sIn=!navOpen(s,naval),op=j=>navOpen(j,naval)||(sIn&&Math.max(Math.abs(j%NW-sx0),Math.abs(((j/NW)|0)-sy0))<=6&&terrOk((j%NW+.5)*NS,(((j/NW)|0)+.5)*NS,naval));
   navSeen[s]=navGen;navG[s]=0;navPar[s]=-1;push(s,hx(s));
   let goal=-1,n=0,best=s,bestH=hx(s);const cap=Math.min(NW*NH,14000); /* Suchgrenze: unerreichbare Ziele durchsuchen nicht mehr die ganze Karte */
-  while(hn&&n++<cap){
+  const hf=Math.hypot(tx-sx,ty-sy)>600&&navField(tx,ty,goalR,naval,1),hot=hf&&(hf.d[s]<1e8||sIn); /* Gruppe: Feld zum selben Ziel liegt schon vor -> keine A*-Suche nötig */
+  while(!hot&&hn&&n++<cap){
     const i=pop();if(navCl[i]===navGen)continue;navCl[i]=navGen; // schon abgearbeitet (veralteter Eintrag)
     const x=i%NW,y=(i/NW)|0,h=hx(i);
     if(h<bestH){bestH=h;best=i}
     if(h<=0.5&&(i===s||navOpen(i,naval))){goal=i;break}
     for(let k=0;k<8;k++){const dx=NDX[k],dy=NDY[k];
-      const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=NW||ny>=NH)continue;const j=ny*NW+nx;if(navCl[j]===navGen||!navOpen(j,naval))continue;
-      if(k>=4&&(!navOpen(y*NW+nx,naval)||!navOpen(ny*NW+x,naval)))continue; // keine Ecken schneiden
+      const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=NW||ny>=NH)continue;const j=ny*NW+nx;if(navCl[j]===navGen||!op(j))continue;
+      if(k>=4&&(!op(y*NW+nx)||!op(ny*NW+x)))continue; // keine Ecken schneiden
       let c=k<4?1:1.4142;if(seed)c*=1+((((j*2654435761)^(seed*40503))>>>0)%100)/100*1.4;
       const g=navG[i]+c;if(navSeen[j]!==navGen||g<navG[j]){navSeen[j]=navGen;navG[j]=g;navPar[j]=i;push(j,g+hx(j))}}
   }
-  if(goal<0){if(best===s)return null;goal=best} // Suchgrenze erreicht: bis zum nächstgelegenen erreichten Punkt laufen, dort neu suchen
-  const cells=[];for(let i=goal;i>=0;i=navPar[i])cells.push(i);cells.reverse();
+  let cells=[];
+  if(goal<0){ /* Suchgrenze erreicht (lange Wege, Buchten, Seen): Entfernungsfeld vom Ziel aus (einmal je Ziel, für die ganze Gruppe gemerkt) */
+    const fl=hot?hf:navField(tx,ty,goalR,naval);let i=s,nb=-1;
+    if(!fl){if(best===s)return[{x:sx,y:sy}];for(let i=best;i>=0;i=navPar[i])cells.push(i);cells.reverse()} /* Feld kommt im nächsten Schritt: so lange Teilweg */
+    else{if(fl.d[s]>=1e8&&sIn){let bd=1e8;for(let y=Math.max(0,sy0-6);y<=Math.min(NH-1,sy0+6);y++)for(let x=Math.max(0,sx0-6);x<=Math.min(NW-1,sx0+6);x++){const j=y*NW+x,v=fl.d[j]+Math.hypot(x-sx0,y-sy0);if(v<bd){bd=v;i=j}}} /* Start im Gebäuderand */
+    if(fl.d[i]<1e8){cells.push(s);for(let k=0;k<4000&&fl.d[i]>0;k++){const x=i%NW,y=(i/NW)|0;nb=-1;let bd=fl.d[i];
+        for(let q=0;q<8;q++){const nx=x+NDX[q],ny=y+NDY[q];if(nx<0||ny<0||nx>=NW||ny>=NH)continue;const j=ny*NW+nx;if(fl.d[j]<bd){bd=fl.d[j];nb=j}}
+        if(nb<0)break;i=nb;cells.push(i)}}
+    else{if(best===s||naval===true)return null;for(let i=best;i>=0;i=navPar[i])cells.push(i);cells.reverse()}} /* Boote: anderes Gewässer = kein Weg (moveToward merkt sich das Ziel als unerreichbar) */ // unerreichbar: bis zum nächstgelegenen Punkt
+  }else{for(let i=goal;i>=0;i=navPar[i])cells.push(i);cells.reverse()}
   let pts=cells.map(i=>({x:(i%NW+.5)*NS,y:(((i/NW)|0)+.5)*NS}));
   // Weg glätten: Zwischenpunkte weglassen, wenn man direkt hinüberlaufen kann
   const out=[];let a=0;
