@@ -8,11 +8,11 @@ Aufruf: `node tools/fbx2glb/conv.js auftraege.json` mit einer Liste von Aufträg
 
 ```json
 [{"src":"models/fbx/towers/_archer_tower_LVL_1.fbx","out":"models/towers/archer_1.glb",
-  "tex":{"Texture_MAp_fortress_elves.png":"models/fbx/towers/Texture_MAp_fortress_elves.png"},"noflip":true}]
+  "tex":{"Texture_MAp_fortress_elves.png":"models/fbx/towers/Texture_MAp_fortress_elves.png"}}]
 ```
 
 - `tex`: Texturname aus der FBX → Datei im Spielordner (fehlt sie, bleibt das Modell weiss)
-- `noflip`: Textur nicht spiegeln (nötig bei den Farbstreifen-Texturen der Turm- und Menschen-Pakete)
+- `noflip`: Textur nicht spiegeln. Vorsicht bei Farbstreifen-Texturen: falsch gesetzt vertauscht es die Farben (oben ↔ unten). Turm-Paket: **ohne** `noflip` (geprüft: Kanonen dunkel, Ranken/Dächer grün, Mauern hell); mit `noflip` wurden Kanonen cremefarben und Ranken braun.
 - `dark`: Materialfarben aufhellen (Quaternius-FBX werden sonst doppelt abgedunkelt)
 - `rotX`: Drehung um X in Grad (Z-oben → Y-oben)
 

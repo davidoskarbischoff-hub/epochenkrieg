@@ -38,6 +38,7 @@ Ich kann Modelle nicht selbst „malen“ (kein Blender in meiner Umgebung), abe
 ```
 Mehrere Zeitalter-Versionen: ein **Array** `[ {…}, {…} ]` mit je eigenem `epochs`.
 Nützliche Felder: `height` (Zielhöhe einer Einheit, sonst automatisch), `fit: "length"` (Fahrzeuge nach Länge statt Höhe anpassen), `lift` (Modell etwas anheben), `footprint` (Gebäudebreite fest), `off: true` (Eintrag vorübergehend abschalten).
+Nur Gebäude: `spec` (Modell gilt nur für einen Ausbau, z. B. `"def"` = Wehrturm), `pal` (Farbstreifen-Textur umfärben: `{"#ffebd3":"#a49a86","#527654":"team"}`, „team“ = Spielerfarbe), `flag` (Fahne in Spielerfarbe: `{"x":0.5,"z":0.2,"y":0.78,"h":1.3}`, x/z in Gebäude-Radien, y = Anteil der Höhe).
 
 ## Was schon geht und was noch nicht
 - ✔ Einheiten (mit Animationen), Gebäude (Zeitalter-Varianten, Team-Farbe, Rauch/Ausbau-Zusätze funktionieren weiter)
