@@ -41,7 +41,49 @@ const EKMODELS=(()=>{
   const box=o=>{o.updateMatrixWorld(true);return new THREE.Box3().setFromObject(o)};
   /* Größe des bisherigen Code-Modells als Maßstab: so passt ein neues Modell automatisch zur Spielgröße */
   function refSize(kind,type,make){const k=kind+type;if(refCache[k])return refCache[k];try{const b=box(make()),s=b.getSize(new THREE.Vector3());return refCache[k]={h:s.y||1,m:Math.max(s.x,s.y,s.z)||1,w:Math.max(s.x,s.z)||1}}catch(_){return refCache[k]={h:2.3,m:3,w:3}}}
-  function pickClip(clips,names,re){for(const n of names||[]){const c=clips.find(c=>c.name===n||c.name.split('|').pop()===n);if(c)return c}return clips.find(c=>re.test(c.name))}
+  /* Universal Animation Library (manifest.ual): Bewegungen des Testmännchens auf Quaternius-Skelette übertragen.
+     Je Knochen: Weltdrehung(t) = Basiswechsel · (Quelle(t) · Quelle(Bindung)⁻¹) · Ziel(Bindung); Hüfte verschoben nach Beinlänge. Ergebnis je Zieldatei zwischengespeichert. */
+  const UMAP={pelvis:'Hips',spine_01:'Abdomen',spine_02:'Torso',spine_03:'Chest',neck_01:'Neck',Head:'Head'};
+  for(const[s,S]of[['l','L'],['r','R']])Object.assign(UMAP,{['clavicle_'+s]:'Shoulder'+S,['upperarm_'+s]:'UpperArm'+S,['lowerarm_'+s]:'LowerArm'+S,['hand_'+s]:'Wrist'+S,['thigh_'+s]:'UpperLeg'+S,['calf_'+s]:'LowerLeg'+S,['foot_'+s]:'Foot'+S});
+  const nrm=n=>n.replace(/[.\s_]/g,''),ualCache=new Map();let curGl=null;
+  function skelInfo(scene){scene.updateMatrixWorld(true);let sm=null;scene.traverse(o=>{if(!sm&&o.isSkinnedMesh)sm=o});if(!sm)return null;
+    const bw=new Map();sm.skeleton.bones.forEach((b,i)=>{bw.set(b,sm.matrixWorld.clone().multiply(sm.skeleton.boneInverses[i].clone().invert()))});return{sm,bones:sm.skeleton.bones,bw}}
+  function basis(get){/* Achsen aus der Bindung: oben = Hüfte→Kopf, seitlich = rechte→linke Schulter */
+    const p=n=>new THREE.Vector3().setFromMatrixPosition(get(n)),up=p('head').sub(p('hips')).normalize(),side=p('ul').sub(p('ur'));side.addScaledVector(up,-side.dot(up)).normalize();
+    const fw=new THREE.Vector3().crossVectors(side,up);return new THREE.Matrix4().makeBasis(side,up,fw)}
+  function ualFor(gl){if(ualCache.has(gl))return ualCache.get(gl);const out=new Map();
+    const ug=manifest&&manifest.ual&&files.get(manifest.ual);if(!ug)return out;ualCache.set(gl,out);/* erst merken, wenn die Bibliothek geladen ist */
+    try{const src=EKGLTF.SkeletonUtils.clone(ug.scene),tgt=EKGLTF.SkeletonUtils.clone(gl.scene),S=skelInfo(src),T=skelInfo(tgt);if(!S||!T)return out;
+      const sB=n=>S.bones.find(b=>b.name===n),tB=new Map();for(const b of T.bones)tB.set(nrm(b.name),b);const tg=k=>tB.get(nrm(k));
+      const pairs=[];for(const k in UMAP){const a=sB(k),b=tg(UMAP[k]);if(a&&b)pairs.push([a,b])}if(pairs.length<15)return out;const tBody=tg('Body');if(tBody&&sB('pelvis'))pairs.push([sB('pelvis'),tBody]);
+      const sBas=basis(n=>S.bw.get(sB({head:'Head',hips:'pelvis',ul:'upperarm_l',ur:'upperarm_r'}[n]))),tBas=basis(n=>T.bw.get(tg({head:'Head',hips:'Hips',ul:'UpperArmL',ur:'UpperArmR'}[n])));
+      const R=tBas.clone().multiply(sBas.clone().invert()),Rq=new THREE.Quaternion().setFromRotationMatrix(R),Ri=Rq.clone().invert();
+      const q=m=>new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().extractRotation(m)),pos=m=>new THREE.Vector3().setFromMatrixPosition(m);
+      const sBindQ=new Map(pairs.map(([a])=>[a,q(S.bw.get(a))]));const map=new Map(pairs.map(([a,b])=>[b,a])),rmap=new Map(pairs.filter(([a,b])=>b!==tBody));
+      const sh=sB('pelvis'),th=tg('Hips'),footY=(I,f)=>Math.min(...['l','r'].map(x=>pos(I.bw.get(f(x))).y)),
+        kH=(pos(T.bw.get(th)).y-footY(T,x=>tg('Foot'+x.toUpperCase())))/((pos(S.bw.get(sh)).y-footY(S,x=>sB('foot_'+x)))||1);
+      /* Ziel-Bindung: lokale Matrizen und Reihenfolge Eltern vor Kindern */
+      const order=[],seen=new Set(),add=b=>{if(seen.has(b))return;if(b.parent&&b.parent.isBone&&T.bw.has(b.parent))add(b.parent);seen.add(b);order.push(b)};T.bones.forEach(add);
+      const parW=b=>b.parent&&b.parent.isBone&&T.bw.has(b.parent)?null:(b.parent?b.parent.matrixWorld.clone():new THREE.Matrix4());
+      const bindL=new Map(order.map(b=>{const pw=b.parent&&b.parent.isBone&&T.bw.has(b.parent)?T.bw.get(b.parent):parW(b);return[b,pw.clone().invert().multiply(T.bw.get(b))]}));
+      const mixer=new THREE.AnimationMixer(src),FPS=24;
+      for(const clip of ug.animations){const name=clip.name.split('|').pop();const act=mixer.clipAction(clip);act.play();
+        const n=Math.max(2,Math.ceil(clip.duration*FPS)+1),times=new Float32Array(n),qs=new Map(order.map(b=>[b,new Float32Array(n*4)])),ps=new Map(order.map(b=>[b,new Float32Array(n*3)]));
+        for(let f=0;f<n;f++){const t=Math.min(clip.duration,f/FPS);times[f]=t;act.time=t;mixer.update(0);src.updateMatrixWorld(true);const W=new Map();
+          for(const b of order){const a=map.get(b);let w;
+            if(a){const d=q(a.matrixWorld).multiply(sBindQ.get(a).clone().invert());const dq=Rq.clone().multiply(d).multiply(Ri),bw=T.bw.get(b);
+              const wq=dq.multiply(q(bw));let wp;const pw0=b.parent&&W.get(b.parent);
+              if(b===th||b===tBody){const dp=pos(sh.matrixWorld).sub(pos(S.bw.get(sh))).multiplyScalar(kH).applyQuaternion(Rq);wp=pos(bw).add(dp)}
+              else{let pa=a.parent,pb=null;while(pa&&pa.isBone&&!(pb=rmap.get(pa)))pa=pa.parent;/* Lage über den Knochen, an dem die Quelle hängt (Füsse hängen bei Quaternius an Root, nicht am Bein) */
+                if(pb&&W.get(pb)&&pb!==b.parent)wp=pos(T.bw.get(pb).clone().invert().multiply(T.bw.get(b))).applyMatrix4(W.get(pb));else{const pl=pos(bindL.get(b));wp=pl.applyMatrix4(pw0||parW(b)||new THREE.Matrix4())}}
+              w=new THREE.Matrix4().compose(wp,wq,new THREE.Vector3(1,1,1).setFromMatrixScale(bw))}
+            else w=(W.get(b.parent)||parW(b)||new THREE.Matrix4()).clone().multiply(bindL.get(b));
+            W.set(b,w);const pw=W.get(b.parent)||parW(b)||new THREE.Matrix4(),l=pw.clone().invert().multiply(w),lq=q(l);qs.get(b).set([lq.x,lq.y,lq.z,lq.w],f*4);
+            const lp=pos(l);ps.get(b).set([lp.x,lp.y,lp.z],f*3)}}
+        act.stop();const tracks=[];for(const b of order)if(map.has(b))tracks.push(new THREE.QuaternionKeyframeTrack(b.name+'.quaternion',times,qs.get(b)));
+        for(const b of order)if(map.has(b))tracks.push(new THREE.VectorKeyframeTrack(b.name+'.position',times,ps.get(b)));out.set(name,new THREE.AnimationClip('UAL:'+name,clip.duration,tracks))}}
+    catch(err){console.warn('UAL-Übertragung',err)}return out}
+  function pickClip(clips,names,re){for(const n of names||[]){if(n&&n.startsWith('UAL:')&&curGl){const c=ualFor(curGl).get(n.slice(4));if(c)return c;continue}const c=clips.find(c=>c.name===n||c.name.split('|').pop()===n);if(c)return c}return clips.find(c=>re.test(c.name))}
   /* Umbauen eines Modells ohne neue Datei: Material einfärben (tint), Teile verstecken (hide), Waffen/Werkzeuge in die Hände (hand/off), Fell-Hüftrock (pelt).
      So wird aus der nackten Basisfigur ein Steinzeit-Jäger, aus der Mittelalterfigur ein Speerträger usw. Siehe MODELLE.md. */
   function findBone(root,re){let f=null;root.traverse(o=>{if(!f&&o.isBone&&re.test(o.name))f=o});return f}
@@ -185,7 +227,7 @@ const EKMODELS=(()=>{
   function makeUnit(u,origMake,kind,enO){
     kind=kind||'unit';const en=enO||entryFor(kind,u.type,u.lvl||0);if(!en)return null;
     /* Abwechslung: vary:[Dateien] – jede Figur bekommt nach ihrer Nummer (u.id) eine davon (z. B. verschiedene Bauern), sonst file */
-    const fv=(en.vary||[]).filter(f=>files.has(f)),gl=files.get(fv.length?fv[(u.id||0)%fv.length]:en.file);
+    const fv=(en.vary||[]).filter(f=>files.has(f)),gl=files.get(fv.length?fv[(u.id||0)%fv.length]:en.file);curGl=gl;
     try{
       const root=EKGLTF.SkeletonUtils.clone(gl.scene),wrap=new THREE.Group();wrap.add(root);prepare(root,u.team);
       {const fa=en.human?faceAngle(root):kind==='animal'?animalFace(root):null;root.rotation.y=(fa||0)+(en.yaw||0)*Math.PI/180}
@@ -193,17 +235,18 @@ const EKMODELS=(()=>{
       const k=(en.human?(2.4/1.84):en.len?en.len/(Math.max(sz.x,sz.z)||1):en.height?en.height/(sz.y||1):(en.fit==='length'||(kind==='animal'&&!en.fit))?ref.m/(Math.max(sz.x,sz.y,sz.z)||1):ref.h/(sz.y||1))*(en.scale||1);
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y+(en.lift||0),-c.z);
       cmapOf(root,en.cmap);dress(root,wrap,en,k,u.team,u);if(!window.__noMerge)try{mergeSkin(root)}catch(err){console.warn('mergeSkin',err)}
-      const rig={g:wrap,gltf:true,bend:en.human?findBone(root,/^(Abdomen|Spine|Spine1|spine|DEF-spine\.?001)$/i):null,bendA:0,human:!!(en.human||(en.rider&&!en.rider.free)),legs:[],arms:[],tools:{},acts:{},cur:null};
+      const rig={g:wrap,gltf:true,bend:en.human?findBone(root,/^(Abdomen|Spine|Spine1|spine|DEF-spine\.?001)$/i):null,bendA:0,human:!!(en.human||(en.rider&&!en.rider.free)),legs:[],arms:[],tools:{},acts:{},cur:null,gl};
       if(gl.animations&&gl.animations.length){rig.mixer=new THREE.AnimationMixer(root);const A=en.anim||{},cl=gl.animations;
         const map={idle:pickClip(cl,[A.idle],/idle|stand|rest/i),walk:pickClip(cl,[A.walk],/walk|run|move/i),attack:pickClip(cl,[A.attack],/attack|hit|strike|shoot|fire/i),work:pickClip(cl,[A.work],/work|gather|chop|mine|build|dig/i)};
         for(const n in map)if(map[n])rig.acts[n]=rig.mixer.clipAction(map[n]);
+        if(en.human&&manifest.ual){const dc=pickClip([],['UAL:Death01'],/^$/);if(dc)rig.acts.die=rig.mixer.clipAction(dc)}
         if(en.work){rig.wtools={};const hb=findBone(root,/hand\.?r|wrist\.?r/i);rig.hand=wrap.userData.handHolder||null;
           for(const kd in en.work){const w=en.work[kd],c=pickClip(cl,[w.clip],/work|interact/i);if(c)rig.acts['w:'+kd]=rig.mixer.clipAction(c);
             const h=w.net?netRig(rig,root,wrap,w.net,u.id||0,cl):w.tool&&hb?attach(root,hb,w.tool,k):null;if(h){h.visible=false;rig.wtools[kd]=h}}}
         const first=rig.acts.idle||rig.acts.walk;if(first){first.play();rig.cur=first===rig.acts.idle?'idle':'walk'}}
       /* Reiter: Pferd + Figur einer anderen Truppenlinie (rider.as) im selben Zeitalter, sitzt auf dem Rücken */
       if(en.rider){let rr=null;for(const as of[].concat(en.rider.as)){if(entryFor('unit',as,u.lvl||0)){rr=makeUnit(Object.assign({},u,{type:as}),origMake,'unit');break}}if(rr){
-        /* sitzen: Oberschenkel nach vorn und leicht gespreizt (wird nach jeder Animation aufgesetzt); push = Figur geht hinter dem Karren und schiebt */if(en.rider.push)rr.push=['L','R'].map(s=>findBone(rr.g,new RegExp('^(UpperArm|Upperarm|upper_arm|DEF-upper_arm)\\.?'+s+'$','i'))).filter(Boolean);else rr.sit=['L','R'].map(s=>findBone(rr.g,new RegExp('^(UpperLeg|thigh|DEF-thigh)\\.?'+s+'$','i'))).filter(Boolean);rr.shin=['L','R'].map(s=>findBone(rr.g,new RegExp('^(LowerLeg|shin|DEF-shin)\\.?'+s+'$','i'))).filter(Boolean);if(en.rider.scale)rr.g.scale.multiplyScalar(en.rider.scale);if(en.rider.net&&rr.net){rr.net.s=Object.assign({},rr.net.s,en.rider.net);rr.net.side=(u.id||0)%2?1:-1}/* Netz-Haltung im Boot: turn = Drehung zur Bordwand, pitch flacher */const hb=box(wrap);if(en.rider.push)rr.g.position.set(hb.min.x-(en.rider.x||.3),hb.min.y,0);else rr.g.position.set(en.rider.x||0,(hb.max.y-hb.min.y)*(en.rider.seat||.55)-1.05,0);wrap.add(rr.g);rig.rider=rr}}
+        /* sitzen: Oberschenkel nach vorn und leicht gespreizt (wird nach jeder Animation aufgesetzt); push = Figur geht hinter dem Karren und schiebt */if(en.rider.push&&rr.mixer){const pc=pickClip([],['UAL:Push_Loop'],/^$/);if(pc){rr.acts.walk=rr.mixer.clipAction(pc);rr.pushClip=1}}if(en.rider.push&&!rr.pushClip)rr.push=['L','R'].map(s=>findBone(rr.g,new RegExp('^(UpperArm|Upperarm|upper_arm|DEF-upper_arm)\\.?'+s+'$','i'))).filter(Boolean);else rr.sit=['L','R'].map(s=>findBone(rr.g,new RegExp('^(UpperLeg|thigh|DEF-thigh)\\.?'+s+'$','i'))).filter(Boolean);rr.shin=['L','R'].map(s=>findBone(rr.g,new RegExp('^(LowerLeg|shin|DEF-shin)\\.?'+s+'$','i'))).filter(Boolean);if(en.rider.scale)rr.g.scale.multiplyScalar(en.rider.scale);if(en.rider.net&&rr.net){rr.net.s=Object.assign({},rr.net.s,en.rider.net);rr.net.side=(u.id||0)%2?1:-1}/* Netz-Haltung im Boot: turn = Drehung zur Bordwand, pitch flacher */const hb=box(wrap);if(en.rider.push)rr.g.position.set(hb.min.x-(en.rider.x||.3),hb.min.y,0);else rr.g.position.set(en.rider.x||0,(hb.max.y-hb.min.y)*(en.rider.seat||.55)-1.05,0);wrap.add(rr.g);rig.rider=rr}}
       return rig}catch(err){console.warn('glTF-Einheit',u.type,err);return null}}
   function makeBld(type,R_,ep,team,origMake,sp){
     const en=entryFor('bld',type,ep,sp);if(!en)return null;const gl=files.get(en.file);
@@ -298,13 +341,13 @@ const EKMODELS=(()=>{
     /* Kenney-Bausätze verweisen auf Textures/colormap.png: stattdessen die Farbtabelle aus dem Manifest (cmap) nehmen */
     const mgr=new THREE.LoadingManager();if(manifest.cmap)mgr.setURLModifier(u=>/colormap\.png$/.test(u)?'models/'+manifest.cmap:u);
     loader=new EKGLTF.GLTFLoader(mgr);try{loader.setMeshoptDecoder(EKGLTF.MeshoptDecoder)}catch(_){}
-    const want=new Set();for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off){want.add(x.file);for(const f of x.vary||[])want.add(f);if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work)){if(w.tool&&w.tool.file)want.add(w.tool.file);if(w.net&&w.net.file)want.add(w.net.file)}if(x.extra&&x.extra.file)want.add(x.extra.file);for(const pr of(x.props||[]).concat(x.extras||[]))if(pr&&pr.file)want.add(pr.file)}
+    const want=new Set();if(manifest.ual)want.add(manifest.ual);for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off){want.add(x.file);for(const f of x.vary||[])want.add(f);if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work)){if(w.tool&&w.tool.file)want.add(w.tool.file);if(w.net&&w.net.file)want.add(w.net.file)}if(x.extra&&x.extra.file)want.add(x.extra.file);for(const pr of(x.props||[]).concat(x.extras||[]))if(pr&&pr.file)want.add(pr.file)}
     await Promise.all([...want].map(async f=>{try{files.set(f,await loader.loadAsync('models/'+f))}catch(err){failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}}));
     pCache.clear();R.ready=true;R.ver++;/* Einheiten/Gebäude/Tiere: Signaturen ändern sich über tag() von selbst; Bäume/Felsen: Instanzen neu aufbauen */try{if(typeof r3!=='undefined'&&r3.scene&&typeof G!=='undefined'&&G&&G.ents&&G.ents.length)r3NodesInit()}catch(_){}
     try{if(typeof ICON3!=='undefined'){ICON3.clear();document.querySelectorAll('[data-ic]').forEach(el=>{el.innerHTML=ART.icon(el.dataset.ic)})}}catch(_){}}
   /* für Tests/Vorschau: Modell von Hand eintragen */
   function register(kind,type,entry,gltf){if(!manifest)manifest={units:{},buildings:{}};const s=secOf(kind);(manifest[s]||(manifest[s]={}))[type]=entry;files.set(entry.file,gltf);R.ver++}
-  return Object.assign(R,{init,tag,has,makeUnit,makeBld,makeSea,iconModel,nodeParts,nodeN,nodeMeta,nodeL:nodeList,animate,register,files,failed,refSize,dbg:()=>({refCache})})
+  return Object.assign(R,{init,tag,has,makeUnit,makeBld,makeSea,iconModel,nodeParts,nodeN,nodeMeta,nodeL:nodeList,animate,register,files,ualFor,failed,refSize,dbg:()=>({refCache})})
 })();
 /* Modelle in die Bau-Funktionen einhängen (Rückfall auf die Code-Modelle, wenn nichts passt) */
 (()=>{const origU=buildUnit,origB=buildBld;window.origBuildUnit=origU;

@@ -70,7 +70,7 @@
       "clip": "Interact"
      },
      "build": {
-      "clip": "Punch_Left",
+      "clip": "UAL:Fixing_Kneeling",
       "tool": {
        "file": "neu/Doublesided Hammer.glb",
        "scale": 0.25,
@@ -211,7 +211,7 @@
       "clip": "Interact"
      },
      "build": {
-      "clip": "Punch_Left",
+      "clip": "UAL:Fixing_Kneeling",
       "tool": {
        "file": "neu/Doublesided Hammer.glb",
        "scale": 0.25,
@@ -352,7 +352,7 @@
       "clip": "Interact"
      },
      "build": {
-      "clip": "Punch_Left",
+      "clip": "UAL:Fixing_Kneeling",
       "tool": {
        "file": "neu/Doublesided Hammer.glb",
        "scale": 0.25,
@@ -478,7 +478,7 @@
       "clip": "Interact"
      },
      "build": {
-      "clip": "Punch_Left",
+      "clip": "UAL:Fixing_Kneeling",
       "tool": {
        "file": "neu/Doublesided Hammer.glb",
        "scale": 0.25,
@@ -606,7 +606,7 @@
       "clip": "Interact"
      },
      "build": {
-      "clip": "Punch_Left",
+      "clip": "UAL:Fixing_Kneeling",
       "tool": {
        "file": "neu/Doublesided Hammer.glb",
        "scale": 0.25,
@@ -4012,5 +4012,6 @@
  },
  "_neue_kits": {
   "info": "Kenney-Kits (boat-*, ship-*, siege-*, tower-*, wall-*, roof-* …) brauchen die Farbtextur Textures/colormap.png im selben Ordner (models/neu/Textures/colormap.png). Ohne sie sind die Modelle weiß. Danach: Blickrichtung +Z → yaw 90."
- }
+ },
+ "ual": "neu/UAL1_Standard.glb"
 }
