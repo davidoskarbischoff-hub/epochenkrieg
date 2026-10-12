@@ -5,25 +5,24 @@ const ROOM={on:false,ready:false,g:null,K:520,DESK:-6,mode:'game',t:0,fly:null,a
 (()=>{
   const B='models/raum/',K=ROOM.K;
   /* Platzierung in Welt-Einheiten (Karte = x 0..480, z 0..320; vorn = grosses z, unten im Bild). on:'desk'|'floor', s = Zusatz-Massstab */
+  /* aufgeräumt: auf dem Tisch nur Lampe, Schach, Bücher, Öllampe, Tee, Stifte; der Rest steht geordnet an der Rückwand bzw. auf dem Teewagen */
   const DESK_PROPS=[
-    {f:'desk_lamp_arm_01',x:-120,z:-40,ry:.6},
-    {f:'book_encyclopedia_set_01',x:600,z:-30,ry:-.3},
-    {f:'vintage_radio_transceiver',x:-130,z:200,ry:1.4},
-    {f:'tea_set_01',x:680,z:380,ry:.4},
-    {f:'stationery_supplies',x:560,z:400,ry:-.2},
-    {f:'vintage_stapler',x:-60,z:410,ry:.9},
-    {f:'chess_set',x:380,z:-170,ry:.2},
-    {f:'vintage_oil_lamp',x:650,z:110,ry:0},
-    {f:'long_life_food',x:-150,z:330,ry:.5},
-    {f:'filmstrip_projector_8mm',x:90,z:-95,ry:-.4}];
+    {f:'desk_lamp_arm_01',x:-150,z:-60,ry:.6},
+    {f:'book_encyclopedia_set_01',x:620,z:-90,ry:0},
+    {f:'chess_set',x:380,z:-170,ry:0},
+    {f:'vintage_oil_lamp',x:-160,z:380,ry:0},
+    {f:'tea_set_01',x:660,z:380,ry:.3},
+    {f:'stationery_supplies',x:630,z:200,ry:-1.57}];
   const FLOOR_PROPS=[
-    {f:'sofa_02',x:-700,z:900,ry:2.4},
-    {f:'mid_century_lounge_chair',x:1250,z:700,ry:-2.2},
-    {f:'plastic_monobloc_chair_01',x:240,z:720,ry:3.1},
-    {f:'metal_tool_chest',x:1300,z:-450,ry:-1.2},
-    {f:'wooden_ladder',x:-900,z:-600,ry:.8},
-    {f:'CoffeeCart_01',x:-1100,z:250,ry:1.3},
-    {f:'industrial_pipe_lamp',x:900,z:-900,ry:0},
+    /* Rückwand (hinten = kleines z), in einer Reihe */
+    {f:'metal_tool_chest',x:-500,z:-1000,ry:0},
+    {f:'CoffeeCart_01',x:240,z:-1000,ry:0,top:[{f:'vintage_radio_transceiver',dx:-60,ry:0},{f:'filmstrip_projector_8mm',dx:70,ry:0}]},
+    {f:'wooden_ladder',x:950,z:-1050,ry:0},
+    {f:'industrial_pipe_lamp',x:1400,z:-950,ry:0},
+    /* Sitzecke seitlich, zum Tisch gedreht */
+    {f:'sofa_02',x:-1250,z:250,ry:1.57},
+    {f:'mid_century_lounge_chair',x:1500,z:300,ry:-1.57},
+    {f:'plastic_monobloc_chair_01',x:240,z:720,ry:3.14},
     {f:'Chandelier_01',x:240,z:160,ry:0,ceil:1}];
   const load=(L,f)=>new Promise(r=>L.load(B+f+'/'+f+'_1k.gltf',g=>r(g.scene),undefined,e=>{console.warn('Raum-Modell',f,e&&e.message);r(null)}));
   const box=o=>new THREE.Box3().setFromObject(o);
@@ -38,7 +37,8 @@ const ROOM={on:false,ready:false,g:null,K:520,DESK:-6,mode:'game',t:0,fly:null,a
       desk.position.set(240-(b.min.x+b.max.x)/2,deskTop-b.max.y,160-(b.min.z+b.max.z)/2);g.add(desk);floor=deskTop-(b.max.y-b.min.y)}
     ROOM.floor=floor;
     const place=async(p,y0)=>{const o=await load(L,p.f);if(!o)return;prep(o);o.scale.setScalar(K*(p.s||1));o.rotation.y=p.ry||0;o.updateMatrixWorld(true);const b=box(o);
-      o.position.set(p.x,p.ceil?floor+2.7*K-b.max.y:y0-b.min.y,p.z);g.add(o)};
+      o.position.set(p.x,p.ceil?floor+2.7*K-b.max.y:y0-b.min.y,p.z);g.add(o);
+      if(p.top){o.updateMatrixWorld(true);const tb=box(o);await Promise.all(p.top.map(q=>place({f:q.f,x:p.x+q.dx,z:p.z,ry:q.ry},tb.max.y)))}};
     await Promise.all(DESK_PROPS.map(p=>place(p,deskTop)).concat(FLOOR_PROPS.map(p=>place(p,floor))));
     /* Rundum-Foto der Werkstatt als Hintergrund (unscharf) */
     new THREE.TextureLoader().load(B+'artist_workshop.jpg',t=>{t.mapping=THREE.EquirectangularReflectionMapping;t.colorSpace=THREE.SRGBColorSpace;ROOM.bg=t;ROOM.apply()});
