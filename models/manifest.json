@@ -811,7 +811,11 @@
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Interact",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ]
     },
     "human": true,
     "hide": [
@@ -819,7 +823,11 @@
      "Shield",
      "Gun",
      "Rifle"
-    ]
+    ],
+    "tint": {
+     "Black": "#4c6234",
+     "DarkBrown": "#3e4a2a"
+    }
    },
    {
     "file": "neu/Adventurer.glb",
@@ -991,7 +999,11 @@
      "idle": "Idle",
      "walk": "Walk",
      "attack": "UAL:Spell_Simple_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ]
     },
     "human": true,
     "hide": [
@@ -999,7 +1011,11 @@
      "Shield",
      "Gun",
      "Rifle"
-    ]
+    ],
+    "tint": {
+     "Black": "#e6e0d0",
+     "DarkBrown": "#8a1f24"
+    }
    },
    {
     "file": "neu/Soldier.glb",
@@ -1010,7 +1026,11 @@
      "idle": "Idle",
      "walk": "Walk",
      "attack": "UAL:Spell_Simple_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ]
     },
     "human": true,
     "hide": [
@@ -1018,7 +1038,11 @@
      "Shield",
      "Gun",
      "Rifle"
-    ]
+    ],
+    "tint": {
+     "Black": "#e6e2d8",
+     "Swat": "#cfcabc"
+    }
    },
    {
     "file": "military/Ambulance Car.glb",
@@ -1279,14 +1303,19 @@
    {
     "file": "neu/Medieval.glb",
     "epochs": [
-     3,
-     4
+     3
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Sword_Slash",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Sword",
+     "run": "Run"
     },
     "hide": [
      "^Sword$"
@@ -1305,19 +1334,68 @@
       0
      ]
     },
-    "human": true
+    "human": true,
+    "tint": {
+     "Black": "team"
+    }
    },
    {
-    "file": "neu/Soldier.glb",
+    "file": "neu/Medieval.glb",
     "epochs": [
-     5,
-     6
+     4
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Sword",
+     "run": "Run"
+    },
+    "hide": [
+     "^Sword$"
+    ],
+    "hand": {
+     "file": "neu/Spear.glb",
+     "scale": 0.15,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "human": true,
+    "tint": {
+     "Black": "team",
+     "DarkBrown": "#6e2a35",
+     "Metal": "#b9a66a"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
      "attack": "Gun_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
     },
     "human": true,
     "hand": {
@@ -1333,6 +1411,49 @@
       0,
       0
      ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#2f3346",
+     "Grey": "#1c1c1c"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     6
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "#66674a",
+     "Swat": "#52543a",
+     "Grey": "#3d2c1e"
     }
    }
   ],
@@ -1407,28 +1528,65 @@
    {
     "file": "neu/Medieval.glb",
     "epochs": [
-     3,
+     3
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Sword",
+     "run": "Run"
+    },
+    "human": true,
+    "tint": {
+     "Black": "team"
+    }
+   },
+   {
+    "file": "neu/Medieval.glb",
+    "epochs": [
      4
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Sword_Slash",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Sword",
+     "run": "Run"
     },
-    "human": true
+    "human": true,
+    "tint": {
+     "Black": "team",
+     "DarkBrown": "#6e2a35",
+     "Metal": "#b9a66a"
+    }
    },
    {
     "file": "neu/Soldier.glb",
     "epochs": [
-     5,
-     6
+     5
     ],
     "anim": {
-     "idle": "Idle",
+     "idle": "Idle_Gun",
      "walk": "Walk",
      "attack": "Gun_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
     },
     "human": true,
     "hand": {
@@ -1444,6 +1602,49 @@
       0,
       0
      ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#2f3346",
+     "Grey": "#1c1c1c"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     6
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "#66674a",
+     "Swat": "#52543a",
+     "Grey": "#3d2c1e"
     }
    }
   ],
@@ -1557,14 +1758,17 @@
    {
     "file": "neu/Medieval.glb",
     "epochs": [
-     3,
-     4
+     3
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Gun_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ]
     },
     "hide": [
      "^Sword$"
@@ -1583,19 +1787,66 @@
       0,
       0
      ]
+    },
+    "tint": {
+     "Black": "team"
     }
    },
    {
-    "file": "neu/Soldier.glb",
+    "file": "neu/Medieval.glb",
     "epochs": [
-     5,
-     6
+     4
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Gun_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ]
+    },
+    "hide": [
+     "^Sword$"
+    ],
+    "human": true,
+    "hand": {
+     "file": "neu/Wooden Bow.glb",
+     "scale": 0.45,
+     "rot": [
+      0,
+      0,
+      90
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "team",
+     "DarkBrown": "#6e2a35",
+     "Metal": "#b9a66a"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
     },
     "human": true,
     "hand": {
@@ -1611,6 +1862,49 @@
       0,
       0
      ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#2f3346",
+     "Grey": "#1c1c1c"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     6
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "#66674a",
+     "Swat": "#52543a",
+     "Grey": "#3d2c1e"
     }
    }
   ],
@@ -1618,14 +1912,17 @@
    {
     "file": "neu/Medieval.glb",
     "epochs": [
-     3,
-     4
+     3
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Gun_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ]
     },
     "hide": [
      "^Sword$"
@@ -1644,19 +1941,66 @@
       0,
       0
      ]
+    },
+    "tint": {
+     "Black": "team"
     }
    },
    {
-    "file": "neu/Soldier.glb",
+    "file": "neu/Medieval.glb",
     "epochs": [
-     5,
-     6
+     4
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Gun_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ]
+    },
+    "hide": [
+     "^Sword$"
+    ],
+    "human": true,
+    "hand": {
+     "file": "neu/Wooden Bow.glb",
+     "scale": 0.45,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "team",
+     "DarkBrown": "#6e2a35",
+     "Metal": "#b9a66a"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
     },
     "human": true,
     "hand": {
@@ -1672,125 +2016,516 @@
       0,
       0
      ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#2f3346",
+     "Grey": "#1c1c1c"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     6
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "#66674a",
+     "Swat": "#52543a",
+     "Grey": "#3d2c1e"
     }
    }
   ],
-  "musket": {
-   "file": "neu/Soldier.glb",
-   "epochs": [
-    4,
-    5,
-    6
-   ],
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Gun_Shoot",
-    "work": "Interact"
-   },
-   "human": true,
-   "hand": {
-    "file": "neu/Sniper Rifle.glb",
-    "scale": 0.16,
-    "rot": [
-     0,
-     180,
-     0
+  "musket": [
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     4
     ],
-    "pos": [
-     0,
-     0,
-     0
-    ]
-   }
-  },
-  "rifle": {
-   "file": "neu/Soldier.glb",
-   "epochs": [
-    4,
-    5,
-    6
-   ],
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Gun_Shoot",
-    "work": "Interact"
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#cbb98e",
+     "Grey": "#2a2018"
+    }
    },
-   "human": true,
-   "hand": {
-    "file": "neu/Sniper Rifle.glb",
-    "scale": 0.16,
-    "rot": [
-     0,
-     180,
-     0
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5
     ],
-    "pos": [
-     0,
-     0,
-     0
-    ]
-   }
-  },
-  "assault": {
-   "file": "neu/Soldier.glb",
-   "epochs": [
-    4,
-    5,
-    6
-   ],
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Gun_Shoot",
-    "work": "Interact"
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#2f3346",
+     "Grey": "#1c1c1c"
+    }
    },
-   "human": true,
-   "hand": {
-    "file": "neu/Assault Rifle.glb",
-    "scale": 0.16,
-    "rot": [
-     0,
-     0,
-     0
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     6
     ],
-    "pos": [
-     0,
-     0,
-     0
-    ]
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "#66674a",
+     "Swat": "#52543a",
+     "Grey": "#3d2c1e"
+    }
    }
-  },
-  "mg": {
-   "file": "neu/Soldier.glb",
-   "epochs": [
-    4,
-    5,
-    6
-   ],
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Gun_Shoot",
-    "work": "Interact"
+  ],
+  "rifle": [
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     4
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#cbb98e",
+     "Grey": "#2a2018"
+    }
    },
-   "human": true,
-   "hand": {
-    "file": "neu/Assault Rifle.glb",
-    "scale": 0.16,
-    "rot": [
-     0,
-     0,
-     0
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5
     ],
-    "pos": [
-     0,
-     0,
-     0
-    ]
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#2f3346",
+     "Grey": "#1c1c1c"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     6
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "#66674a",
+     "Swat": "#52543a",
+     "Grey": "#3d2c1e"
+    }
    }
-  },
+  ],
+  "assault": [
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     4
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Assault Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#cbb98e",
+     "Grey": "#2a2018"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Assault Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#2f3346",
+     "Grey": "#1c1c1c"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     6
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Assault Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "#66674a",
+     "Swat": "#52543a",
+     "Grey": "#3d2c1e"
+    }
+   }
+  ],
+  "mg": [
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     4
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Assault Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#cbb98e",
+     "Grey": "#2a2018"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Assault Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#2f3346",
+     "Grey": "#1c1c1c"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     6
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Assault Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "#66674a",
+     "Swat": "#52543a",
+     "Grey": "#3d2c1e"
+    }
+   }
+  ],
   "tank": {
    "file": "neu/Tank.glb",
    "fit": "length",
@@ -2064,10 +2799,16 @@
   "alpini": {
    "file": "neu/Soldier.glb",
    "anim": {
-    "idle": "Idle",
+    "idle": "Idle_Gun",
     "walk": "Walk",
     "attack": "Gun_Shoot",
-    "work": "Interact"
+    "work": "Interact",
+    "hit": [
+     "HitRecieve",
+     "HitRecieve_2"
+    ],
+    "ready": "Idle_Gun_Pointing",
+    "run": "Run_Shoot"
    },
    "human": true,
    "hand": {
@@ -2083,15 +2824,26 @@
      0,
      0
     ]
+   },
+   "tint": {
+    "Black": "#66674a",
+    "Swat": "#52543a",
+    "Grey": "#3d2c1e"
    }
   },
   "sturm": {
    "file": "neu/Swat.glb",
    "anim": {
-    "idle": "Idle",
+    "idle": "Idle_Gun",
     "walk": "Walk",
     "attack": "Gun_Shoot",
-    "work": "Interact"
+    "work": "Interact",
+    "hit": [
+     "HitRecieve",
+     "HitRecieve_2"
+    ],
+    "ready": "Idle_Gun_Pointing",
+    "run": "Run_Shoot"
    },
    "human": true,
    "hand": {
@@ -2107,15 +2859,25 @@
      0,
      0
     ]
+   },
+   "tint": {
+    "Swat": "#5c6150",
+    "Swat_Black": "#3a3d30"
    }
   },
   "rekrut": {
    "file": "neu/Soldier.glb",
    "anim": {
-    "idle": "Idle",
+    "idle": "Idle_Gun",
     "walk": "Walk",
     "attack": "Gun_Shoot",
-    "work": "Interact"
+    "work": "Interact",
+    "hit": [
+     "HitRecieve",
+     "HitRecieve_2"
+    ],
+    "ready": "Idle_Gun_Pointing",
+    "run": "Run_Shoot"
    },
    "human": true,
    "hand": {
@@ -2131,15 +2893,26 @@
      0,
      0
     ]
+   },
+   "tint": {
+    "Black": "#66674a",
+    "Swat": "#52543a",
+    "Grey": "#3d2c1e"
    }
   },
   "doughboy": {
    "file": "neu/Soldier.glb",
    "anim": {
-    "idle": "Idle",
+    "idle": "Idle_Gun",
     "walk": "Walk",
     "attack": "Gun_Shoot",
-    "work": "Interact"
+    "work": "Interact",
+    "hit": [
+     "HitRecieve",
+     "HitRecieve_2"
+    ],
+    "ready": "Idle_Gun_Pointing",
+    "run": "Run_Shoot"
    },
    "human": true,
    "hand": {
@@ -2155,15 +2928,26 @@
      0,
      0
     ]
+   },
+   "tint": {
+    "Black": "#66674a",
+    "Swat": "#52543a",
+    "Grey": "#3d2c1e"
    }
   },
   "janit": {
    "file": "neu/Soldier.glb",
    "anim": {
-    "idle": "Idle",
+    "idle": "Idle_Gun",
     "walk": "Walk",
     "attack": "Gun_Shoot",
-    "work": "Interact"
+    "work": "Interact",
+    "hit": [
+     "HitRecieve",
+     "HitRecieve_2"
+    ],
+    "ready": "Idle_Gun_Pointing",
+    "run": "Run_Shoot"
    },
    "human": true,
    "hand": {
@@ -2179,15 +2963,26 @@
      0,
      0
     ]
+   },
+   "tint": {
+    "Black": "#66674a",
+    "Swat": "#52543a",
+    "Grey": "#3d2c1e"
    }
   },
   "banzai": {
    "file": "neu/Swat.glb",
    "anim": {
-    "idle": "Idle",
+    "idle": "Idle_Gun",
     "walk": "Walk",
     "attack": "Gun_Shoot",
-    "work": "Interact"
+    "work": "Interact",
+    "hit": [
+     "HitRecieve",
+     "HitRecieve_2"
+    ],
+    "ready": "Idle_Gun_Pointing",
+    "run": "Run_Shoot"
    },
    "human": true,
    "hand": {
@@ -2203,15 +2998,25 @@
      0,
      0
     ]
+   },
+   "tint": {
+    "Swat": "#5c6150",
+    "Swat_Black": "#3a3d30"
    }
   },
   "bersag": {
    "file": "neu/Soldier.glb",
    "anim": {
-    "idle": "Idle",
+    "idle": "Idle_Gun",
     "walk": "Walk",
     "attack": "Gun_Shoot",
-    "work": "Interact"
+    "work": "Interact",
+    "hit": [
+     "HitRecieve",
+     "HitRecieve_2"
+    ],
+    "ready": "Idle_Gun_Pointing",
+    "run": "Run_Shoot"
    },
    "human": true,
    "hand": {
@@ -2227,6 +3032,11 @@
      0,
      0
     ]
+   },
+   "tint": {
+    "Black": "#66674a",
+    "Swat": "#52543a",
+    "Grey": "#3d2c1e"
    }
   },
   "ram": {
@@ -2303,14 +3113,19 @@
    {
     "file": "neu/Medieval.glb",
     "epochs": [
-     3,
-     4
+     3
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Sword_Slash",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Sword",
+     "run": "Run"
     },
     "hide": [
      "^Sword$"
@@ -2329,19 +3144,68 @@
       0
      ]
     },
-    "human": true
+    "human": true,
+    "tint": {
+     "Black": "team"
+    }
    },
    {
-    "file": "neu/Soldier.glb",
+    "file": "neu/Medieval.glb",
     "epochs": [
-     5,
-     6
+     4
     ],
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Sword",
+     "run": "Run"
+    },
+    "hide": [
+     "^Sword$"
+    ],
+    "hand": {
+     "file": "neu/Spear.glb",
+     "scale": 0.15,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "human": true,
+    "tint": {
+     "Black": "team",
+     "DarkBrown": "#6e2a35",
+     "Metal": "#b9a66a"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
      "attack": "Gun_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
     },
     "human": true,
     "hand": {
@@ -2357,6 +3221,49 @@
       0,
       0
      ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#2f3346",
+     "Grey": "#1c1c1c"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     6
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sword.glb",
+     "scale": 0.25,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "#66674a",
+     "Swat": "#52543a",
+     "Grey": "#3d2c1e"
     }
    }
   ],
@@ -2370,7 +3277,11 @@
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Gun_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ]
     },
     "hide": [
      "^Sword$"
@@ -2389,20 +3300,27 @@
       0,
       0
      ]
+    },
+    "tint": {
+     "Black": "team"
     }
    },
    {
     "file": "neu/Soldier.glb",
     "epochs": [
-     4,
-     5,
-     6
+     4
     ],
     "anim": {
-     "idle": "Idle",
+     "idle": "Idle_Gun",
      "walk": "Walk",
      "attack": "Gun_Shoot",
-     "work": "Interact"
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
     },
     "human": true,
     "hand": {
@@ -2418,6 +3336,87 @@
       0,
       0
      ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#cbb98e",
+     "Grey": "#2a2018"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     5
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "team",
+     "Swat": "#2f3346",
+     "Grey": "#1c1c1c"
+    }
+   },
+   {
+    "file": "neu/Soldier.glb",
+    "epochs": [
+     6
+    ],
+    "anim": {
+     "idle": "Idle_Gun",
+     "walk": "Walk",
+     "attack": "Gun_Shoot",
+     "work": "Interact",
+     "hit": [
+      "HitRecieve",
+      "HitRecieve_2"
+     ],
+     "ready": "Idle_Gun_Pointing",
+     "run": "Run_Shoot"
+    },
+    "human": true,
+    "hand": {
+     "file": "neu/Sniper Rifle.glb",
+     "scale": 0.16,
+     "rot": [
+      0,
+      180,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "tint": {
+     "Black": "#66674a",
+     "Swat": "#52543a",
+     "Grey": "#3d2c1e"
     }
    }
   ],
@@ -2447,7 +3446,7 @@
      3,
      4
     ],
-    "len": 2.4,
+    "len": 3.2,
     "yaw": 90,
     "tint": {
      "colormap": "#9c8a78"
@@ -2455,7 +3454,34 @@
     "rider": {
      "as": "worker",
      "push": true,
-     "x": 0.05
+     "x": -0.25,
+     "armAx": "y",
+     "arm": 0.35
+    },
+    "load": {
+     "stone": {
+      "file": "neu/Rock Medium.glb",
+      "tint": "#ece8e0",
+      "h": 0.42,
+      "y": 0.55,
+      "n": 3,
+      "dx": 0.24
+     },
+     "iron": {
+      "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
+      "tint": "#d6b4a4",
+      "h": 0.42,
+      "y": 0.55,
+      "n": 3,
+      "dx": 0.24
+     },
+     "gold": {
+      "file": "neu/Gold Ingots.glb",
+      "h": 0.3,
+      "y": 0.55,
+      "n": 2,
+      "dx": 0.25
+     }
     }
    },
    {
@@ -2465,7 +3491,32 @@
      6
     ],
     "len": 3.2,
-    "yaw": 90
+    "yaw": 90,
+    "load": {
+     "stone": {
+      "file": "neu/Rock Medium.glb",
+      "tint": "#ece8e0",
+      "h": 0.42,
+      "y": 0.55,
+      "n": 3,
+      "dx": 0.24
+     },
+     "iron": {
+      "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
+      "tint": "#d6b4a4",
+      "h": 0.42,
+      "y": 0.55,
+      "n": 3,
+      "dx": 0.24
+     },
+     "gold": {
+      "file": "neu/Gold Ingots.glb",
+      "h": 0.3,
+      "y": 0.55,
+      "n": 2,
+      "dx": 0.25
+     }
+    }
    }
   ],
   "ironclad": [
@@ -2528,7 +3579,7 @@
     "epochs": [
      1
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Bonfire.glb",
@@ -2549,19 +3600,19 @@
     "epochs": [
      0
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "neu/Hut.glb",
       "h": 2.6,
-      "x": -1.0,
+      "x": -1,
       "z": -0.75,
       "ry": 20
      },
      {
       "file": "archiv/Hut-4MJWbyd6vw.glb",
       "h": 2.4,
-      "x": 1.0,
+      "x": 1,
       "z": -0.8,
       "ry": -25
      },
@@ -2591,7 +3642,7 @@
     "epochs": [
      2
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "arch/Arch.glb",
@@ -2606,21 +3657,21 @@
     "epochs": [
      5
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Large Building-ppwtREejXg.glb",
     "epochs": [
      6
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Houses-vCoDG5hFyI.glb",
     "epochs": [
      3
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "arch/Church.glb",
@@ -2689,7 +3740,7 @@
     "epochs": [
      1
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Hay.glb",
@@ -2704,7 +3755,7 @@
     "epochs": [
      0
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Bonfire.glb",
@@ -2725,7 +3776,7 @@
     "epochs": [
      2
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/House-RSwoYSLblu.glb",
@@ -2733,21 +3784,21 @@
      3,
      4
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/House-k6tP5nFUd2.glb",
     "epochs": [
      5
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Small Building-gyjF60t7CG.glb",
     "epochs": [
      6
     ],
-    "fit": 1.0
+    "fit": 1
    }
   ],
   "store": [
@@ -2756,19 +3807,19 @@
     "epochs": [
      1
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "archiv/Shack.glb",
     "epochs": [
      0
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Hay.glb",
       "h": 0.8,
-      "x": 1.0,
+      "x": 1,
       "z": 0.8
      },
      {
@@ -2791,7 +3842,7 @@
     "epochs": [
      2
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Storage House.glb",
@@ -2799,7 +3850,7 @@
      3,
      4
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "arch/Barn.glb",
@@ -2807,7 +3858,7 @@
      5,
      6
     ],
-    "fit": 1.0
+    "fit": 1
    }
   ],
   "barracks": [
@@ -2816,14 +3867,14 @@
     "epochs": [
      1
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Wooden Encampment.glb",
     "epochs": [
      0
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Bonfire.glb",
@@ -2851,13 +3902,13 @@
      2,
      3
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "torture/Pilory-2aK6iL6NAY.glb",
       "h": 1.1,
       "x": 1.3,
-      "z": 1.0,
+      "z": 1,
       "ry": -20
      }
     ]
@@ -2867,26 +3918,26 @@
     "epochs": [
      4
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "archiv/Large Building-sxXonOmtct.glb",
     "epochs": [
      5
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/dorf/Practice Dummy.glb",
       "h": 1.6,
       "x": 1.2,
-      "z": 1.0
+      "z": 1
      },
      {
       "file": "archiv/dorf/Target.glb",
       "h": 1.4,
       "x": -1.2,
-      "z": 1.0
+      "z": 1
      }
     ]
    },
@@ -2895,7 +3946,7 @@
     "epochs": [
      6
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Tent.glb",
@@ -2914,7 +3965,7 @@
      {
       "file": "military/Jeep.glb",
       "h": 1.2,
-      "x": -1.0,
+      "x": -1,
       "z": 1.15,
       "ry": 30
      },
@@ -2935,7 +3986,7 @@
      0,
      1
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Fish Bone.glb",
@@ -2951,14 +4002,14 @@
      2,
      3
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Docks.glb",
     "epochs": [
      4
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "archiv/Shipping Port-rDX8W8uqip.glb",
@@ -2966,7 +4017,7 @@
      5,
      6
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/cargo-pile-a.glb",
@@ -2984,7 +4035,7 @@
      3,
      4
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "torture/Gallows.glb",
@@ -2997,7 +4048,7 @@
       "file": "torture/Pilory.glb",
       "h": 1.2,
       "x": -1.3,
-      "z": 1.0
+      "z": 1
      },
      {
       "file": "torture/Cage-TAqDCvxcxd.glb",
@@ -3013,7 +4064,7 @@
      5,
      6
     ],
-    "fit": 1.0
+    "fit": 1
    }
   ],
   "farm": {
@@ -3026,7 +4077,7 @@
     5,
     6
    ],
-   "fit": 1.0
+   "fit": 1
   },
   "mine": {
    "file": "neu/Mine.glb",
@@ -3047,7 +4098,7 @@
      3,
      4
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "people/rich_citizens_2.glb",
@@ -3079,7 +4130,7 @@
      5,
      6
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "arch/Ferris Wheel.glb",
@@ -3097,14 +4148,14 @@
     "epochs": [
      1
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Watch Tower.glb",
     "epochs": [
      0
     ],
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Skull.glb",
@@ -3119,7 +4170,7 @@
     "epochs": [
      2
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "neu/Stone Tower.glb",
@@ -3129,7 +4180,7 @@
      5,
      6
     ],
-    "fit": 1.0
+    "fit": 1
    },
    {
     "file": "towers/ballista_1.glb",
@@ -3137,7 +4188,7 @@
      2
     ],
     "spec": "def",
-    "fit": 1.0,
+    "fit": 1,
     "pal": {
      "#ffebd3": "#a49a86",
      "#fff1c9": "#b3a993",
@@ -3160,7 +4211,7 @@
      3
     ],
     "spec": "def",
-    "fit": 1.0,
+    "fit": 1,
     "pal": {
      "#ffebd3": "#a49a86",
      "#fff1c9": "#b3a993",
@@ -3183,7 +4234,7 @@
      0
     ],
     "spec": "def",
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Wooden Wall-L0TxLurnES.glb",
@@ -3221,7 +4272,7 @@
      1
     ],
     "spec": "def",
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Wooden Wall-L0TxLurnES.glb",
@@ -3259,7 +4310,7 @@
      0
     ],
     "spec": "obs",
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Hot air balloon by Poly by Google - 7Fej0Jd3_Di.glb",
@@ -3277,7 +4328,7 @@
      2
     ],
     "spec": "obs",
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Hot air balloon by Poly by Google - 7Fej0Jd3_Di.glb",
@@ -3297,7 +4348,7 @@
      6
     ],
     "spec": "obs",
-    "fit": 1.0,
+    "fit": 1,
     "props": [
      {
       "file": "archiv/Hot air balloon by Poly by Google - 7Fej0Jd3_Di.glb",
@@ -3316,7 +4367,7 @@
      6
     ],
     "spec": "def",
-    "fit": 1.0
+    "fit": 1
    }
   ]
  },
@@ -3421,7 +4472,7 @@
     "attack": "Armature|TRex_Attack",
     "work": "Armature|TRex_Idle"
    },
-   "len": 7.0
+   "len": 7
   }
  },
  "nodes": {
@@ -3625,12 +4676,12 @@
    "rows": [
     [
      -0.295,
-     0.0,
+     0,
      0.42
     ],
     [
      -0.145,
-     0.0,
+     0,
      0.42
     ],
     [
