@@ -18,7 +18,7 @@ const EKMODELS=(()=>{
   /* Kennzeichen für die Modell-Signatur im Renderer: ändert sich, wenn ein glTF-Modell zuständig wird (dann wird die Figur neu gebaut) */
   function tag(e){if(!manifest||!files.size)return'';
     if(e.kind==='unit'){const en=entryFor('unit',e.type,e.lvl||0);return en?'|g:'+en.file:''}
-    if(e.kind==='bld'){const en=entryFor('bld',e.type,G.epoch[e.team],e.spec);return en?'|g:'+en.file:''}
+    if(e.kind==='bld'){const en=entryFor('bld',e.type,e.lvl??G.epoch[e.team],e.spec);return en?'|g:'+en.file:''}
     if(e.kind==='animal'){const en=entryFor('animal',e.type,0);return en?'|g:'+en.file:''}
     if(e.kind==='node'&&e.sea&&manifest.sea&&manifest.sea[e.type]&&files.size)return'|gs';return''}
   function has(kind,type,ep){return !!entryFor(kind,type,ep)}

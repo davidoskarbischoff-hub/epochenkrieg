@@ -2843,15 +2843,9 @@
     ]
    },
    {
-    "file": "arch/Colosseum.glb",
-    "epochs": [
-     2
-    ],
-    "fit": 1.0
-   },
-   {
     "file": "neu/Wooden Fortress.glb",
     "epochs": [
+     2,
      3
     ],
     "fit": 1.0,
@@ -3571,68 +3565,6 @@
     "colors": {
      "DarkGreen": "#447a33",
      "Wood": "#6b4630"
-    }
-   }
-  ],
-  "autumn": [
-   {
-    "file": "nature/CommonTree_Autumn_1.glb",
-    "k": 0.026,
-    "colors": {
-     "Orange": "#cf5f26",
-     "LightOrange": "#e6a33a",
-     "Wood": "#6b4630",
-     "White": "#ebe7dc",
-     "Black": "#3a3631",
-     "LightWood": "#8a5a3a"
-    }
-   },
-   {
-    "file": "nature/CommonTree_Autumn_2.glb",
-    "k": 0.026,
-    "colors": {
-     "Orange": "#cf5f26",
-     "LightOrange": "#e6a33a",
-     "Wood": "#6b4630",
-     "White": "#ebe7dc",
-     "Black": "#3a3631",
-     "LightWood": "#8a5a3a"
-    }
-   },
-   {
-    "file": "nature/CommonTree_Autumn_4.glb",
-    "k": 0.026,
-    "colors": {
-     "Orange": "#cf5f26",
-     "LightOrange": "#e6a33a",
-     "Wood": "#6b4630",
-     "White": "#ebe7dc",
-     "Black": "#3a3631",
-     "LightWood": "#8a5a3a"
-    }
-   },
-   {
-    "file": "nature/BirchTree_Autumn_2.glb",
-    "k": 0.02,
-    "colors": {
-     "Orange": "#cf5f26",
-     "LightOrange": "#e6a33a",
-     "Wood": "#6b4630",
-     "White": "#ebe7dc",
-     "Black": "#3a3631",
-     "LightWood": "#8a5a3a"
-    }
-   },
-   {
-    "file": "nature/BirchTree_Autumn_3.glb",
-    "k": 0.02,
-    "colors": {
-     "Orange": "#cf5f26",
-     "LightOrange": "#e6a33a",
-     "Wood": "#6b4630",
-     "White": "#ebe7dc",
-     "Black": "#3a3631",
-     "LightWood": "#8a5a3a"
     }
    }
   ],

@@ -194,7 +194,7 @@ function treeKind(e){let c=R3.tk.get(e.id);if(c)return c;const sd=e.seed,x=e.x,y
   if(sd<.5)c={k:'pine',v:(h1*997)|0};
   else{let wet=false;for(let k=0;k<8&&!wet;k++){const a=k*.785;for(const d of[36,66])if(terrAt(x+Math.cos(a)*d,y+Math.sin(a)*d)<2){wet=true;break}}
     const au=Math.sin(x*.0023+.7)*Math.sin(y*.0019+1.9)+.35*Math.sin((x-y)*.006),bi=Math.sin(x*.0041+2.1)*Math.cos(y*.0037+.4);
-    c={k:wet&&h1<.8?'willow':h2<.03+.35*smooth3(.5,.95,au)?'autumn':h1<.12+.5*smooth3(-.2,.7,bi)?'birch':'broad',v:((h1+h2)*997)|0}}
+    c={k:wet&&h1<.8?'willow':/* Herbstbäume erst mit Jahreszeiten (Merkliste) */h1<.12+.5*smooth3(-.2,.7,bi)?'birch':'broad',v:((h1+h2)*997)|0}}
   R3.tk.set(e.id,c);return c}
 const hsh=(a,b)=>{const t=Math.sin(a*12.9898+b*78.233)*43758.5453;return t-Math.floor(t)};
 function r3Nodes(){
@@ -253,7 +253,7 @@ function r3Sync(list,dt,t){
   const S=R3.S,seen=new Set();
   for(const[e,ghost]of list){
     const key=entKey(e,ghost);seen.add(key);
-    let sig;const ep=e.kind==='bld'?G.epoch[e.team]:0;sig=e.kind==='unit'?e.type+e.team+':'+(e.lvl||0)+(e.type==='worker'?':'+wkTier(e)+(G.tech[e.team].has('baskets')?'b':'')+(G.tech[e.team].has('carts')?'c':'')+(G.tech[e.team].has('shoes')?'s':''):''):e.kind==='bld'?e.type+':'+ep+':'+e.team+(e.spec||'')+(e.pc||''):e.kind==='animal'?e.type:e.type;
+    let sig;const ep=e.kind==='bld'?(e.lvl??G.epoch[e.team]):0;sig=e.kind==='unit'?e.type+e.team+':'+(e.lvl||0)+(e.type==='worker'?':'+wkTier(e)+(G.tech[e.team].has('baskets')?'b':'')+(G.tech[e.team].has('carts')?'c':'')+(G.tech[e.team].has('shoes')?'s':''):''):e.kind==='bld'?e.type+':'+ep+':'+e.team+(e.spec||'')+(e.pc||''):e.kind==='animal'?e.type:e.type;
     sig+=EKMODELS.tag(e)+(e.empty?'x':'')+(e.ore||'');
     let o=R3.reg.get(key);
     if(!o||o.sig!==sig){if(o)r3.gEnt.remove(o.obj);o=r3Make(e,sig);R3.reg.set(key,o);r3.gEnt.add(o.obj)}
@@ -285,7 +285,7 @@ function aoDecal(radius,op){
 function r3Make(e,sig){
   const S=R3.S;
   if(e.kind==='unit'){const rig=buildUnit(e);let sc=(UNITS[e.type].vr||e.r)/7*1.25*(UNITS[e.type].naval?.46:e.type==='tank'||e.type==='mark1'?.72:UNITS[e.type].siege?.7:UNITS[e.type].cls==='cav'?.74:e.type==='worker'?.8:1);if(rig.human)sc=UNITS.worker.vr/7*1.25*.8/* alle Menschen so groß wie der Arbeiter */;rig.g.scale.setScalar(sc*(.94+((e.id*37)%13)/13*.12));const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
-  if(e.kind==='bld'){const g=buildBld(e.type,e.r/S*1.05,G.epoch[e.team],e.team,e.spec);if(e.empty)g.traverse(o=>{if(o.isMesh){const f=m=>{const c=m.clone();if(c.color)c.color.multiplyScalar(.45);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}}) /* erschöpfte Mine: dunkel/grau */;if(e.ore&&e.ore!=='stone'&&!e.empty){const tc=new THREE.Color(e.ore==='gold'?0xffd166:0xd08a6a);g.traverse(o=>{if(o.isMesh){const f=m=>{if(!/stone|rock/i.test(m.name||''))return m;const c=m.clone();if(c.color)c.color.lerp(tc,.45);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}})} /* Eisen-/Goldmine: rötlich bzw. golden getönt */;if(e.type!=='wall'&&e.type!=='gate'&&e.type!=='trench'&&e.type!=='farm')g.add(aoDecal(e.r/S*1.55));if(e.pc&&typeof wallPostModel==='function')wallPostModel(g,e.pc,e.r/S*1.05,G.epoch[e.team],e.team);if(e.spec&&!g.userData.spec&&typeof specModel==='function')specModel(g,e.type,e.spec,e.r/S*1.05,e.team,G.epoch[e.team]);return{obj:g,sig,flags:g.userData.flags||[]}}
+  if(e.kind==='bld'){const g=buildBld(e.type,e.r/S*1.05,e.lvl??G.epoch[e.team]/* Aussehen erst nach dem Upgrade */,e.team,e.spec);if(e.empty)g.traverse(o=>{if(o.isMesh){const f=m=>{const c=m.clone();if(c.color)c.color.multiplyScalar(.45);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}}) /* erschöpfte Mine: dunkel/grau */;if(e.ore&&e.ore!=='stone'&&!e.empty){const tc=new THREE.Color(e.ore==='gold'?0xffd166:0xd08a6a);g.traverse(o=>{if(o.isMesh){const f=m=>{if(!/stone|rock/i.test(m.name||''))return m;const c=m.clone();if(c.color)c.color.lerp(tc,.45);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}})} /* Eisen-/Goldmine: rötlich bzw. golden getönt */;if(e.type!=='wall'&&e.type!=='gate'&&e.type!=='trench'&&e.type!=='farm')g.add(aoDecal(e.r/S*1.55));if(e.pc&&typeof wallPostModel==='function')wallPostModel(g,e.pc,e.r/S*1.05,G.epoch[e.team],e.team);if(e.spec&&!g.userData.spec&&typeof specModel==='function')specModel(g,e.type,e.spec,e.r/S*1.05,e.team,G.epoch[e.team]);return{obj:g,sig,flags:g.userData.flags||[]}}
   if(e.kind==='animal'){const rig=buildAnimal(e);const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
   const g=EKMODELS.makeSea(e)||seaModel(e);return{obj:g,sig,flags:[]}}
 /* Gliederbewegung der Menschen: Gehen (Gegenschwung, Neigen, Wippen), Atmen im Stand, Arbeiten je Werkzeug, Kampf mit Ausholen/Schlag/Rückstoß, Zucken bei Treffern */
