@@ -52,7 +52,15 @@ Ein Modell kann im Manifest „angezogen“ werden, damit man nicht für jede Ei
 - `hide`: Teile ausblenden (Namensmuster), z. B. `["^Sword$"]` versteckt das mitgelieferte Schwert.
 - `hand` / `left`: Waffe oder Werkzeug in die rechte/linke Hand: `{"file":"neu/Spear.glb","scale":0.5,"rot":[-90,0,0],"pos":[0,0,0]}`.
 - `pelt`: Fell-Hüftrock in dieser Farbe, z. B. `"#6b4a2b"`.
+- `vary`: mehrere Figuren für dieselbe Einheit, z. B. `["neu/Farmer.glb","people/peasant_1.glb",…]` – jede Figur bekommt nach ihrer Nummer eine davon (Abwechslung bei den Arbeitern im Mittelalter/Renaissance). Die Figuren sollten dasselbe Skelett und dieselben Clip-Namen haben (Werkzeuge, Arbeits-Clips).
 Beispiel: Steinzeit-Keulenträger = Basisfigur + Hautfarbe + Fellrock + Keule (`Wooden Torch`).
+
+## Beiwerk am Gebäude (`props`)
+`props:[{"file":"people/king.glb","h":2.5,"x":0.3,"z":1.18,"ry":-15,"anim":"Idle","tint":{"People_texture_map":"#d0c8c0"}}]` – x/z in Gebäude-Radien (z positiv = zur Kamera), `h` = Höhe in Welteinheiten (Mensch ≈ 2,4), `ry` = Drehung in Grad, `y` = Höhe in Gebäudehöhen. Figuren mit Animation: `anim` = Clip, der ständig läuft (Idle = ruhiges Stehen/Atmen), `tint` = Material abdunkeln/tönen wie bei Einheiten.
+
+## Mittelalterliche Menschen (`models/people`)
+Bauern, Bürger, Reiche, König, Königin (itch.io-Paket, Quellen in `models/fbx/people`). Die FBX-Dateien haben ein Unreal-Skelett und keine Animationen. `node tools/fbx2glb/conv.js tools/fbx2glb/menschen.json` wandelt sie um: aufrecht, Textur-Farben, Skelett mit den Knochen-Namen der Quaternius-Figuren und deren Animationen (Idle, Walk, Interact, Sword_Slash, Punch_Left/Right, bei Männern Gun_Shoot), Ruhepose = erstes Bild von Idle (keine T-Haltung). Werkzeuge/Waffen sitzen dadurch genauso in der Hand wie beim Farmer. Im Spiel um `#d0c8c0` abgedunkelt (`tint`), sonst wirken die hellen Stoffe im Sonnenlicht ausgebleicht.
+Eingesetzt: Arbeiter Mittelalter/Renaissance (`vary`, Bauern 1–6 neben dem Farmer), König und Königin am Hauptlager (Mittelalter: vor dem Rathaus, Renaissance: im Burgtor), zwei Reiche am Markt.
 
 ## Natur: Bäume, Büsche, Felsen, Deko (Abschnitt `nodes`)
 Jeder Schlüssel ist eine **Liste von Varianten** (je mehr, desto abwechslungsreicher; jede Variante kostet einen Zeichenaufruf). Untexturierte Low-Poly-Modelle (z. B. Quaternius-Natur-Paket in `models/nature`) werden automatisch zu einem Teil mit Eckpunkt-Farben zusammengebacken.

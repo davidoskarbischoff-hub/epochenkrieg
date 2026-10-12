@@ -560,6 +560,18 @@
        ]
       }
      }
+    },
+    "vary": [
+     "neu/Farmer.glb",
+     "people/peasant_1.glb",
+     "people/peasant_2.glb",
+     "people/peasant_3.glb",
+     "people/peasant_4.glb",
+     "people/peasant_5.glb",
+     "people/peasant_6.glb"
+    ],
+    "tint": {
+     "People_texture_map": "#d0c8c0"
     }
    },
    {
@@ -2639,6 +2651,27 @@
       "x": -1.35,
       "z": -0.5,
       "ry": 90
+     },
+     {
+      "file": "people/king.glb",
+      "h": 2.5,
+      "x": 0.3,
+      "z": 1.18,
+      "anim": "Idle",
+      "tint": {
+       "People_texture_map": "#d0c8c0"
+      }
+     },
+     {
+      "file": "people/queen.glb",
+      "h": 2.4,
+      "x": 0.62,
+      "z": 1.13,
+      "ry": -15,
+      "anim": "Idle",
+      "tint": {
+       "People_texture_map": "#d0c8c0"
+      }
      }
     ]
    },
@@ -2647,7 +2680,30 @@
     "epochs": [
      4
     ],
-    "fit": 1.1
+    "fit": 1.1,
+    "props": [
+     {
+      "file": "people/king.glb",
+      "h": 2.5,
+      "x": -0.2,
+      "z": 1.25,
+      "anim": "Idle",
+      "tint": {
+       "People_texture_map": "#d0c8c0"
+      }
+     },
+     {
+      "file": "people/queen.glb",
+      "h": 2.4,
+      "x": 0.15,
+      "z": 1.25,
+      "ry": -15,
+      "anim": "Idle",
+      "tint": {
+       "People_texture_map": "#d0c8c0"
+      }
+     }
+    ]
    }
   ],
   "house": [
@@ -3020,7 +3076,31 @@
      3,
      4
     ],
-    "fit": 1.0
+    "fit": 1.0,
+    "props": [
+     {
+      "file": "people/rich_citizens_2.glb",
+      "h": 2.4,
+      "x": 0.5,
+      "z": 1.15,
+      "ry": -30,
+      "anim": "Idle",
+      "tint": {
+       "People_texture_map": "#d0c8c0"
+      }
+     },
+     {
+      "file": "people/rich_citizens_1.glb",
+      "h": 2.45,
+      "x": 0.85,
+      "z": 0.95,
+      "ry": -60,
+      "anim": "Idle",
+      "tint": {
+       "People_texture_map": "#d0c8c0"
+      }
+     }
+    ]
    },
    {
     "file": "neu/Market Stalls.glb",

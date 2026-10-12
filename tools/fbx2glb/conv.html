@@ -11,6 +11,9 @@ window.convert=async(job)=>{
   obj.traverse(o=>{if(o.isBone)info.bones++;if(o.isMesh){info.meshes.push(o.name+(o.isSkinnedMesh?'(skin)':''));for(const m of[].concat(o.material)){if(!info.mats.includes(m.name))info.mats.push(m.name+(m.map?'(tex:'+(m.map.image?'ok':'missing')+')':'')+' #'+m.color.getHexString())}}});
   /* Optionen: noflip = Textur nicht spiegeln, rotX = Drehung (Z-oben → Y-oben), dark = Farben waren doppelt in linear umgerechnet */
   obj.traverse(o=>{if(o.isMesh)for(const m of[].concat(o.material)){if(m.map&&job.noflip){m.map.flipY=false;m.map.needsUpdate=true}if(job.dark&&m.color)m.color.convertLinearToSRGB()}});
+  /* rig: Figur mit Unreal-Skelett neu aufbauen + Animationen übertragen (retarget.js); nocol: Vertexfarben entfernen */
+  if(job.rig){const {rebuild}=await import('/repo/tools/fbx2glb/retarget.js');const r=await rebuild(obj,job);info.rig=r.info;return await finish(r.root,info,job)}
+  if(job.nocol)obj.traverse(o=>{if(o.isMesh&&o.geometry.attributes.color){o.geometry.deleteAttribute('color');for(const m of[].concat(o.material))m.vertexColors=false}});
   if(job.rotX){const w=new THREE.Group();w.add(obj);obj.rotation.x=job.rotX*Math.PI/180;w.updateMatrixWorld(true);w.animations=obj.animations;return await finish(w,info,job)}
   return await finish(obj,info,job)};
 async function finish(obj,info,job){
