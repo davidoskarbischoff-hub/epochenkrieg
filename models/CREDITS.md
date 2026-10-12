@@ -29,3 +29,6 @@ Laut David von itch.io bzw. poly.pizza heruntergeladen. Eingetragen ist, was im 
 | `nature/` (aus `fbx/nature/`: CommonTree, BirchTree, Willow, Bush, BushBerries, Cactus, Rock_Snow, TreeStump, WoodLog, Wheat) | itch.io | unbekannt (Namen und Farben entsprechen dem „Ultimate Nature Pack“ von Quaternius, CC0) | vermutlich CC0 | umgewandelt FBX → GLB, Farben aufgehellt |
 | `towers/` (aus `fbx/towers/`: Archer/Ballista/Cannon/Poison/Wizard Tower Stufe 1–4, Textur „fortress elves“) | itch.io (Tower-Defense-Paket) | unbekannt | unbekannt | umgewandelt FBX → GLB |
 | `people/` (aus `fbx/people/`: peasant, city_dwellers, rich_citizens, king, queen) und `fbx/houses/` (House_01–20) | itch.io (Low-Poly-Pakete) | laut Dateipfad „arnoldV“ | unbekannt | umgewandelt FBX → GLB |
+
+- Universal Animation Library (UAL1_Standard) – Quaternius, CC0 (models/neu/UAL1_Standard.glb; Bewegungen werden im Spiel auf unsere Figuren übertragen)
+- Viking boat, Sail ship (models/neu, aus FBX umgewandelt) – Quelle laut Dateiname, Lizenz unbekannt

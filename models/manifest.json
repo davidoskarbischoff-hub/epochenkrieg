@@ -2028,16 +2028,14 @@
    }
   ],
   "warship": {
-   "file": "neu/ship-small.glb",
-   "fit": "length",
-   "yaw": 90,
-   "scale": 0.55
+   "file": "neu/Viking_boat.glb",
+   "len": 6.5,
+   "yaw": 90
   },
   "galleon": {
-   "file": "neu/ship-large.glb",
-   "fit": "length",
-   "yaw": 90,
-   "scale": 0.6
+   "file": "neu/Sail_ship.glb",
+   "len": 9.5,
+   "yaw": 90
   },
   "catapult": {
    "file": "neu/siege-catapult.glb",
