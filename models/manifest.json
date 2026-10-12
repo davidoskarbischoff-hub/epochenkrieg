@@ -1232,118 +1232,315 @@
     "yaw": 90
    }
   ],
-  "engineer": {
-   "file": "neu/Worker.glb",
-   "anim": {
-    "idle": "Idle",
-    "walk": "Walk",
-    "attack": "Punch_Right",
-    "work": "Interact"
-   },
-   "human": true,
-   "work": {
-    "chop": {
-     "clip": "Sword_Slash",
-     "tool": {
-      "file": "neu/Axe Small.glb",
-      "scale": 0.4,
-      "rot": [
-       -90,
-       0,
-       0
-      ],
-      "pos": [
-       0,
-       0,
-       0
-      ]
-     }
+  "engineer": [
+   {
+    "file": "neu/Adventurer.glb",
+    "epochs": [
+     3,
+     4
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Punch_Right",
+     "work": "Interact"
     },
-    "mine": {
-     "clip": "Punch_Right",
-     "tool": {
-      "file": "neu/Doublesided Hammer.glb",
-      "scale": 0.3,
-      "rot": [
-       -90,
-       0,
-       0
-      ],
-      "pos": [
-       0,
-       0,
-       0
-      ]
-     }
+    "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack",
+     "^Sword",
+     "Shield",
+     "Gun",
+     "Rifle"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#c8742a",
+     "Brown": "#5a4a32",
+     "Brown2": "#4a3c28",
+     "Grey": "#3a2a1c",
+     "Black": "#2a2018",
+     "Gold": "#c8742a"
     },
-    "pick": {
-     "clip": "UAL:PickUp_Table"
-    },
-    "build": {
-     "clip": "Punch_Left",
-     "tool": {
-      "file": "neu/Doublesided Hammer.glb",
-      "scale": 0.25,
-      "rot": [
-       -90,
-       0,
-       0
-      ],
-      "pos": [
-       0,
-       0,
-       0
-      ]
-     }
-    },
-    "farm": {
-     "clip": "Sword_Slash",
-     "tool": {
-      "file": "neu/Scythe.glb",
-      "scale": 0.4,
-      "rot": [
-       -90,
-       0,
-       0
-      ],
-      "pos": [
-       0,
-       0,
-       0
-      ]
-     }
-    },
-    "hunt": {
-     "clip": "Sword_Slash",
-     "tool": {
-      "file": "neu/Spear.glb",
-      "scale": 0.25,
-      "rot": [
-       -90,
-       0,
-       0
-      ],
-      "pos": [
-       0,
-       0,
-       0
-      ]
-     }
-    },
-    "fish": {
-     "clip": "Idle",
-     "net": {
-      "file": "props/Fishing Net by J-Toastie - Z11I3AUBO9.glb",
-      "len": 2.8,
-      "tint": {
-       "fishnet_main": "#6f7378",
-       "fisnhet_shade2": "#2a2a2a",
-       "fishnet_net": "#3a4a3c"
+    "work": {
+     "chop": {
+      "clip": "Punch_Right",
+      "tool": {
+       "file": "neu/Axe Small.glb",
+       "scale": 0.4,
+       "rot": [
+        0,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "mine": {
+      "clip": "Punch_Right",
+      "tool": {
+       "file": "neu/Doublesided Hammer.glb",
+       "scale": 0.3,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "pick": {
+      "clip": "UAL:PickUp_Table"
+     },
+     "build": {
+      "clip": "UAL:Fixing_Kneeling",
+      "tool": {
+       "file": "neu/Doublesided Hammer.glb",
+       "scale": 0.25,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "farm": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Scythe.glb",
+       "scale": 0.4,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "hunt": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Spear.glb",
+       "scale": 0.25,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "fish": {
+      "clip": "Idle",
+      "net": {
+       "file": "props/Fishing Net by J-Toastie - Z11I3AUBO9.glb",
+       "len": 2.8,
+       "tint": {
+        "fishnet_main": "#7a5532",
+        "fisnhet_shade2": "#4a3420",
+        "fishnet_net": "#c8b48a"
+       }
       }
      }
     }
+   },
+   {
+    "file": "neu/Adventurer.glb",
+    "epochs": [
+     5,
+     6
+    ],
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Punch_Right",
+     "work": "Interact"
+    },
+    "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack",
+     "^Sword",
+     "Shield",
+     "Gun",
+     "Rifle"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#c8742a",
+     "Brown": "#5a4a32",
+     "Brown2": "#4a3c28",
+     "Grey": "#3a2a1c",
+     "Black": "#2a2018",
+     "Gold": "#c8742a"
+    },
+    "work": {
+     "chop": {
+      "clip": "Punch_Right",
+      "tool": {
+       "file": "neu/Axe Small.glb",
+       "scale": 0.4,
+       "rot": [
+        0,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "mine": {
+      "clip": "Punch_Right",
+      "tool": {
+       "file": "neu/Doublesided Hammer.glb",
+       "scale": 0.3,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "pick": {
+      "clip": "UAL:PickUp_Table"
+     },
+     "build": {
+      "clip": "UAL:Fixing_Kneeling",
+      "tool": {
+       "file": "neu/Doublesided Hammer.glb",
+       "scale": 0.25,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "farm": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Scythe.glb",
+       "scale": 0.4,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "hunt": {
+      "clip": "Sword_Slash",
+      "tool": {
+       "file": "neu/Spear.glb",
+       "scale": 0.25,
+       "rot": [
+        -90,
+        0,
+        0
+       ],
+       "pos": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     "fish": {
+      "clip": "Idle",
+      "net": {
+       "file": "props/Fishing Net by J-Toastie - Z11I3AUBO9.glb",
+       "len": 2.8,
+       "tint": {
+        "fishnet_main": "#7a5532",
+        "fisnhet_shade2": "#4a3420",
+        "fishnet_net": "#c8b48a"
+       }
+      }
+     }
+    },
+    "wear": [
+     {
+      "file": "archiv/Stahlhelm.glb",
+      "mesh": "^Helmet",
+      "pos": [
+       -0.04,
+       0.12,
+       0.04
+      ],
+      "tint": {
+       "texture": "#d8b040"
+      },
+      "scale": 1.4
+     }
+    ]
    }
-  },
+  ],
   "spear": [
    {
     "file": "neu/Adventurer.glb",
@@ -2668,7 +2865,18 @@
      4
     ],
     "yaw": 90,
-    "scale": 0.75
+    "scale": 0.75,
+    "rider": {
+     "as": "worker",
+     "seat": 0.45,
+     "free": true,
+     "x": -0.9,
+     "net": {
+      "turn": 90,
+      "pitch": 16
+     },
+     "scale": 0.73
+    }
    },
    {
     "file": "neu/boat-fishing-small.glb",
@@ -2678,7 +2886,18 @@
      6
     ],
     "yaw": 90,
-    "scale": 0.75
+    "scale": 0.75,
+    "rider": {
+     "as": "worker",
+     "seat": 0.55,
+     "free": true,
+     "x": -0.3,
+     "net": {
+      "turn": 90,
+      "pitch": 16
+     },
+     "scale": 0.73
+    }
    }
   ],
   "warship": {
@@ -2716,7 +2935,7 @@
    "fit": "length"
   },
   "alpini": {
-   "file": "neu/Soldier.glb",
+   "file": "neu/Adventurer.glb",
    "anim": {
     "idle": "Idle_Gun",
     "walk": "Walk",
@@ -2730,12 +2949,38 @@
     "run": "Run_Shoot"
    },
    "human": true,
+   "skins": [
+    "#e0ac85",
+    "#c68c63",
+    "#eab994",
+    "#a8734d",
+    "#d49a72"
+   ],
+   "hairs": [
+    "#2a1a10",
+    "#4a2e18",
+    "#1c1410",
+    "#6b4a2a",
+    "#3a2414"
+   ],
+   "hide": [
+    "Backpack"
+   ],
+   "tint": {
+    "Green": "team",
+    "LightGreen": "#7d8a8c",
+    "Brown": "#7d8a8c",
+    "Brown2": "#6a7678",
+    "Grey": "#3a2c20",
+    "Black": "#2a2018",
+    "Gold": "#6a7678"
+   },
    "hand": {
     "file": "neu/Sniper Rifle.glb",
     "scale": 0.16,
     "rot": [
      0,
-     0,
+     180,
      0
     ],
     "pos": [
@@ -2743,15 +2988,10 @@
      0,
      0
     ]
-   },
-   "tint": {
-    "Black": "#66674a",
-    "Swat": "#52543a",
-    "Grey": "#3d2c1e"
    }
   },
   "sturm": {
-   "file": "neu/Swat.glb",
+   "file": "neu/Adventurer.glb",
    "anim": {
     "idle": "Idle_Gun",
     "walk": "Walk",
@@ -2765,12 +3005,38 @@
     "run": "Run_Shoot"
    },
    "human": true,
+   "skins": [
+    "#e0ac85",
+    "#c68c63",
+    "#eab994",
+    "#a8734d",
+    "#d49a72"
+   ],
+   "hairs": [
+    "#2a1a10",
+    "#4a2e18",
+    "#1c1410",
+    "#6b4a2a",
+    "#3a2414"
+   ],
+   "hide": [
+    "Backpack"
+   ],
+   "tint": {
+    "Green": "team",
+    "LightGreen": "#5c6150",
+    "Brown": "#5c6150",
+    "Brown2": "#4a4e40",
+    "Grey": "#1c1c1c",
+    "Black": "#2a2018",
+    "Gold": "#4a4e40"
+   },
    "hand": {
-    "file": "neu/Assault Rifle.glb",
+    "file": "archiv/Submachine Gun.glb",
     "scale": 0.16,
     "rot": [
      0,
-     0,
+     180,
      0
     ],
     "pos": [
@@ -2779,13 +3045,24 @@
      0
     ]
    },
-   "tint": {
-    "Swat": "#5c6150",
-    "Swat_Black": "#3a3d30"
-   }
+   "wear": [
+    {
+     "file": "archiv/Stahlhelm.glb",
+     "mesh": "^Helmet",
+     "pos": [
+      -0.04,
+      0.12,
+      0.04
+     ],
+     "tint": {
+      "texture": "#4a4c48"
+     },
+     "scale": 1.4
+    }
+   ]
   },
   "rekrut": {
-   "file": "neu/Soldier.glb",
+   "file": "neu/Adventurer.glb",
    "anim": {
     "idle": "Idle_Gun",
     "walk": "Walk",
@@ -2799,12 +3076,38 @@
     "run": "Run_Shoot"
    },
    "human": true,
+   "skins": [
+    "#e0ac85",
+    "#c68c63",
+    "#eab994",
+    "#a8734d",
+    "#d49a72"
+   ],
+   "hairs": [
+    "#2a1a10",
+    "#4a2e18",
+    "#1c1410",
+    "#6b4a2a",
+    "#3a2414"
+   ],
+   "hide": [
+    "Backpack"
+   ],
+   "tint": {
+    "Green": "team",
+    "LightGreen": "#8a7a4e",
+    "Brown": "#8a7a4e",
+    "Brown2": "#76683f",
+    "Grey": "#2e2418",
+    "Black": "#2a2018",
+    "Gold": "#76683f"
+   },
    "hand": {
     "file": "neu/Sniper Rifle.glb",
     "scale": 0.16,
     "rot": [
      0,
-     0,
+     180,
      0
     ],
     "pos": [
@@ -2812,15 +3115,10 @@
      0,
      0
     ]
-   },
-   "tint": {
-    "Black": "#66674a",
-    "Swat": "#52543a",
-    "Grey": "#3d2c1e"
    }
   },
   "doughboy": {
-   "file": "neu/Soldier.glb",
+   "file": "neu/Adventurer.glb",
    "anim": {
     "idle": "Idle_Gun",
     "walk": "Walk",
@@ -2834,12 +3132,38 @@
     "run": "Run_Shoot"
    },
    "human": true,
+   "skins": [
+    "#e0ac85",
+    "#c68c63",
+    "#eab994",
+    "#a8734d",
+    "#d49a72"
+   ],
+   "hairs": [
+    "#2a1a10",
+    "#4a2e18",
+    "#1c1410",
+    "#6b4a2a",
+    "#3a2414"
+   ],
+   "hide": [
+    "Backpack"
+   ],
+   "tint": {
+    "Green": "team",
+    "LightGreen": "#6b6440",
+    "Brown": "#6b6440",
+    "Brown2": "#5c5636",
+    "Grey": "#4a3424",
+    "Black": "#2a2018",
+    "Gold": "#5c5636"
+   },
    "hand": {
     "file": "neu/Sniper Rifle.glb",
     "scale": 0.16,
     "rot": [
      0,
-     0,
+     180,
      0
     ],
     "pos": [
@@ -2848,14 +3172,24 @@
      0
     ]
    },
-   "tint": {
-    "Black": "#66674a",
-    "Swat": "#52543a",
-    "Grey": "#3d2c1e"
-   }
+   "wear": [
+    {
+     "file": "archiv/Stahlhelm.glb",
+     "mesh": "^Helmet",
+     "pos": [
+      -0.04,
+      0.12,
+      0.04
+     ],
+     "tint": {
+      "texture": "#7a7448"
+     },
+     "scale": 1.4
+    }
+   ]
   },
   "janit": {
-   "file": "neu/Soldier.glb",
+   "file": "neu/Adventurer.glb",
    "anim": {
     "idle": "Idle_Gun",
     "walk": "Walk",
@@ -2869,12 +3203,38 @@
     "run": "Run_Shoot"
    },
    "human": true,
+   "skins": [
+    "#e0ac85",
+    "#c68c63",
+    "#eab994",
+    "#a8734d",
+    "#d49a72"
+   ],
+   "hairs": [
+    "#2a1a10",
+    "#4a2e18",
+    "#1c1410",
+    "#6b4a2a",
+    "#3a2414"
+   ],
+   "hide": [
+    "Backpack"
+   ],
+   "tint": {
+    "Green": "team",
+    "LightGreen": "#a08a5a",
+    "Brown": "#a08a5a",
+    "Brown2": "#8a764a",
+    "Grey": "#3a2c1e",
+    "Black": "#2a2018",
+    "Gold": "#8a764a"
+   },
    "hand": {
     "file": "neu/Sniper Rifle.glb",
     "scale": 0.16,
     "rot": [
      0,
-     0,
+     180,
      0
     ],
     "pos": [
@@ -2883,14 +3243,24 @@
      0
     ]
    },
-   "tint": {
-    "Black": "#66674a",
-    "Swat": "#52543a",
-    "Grey": "#3d2c1e"
-   }
+   "wear": [
+    {
+     "file": "archiv/Stahlhelm.glb",
+     "mesh": "^Helmet",
+     "pos": [
+      -0.04,
+      0.12,
+      0.04
+     ],
+     "tint": {
+      "texture": "#b09a66"
+     },
+     "scale": 1.4
+    }
+   ]
   },
   "banzai": {
-   "file": "neu/Swat.glb",
+   "file": "neu/Adventurer.glb",
    "anim": {
     "idle": "Idle_Gun",
     "walk": "Walk",
@@ -2904,12 +3274,38 @@
     "run": "Run_Shoot"
    },
    "human": true,
+   "skins": [
+    "#e0ac85",
+    "#c68c63",
+    "#eab994",
+    "#a8734d",
+    "#d49a72"
+   ],
+   "hairs": [
+    "#2a1a10",
+    "#4a2e18",
+    "#1c1410",
+    "#6b4a2a",
+    "#3a2414"
+   ],
+   "hide": [
+    "Backpack"
+   ],
+   "tint": {
+    "Green": "team",
+    "LightGreen": "#9a8a4e",
+    "Brown": "#9a8a4e",
+    "Brown2": "#867840",
+    "Grey": "#3a2c1e",
+    "Black": "#2a2018",
+    "Gold": "#867840"
+   },
    "hand": {
     "file": "neu/Assault Rifle.glb",
     "scale": 0.16,
     "rot": [
      0,
-     0,
+     180,
      0
     ],
     "pos": [
@@ -2917,14 +3313,10 @@
      0,
      0
     ]
-   },
-   "tint": {
-    "Swat": "#5c6150",
-    "Swat_Black": "#3a3d30"
    }
   },
   "bersag": {
-   "file": "neu/Soldier.glb",
+   "file": "neu/Adventurer.glb",
    "anim": {
     "idle": "Idle_Gun",
     "walk": "Walk",
@@ -2938,12 +3330,38 @@
     "run": "Run_Shoot"
    },
    "human": true,
+   "skins": [
+    "#e0ac85",
+    "#c68c63",
+    "#eab994",
+    "#a8734d",
+    "#d49a72"
+   ],
+   "hairs": [
+    "#2a1a10",
+    "#4a2e18",
+    "#1c1410",
+    "#6b4a2a",
+    "#3a2414"
+   ],
+   "hide": [
+    "Backpack"
+   ],
+   "tint": {
+    "Green": "team",
+    "LightGreen": "#5f6a52",
+    "Brown": "#5f6a52",
+    "Brown2": "#525c46",
+    "Grey": "#2a2018",
+    "Black": "#2a2018",
+    "Gold": "#525c46"
+   },
    "hand": {
-    "file": "neu/Sniper Rifle.glb",
+    "file": "neu/Assault Rifle.glb",
     "scale": 0.16,
     "rot": [
      0,
-     0,
+     180,
      0
     ],
     "pos": [
@@ -2952,11 +3370,21 @@
      0
     ]
    },
-   "tint": {
-    "Black": "#66674a",
-    "Swat": "#52543a",
-    "Grey": "#3d2c1e"
-   }
+   "wear": [
+    {
+     "file": "archiv/Stahlhelm.glb",
+     "mesh": "^Helmet",
+     "pos": [
+      -0.04,
+      0.12,
+      0.04
+     ],
+     "tint": {
+      "texture": "#4a5040"
+     },
+     "scale": 1.4
+    }
+   ]
   },
   "ram": {
    "file": "neu/siege-ram.glb",
@@ -2968,7 +3396,7 @@
   },
   "knight": {
    "file": "neu/White Horse.glb",
-   "height": 2.9,
+   "height": 2.45,
    "anim": {
     "idle": "Idle_2",
     "walk": "Walk",
@@ -3512,7 +3940,7 @@
   ],
   "hbow": {
    "file": "neu/White Horse.glb",
-   "height": 2.9,
+   "height": 2.45,
    "anim": {
     "idle": "Idle_2",
     "walk": "Walk",
