@@ -9,7 +9,7 @@ const ROOM={on:false,ready:false,g:null,K:520,DESK:-6,mode:'game',t:0,fly:null,a
     {f:'desk_lamp_arm_01',x:-120,z:-40,ry:.6},
     {f:'book_encyclopedia_set_01',x:600,z:-30,ry:-.3},
     {f:'vintage_radio_transceiver',x:-130,z:200,ry:1.4},
-    {f:'tea_set_01',x:610,z:250,ry:.4},
+    {f:'tea_set_01',x:680,z:380,ry:.4},
     {f:'stationery_supplies',x:560,z:400,ry:-.2},
     {f:'vintage_stapler',x:-60,z:410,ry:.9},
     {f:'chess_set',x:380,z:-170,ry:.2},
