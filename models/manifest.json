@@ -9,12 +9,12 @@
      0
     ],
     "tint": {
-     "Green": "#7a5634",
-     "LightGreen": "#93693f",
-     "Brown": "skin",
-     "Brown2": "skin",
-     "Grey": "skin",
-     "Black": "#9c6a48",
+     "Green": "#6e5034",
+     "LightGreen": "#a8865c",
+     "Brown": "#5b4330",
+     "Brown2": "#4a3424",
+     "Grey": "#7a5c3e",
+     "Black": "#3a2a1c",
      "Gold": "#e8dcc0"
     },
     "anim": {
@@ -33,12 +33,12 @@
     "human": true,
     "work": {
      "chop": {
-      "clip": "Sword_Slash",
+      "clip": "Punch_Right",
       "tool": {
        "file": "neu/Axe Small.glb",
        "scale": 0.4,
        "rot": [
-        -90,
+        0,
         0,
         0
        ],
@@ -150,13 +150,13 @@
      1
     ],
     "tint": {
-     "Green": "#b9a27a",
-     "LightGreen": "#a08a62",
-     "Brown": "#6b4a2e",
+     "Green": "#cdbb92",
+     "LightGreen": "#a34a2c",
+     "Brown": "#6b5034",
      "Brown2": "#5a3c22",
-     "Grey": "#7a5532",
+     "Grey": "#5e4128",
      "Black": "#3b2a1a",
-     "Gold": "#c08a3a"
+     "Gold": "#b98034"
     },
     "anim": {
      "idle": "Idle",
@@ -174,12 +174,12 @@
     "human": true,
     "work": {
      "chop": {
-      "clip": "Sword_Slash",
+      "clip": "Punch_Right",
       "tool": {
        "file": "neu/Axe Small.glb",
        "scale": 0.4,
        "rot": [
-        -90,
+        0,
         0,
         0
        ],
@@ -291,13 +291,13 @@
      2
     ],
     "tint": {
-     "Green": "#6f6a48",
-     "LightGreen": "#857e58",
-     "Brown": "#5a4632",
-     "Brown2": "#4a3a2a",
-     "Grey": "#4a3a2a",
-     "Black": "#2a2018",
-     "Gold": "#9aa0a6"
+     "Green": "#4f6a3f",
+     "LightGreen": "#7d7448",
+     "Brown": "#4a3c2e",
+     "Brown2": "#3a2e22",
+     "Grey": "#3e2e20",
+     "Black": "#221a12",
+     "Gold": "#8f959a"
     },
     "anim": {
      "idle": "Idle",
@@ -315,12 +315,12 @@
     "human": true,
     "work": {
      "chop": {
-      "clip": "Sword_Slash",
+      "clip": "Punch_Right",
       "tool": {
        "file": "neu/Axe Small.glb",
        "scale": 0.4,
        "rot": [
-        -90,
+        0,
         0,
         0
        ],
@@ -441,12 +441,12 @@
     "human": true,
     "work": {
      "chop": {
-      "clip": "Sword_Slash",
+      "clip": "Punch_Right",
       "tool": {
        "file": "neu/Axe Small.glb",
        "scale": 0.4,
        "rot": [
-        -90,
+        0,
         0,
         0
        ],
@@ -569,12 +569,12 @@
     "human": true,
     "work": {
      "chop": {
-      "clip": "Sword_Slash",
+      "clip": "Punch_Right",
       "tool": {
        "file": "neu/Axe Small.glb",
        "scale": 0.4,
        "rot": [
-        -90,
+        0,
         0,
         0
        ],
@@ -1468,20 +1468,6 @@
     "epochs": [
      1
     ],
-    "left": {
-     "file": "neu/Wooden Bow.glb",
-     "scale": 0.45,
-     "rot": [
-      0,
-      0,
-      0
-     ],
-     "pos": [
-      0,
-      0,
-      0
-     ]
-    },
     "skins": [
      "#e0ac85",
      "#c68c63",
@@ -1499,7 +1485,21 @@
     ],
     "hide": [
      "Backpack"
-    ]
+    ],
+    "hand": {
+     "file": "neu/Wooden Bow.glb",
+     "scale": 0.45,
+     "rot": [
+      0,
+      0,
+      90
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    },
    {
     "file": "neu/Adventurer.glb",
@@ -1521,20 +1521,6 @@
     "epochs": [
      2
     ],
-    "left": {
-     "file": "neu/Wooden Bow.glb",
-     "scale": 0.45,
-     "rot": [
-      0,
-      0,
-      0
-     ],
-     "pos": [
-      0,
-      0,
-      0
-     ]
-    },
     "skins": [
      "#e0ac85",
      "#c68c63",
@@ -1552,7 +1538,21 @@
     ],
     "hide": [
      "Backpack"
-    ]
+    ],
+    "hand": {
+     "file": "neu/Wooden Bow.glb",
+     "scale": 0.45,
+     "rot": [
+      0,
+      0,
+      90
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    },
    {
     "file": "neu/Medieval.glb",
@@ -1569,21 +1569,21 @@
     "hide": [
      "^Sword$"
     ],
-    "left": {
+    "human": true,
+    "hand": {
      "file": "neu/Wooden Bow.glb",
      "scale": 0.45,
      "rot": [
       0,
       0,
-      0
+      90
      ],
      "pos": [
       0,
       0,
       0
      ]
-    },
-    "human": true
+    }
    },
    {
     "file": "neu/Soldier.glb",
@@ -2453,6 +2453,11 @@
     "yaw": 90,
     "tint": {
      "colormap": "#9c8a78"
+    },
+    "rider": {
+     "as": "worker",
+     "push": true,
+     "x": 0.05
     }
    },
    {
@@ -2843,15 +2848,9 @@
     ]
    },
    {
-    "file": "arch/Colosseum.glb",
-    "epochs": [
-     2
-    ],
-    "fit": 1.0
-   },
-   {
     "file": "neu/Wooden Fortress.glb",
     "epochs": [
+     2,
      3
     ],
     "fit": 1.0,
@@ -3571,68 +3570,6 @@
     "colors": {
      "DarkGreen": "#447a33",
      "Wood": "#6b4630"
-    }
-   }
-  ],
-  "autumn": [
-   {
-    "file": "nature/CommonTree_Autumn_1.glb",
-    "k": 0.026,
-    "colors": {
-     "Orange": "#cf5f26",
-     "LightOrange": "#e6a33a",
-     "Wood": "#6b4630",
-     "White": "#ebe7dc",
-     "Black": "#3a3631",
-     "LightWood": "#8a5a3a"
-    }
-   },
-   {
-    "file": "nature/CommonTree_Autumn_2.glb",
-    "k": 0.026,
-    "colors": {
-     "Orange": "#cf5f26",
-     "LightOrange": "#e6a33a",
-     "Wood": "#6b4630",
-     "White": "#ebe7dc",
-     "Black": "#3a3631",
-     "LightWood": "#8a5a3a"
-    }
-   },
-   {
-    "file": "nature/CommonTree_Autumn_4.glb",
-    "k": 0.026,
-    "colors": {
-     "Orange": "#cf5f26",
-     "LightOrange": "#e6a33a",
-     "Wood": "#6b4630",
-     "White": "#ebe7dc",
-     "Black": "#3a3631",
-     "LightWood": "#8a5a3a"
-    }
-   },
-   {
-    "file": "nature/BirchTree_Autumn_2.glb",
-    "k": 0.02,
-    "colors": {
-     "Orange": "#cf5f26",
-     "LightOrange": "#e6a33a",
-     "Wood": "#6b4630",
-     "White": "#ebe7dc",
-     "Black": "#3a3631",
-     "LightWood": "#8a5a3a"
-    }
-   },
-   {
-    "file": "nature/BirchTree_Autumn_3.glb",
-    "k": 0.02,
-    "colors": {
-     "Orange": "#cf5f26",
-     "LightOrange": "#e6a33a",
-     "Wood": "#6b4630",
-     "White": "#ebe7dc",
-     "Black": "#3a3631",
-     "LightWood": "#8a5a3a"
     }
    }
   ],

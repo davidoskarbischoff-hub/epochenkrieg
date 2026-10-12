@@ -226,9 +226,16 @@ function showEnd(){
 
 /* ---------- Hinweise: bleibt die Maus kurz auf einem Symbol oder Knopf, erscheint ein erklärender Text ---------- */
 const TIPS={'Nahrung':'Wird für Arbeiter und Truppen gebraucht. Beeren, Felder, Wild und Fische liefern Nahrung.','Holz':'Baumaterial für Gebäude und viele Einheiten. Arbeiter fällen Bäume.','Stein':'Für Türme, Mauern und Aufstiege. Abbau ab der Bronzezeit mit Spitzhacke.','Eisen':'Für Waffen, Rüstungen und Aufstiege. Braucht ab der Eisenzeit eine Mine neben dem Vorkommen.','Öl':'Treibstoff für Panzer und Flugzeuge. Ölfelder sind verborgen: erst erkunden, dann Bohrturm bauen, Öl zur Raffinerie bringen.','Gold':'Für späte Einheiten und den Markt. Braucht ab dem Mittelalter eine Mine neben dem Vorkommen.','Bevölkerung':'Belegte Plätze / Gesamtplätze. Hütten und Technologien schaffen mehr Platz.','Spieltempo':'Klicken wechselt zwischen 1×, 2×, 3× und 5×.','Menü (Esc)':'Optionen, Grafik, Ton und Spiel beenden.'};
+/* Hinweis zu einer Einheit: Rolle, Werte, Stärken (Tooltip über den Ausbildungs-Knöpfen) */
+const UROLE={wk:'Sammelt Rohstoffe, baut und repariert Gebäude.',inf:'Nahkämpfer: robust, gut gegen Fernkämpfer und Belagerung.',spear:'Speerträger: hält Reiterei auf.',rng:'Fernkämpfer: schießt aus der Distanz, gut gegen Nahkämpfer.',cav:'Reiterei: schnell, gut gegen Fernkämpfer, Belagerung und Heiler.',siege:'Belagerung: großer Schaden gegen Gebäude, langsam und verwundbar.',ship:'Schiff: kämpft auf dem Wasser.',air:'Flugzeug: fliegt über alles, nur Fernkämpfer und Flieger treffen es.',med:'Heiler: kämpft nicht, heilt verletzte eigene Truppen in der Nähe.'};
+const CLSN={inf:'Nahkämpfer',spear:'Speerträger',rng:'Fernkämpfer',cav:'Reiterei',siege:'Belagerung',med:'Heiler'};
+function unitTip(k){const d=UNITS[k];if(!d)return'';const e=Math.min(6,G.epoch[0]),m=v=>Math.round(v*LVL.hp[e]);
+  const st=[tr('Leben {0}',m(d.hp)),d.heal?tr('Heilt {0}/s',d.heal):d.atk?tr('Angriff {0}',Math.round(d.atk*LVL.atk[e])):null,d.rng>30?tr('Reichweite {0}',d.rng):null,tr('Tempo {0}',d.spd)].filter(Boolean).join(' · ');
+  const good=Object.keys(CTR[d.cls]||{}).map(c=>tr(CLSN[c]||c)).join(', ');
+  return '<br>'+[d.gather&&!d.naval?tr(UROLE.wk):d.naval&&d.gather?tr('Fischt auf dem Wasser und bringt Nahrung zum Hafen.'):tr(UROLE[d.cls]||''),st,good?tr('Stark gegen: {0}',good):''].filter(Boolean).join('<br>')}
 {const tip=document.createElement('div');tip.id='tip';tip.hidden=true;document.body.appendChild(tip);let timer=null,cur=null;
   const content=el=>{
-    if(el.classList&&el.classList.contains('act')){const a=curActs[+el.dataset.i];if(!a)return null;return{h:a.nm,t:[a.sub,a.need,a.lock&&tr('Erst ab der {0} verfügbar.',a.lock)].filter(Boolean).join(' · '),c:a.cost?costHTML(a.cost):''}}
+    if(el.classList&&el.classList.contains('act')){const a=curActs[+el.dataset.i];if(!a)return null;return{h:a.nm,t:[a.sub,a.need,a.lock&&tr('Erst ab der {0} verfügbar.',a.lock)].filter(Boolean).join(' · ')+(a.unit?unitTip(a.unit):''),c:a.cost?costHTML(a.cost):''}}
     const k=el.dataset.tt||el.dataset.tip;if(!k)return null;const base=k.split(' (')[0];return{h:tr(k),t:TIPS[base]?tr(TIPS[base]):'',c:''}};
   const hide=()=>{clearTimeout(timer);timer=null;tip.hidden=true;cur=null};
   document.addEventListener('mouseover',e=>{const el=e.target.closest&&e.target.closest('[data-tt],[data-tip],.act');if(el===cur)return;hide();if(!el)return;cur=el;if(el.title)el.title='';

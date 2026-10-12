@@ -46,7 +46,11 @@ function r3Chunks(g,NX,NZ,mat,C){C=C||32;const grp=new THREE.Group(),pos=g.attri
     for(let j=cz;j<=z1;j++)for(let i=cx;i<=x1;i++){const y=pos.getY(j*NX+i);if(y<y0)y0=y;if(y>y1)y1=y}
     const cg=new THREE.BufferGeometry();for(const k in g.attributes)cg.setAttribute(k,g.attributes[k]);cg.setIndex(idx);
     cg.boundingBox=new THREE.Box3(new THREE.Vector3(cx,y0,cz),new THREE.Vector3(x1,y1,z1));cg.boundingSphere=cg.boundingBox.getBoundingSphere(new THREE.Sphere());
-    const m=new THREE.Mesh(cg,mat);grp.add(m)}
+    const m=new THREE.Mesh(cg,mat);grp.add(m);
+    /* grobe Fassung (jeder 2. Eckpunkt, 1/4 der Dreiecke) für die Fernsicht – gleiche Eckpunkt-Daten, nur andere Dreiecke */
+    if((x1-cx)%2===0&&(z1-cz)%2===0){const id2=[];for(let j=cz;j<z1;j+=2)for(let i=cx;i<x1;i+=2){const a=j*NX+i,b=a+2,c=a+2*NX,d=c+2;id2.push(a,c,b,c,d,b)}
+      const lg=new THREE.BufferGeometry();for(const k in g.attributes)lg.setAttribute(k,g.attributes[k]);lg.setIndex(id2);lg.boundingBox=cg.boundingBox;lg.boundingSphere=cg.boundingSphere;m.userData.hi=cg;m.userData.lo=lg;if(R3.lodOn)m.geometry=lg}}
+  (R3.chunkGrps||(R3.chunkGrps=new Set())).add(grp);
   Object.defineProperty(grp,'renderOrder',{set(v){grp.children.forEach(c=>c.renderOrder=v)},get(){return grp.children[0]?grp.children[0].renderOrder:0}});
   return grp}
 function r3Map(){
@@ -129,8 +133,16 @@ function windify(mat,amp){mat.customProgramCacheKey=()=>"wind"+amp;/* eigener Pr
   #endif`)};return mat}
 /* ---------- Instanzen für Bäume, Büsche, Felsen, Deko ---------- */
 /* Mehrteilige Instanzen (glTF-Bäume/Felsen: ein InstancedMesh je Teil), sieht von aussen wie ein einzelnes InstancedMesh aus */
+/* Vereinfachte Fassung eines Modells für die Fernsicht (Eckpunkte in einem Raster zusammenlegen, Farben mitteln, flach schattiert) */
+function lodGeo(g,div){if(!g.attributes.color||g.attributes.uv&&g.attributes.uv.count&&!g.attributes.color)return null;const P=g.attributes.position,C=g.attributes.color,I=g.index,nt=(I?I.count:P.count)/3;if(nt<300)return null;
+  g.computeBoundingBox();const b=g.boundingBox,sz=b.getSize(new THREE.Vector3()),cs=Math.max(sz.x,sz.y,sz.z)/div,key=new Map(),acc=[],id=new Int32Array(P.count);
+  for(let i=0;i<P.count;i++){const k=Math.floor((P.getX(i)-b.min.x)/cs)+'|'+Math.floor((P.getY(i)-b.min.y)/cs)+'|'+Math.floor((P.getZ(i)-b.min.z)/cs);let j=key.get(k);if(j===undefined){j=acc.length;key.set(k,j);acc.push([0,0,0,0,0,0,0])}const a=acc[j];a[0]+=P.getX(i);a[1]+=P.getY(i);a[2]+=P.getZ(i);a[3]+=C.getX(i);a[4]+=C.getY(i);a[5]+=C.getZ(i);a[6]++;id[i]=j}
+  const pos=[],col=[];for(let t=0;t<nt;t++){const v=[0,1,2].map(q=>id[I?I.getX(t*3+q):t*3+q]);if(v[0]===v[1]||v[1]===v[2]||v[0]===v[2])continue;for(const j of v){const a=acc[j];pos.push(a[0]/a[6],a[1]/a[6],a[2]/a[6]);col.push(a[3]/a[6],a[4]/a[6],a[5]/a[6])}}
+  if(pos.length/9>nt*.7)return null;const o=new THREE.BufferGeometry();o.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));o.setAttribute('color',new THREE.Float32BufferAttribute(col,3));o.computeVertexNormals();o.computeBoundingSphere();return o}
+const LOD_Z=.95; /* unterhalb dieses Zooms (weiter weg) zeichnen Bäume ihre vereinfachte Fassung */
+function r3Lod(){const on=cam.z<LOD_Z;if(on===R3.lodOn||!r3.ns)return;R3.lodOn=on;for(const gp of R3.chunkGrps||[]){if(!gp.parent){R3.chunkGrps.delete(gp);continue}for(const c of gp.children)if(c.userData.lo)c.geometry=on?c.userData.lo:c.userData.hi}for(const k in r3.ns)for(const m of r3.ns[k].L)if(m.isMulti)for(const q of m.parts)if(q.userData.lo)q.geometry=on?q.userData.lo:q.userData.hi}
 function r3Multi(parts,n,wind){
-  const ms=parts.map(p=>{const mt=p.mat;if(wind)windify(mt,wind);const m=new THREE.InstancedMesh(p.geo,mt,Math.max(1,n));m.userData.veg=true;m.castShadow=gfxQ>=2;/* Schatten der vielen Bäume nur ab Grafik „Hoch“ (spart die Hälfte der Zeichenarbeit) */m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);return m});
+  const ms=parts.map(p=>{const mt=p.mat;if(wind)windify(mt,wind);const m=new THREE.InstancedMesh(p.geo,mt,Math.max(1,n));if(wind){if(p.lo===undefined)p.lo=lodGeo(p.geo,9);if(p.lo){m.userData.hi=p.geo;m.userData.lo=p.lo;if(R3.lodOn)m.geometry=p.lo}}m.userData.veg=true;m.castShadow=gfxQ>=2;/* Schatten der vielen Bäume nur ab Grafik „Hoch“ (spart die Hälfte der Zeichenarbeit) */m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);return m});
   return{isMulti:true,parts:ms,setMatrixAt(i,mx){ms.forEach(m=>m.setMatrixAt(i,mx))},setColorAt(i,c){ms.forEach(m=>m.setColorAt(i,c))},dispose(){ms.forEach(m=>m.dispose())}}}
 function r3DropInst(m){if(!m)return;if(m.isMulti)m.parts.forEach(p=>r3.scene.remove(p));else r3.scene.remove(m);m.dispose()}
 /* Natur-Sätze: je Schlüssel eine Instanz-Gruppe pro Modell-Variante (Liste in manifest.nodes). geo = Code-Modell (Rückfall und Grössenmassstab),
@@ -165,28 +177,33 @@ function r3Grass(){
   for(let i=0;i<Math.round(52000*AREA*GQ[gfxQ].grass)&&pts.length<Math.round(15000*AREA*GQ[gfxQ].grass);i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;let ok=true;for(let k=0;k<4;k++)if(terrAt(x+Math.cos(k*1.57)*14,y+Math.sin(k*1.57)*14)!==2){ok=false;break}if(!ok)continue;
     const dens=.5+.5*Math.sin(x*.013+Math.cos(y*.011)*2);if(R()>dens*1.1)continue;pts.push({x,y,r:R()*6.28,s:.6+R()*.8,c:.8+R()*.5,j:R()})}
   for(let i=0;i<Math.round(9000*AREA*Math.min(1.5,GQ[gfxQ].grass))&&fl.length<Math.round(1800*AREA*Math.min(1.5,GQ[gfxQ].grass));i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;const cx=Math.cos(x*.02)*Math.sin(y*.017);if(cx<.35)continue;fl.push({x,y,r:R()*6.28,s:.7+R()*.6,k:(R()*5)|0})}
-  const blade=(r,h,ax,az,col)=>{const g=new THREE.ConeGeometry(r,h,3);g.translate(0,h/2,0);g.rotateZ(az);g.rotateX(ax);return[g,col]};
+  const blade=(r,h,ax,az,col)=>{const g=new THREE.ConeGeometry(r,h,3,1,true);/* ohne Boden: spart ein Drittel der Dreiecke */g.translate(0,h/2,0);g.rotateZ(az);g.rotateX(ax);return[g,col]};
   const tg=mergeColored([blade(.05,.5,.18,.2,0x5f8a3a),blade(.05,.62,-.15,-.1,0x6f9a44),blade(.045,.42,.1,-.3,0x4f7a32),blade(.045,.55,-.2,.25,0x7aa24b)]);
   r3.i_tuft=new THREE.InstancedMesh(tg,windify(new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide}),.55),pts.length);
-  r3.grassPts=pts;
   const fg=mergeColored([[tr3(cyl(.012,.012,.38,4),0,.19,0),0x4f7a32],[tr3(new THREE.IcosahedronGeometry(.085,0),0,.4,0),0xffffff]]);
-  r3.i_flower=new THREE.InstancedMesh(fg,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.8}),fl.length);r3.flowerPts=fl;
-  for(const m of[r3.i_tuft,r3.i_flower]){m.frustumCulled=false;m.castShadow=false;m.receiveShadow=true;scene.add(m)}
-  const o=new THREE.Object3D(),pal=[0xf4e66a,0xf7f3ea,0xe07a8a,0x9f7ad6,0xf0a24a];
-  pts.forEach((p,i)=>{o.position.set(p.x/S,hAt(p.x,p.y),p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(p.s);o.updateMatrix();r3.i_tuft.setMatrixAt(i,o.matrix)});
-  fl.forEach((p,i)=>{o.position.set(p.x/S,hAt(p.x,p.y),p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(p.s);o.updateMatrix();r3.i_flower.setMatrixAt(i,o.matrix);r3.i_flower.setColorAt(i,new THREE.Color(pal[p.k]))});
-  r3.i_tuft.instanceMatrix.needsUpdate=true;r3.i_flower.instanceMatrix.needsUpdate=true;r3.blk=new Uint8Array(FW*FH);r3.grassHid=new Uint8Array(pts.length+fl.length);
+  r3.i_flower=new THREE.InstancedMesh(fg,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.8}),fl.length);
+  for(const m of[r3.i_tuft,r3.i_flower]){m.frustumCulled=false;m.castShadow=false;m.receiveShadow=true;m.count=0;scene.add(m)}
+  /* Nur die Büschel im sichtbaren Ausschnitt kommen in die Instanzen (r3GrassView); dafür Punkte in 200-px-Zellen einsortieren */
+  const pal=[0xf4e66a,0xf7f3ea,0xe07a8a,0x9f7ad6,0xf0a24a],GC=200,gw=Math.ceil(W/GC),cells=(L)=>{const c=Array.from({length:gw*Math.ceil(H/GC)},()=>[]);L.forEach(p=>c[((p.y/GC)|0)*gw+((p.x/GC)|0)].push(p));return c};
+  for(const p of pts){p.h=hAt(p.x,p.y);p.hid=0}for(const p of fl){p.h=hAt(p.x,p.y);p.col=new THREE.Color(pal[p.k]);p.hid=0}
+  r3.grassPts=pts;r3.flowerPts=fl;r3.gCells={GC,gw,t:cells(pts),f:cells(fl)};r3.gKey='';r3.blk=new Uint8Array(FW*FH);
 }
+/* Gras im sichtbaren Ausschnitt in die Instanzen schreiben (nur wenn sich der Ausschnitt merklich ändert oder der Nebel neu schattiert wurde) */
+function r3GrassView(force){
+  const v=R3.view,gc=r3.gCells;if(!r3.i_tuft||!v||!gc)return;const key=[v.x0,v.x1,v.y0,v.y1].map(a=>Math.round(a/80)).join();if(!force&&key===r3.gKey)return;r3.gKey=key;
+  const S=R3.S,o=_gO||(_gO=new THREE.Object3D()),c=_gC||(_gC=new THREE.Color()),cx0=Math.max(0,(v.x0/gc.GC)|0),cx1=Math.min(gc.gw-1,(v.x1/gc.GC)|0),cy0=Math.max(0,(v.y0/gc.GC)|0),cy1=Math.min(((H-1)/gc.GC)|0,(v.y1/gc.GC)|0);
+  const fill=(m,cells,col)=>{let k=0;for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++)for(const p of cells[cy*gc.gw+cx]){if(p.hid)continue;o.position.set(p.x/S,p.h,p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(p.s);o.updateMatrix();m.setMatrixAt(k,o.matrix);m.setColorAt(k,col(p));k++}
+    m.count=k;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true};
+  fill(r3.i_tuft,gc.t,p=>{const sh=fogShade(p.x,p.y)*p.c;return c.setRGB(sh,sh*(.96+p.j*.08),sh*.95)});fill(r3.i_flower,gc.f,p=>p.col)}
+let _gO=null,_gC=null;
 /* Büschel unter Gebäuden und im Nebel ausblenden bzw. abdunkeln (alle 0,4 s) */
 function r3GrassShade(){
-  if(!r3.i_tuft)return;const blk=r3.blk,S=R3.S;blk.fill(0);
+  if(!r3.i_tuft)return;const blk=r3.blk;blk.fill(0);
   for(const e of G.ents)if(!e.dead&&e.kind==='bld'){const rr=e.r+10,x0=Math.max(0,(e.x-rr)/FC|0),x1=Math.min(FW-1,(e.x+rr)/FC|0),y0=Math.max(0,(e.y-rr)/FC|0),y1=Math.min(FH-1,(e.y+rr)/FC|0);for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)blk[y*FW+x]=1}
-  const c=new THREE.Color(),m=new THREE.Matrix4(),o=new THREE.Object3D();
-  r3.grassPts.forEach((p,i)=>{const hid=blk[fogIdx(p.x,p.y)]?1:0,sh=fogShade(p.x,p.y)*p.c;c.setRGB(sh,sh*(.96+p.j*.08),sh*.95);r3.i_tuft.setColorAt(i,c);
-    if(hid!==r3.grassHid[i]){r3.grassHid[i]=hid;o.position.set(p.x/S,hAt(p.x,p.y),p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(hid?.0001:p.s);o.updateMatrix();r3.i_tuft.setMatrixAt(i,o.matrix);r3.i_tuft.instanceMatrix.needsUpdate=true}});
-  r3.i_tuft.instanceColor.needsUpdate=true;
-  r3.flowerPts.forEach((p,i)=>{const j=r3.grassPts.length+i,hid=blk[fogIdx(p.x,p.y)]?1:0;if(hid!==r3.grassHid[j]){r3.grassHid[j]=hid;o.position.set(p.x/S,hAt(p.x,p.y),p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(hid?.0001:p.s);o.updateMatrix();r3.i_flower.setMatrixAt(i,o.matrix);r3.i_flower.instanceMatrix.needsUpdate=true}});
-}
+  const v=R3.view,inV=p=>!v||(p.x>v.x0-200&&p.x<v.x1+200&&p.y>v.y0-200&&p.y<v.y1+200);
+  for(const p of r3.grassPts)if(inV(p))p.hid=blk[fogIdx(p.x,p.y)];
+  for(const p of r3.flowerPts)if(inV(p))p.hid=blk[fogIdx(p.x,p.y)];
+  r3GrassView(true)}
 let _o=null,_c=null;
 function fogShade(x,y){const i=fogIdx(x,y),a=(1-visF[i])*(165-95*exF[i])/255;return 1-a*.82}
 /* Baum-Art (einmal je Baum bestimmt): Nadelbaum, Laubbaum, Birken in Hainen, Weiden am Wasser, Herbstfarben als Flecken in der Landschaft */
@@ -194,7 +211,7 @@ function treeKind(e){let c=R3.tk.get(e.id);if(c)return c;const sd=e.seed,x=e.x,y
   if(sd<.5)c={k:'pine',v:(h1*997)|0};
   else{let wet=false;for(let k=0;k<8&&!wet;k++){const a=k*.785;for(const d of[36,66])if(terrAt(x+Math.cos(a)*d,y+Math.sin(a)*d)<2){wet=true;break}}
     const au=Math.sin(x*.0023+.7)*Math.sin(y*.0019+1.9)+.35*Math.sin((x-y)*.006),bi=Math.sin(x*.0041+2.1)*Math.cos(y*.0037+.4);
-    c={k:wet&&h1<.8?'willow':h2<.03+.35*smooth3(.5,.95,au)?'autumn':h1<.12+.5*smooth3(-.2,.7,bi)?'birch':'broad',v:((h1+h2)*997)|0}}
+    c={k:wet&&h1<.8?'willow':/* Herbstbäume erst mit Jahreszeiten (Merkliste) */h1<.12+.5*smooth3(-.2,.7,bi)?'birch':'broad',v:((h1+h2)*997)|0}}
   R3.tk.set(e.id,c);return c}
 const hsh=(a,b)=>{const t=Math.sin(a*12.9898+b*78.233)*43758.5453;return t-Math.floor(t)};
 function r3Nodes(){
@@ -203,7 +220,11 @@ function r3Nodes(){
   const S=R3.S,B={},V=R3.view,M=260,fr=R3.fr=(R3.fr||0)+1,tl=R3.tl;
   /* Instanz vormerken: Schlüssel ohne eigene Modelle → Ersatz (alt) */
   const add=(key,v,x,y,z,ry,sx,sy,r,g,b)=>{let d;while((!r3.ns[key]||!r3.ns[key].L.length)&&(d=NSET[key])&&d.alt)key=d.alt;const s=r3.ns[key];if(!s||!s.L.length)return;const bb=B[key]||(B[key]=[]),i=v%s.L.length;(bb[i]||(bb[i]=[])).push(x,y,z,ry,sx,sy,r,g,b)};
-  const inV=(x,y,m)=>!V||(x>=V.x0-m&&x<=V.x1+m&&y>=V.y0-m&&y<=V.y1+m);
+  const inV0=(x,y,m)=>!V||(x>=V.x0-m&&x<=V.x1+m&&y>=V.y0-m&&y<=V.y1+m);
+  /* genauer: Fusspunkt auf dem Bildschirm (Rand links/rechts 170 px, oben 120 px, unten 300 px für hohe Bäume, deren Krone ins Bild ragt) */
+  const sv=r3.vec,pm=new THREE.Matrix4().multiplyMatrices(r3.camera.projectionMatrix,r3.camera.matrixWorldInverse),mx=1+340/Math.max(1,VW),myT=1+240/Math.max(1,VH),myB=1+600/Math.max(1,VH);
+  const onS=(x,y)=>{sv.set(x/S,hAt(x,y),y/S).applyMatrix4(pm);return sv.z<1&&sv.x>-mx&&sv.x<mx&&sv.y<myT&&sv.y>-myB};
+  const inV=(x,y,m)=>inV0(x,y,m)&&onS(x,y);
   R3.nodeV=V&&{x:(V.x0+V.x1)/2,y:(V.y0+V.y1)/2,w:V.x1-V.x0}; /* nur Vorkommen im Bild (+Rand) zeichnen */
   const fields=new Map(),farms=[];
   for(const e of G.ents){
@@ -253,11 +274,11 @@ function r3Sync(list,dt,t){
   const S=R3.S,seen=new Set();
   for(const[e,ghost]of list){
     const key=entKey(e,ghost);seen.add(key);
-    let sig;const ep=e.kind==='bld'?G.epoch[e.team]:0;sig=e.kind==='unit'?e.type+e.team+':'+(e.lvl||0)+(e.type==='worker'?':'+wkTier(e)+(G.tech[e.team].has('baskets')?'b':'')+(G.tech[e.team].has('carts')?'c':'')+(G.tech[e.team].has('shoes')?'s':''):''):e.kind==='bld'?e.type+':'+ep+':'+e.team+(e.spec||'')+(e.pc||''):e.kind==='animal'?e.type:e.type;
+    let sig;const ep=e.kind==='bld'?(e.lvl??G.epoch[e.team]):0;sig=e.kind==='unit'?e.type+e.team+':'+(e.lvl||0)+(e.type==='worker'?':'+wkTier(e)+(G.tech[e.team].has('baskets')?'b':'')+(G.tech[e.team].has('carts')?'c':'')+(G.tech[e.team].has('shoes')?'s':''):''):e.kind==='bld'?e.type+':'+ep+':'+e.team+(e.spec||'')+(e.pc||''):e.kind==='animal'?e.type:e.type;
     sig+=EKMODELS.tag(e)+(e.empty?'x':'')+(e.ore||'');
     let o=R3.reg.get(key);
     if(!o||o.sig!==sig){if(o)r3.gEnt.remove(o.obj);o=r3Make(e,sig);R3.reg.set(key,o);r3.gEnt.add(o.obj)}
-    const h=hAt(e.x,e.y),obj=o.obj;
+    const h=hAt(e.x,e.y),obj=o.obj;if(o.off){o.off=0;obj.visible=true}
     if(e.kind==='unit')r3Unit(o,e,h,dt,t);
     else if(e.kind==='bld'){obj.position.set(e.x/S,h,e.y/S);const pr=e.built?1:.12+.88*e.prog;obj.scale.set(1,pr,1);if(obj.userData.props)for(const q of obj.userData.props)q.visible=pr>=1 /* Beiwerk (Figuren, Ballon) erst nach dem Bau */;
       if(e.type==='harbor'||e.type==='wall'||e.type==='gate')obj.rotation.y=-(e.ang||0);for(const f of o.flags)f.rotation.y=Math.sin(t*3+f.position.x)*.3;
@@ -269,6 +290,7 @@ function r3Sync(list,dt,t){
   if(R3.corpG!==G){for(const c of R3.corpses||[])r3.gEnt.remove(c.obj);R3.corpses=[];R3.corpG=G}
   for(const[k,o]of R3.reg)if(!seen.has(k)){
     if(o.e&&o.e.dead&&o.rig&&!o.rig.ship&&(o.e.kind==='animal'||o.rig.up)&&R3.corpses.length<40){R3.corpses.push({obj:o.obj,rig:o.rig,t:0,animal:o.e.kind==='animal',big:o.e.kind==='animal'&&(ANIMALS[o.e.type].r>10)})}
+    else if(o.e&&!o.e.dead&&(o.off||0)<20&&R3.reg.size<1500){if(!o.off)o.obj.visible=false;o.off=(o.off||0)+Math.max(dt,.001);continue} /* nur aus dem Bild: versteckt aufheben statt löschen (Neubau beim Zurückschwenken ruckelt) */
     else r3.gEnt.remove(o.obj);R3.reg.delete(k)}
   for(let i=R3.corpses.length-1;i>=0;i--){const c=R3.corpses[i];c.t+=dt;const f=Math.min(1,c.t/.4);
     if(c.animal)c.rig.g.rotation.x=f*1.45;else{c.rig.g.rotation.z=-f*1.5;if(c.rig.up){c.rig.up.rotation.z=0;for(const l of c.rig.legs)l.rotation.z=0;for(const a of c.rig.arms)a.rotation.z=1.6*f}}
@@ -285,7 +307,7 @@ function aoDecal(radius,op){
 function r3Make(e,sig){
   const S=R3.S;
   if(e.kind==='unit'){const rig=buildUnit(e);let sc=(UNITS[e.type].vr||e.r)/7*1.25*(UNITS[e.type].naval?.46:e.type==='tank'||e.type==='mark1'?.72:UNITS[e.type].siege?.7:UNITS[e.type].cls==='cav'?.74:e.type==='worker'?.8:1);if(rig.human)sc=UNITS.worker.vr/7*1.25*.8/* alle Menschen so groß wie der Arbeiter */;rig.g.scale.setScalar(sc*(.94+((e.id*37)%13)/13*.12));const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
-  if(e.kind==='bld'){const g=buildBld(e.type,e.r/S*1.05,G.epoch[e.team],e.team,e.spec);if(e.empty)g.traverse(o=>{if(o.isMesh){const f=m=>{const c=m.clone();if(c.color)c.color.multiplyScalar(.45);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}}) /* erschöpfte Mine: dunkel/grau */;if(e.ore&&e.ore!=='stone'&&!e.empty){const tc=new THREE.Color(e.ore==='gold'?0xffd166:0xd08a6a);g.traverse(o=>{if(o.isMesh){const f=m=>{if(!/stone|rock/i.test(m.name||''))return m;const c=m.clone();if(c.color)c.color.lerp(tc,.45);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}})} /* Eisen-/Goldmine: rötlich bzw. golden getönt */;if(e.type!=='wall'&&e.type!=='gate'&&e.type!=='trench'&&e.type!=='farm')g.add(aoDecal(e.r/S*1.55));if(e.pc&&typeof wallPostModel==='function')wallPostModel(g,e.pc,e.r/S*1.05,G.epoch[e.team],e.team);if(e.spec&&!g.userData.spec&&typeof specModel==='function')specModel(g,e.type,e.spec,e.r/S*1.05,e.team,G.epoch[e.team]);return{obj:g,sig,flags:g.userData.flags||[]}}
+  if(e.kind==='bld'){const g=buildBld(e.type,e.r/S*1.05,e.lvl??G.epoch[e.team]/* Aussehen erst nach dem Upgrade */,e.team,e.spec);if(e.empty)g.traverse(o=>{if(o.isMesh){const f=m=>{const c=m.clone();if(c.color)c.color.multiplyScalar(.45);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}}) /* erschöpfte Mine: dunkel/grau */;if(e.ore&&e.ore!=='stone'&&!e.empty){const tc=new THREE.Color(e.ore==='gold'?0xffd166:0xd08a6a);g.traverse(o=>{if(o.isMesh){const f=m=>{if(!/stone|rock/i.test(m.name||''))return m;const c=m.clone();if(c.color)c.color.lerp(tc,.45);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}})} /* Eisen-/Goldmine: rötlich bzw. golden getönt */;if(e.type!=='wall'&&e.type!=='gate'&&e.type!=='trench'&&e.type!=='farm')g.add(aoDecal(e.r/S*1.55));if(e.pc&&typeof wallPostModel==='function')wallPostModel(g,e.pc,e.r/S*1.05,G.epoch[e.team],e.team);if(e.spec&&!g.userData.spec&&typeof specModel==='function')specModel(g,e.type,e.spec,e.r/S*1.05,e.team,G.epoch[e.team]);return{obj:g,sig,flags:g.userData.flags||[]}}
   if(e.kind==='animal'){const rig=buildAnimal(e);const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
   const g=EKMODELS.makeSea(e)||seaModel(e);return{obj:g,sig,flags:[]}}
 /* Gliederbewegung der Menschen: Gehen (Gegenschwung, Neigen, Wippen), Atmen im Stand, Arbeiten je Werkzeug, Kampf mit Ausholen/Schlag/Rückstoß, Zucken bei Treffern */
@@ -385,11 +407,13 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   if(r3.foam)r3.foam.material.opacity=.42+.3*Math.sin(t*1.4)+.1*Math.sin(t*3.1);
   for(const w of r3.waves){const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
-  {const V=R3.view,N=R3.nodeV;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>120||Math.abs((V.y0+V.y1)/2-N.y)>120||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
-  R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}
+  {const V=R3.view,N=R3.nodeV;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
+  r3Lod();R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}else r3GrassView()
   r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;
+  /* Schattenkarte nur jedes 2. Bild neu (bewegt sich die Kamera, sofort) – halbiert die Schatten-Zeichenarbeit, Unterschied ist nicht zu sehen */
+  {const sm=r3.rd.shadowMap,ck=cam.x.toFixed(1)+','+cam.y.toFixed(1)+','+cam.z.toFixed(3);sm.autoUpdate=false;R3.shF=(R3.shF||0)+1;if(R3.shF%2===0||ck!==R3.shK){sm.needsUpdate=true;R3.shK=ck}}
   r3.rd.render(r3.scene,r3.camera);R3.ghostOn=false;r3Bloom();
 }
 /* Höhe einer Figur/eines Gebäudes über dem Boden in Spielpixeln (für Lebensbalken, Marker) */

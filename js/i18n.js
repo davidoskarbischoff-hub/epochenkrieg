@@ -232,6 +232,25 @@ const EN={
   'Mauer: Maustaste gedrückt halten und ziehen = durchgehende Mauer · Klick = ein Stück · Rechtsklick oder Esc bricht ab':'Wall: hold the mouse button and drag = continuous wall · click = one piece · right-click or Esc cancels',
   'Mauer: {0} Stücke':'Wall: {0} pieces','{0} blockiert':'{0} blocked','Rohstoffe reichen für {0} Stücke':'Resources suffice for {0} pieces',
   '{0} von {1} Mauerstücken gesetzt.':'{0} of {1} wall pieces placed.','{0} Mauerstücke ausgelassen (kein Platz).':'{0} wall pieces skipped (no room).'
+,'Sammelt Rohstoffe, baut und repariert Gebäude.':'Gathers resources, builds and repairs buildings.'
+,'Nahkämpfer: robust, gut gegen Fernkämpfer und Belagerung.':'Melee: sturdy, good against ranged units and siege.'
+,'Speerträger: hält Reiterei auf.':'Spearman: stops cavalry.'
+,'Fernkämpfer: schießt aus der Distanz, gut gegen Nahkämpfer.':'Ranged: shoots from afar, good against melee.'
+,'Reiterei: schnell, gut gegen Fernkämpfer, Belagerung und Heiler.':'Cavalry: fast, good against ranged, siege and healers.'
+,'Belagerung: großer Schaden gegen Gebäude, langsam und verwundbar.':'Siege: heavy damage to buildings, slow and vulnerable.'
+,'Schiff: kämpft auf dem Wasser.':'Ship: fights on water.'
+,'Flugzeug: fliegt über alles, nur Fernkämpfer und Flieger treffen es.':'Aircraft: flies over everything, only ranged units and aircraft can hit it.'
+,'Heiler: kämpft nicht, heilt verletzte eigene Truppen in der Nähe.':'Healer: does not fight, heals wounded friendly troops nearby.'
+,'Nahkämpfer':'Melee'
+,'Fernkämpfer':'Ranged'
+,'Belagerung':'Siege'
+,'Leben {0}':'Health {0}'
+,'Heilt {0}/s':'Heals {0}/s'
+,'Reichweite {0}':'Range {0}'
+,'Tempo {0}':'Speed {0}'
+,'Stark gegen: {0}':'Strong against: {0}'
+,'Fischt auf dem Wasser und bringt Nahrung zum Hafen.':'Fishes on the water and brings food to the harbor.'
+,'Dafür braucht es ein größeres Boot (Stufe {0}) für {1}.':'You need a bigger boat (level {0}) for {1}.'
 };
 let LANG='de';try{LANG=localStorage.getItem('ek-lang')==='en'?'en':'de'}catch(_){}
 function tr(de,...a){let s=LANG==='en'&&EN[de]!==undefined?EN[de]:de;a.forEach((v,i)=>{s=s.split('{'+i+'}').join(v)});return s}

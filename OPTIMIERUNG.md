@@ -63,7 +63,13 @@ Hilfsmittel:
   - Duell-Test der Einheiten (kostengleiche Gruppen)
   - Dino-Gefährlichkeit
   - Aufstiegstempo
-- [ ] **R7:** Leistung mit allen neuen Modellen:
+- [~] **R7:** Leistung mit allen neuen Modellen (Runde 12.10., Messung große Karte, `qa/perf.js`, `qa/army.js`):
+  - Gras nur im sichtbaren Ausschnitt (`r3GrassView`), Halme ohne Boden: normale Ansicht 1,42 Mio. → 0,41 Mio. Dreiecke
+  - Fernsicht (Zoom < 0,95, `LOD_Z`): vereinfachte Bäume (`lodGeo`) und Gelände (jeder 2. Eckpunkt): 1,8 Mio. → 0,37–0,42 Mio.
+  - Vorkommen/Deko mit Bildschirm-Test (`onS` in `r3Nodes`): Bergland Zoom 1: 1,06 Mio. → 0,78 Mio.
+  - Figuren zu einem Teil zusammengefasst (`mergeSkin` in gltfmodels.js, `window.__noMerge=true` schaltet es zum Vergleich ab): 120 Einheiten 2010 → 517 Zeichenaufrufe
+  - Figuren außerhalb des Bildes versteckt statt gelöscht (bis 20 s, `o.off`), Schattenkarte jedes 2. Bild
+  - offen: Einheiten-LOD in der Fernsicht, Gelände flacher Stellen gröber, Instanzen für Gebäude-Beiwerk
   - Draw-Calls und Dreiecke (`r3.renderer.info`) im späten Spiel
   - Instanzen für Deko
   - Dateigrößen

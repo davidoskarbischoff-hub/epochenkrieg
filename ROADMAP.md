@@ -240,6 +240,25 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Dinosaurier in der Steinzeit (statt Mammut/Säbelzahntiger): Parasaurolophus (scheu, Herde), Triceratops und Stegosaurus (friedlich, wehren sich), Brontosaurus (riesig, selten), Velociraptor (Rudel, greift an), T-Rex (nur einer je Seite, greift alles an). Sterben beim ersten Aufstieg aus.
 - [x] Fahrzeuge Weltkriegszeit: Späher = Kradmelder (Motorrad), Sanitäter = Sanitätswagen, Lore ab Industriezeit = Lastwagen.
 - [x] Foltergeräte als Beiwerk: Galgen, Pranger, Käfig an der Burg (Mittelalter/Renaissance), Pranger an der Kaserne (Mittelalter).
-- [x] Architektur: Kolosseum = Kaserne der Eisenzeit, Torbogen am Hauptlager (Eisenzeit), Kirche am Hauptlager (Mittelalter), Scheune = Lager ab Industriezeit, Riesenrad am Markt ab Industriezeit.
+- [x] Architektur: Torbogen am Hauptlager (Eisenzeit), Kirche am Hauptlager (Mittelalter), Scheune = Lager ab Industriezeit, Riesenrad am Markt ab Industriezeit.
 - [ ] Noch ungenutzt: Hubschrauber, Jeep, Light Tank, Military Boat, Fahrrad, Brücke, Cottage, Cabin Shed, Fortress, Castle, Guillotine, Elektrischer Stuhl u. a. – Ideen: Jeep/Light Tank als Nationen-Einheiten, Military Boat als Patrouillenboot, Brücke über Flüsse.
-- [ ] Quelle/Lizenz der neuen Modelle in models/CREDITS.md eintragen.
+- [x] Quelle/Lizenz der neuen Modelle in models/CREDITS.md eintragen.
+
+## Davids Testrunde 2 (2026-10-12)
+- [x] Kleinere Karten: Kamera bleibt beim Spielfeld, vom Randgebirge nur ein schmaler Streifen (große Karte unverändert)
+- [x] Gebäude wechseln ihr Aussehen erst nach dem Upgrade (nicht schon beim Aufstieg), z. B. Kaserne
+- [x] Herbstbäume entfernt (kommen mit den Jahreszeiten wieder); Kolosseum nicht mehr als Kaserne
+- [x] Arbeiter-Kleidung je Zeitalter: Steinzeit Fell/Leder, Bronzezeit Leinen mit Ocker, Eisenzeit grüne Wolle
+- [x] Karren wird von einem Arbeiter geschoben (`rider.push` im Manifest)
+- [x] Hinweise über den Ausbildungs-Knöpfen: Rolle, Leben, Angriff/Heilung, Reichweite, Tempo, Stark gegen (`unitTip` in ui.js)
+- [x] Bogenschützen halten den Bogen im ausgestreckten Arm; Holzfällen: Schlag nach vorn, Axtklinge zum Baum
+- [x] Mehr Land auf Küste/Bucht/Bergland; Kartenvorschau mit Höhen, Fels, Schnee, Hangschatten
+- [x] Fischgründe klein und verteilt, auch im tiefen Wasser; Delfine brauchen das Segelboot (Stufe IV), Wale den Kutter (Stufe VI), beide mehr Nahrung, Wal gibt zusätzlich Öl
+- [x] Leistung: Gras nur im Bild, Bäume und Gelände vereinfacht in der Fernsicht, Bäume genauer am Bildrand abgeschnitten, Figuren als ein Teil gezeichnet, versteckt statt gelöscht außerhalb des Bildes, Schatten jedes 2. Bild (siehe Messwerte in OPTIMIERUNG.md)
+
+### Merkliste (später)
+- [ ] Jahreszeiten: Frühling (blühend), Sommer, Herbst (orange/gelbe Bäume, die Herbstbäume sind schon im Natur-Paket), Winter (Schnee); evtl. ausgetrocknet im Sommer
+- [ ] Kolosseum als Hauptlager der Nation Italien (größer skaliert)
+- [ ] Lore auf Schienen nach dem Ausbau „Schienen“ an der Mine – braucht ein echtes Loren-Modell (David um ein Paket bitten; die alte Code-Lore ist nach Davids Regel nicht erlaubt)
+- [ ] Holzfällen: eigene Hack-Animation von oben (es gibt im Paket nur Schlag/Schwert-Bewegungen)
+- [ ] Bogenschützen: echte Spann-Animation (Paket mit Bogen-Animationen nötig)
