@@ -2215,12 +2215,12 @@
       "file": "archiv/Military man by madtrollstudio - 3AiqeNLKkP.glb",
       "mesh": "^Helmet",
       "pos": [
-       0.06,
-       0.18,
-       0
+       -0.04,
+       0.12,
+       0.04
       ],
       "tint": {},
-      "scale": 1.25
+      "scale": 1.4
      }
     ]
    },
@@ -2287,12 +2287,12 @@
       "file": "archiv/Military man by madtrollstudio - 3AiqeNLKkP.glb",
       "mesh": "^Helmet",
       "pos": [
-       0.06,
-       0.18,
-       0
+       -0.04,
+       0.12,
+       0.04
       ],
       "tint": {},
-      "scale": 1.25
+      "scale": 1.4
      }
     ]
    }
@@ -2361,11 +2361,11 @@
       "file": "archiv/Military man by madtrollstudio - 3AiqeNLKkP.glb",
       "mesh": "^Helmet",
       "pos": [
-       0.06,
-       0.18,
-       0
+       -0.04,
+       0.12,
+       0.04
       ],
-      "scale": 1.25,
+      "scale": 1.4,
       "tint": {}
      }
     ]
@@ -2435,11 +2435,11 @@
       "file": "archiv/Military man by madtrollstudio - 3AiqeNLKkP.glb",
       "mesh": "^Helmet",
       "pos": [
-       0.06,
-       0.18,
-       0
+       -0.04,
+       0.12,
+       0.04
       ],
-      "scale": 1.25,
+      "scale": 1.4,
       "tint": {}
      }
     ]
@@ -3234,11 +3234,11 @@
       "file": "archiv/Military man by madtrollstudio - 3AiqeNLKkP.glb",
       "mesh": "^Helmet",
       "pos": [
-       0.06,
-       0.18,
-       0
+       -0.04,
+       0.12,
+       0.04
       ],
-      "scale": 1.25,
+      "scale": 1.4,
       "tint": {}
      }
     ]
@@ -3462,11 +3462,11 @@
       "file": "archiv/Military man by madtrollstudio - 3AiqeNLKkP.glb",
       "mesh": "^Helmet",
       "pos": [
-       0.06,
-       0.18,
-       0
+       -0.04,
+       0.12,
+       0.04
       ],
-      "scale": 1.25,
+      "scale": 1.4,
       "tint": {}
      }
     ]
