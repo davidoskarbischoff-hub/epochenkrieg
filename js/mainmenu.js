@@ -5,7 +5,7 @@
   const SIZES_SP=[['S','Klein'],['M','Mittel'],['L','Groß']],DIFFS=[['leicht','Leicht'],['normal','Normal'],['schwer','Schwer']],WILD=[['none','Keine'],['half','Wenige'],['normal','Normal'],['double','Viele']];
   const AI_ICON={balanced:'⚖',turtle:'🛡',rush:'⚔',eco:'⚒',boom:'▲'};
   const ov=()=>$('overlay');
-  const music=()=>{try{if(typeof SND!=='undefined'){SND.init();SND.setEpoch(3)}}catch(_){}}; /* Menümusik: eigenes Stück (Greensleeves) */
+  const music=()=>{try{if(typeof SND!=='undefined'){SND.init();SND.setEpoch(7)}}catch(_){}}; /* Menümusik: Smetana, Die Moldau (PIECES[7]) */
   /* Hintergrund: Bedienelemente des Spiels ausblenden, Kamera fährt langsam */
   function bg(on){document.body.classList.toggle('mm',on);if(on&&!bg.raf){const t0=performance.now();const fly=()=>{if(!document.body.classList.contains('mm')){bg.raf=0;return}const t=(performance.now()-t0)/1000*.025;
     if(typeof cam!=='undefined'&&typeof W!=='undefined'){const hq=G&&G.ents.find(e=>e.type==='hq'&&e.team===0)||{x:W/2,y:H/2};cam.x=hq.x+Math.cos(t*4)*260;cam.y=hq.y+Math.sin(t*4)*180;cam.z=.9;clampCam()}bg.raf=requestAnimationFrame(fly)};bg.raf=requestAnimationFrame(fly)}}
@@ -47,7 +47,7 @@
       <div class="mm-go"><button class="go" id="goBtn">${tr('Spiel starten')}</button></div></div>`;
     $('mmBack').onclick=()=>{sfx('click');main()};
     /* Spielzimmer: das Brett auf dem Tisch zeigt die gewählte Karte (auch beim Drüberfahren) in der gewählten Grösse; derselbe Zufallswert gilt beim Start */
-    let pvT=0;const pseed=(Math.random()*1e9)|0,preview=(m,sz)=>{clearTimeout(pvT);pvT=setTimeout(()=>{if(!window.ROOM||!ROOM.on)return;const k=m+'|'+sz;if(k===ROOM.pkey)return;ROOM.pkey=k;try{newGame(diff,false,{map:m,aiStyle,size:sz,seed:pseed});G.running=false}catch(err){console.warn(err)}},300)};
+    let pvT=0;const pseed=(Math.random()*1e9)|0,preview=(m,sz)=>{clearTimeout(pvT);pvT=setTimeout(()=>{if(!window.ROOM||!ROOM.on)return;const k=m+'|'+sz;if(k===ROOM.pkey)return;ROOM.pkey=k;try{newGame(diff,false,{map:m,aiStyle,size:sz,seed:pseed});G.running=false;music()}catch(err){console.warn(err)}},300)};
     o.querySelectorAll('[data-map]').forEach(b=>{b.onclick=()=>{curMap=b.dataset.map;o.querySelectorAll('[data-map]').forEach(x=>x.setAttribute('aria-pressed',x===b));preview(curMap,spSize)};b.onmouseenter=()=>preview(b.dataset.map,spSize);b.onmouseleave=()=>preview(curMap,spSize)});
     preview(curMap,spSize);
     o.querySelectorAll('[data-as]').forEach(b=>b.onclick=()=>{aiStyle=b.dataset.as;o.querySelectorAll('[data-as]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
