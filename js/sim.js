@@ -117,12 +117,15 @@ function moveToward(u,tx,ty,dt,ignore){
     if(pf&&pf.path){
       while(pf.i<pf.path.length-1&&Math.hypot(pf.path[pf.i].x-u.x,pf.path[pf.i].y-u.y)<9)pf.i++;
       while(pf.i<pf.path.length-1&&navLos(u.x,u.y,pf.path[pf.i+1].x,pf.path[pf.i+1].y,naval))pf.i++;
-      wx=pf.path[pf.i].x;wy=pf.path[pf.i].y}
+      wx=pf.path[pf.i].x;wy=pf.path[pf.i].y;
+      if(G.t-pf.t>.35&&((pf.i===pf.path.length-1&&Math.hypot(wx-u.x,wy-u.y)<9)||!navLos(u.x,u.y,wx,wy,naval)))u.pf=null} /* Wegende erreicht, Ziel aber noch nicht in Sicht (Teilweg), oder abgedrängt und Wegpunkt nicht mehr frei erreichbar: neu suchen statt stehen bleiben */
   }else u.pf=null;
   let ex=wx-u.x,ey=wy-u.y;const ed=Math.hypot(ex,ey);if(ed<.01)return d<=step;
   const st=Math.min(ed,spd);ex/=ed;ey/=ed;
   const nx=u.x+ex*st,ny=u.y+ey*st;
   if(terrOk(nx,ny,naval)){u.x=nx;u.y=ny;u.mvT=G.t}
+  else for(const a of[.6,-.6,1.2,-1.2]){const c=Math.cos(a),sn=Math.sin(a),mx=ex*c-ey*sn,my=ex*sn+ey*c; /* am Ufer/Fels entlanggleiten statt stehen bleiben */
+    if(terrOk(u.x+mx*st,u.y+my*st,naval)){u.x+=mx*st;u.y+=my*st;u.mvT=G.t;break}}
   u.fa=Math.atan2(ey,ex);return d<=step;
 }
 /* Eisen und Gold lassen sich nur abbauen, wenn eine eigene, fertige Mine in der Nähe steht */

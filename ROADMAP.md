@@ -19,6 +19,8 @@
 
 - [x] Krieger-Linien mit einem Grundkörper (Adventurer) durch alle Zeitalter, Teamfarbe ab Mittelalter, Brustpanzer/Stahlhelm als echte Modelle (`wear`)
 - [ ] Armbrust-Modell für den Armbrustschützen besorgen (trägt noch Bogen)
+- [x] Truppen/KI hängen fest auf grossen Karten: Entfernungsfeld bei langen Wegen, Neusuche nach Abdrängen, Gleiten am Ufer (Ankunft 386→441 von 448, Festhänge-Auslöser 6836→231, KI-Stillstand 5–26 %→<1 %)
+- [ ] Wegfindung: Boote zu unerreichbaren Fischgründen suchen immer wieder (Kosten), Dinos/Tiere blockieren Pässe
 ## Ideen für die nächsten Schritte
 Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortieren.
 
