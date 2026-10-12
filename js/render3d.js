@@ -270,7 +270,7 @@ function r3Sync(list,dt,t){
     sig+=EKMODELS.tag(e)+(e.empty?'x':'')+(e.ore||'');
     let o=R3.reg.get(key);
     if(!o||o.sig!==sig){if(o)r3.gEnt.remove(o.obj);o=r3Make(e,sig);R3.reg.set(key,o);r3.gEnt.add(o.obj)}
-    const h=hAt(e.x,e.y),obj=o.obj;
+    const h=hAt(e.x,e.y),obj=o.obj;if(o.off){o.off=0;obj.visible=true}
     if(e.kind==='unit')r3Unit(o,e,h,dt,t);
     else if(e.kind==='bld'){obj.position.set(e.x/S,h,e.y/S);const pr=e.built?1:.12+.88*e.prog;obj.scale.set(1,pr,1);if(obj.userData.props)for(const q of obj.userData.props)q.visible=pr>=1 /* Beiwerk (Figuren, Ballon) erst nach dem Bau */;
       if(e.type==='harbor'||e.type==='wall'||e.type==='gate')obj.rotation.y=-(e.ang||0);for(const f of o.flags)f.rotation.y=Math.sin(t*3+f.position.x)*.3;
@@ -282,6 +282,7 @@ function r3Sync(list,dt,t){
   if(R3.corpG!==G){for(const c of R3.corpses||[])r3.gEnt.remove(c.obj);R3.corpses=[];R3.corpG=G}
   for(const[k,o]of R3.reg)if(!seen.has(k)){
     if(o.e&&o.e.dead&&o.rig&&!o.rig.ship&&(o.e.kind==='animal'||o.rig.up)&&R3.corpses.length<40){R3.corpses.push({obj:o.obj,rig:o.rig,t:0,animal:o.e.kind==='animal',big:o.e.kind==='animal'&&(ANIMALS[o.e.type].r>10)})}
+    else if(o.e&&!o.e.dead&&(o.off||0)<20&&R3.reg.size<1500){if(!o.off)o.obj.visible=false;o.off=(o.off||0)+Math.max(dt,.001);continue} /* nur aus dem Bild: versteckt aufheben statt löschen (Neubau beim Zurückschwenken ruckelt) */
     else r3.gEnt.remove(o.obj);R3.reg.delete(k)}
   for(let i=R3.corpses.length-1;i>=0;i--){const c=R3.corpses[i];c.t+=dt;const f=Math.min(1,c.t/.4);
     if(c.animal)c.rig.g.rotation.x=f*1.45;else{c.rig.g.rotation.z=-f*1.5;if(c.rig.up){c.rig.up.rotation.z=0;for(const l of c.rig.legs)l.rotation.z=0;for(const a of c.rig.arms)a.rotation.z=1.6*f}}
