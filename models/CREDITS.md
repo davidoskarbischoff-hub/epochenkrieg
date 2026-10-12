@@ -12,6 +12,7 @@ Hinweis: Vor dem Veröffentlichen/Verkaufen die Lizenz der Pakete prüfen und hi
 Diese Dateien tragen den Autor im Dateinamen und stammen nicht von Quaternius. Viele „Poly by Google“-Modelle stehen unter CC-BY (Namensnennung nötig):
 - `Catapult by Poly by Google`, `Boat/Rowboat/Sailboat/Airplane/Airship/Hot air balloon by Poly by Google` (Autor: Poly by Google)
 - `Aeroplane by Gilang Romadhan`, `Humvee by madtrollstudio`, `Military man by madtrollstudio`, `Knight by Dawid2K`, `Knights Character Kit by Jacques Fourie`, `Horse by Артур Мигранов`, `Cave Minerals by SimplePolygon`
+- `archiv/Stahlhelm.glb` = nur der Helm (Helmet_01) aus `Military man by madtrollstudio` (poly.pizza), herausgelöst und in Ruhelage eingebacken (geändert; Original-Datei entfernt, Namensnennung madtrollstudio bleibt nötig)
 Vor einer Veröffentlichung: Lizenz der Original-Seite prüfen und die Namen im Spiel/auf der Webseite nennen (z. B. unter „Über“).
 
 Im Spiel genannt: Menü → Optionen → Mitwirkende (Quaternius, Kenney, Poly by Google CC BY 3.0, Gilang Romadhan CC BY).
