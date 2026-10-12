@@ -266,7 +266,7 @@ function navPath(sx,sy,tx,ty,goalR,naval,seed){
     if(fl.d[i]<1e8){cells.push(s);for(let k=0;k<4000&&fl.d[i]>0;k++){const x=i%NW,y=(i/NW)|0;nb=-1;let bd=fl.d[i];
         for(let q=0;q<8;q++){const nx=x+NDX[q],ny=y+NDY[q];if(nx<0||ny<0||nx>=NW||ny>=NH)continue;const j=ny*NW+nx;if(fl.d[j]<bd){bd=fl.d[j];nb=j}}
         if(nb<0)break;i=nb;cells.push(i)}}
-    else{if(best===s)return null;for(let i=best;i>=0;i=navPar[i])cells.push(i);cells.reverse()}} // unerreichbar: bis zum nächstgelegenen Punkt
+    else{if(best===s||naval===true)return null;for(let i=best;i>=0;i=navPar[i])cells.push(i);cells.reverse()}} /* Boote: anderes Gewässer = kein Weg (moveToward merkt sich das Ziel als unerreichbar) */ // unerreichbar: bis zum nächstgelegenen Punkt
   }else{for(let i=goal;i>=0;i=navPar[i])cells.push(i);cells.reverse()}
   let pts=cells.map(i=>({x:(i%NW+.5)*NS,y:(((i/NW)|0)+.5)*NS}));
   // Weg glätten: Zwischenpunkte weglassen, wenn man direkt hinüberlaufen kann
