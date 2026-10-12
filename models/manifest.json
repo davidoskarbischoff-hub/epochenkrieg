@@ -67,7 +67,7 @@
       }
      },
      "pick": {
-      "clip": "Interact"
+      "clip": "UAL:PickUp_Table"
      },
      "build": {
       "clip": "UAL:Fixing_Kneeling",
@@ -208,7 +208,7 @@
       }
      },
      "pick": {
-      "clip": "Interact"
+      "clip": "UAL:PickUp_Table"
      },
      "build": {
       "clip": "UAL:Fixing_Kneeling",
@@ -349,7 +349,7 @@
       }
      },
      "pick": {
-      "clip": "Interact"
+      "clip": "UAL:PickUp_Table"
      },
      "build": {
       "clip": "UAL:Fixing_Kneeling",
@@ -475,7 +475,7 @@
       }
      },
      "pick": {
-      "clip": "Interact"
+      "clip": "UAL:PickUp_Table"
      },
      "build": {
       "clip": "UAL:Fixing_Kneeling",
@@ -603,7 +603,7 @@
       }
      },
      "pick": {
-      "clip": "Interact"
+      "clip": "UAL:PickUp_Table"
      },
      "build": {
       "clip": "UAL:Fixing_Kneeling",
@@ -866,7 +866,7 @@
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
-     "attack": "Interact",
+     "attack": "UAL:Spell_Simple_Shoot",
      "work": "Interact"
     },
     "skins": [
@@ -909,7 +909,7 @@
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
-     "attack": "Interact",
+     "attack": "UAL:Spell_Simple_Shoot",
      "work": "Interact"
     },
     "skins": [
@@ -952,7 +952,7 @@
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
-     "attack": "Interact",
+     "attack": "UAL:Spell_Simple_Shoot",
      "work": "Interact"
     },
     "epochs": [
@@ -990,7 +990,7 @@
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
-     "attack": "Interact",
+     "attack": "UAL:Spell_Simple_Shoot",
      "work": "Interact"
     },
     "human": true,
@@ -1009,7 +1009,7 @@
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
-     "attack": "Interact",
+     "attack": "UAL:Spell_Simple_Shoot",
      "work": "Interact"
     },
     "human": true,
@@ -1074,7 +1074,7 @@
      }
     },
     "pick": {
-     "clip": "Interact"
+     "clip": "UAL:PickUp_Table"
     },
     "build": {
      "clip": "Punch_Left",
