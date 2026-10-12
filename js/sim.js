@@ -63,7 +63,7 @@ function autoExpand(){
         if(w&&put('tower',sp,[w]))toast(tr('Ein Arbeiter baut einen Wachturm zur Sicherung des vorgeschobenen Lagers.'),'good')}}}}
 /* Heiler heilen verbündete Truppen in der Nähe */
 function healAura(){for(const h of G.ents){if(h.dead||h.kind!=='unit'||h.type!=='healer'||h.upj)continue;const hv=UNITS.healer.heal*.5*(h.rage>G.t?RAGE.dmg:1);
-  for(const u of G.ents){if(u.dead||u.team!==h.team||u.kind!=='unit'||u.hp>=u.maxHp||Math.hypot(u.x-h.x,u.y-h.y)>95)continue;u.hp=Math.min(u.maxHp,u.hp+hv*(u.type==='healer'?.5:1)*(1+u.maxHp/200))}}}
+  for(const u of G.ents){if(u.dead||u.team!==h.team||u.kind!=='unit'||u.hp>=u.maxHp||Math.hypot(u.x-h.x,u.y-h.y)>95)continue;h.healT=G.t;u.hp=Math.min(u.maxHp,u.hp+hv*(u.type==='healer'?.5:1)*(1+u.maxHp/200))}}}
 /* Kampfrausch: kurzzeitig mehr Schaden und Tempo für alle gewählten Truppen */
 function useRage(team,ids){let n=0;for(const id of ids){const u=G.byId.get(id);if(!u||u.dead||u.team!==team||u.kind!=='unit'||UNITS[u.type].passive||UNITS[u.type].naval||u.upj)continue;if((u.rageCd||0)>G.t)continue;u.rage=G.t+RAGE.dur;u.rageCd=G.t+RAGE.cd;n++}if(n&&team===0)sfx('yell');return n}
 /* Angefangene Gebäude ohne Bauarbeiter bekommen einen: Arbeiter, der gerade nichts Wichtiges trägt, hilft beim Fertigbauen */

@@ -67,10 +67,10 @@
       }
      },
      "pick": {
-      "clip": "Interact"
+      "clip": "UAL:PickUp_Table"
      },
      "build": {
-      "clip": "Punch_Left",
+      "clip": "UAL:Fixing_Kneeling",
       "tool": {
        "file": "neu/Doublesided Hammer.glb",
        "scale": 0.25,
@@ -208,10 +208,10 @@
       }
      },
      "pick": {
-      "clip": "Interact"
+      "clip": "UAL:PickUp_Table"
      },
      "build": {
-      "clip": "Punch_Left",
+      "clip": "UAL:Fixing_Kneeling",
       "tool": {
        "file": "neu/Doublesided Hammer.glb",
        "scale": 0.25,
@@ -349,10 +349,10 @@
       }
      },
      "pick": {
-      "clip": "Interact"
+      "clip": "UAL:PickUp_Table"
      },
      "build": {
-      "clip": "Punch_Left",
+      "clip": "UAL:Fixing_Kneeling",
       "tool": {
        "file": "neu/Doublesided Hammer.glb",
        "scale": 0.25,
@@ -475,10 +475,10 @@
       }
      },
      "pick": {
-      "clip": "Interact"
+      "clip": "UAL:PickUp_Table"
      },
      "build": {
-      "clip": "Punch_Left",
+      "clip": "UAL:Fixing_Kneeling",
       "tool": {
        "file": "neu/Doublesided Hammer.glb",
        "scale": 0.25,
@@ -603,10 +603,10 @@
       }
      },
      "pick": {
-      "clip": "Interact"
+      "clip": "UAL:PickUp_Table"
      },
      "build": {
-      "clip": "Punch_Left",
+      "clip": "UAL:Fixing_Kneeling",
       "tool": {
        "file": "neu/Doublesided Hammer.glb",
        "scale": 0.25,
@@ -866,7 +866,7 @@
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
-     "attack": "Interact",
+     "attack": "UAL:Spell_Simple_Shoot",
      "work": "Interact"
     },
     "skins": [
@@ -909,7 +909,7 @@
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
-     "attack": "Interact",
+     "attack": "UAL:Spell_Simple_Shoot",
      "work": "Interact"
     },
     "skins": [
@@ -952,7 +952,7 @@
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
-     "attack": "Interact",
+     "attack": "UAL:Spell_Simple_Shoot",
      "work": "Interact"
     },
     "epochs": [
@@ -990,7 +990,7 @@
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
-     "attack": "Interact",
+     "attack": "UAL:Spell_Simple_Shoot",
      "work": "Interact"
     },
     "human": true,
@@ -1009,7 +1009,7 @@
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
-     "attack": "Interact",
+     "attack": "UAL:Spell_Simple_Shoot",
      "work": "Interact"
     },
     "human": true,
@@ -1074,7 +1074,7 @@
      }
     },
     "pick": {
-     "clip": "Interact"
+     "clip": "UAL:PickUp_Table"
     },
     "build": {
      "clip": "Punch_Left",
@@ -2028,16 +2028,14 @@
    }
   ],
   "warship": {
-   "file": "neu/ship-small.glb",
-   "fit": "length",
-   "yaw": 90,
-   "scale": 0.55
+   "file": "neu/Viking_boat.glb",
+   "len": 6.5,
+   "yaw": 90
   },
   "galleon": {
-   "file": "neu/ship-large.glb",
-   "fit": "length",
-   "yaw": 90,
-   "scale": 0.6
+   "file": "neu/Sail_ship.glb",
+   "len": 9.5,
+   "yaw": 90
   },
   "catapult": {
    "file": "neu/siege-catapult.glb",
@@ -4012,5 +4010,6 @@
  },
  "_neue_kits": {
   "info": "Kenney-Kits (boat-*, ship-*, siege-*, tower-*, wall-*, roof-* …) brauchen die Farbtextur Textures/colormap.png im selben Ordner (models/neu/Textures/colormap.png). Ohne sie sind die Modelle weiß. Danach: Blickrichtung +Z → yaw 90."
- }
+ },
+ "ual": "neu/UAL1_Standard.glb"
 }

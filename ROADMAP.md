@@ -262,3 +262,10 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Lore auf Schienen nach dem Ausbau „Schienen“ an der Mine – braucht ein echtes Loren-Modell (David um ein Paket bitten; die alte Code-Lore ist nach Davids Regel nicht erlaubt)
 - [ ] Holzfällen: eigene Hack-Animation von oben (es gibt im Paket nur Schlag/Schwert-Bewegungen)
 - [ ] Bogenschützen: echte Spann-Animation (Paket mit Bogen-Animationen nötig)
+
+## Release 3 – Animationen (2026-10-13)
+- [x] Universal Animation Library wird beim Laden auf unsere Figuren übertragen (`ualFor` in gltfmodels.js, `UAL:Name` im Manifest): Sterben (Death01), Karren schieben (Push_Loop), kniend bauen (Fixing_Kneeling)
+- [x] Wikingerboot = Kriegsschiff, großes Segelschiff = Galeone
+- [ ] Weitere UAL-Bewegungen: Heiler (Spell_Simple), Sitzen für Reiter/Ruderer, Treffer-Reaktionen (Hit_Chest), Aufheben beim Pflücken
+- [ ] Bogenschießen und Axthieb von oben: nicht in UAL1 (evtl. UAL2)
+- [ ] Neue Gebäude (Bank, Krankenhaus, Laden, Häuser, Wohnblöcke): Texturdatei fehlt, deshalb noch nicht benutzt
