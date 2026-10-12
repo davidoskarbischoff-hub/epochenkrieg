@@ -85,8 +85,8 @@ const BLDS={
 const NODES={tree:{cap:3,rt:'wood',amt:420,r:11,name:'Baum'},bush:{cap:3,rt:'food',amt:340,r:8,name:'Beerenstrauch',regen:1.4},stone:{cap:6,rt:'stone',amt:3200,r:38,name:'Steinvorkommen'},iron:{cap:5,rt:'iron',amt:4000,r:36,name:'Eisenvorkommen'},gold:{cap:4,rt:'gold',amt:2100,r:32,name:'Goldvorkommen'},oil:{cap:3,rt:'oil',amt:2600,r:26,name:'Ölfeld'},field:{cap:5,rt:'food',amt:700,r:25,name:'Feld',regen:3.2,hidden:true},
   // Wasser: nur Boote können hier sammeln (Delfine ab Stufe II, Wale ab Stufe III)
   fish:{cap:2,sea:true,rt:'food',amt:160,r:8,name:'Fischschwarm',gm:1,regen:.55},
-  dolphin:{cap:3,sea:true,rt:'food',amt:420,r:11,name:'Delfine',gm:1.3,lvl:1,regen:.45},
-  whale:{cap:4,sea:true,rt:'food',amt:1100,r:16,name:'Wal',gm:1.7,lvl:2,regen:.5}};
+  dolphin:{cap:3,sea:true,rt:'food',amt:700,r:11,name:'Delfine',gm:1.8,lvl:3,regen:.45},
+  whale:{cap:4,sea:true,rt:'food',amt:2400,r:16,name:'Wal',gm:2.6,lvl:5,regen:.5,side:{oil:.25}}};
 const EPOCHS=[{name:'Steinzeit',cost:{food:350,wood:200},time:30},{name:'Bronzezeit',cost:{food:500,wood:250,stone:200},time:40},{name:'Eisenzeit',cost:{food:700,wood:350,stone:300,iron:150},time:50},{name:'Mittelalter',cost:{food:900,wood:450,stone:450,iron:350,gold:200},time:60},{name:'Renaissance',cost:{food:1100,wood:600,stone:500,iron:450,gold:350},time:70},{name:'Industriezeit',cost:{food:1300,wood:700,stone:600,iron:550,gold:450,oil:150},time:80},{name:'Weltkriegszeit'}];
 /* Wilde Tiere: agg = Aggro-Reichweite (greift an, wenn jemand näher kommt), leash = so weit folgt es seinem Revier-Mittelpunkt, roam = Streifgebiet,
    flee = friedliche Tiere fliehen ab dieser Nähe, food = Nahrung für den, der es erlegt, h = Höhe fürs Anzeigen */

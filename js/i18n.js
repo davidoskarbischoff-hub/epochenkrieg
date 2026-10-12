@@ -250,6 +250,7 @@ const EN={
 ,'Tempo {0}':'Speed {0}'
 ,'Stark gegen: {0}':'Strong against: {0}'
 ,'Fischt auf dem Wasser und bringt Nahrung zum Hafen.':'Fishes on the water and brings food to the harbor.'
+,'Dafür braucht es ein größeres Boot (Stufe {0}) für {1}.':'You need a bigger boat (level {0}) for {1}.'
 };
 let LANG='de';try{LANG=localStorage.getItem('ek-lang')==='en'?'en':'de'}catch(_){}
 function tr(de,...a){let s=LANG==='en'&&EN[de]!==undefined?EN[de]:de;a.forEach((v,i)=>{s=s.split('{'+i+'}').join(v)});return s}

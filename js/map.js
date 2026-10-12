@@ -34,6 +34,7 @@ function genMap(seed){
   const landOk=(x,y,r)=>okSpot(x,y,r+4);
   const waterOk={fish:(x,y,r)=>x>40&&y>40&&x<W-40&&y<H-40&&terrAt(x,y)===1&&terrAt(x+r,y)===1&&terrAt(x-r,y)===1&&terrAt(x,y+r)===1&&terrAt(x,y-r)===1,
     dolphin:(x,y,r)=>terrAt(x,y)===0&&terrAt(x+r,y)<=1&&terrAt(x-r,y)<=1&&terrAt(x,y+r)<=1&&terrAt(x,y-r)<=1&&x>40&&y>40&&x<W-40&&y<H-40,
+    deep:(x,y,r)=>terrAt(x,y)===0&&terrAt(x+r,y)===0&&terrAt(x-r,y)===0&&terrAt(x,y+r)===0&&terrAt(x,y-r)===0&&x>40&&y>40&&x<W-40&&y<H-40,
     whale:(x,y,r)=>[[0,0],[r,0],[-r,0],[0,r],[0,-r],[r,r],[-r,-r]].every(([a,b])=>terrAt(x+a,y+b)===0)&&x>60&&y>60&&x<W-60&&y<H-60};
   // Spiegeln: beide Seiten bekommen dieselben Vorkommen
   const mirror=(n0)=>{G.ents.slice(n0).forEach(e=>{if(e.kind!=='node')return;const mx=W-e.x,my=H-e.y;if(!G.ents.some(o=>Math.hypot(o.x-mx,o.y-my)<o.r+e.r+3))addNode(e.type,mx,my,e.sz)})};
@@ -45,7 +46,7 @@ function genMap(seed){
   near('bush',8,52,110,200,landOk);near('bush',6,44,290,430,landOk);szForce=1;near('stone',1,40,200,285,landOk);szForce=.5;near('iron',1,40,265,365,landOk);szForce=0;near('iron',1,40,520,720,landOk);near('stone',1,40,480,680,landOk);near('iron',1,62,800,1150,landOk);near('stone',1,62,760,1100,landOk);
   // Fische in Küstennähe von Basis A
   const nearWater=(type,n,spread,dmin,dmax)=>{for(let k=0;k<200;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!waterOk[type](x,y,spread*.4))continue;const n0=G.ents.length;cluster(type,x,y,n,spread,waterOk[type]);if(G.ents.length>n0){mirror(n0);return}}};
-  nearWater('fish',5,55,180,520);nearWater('fish',4,50,250,650);nearWater('dolphin',3,50,350,900);
+  nearWater('fish',2,90,180,480);nearWater('fish',2,90,260,620);nearWater('fish',2,100,300,760);nearWater('dolphin',2,80,350,900);
   // gespiegelte Mitte
   const feats=[];
   const cnt=n=>Math.max(1,Math.round(n*Math.sqrt(AREA)*1.1*playF*playF));
@@ -54,8 +55,9 @@ function genMap(seed){
   for(let i=0;i<cnt(3);i++)feats.push(['iron',1,72,landOk]);
   for(let i=0;i<cnt(2);i++)feats.push(['oil',1,40,landOk]);
   for(let i=0;i<cnt(2);i++)feats.push(['gold',1,62,landOk]);
-  for(let i=0;i<cnt(10);i++)feats.push(['fish',4+Math.floor(R()*2),55,waterOk.fish]);
-  for(let i=0;i<cnt(6);i++)feats.push(['dolphin',2+Math.floor(R()*2),50,waterOk.dolphin]);
+  for(let i=0;i<cnt(14);i++)feats.push(['fish',2+Math.floor(R()*2),120,waterOk.fish]);
+  for(let i=0;i<cnt(8);i++)feats.push(['fish',1+Math.floor(R()*2),140,waterOk.deep]); /* kleine Schwärme auch draussen im tiefen Wasser */
+  for(let i=0;i<cnt(6);i++)feats.push(['dolphin',1+Math.floor(R()*2),90,waterOk.dolphin]);
   for(let i=0;i<cnt(4);i++)feats.push(['whale',1+Math.floor(R()*2),70,waterOk.whale]);
   for(const [t,n,sp,okFn] of feats){
     let x,y,ok=false;
