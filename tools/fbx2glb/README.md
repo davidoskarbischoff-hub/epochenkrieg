@@ -12,7 +12,7 @@ Aufruf: `node tools/fbx2glb/conv.js auftraege.json` mit einer Liste von Aufträg
 ```
 
 - `tex`: Texturname aus der FBX → Datei im Spielordner (fehlt sie, bleibt das Modell weiss)
-- `noflip`: Textur nicht spiegeln (nötig bei den Farbstreifen-Texturen der Turm- und Menschen-Pakete)
+- `noflip`: Textur nicht spiegeln. ACHTUNG: Bei den Farbstreifen-Texturen (Türme, Menschen) vertauscht `noflip` die Farben (oben ↔ unten). Bei den Türmen ist nachgewiesen, dass ohne `noflip` richtig ist (Kanonen dunkel, Ranken grün). Darum standardmäßig weglassen und immer im Bild vergleichen.
 - `dark`: Materialfarben aufhellen (Quaternius-FBX werden sonst doppelt abgedunkelt)
 - `rotX`: Drehung um X in Grad (Z-oben → Y-oben)
 
