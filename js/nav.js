@@ -220,6 +220,8 @@ function navPath(sx,sy,tx,ty,goalR,naval,seed){
   const push=(i,f)=>{if(hn>=NHI.length){const a=new Int32Array(hn*2),b=new Float32Array(hn*2);a.set(NHI);b.set(NHF);NHI=a;NHF=b}let k=hn++;while(k>0){const q=(k-1)>>1;if(NHF[q]<=f)break;NHI[k]=NHI[q];NHF[k]=NHF[q];k=q}NHI[k]=i;NHF[k]=f};
   const pop=()=>{const r=NHI[0];hn--;if(hn>0){const li=NHI[hn],lf=NHF[hn];let k=0;for(;;){const l=2*k+1;if(l>=hn)break;let m=l;if(l+1<hn&&NHF[l+1]<NHF[l])m=l+1;if(NHF[m]>=lf)break;NHI[k]=NHI[m];NHF[k]=NHF[m];k=m}NHI[k]=li;NHF[k]=lf}return r};
   if(!navCl||navCl.length!==NW*NH)navCl=new Uint32Array(NW*NH);
+  /* Start im Rand eines Gebäudes (z. B. Boot am Hafen): in den ersten Feldern um den Start zählt nur das Gelände */
+  const sx0=s%NW,sy0=(s/NW)|0,op=j=>navOpen(j,naval)||(Math.max(Math.abs(j%NW-sx0),Math.abs(((j/NW)|0)-sy0))<=6&&terrOk((j%NW+.5)*NS,(((j/NW)|0)+.5)*NS,naval));
   navSeen[s]=navGen;navG[s]=0;navPar[s]=-1;push(s,hx(s));
   let goal=-1,n=0,best=s,bestH=hx(s);const cap=Math.min(NW*NH,14000); /* Suchgrenze: unerreichbare Ziele durchsuchen nicht mehr die ganze Karte */
   while(hn&&n++<cap){
@@ -228,8 +230,8 @@ function navPath(sx,sy,tx,ty,goalR,naval,seed){
     if(h<bestH){bestH=h;best=i}
     if(h<=0.5&&(i===s||navOpen(i,naval))){goal=i;break}
     for(let k=0;k<8;k++){const dx=NDX[k],dy=NDY[k];
-      const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=NW||ny>=NH)continue;const j=ny*NW+nx;if(navCl[j]===navGen||!navOpen(j,naval))continue;
-      if(k>=4&&(!navOpen(y*NW+nx,naval)||!navOpen(ny*NW+x,naval)))continue; // keine Ecken schneiden
+      const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=NW||ny>=NH)continue;const j=ny*NW+nx;if(navCl[j]===navGen||!op(j))continue;
+      if(k>=4&&(!op(y*NW+nx)||!op(ny*NW+x)))continue; // keine Ecken schneiden
       let c=k<4?1:1.4142;if(seed)c*=1+((((j*2654435761)^(seed*40503))>>>0)%100)/100*1.4;
       const g=navG[i]+c;if(navSeen[j]!==navGen||g<navG[j]){navSeen[j]=navGen;navG[j]=g;navPar[j]=i;push(j,g+hx(j))}}
   }

@@ -127,7 +127,7 @@ function moveToward(u,tx,ty,dt,ignore){
 }
 /* Eisen und Gold lassen sich nur abbauen, wenn eine eigene, fertige Mine in der Nähe steht */
 function minedBy(team,n){if(!MINE_RT[n.rt]||team<0)return true;for(const b of G.ents)if(b.kind==='bld'&&b.type===MINE_RT[n.rt]&&b.built&&!b.dead&&b.team===team&&Math.hypot(b.x-n.x,b.y-n.y)<MINE_RNG)return true;return false}
-function nearestNode(rt,x,y,max,u,free){const naval=!!(u&&UNITS[u.type].naval);let best=null,bd=max;for(const e of G.solids){if(e.kind!=='node'||e.dead||(rt&&e.rt!==rt)||!!e.sea!==naval||(e.regen&&e.amount<30))continue;if(u&&MINE_RT[e.rt]==='mine'&&!UNITS[u.type].naval&&!mineOf(u.team,e))continue;if(u&&!minedBy(u.team,e))continue;if(u&&u.team===0&&!G.mp&&!nodeKnown(e))continue;if(u&&u.bad&&u.bad[e.id]&&G.t-u.bad[e.id]<40)continue;if(free&&(G.load[e.id]||0)>=NODES[e.type].cap)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd&&(e.type!=='tree'||nodeOpen(e))){bd=d;best=e}}return best}
+function nearestNode(rt,x,y,max,u,free){const naval=!!(u&&UNITS[u.type].naval);let best=null,bd=max;for(const e of G.solids){if(e.kind!=='node'||e.dead||(rt&&e.rt!==rt)||!!e.sea!==naval||(e.regen&&e.amount<30))continue;if(u&&MINE_RT[e.rt]==='mine'&&!UNITS[u.type].naval&&!mineOf(u.team,e))continue;if(u&&!minedBy(u.team,e))continue;if(u&&!canGather(u,e))continue;/* Boote: keine Delfine/Wale ansteuern, die sie noch nicht fangen dürfen */if(u&&u.team===0&&!G.mp&&!nodeKnown(e))continue;if(u&&u.bad&&u.bad[e.id]&&G.t-u.bad[e.id]<40)continue;if(free&&(G.load[e.id]||0)>=NODES[e.type].cap)continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd&&(e.type!=='tree'||nodeOpen(e))){bd=d;best=e}}return best}
 function nearestDrop(t,x,y,naval,rt,land){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='bld'||e.team!==t||!e.built||e.dead||(land&&e.type==='harbor'))continue;if(rt==='oil'?!BLDS[e.type].dropOil:!BLDS[e.type].drop)continue;if(naval&&e.type!=='harbor')continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
 function findEnemy(s,rad,unitsOnly){let best=null,bd=1e9;for(const e of G.ents){if(e.dead||e.team===s.team)continue;if(e.inm)continue;if(e.team<0&&!(e.kind==='animal'&&e.state==='chase'))continue;if(unitsOnly&&e.kind!=='unit'&&e.kind!=='animal')continue;if(e.gar&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;if(UNITS[e.type]&&UNITS[e.type].air&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;const d=Math.hypot(e.x-s.x,e.y-s.y)-e.r-s.r;if(d>rad)continue;const sc=d+(e.kind==='bld'?80:0);if(sc<bd){bd=sc;best=e}}return best}
 const reach=(u,t)=>dist(u,t)<=u.r+t.r+5;
@@ -181,7 +181,7 @@ function updUnit(u,dt){
     if(gap<=d.rng){u.fa=Math.atan2(t.y-u.y,t.x-u.x);if(u.cd<=0){u.cd=d.cd;u.swing=G.t;hit(u,t)}}
     else moveToward(u,t.x,t.y,dt,t.id);break}
   case 'gather':{let n=get(u.tid);if(n&&n.regen&&n.amount<6)n=null;
-    if(!n){n=nearestNode(u.rtype,u.x,u.y,350,u,true)||nearestNode(u.rtype,u.x,u.y,350,u);if(!n){if(u.carry>0)u.state='return';else{u.state='idle';u.rtype=null}break}u.tid=n.id}
+    if(!n){const sr=d.naval?1100:350;/* Fischschwärme liegen verstreut: Boote suchen weiter */n=nearestNode(u.rtype,u.x,u.y,sr,u,true)||nearestNode(u.rtype,u.x,u.y,sr,u);if(!n){if(u.carry>0)u.state='return';else{u.state='idle';u.rtype=null}break}u.tid=n.id}
     if(MINE_RT[n.rt]==='mine'&&!d.naval&&canGather(u,n)){const m=mineOf(u.team,n);if(m){u.state='mine';u.tid=m.id;u.pf=null;u.carry=0}else{u.state='idle';u.tid=null}break}
     if(u.carry>0&&u.ctype!==n.rt)u.carry=0;
     const gc=GATHER[n.rt];

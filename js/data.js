@@ -137,7 +137,7 @@ const RES=['food','wood','stone','iron','gold','oil'],RN={food:'Nahrung',wood:'H
 const RES_EP={stone:1,iron:2,gold:3,oil:5},MINE_RT={stone:'mine',iron:'mine',gold:'mine',oil:'derrick'}; /* ab welcher Epoche eine Ressource erscheint; Erz und Gold brauchen eine Mine in der Nähe */
 const MINE_RNG=150,TRADE={sell:.5,buy:1,lot:100}; /* Markt: 100 Rohstoff -> 50 Gold, 100 Gold -> 100 Rohstoff */
 /* army = Faktor für die Heeresgrösse der KI; pace = Tempo-Faktor für die frühesten Aufstiegszeiten der KI (kleiner = schneller) */
-const DIFF={leicht:{gather:.7,first:460,wave:4,pace:1.35,army:.55},normal:{gather:.85,first:480,wave:7,pace:1.3,army:.55},schwer:{gather:1.35,first:240,wave:6,pace:.8,army:1.1}};
+const DIFF={leicht:{gather:.5,first:780,wave:3,pace:1.9,army:.35,wk:.7},normal:{gather:.85,first:480,wave:7,pace:1.3,army:.55},schwer:{gather:1.35,first:240,wave:6,pace:.8,army:1.1}};
 /* Gegner-Typen (unabhängig von der Schwierigkeit): wk = Arbeiter-Faktor, pace = Aufstiegstempo (kleiner = früher), army = Heeresgrösse, first = Zeit bis zum ersten Angriff, wave = Truppen für den Angriff,
    tow = Zusatz-Türme, bar = Zusatz-Kasernen, def = Verteidigungsradius */
 const AI_STYLES={
