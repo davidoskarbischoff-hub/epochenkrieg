@@ -109,8 +109,9 @@ function genTerrain(seed,mapId){
 /* Kleinere Spielfelder: ausserhalb eines mittigen Rechtecks (Anteil f der Karte) steigt ein Randgebirge auf (TERR 3, hoch, unpassierbar) */
 let playF=1;
 function applyPlayRect(f){
-  if(f>=.999)return;const hx=W*f/2,hy=H*f/2,cx=W/2,cy=H/2,SOFT=200;
-  for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const i=y*TW+x,px=(x+.5)*TG,py=(y+.5)*TG,o=Math.max(Math.abs(px-cx)-hx,Math.abs(py-cy)-hy);
+  if(f>=.999)return;const hx=W*f/2,hy=H*f/2,cx=W/2,cy=H/2,SOFT=200,
+    /* gewellter Rand (punktsymmetrisch wie die Karte): keine schnurgerade Gebirgskante */wv=(x,y)=>Math.sin(x*.0047+y*.0031)*55+Math.sin(x*.0113-y*.0087+1.7)*30+Math.sin(y*.019+x*.004)*14,wob=(x,y)=>(wv(x,y)+wv(W-x,H-y))/2;
+  for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const i=y*TW+x,px=(x+.5)*TG,py=(y+.5)*TG,o=Math.max(Math.abs(px-cx)-hx,Math.abs(py-cy)-hy)+wob(px,py);
     if(o>-TG*.5){TERR[i]=3;const k=sm3(0,SOFT,o+TG*.5);HL[i]=Math.max(HL[i],.9+5.8*k+.35*Math.sin(px*.021+py*.017))}
     else if(o>-SOFT&&TERR[i]===2){HL[i]+=2.2*sm3(-SOFT,0,o)}}
   computeMainland()}
