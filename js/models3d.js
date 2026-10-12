@@ -707,10 +707,21 @@ const viaGun=(base,sc)=>(u,tm)=>{const r=UNIT3[base](u,tm);r.g.scale.multiplySca
 UNIT3.skoda=viaGun('howitzer',1);UNIT3.bertha=viaGun('howitzer',1.35);
 UNIT3.mark1=viaGun('tank',1.1);UNIT3.renault=viaGun('tank',.75);
 
-/* Turm-Ausbau: Wehrturm (Zinnen, Kanone) oder Aussichtsturm (Plattform, Fesselballon) */
-function towerSpecModel(g,kind,R,team){const st=m3Plain(0x8d8a80,.9),tm=m3Team(team),T=new THREE.Box3().setFromObject(g).max.y,k=T/(R*3.5);
-  if(kind==='def'){for(let i=0;i<8;i++){const a=i/8*6.283;put(g,new THREE.BoxGeometry(.5,.55,.5),st,Math.cos(a)*R*.9,T*1.0,Math.sin(a)*R*.9)}
-    put(g,cyl(.22,.3,R*1.4,8),m3Plain(0x2c2c2c,.5,{metalness:.7}),R*.5,T,0).rotation.z=Math.PI/2-.25;put(g,new THREE.SphereGeometry(.3,8,6),m3Plain(0x2c2c2c,.5,{metalness:.7}),0,T*.97,0)}
+/* Dachhöhe und halbe Breite oben, ohne Fahnen und dünne Masten (sonst schweben Zusätze über dem Turm) */
+function bldTop(g){g.updateMatrixWorld(true);const b=new THREE.Box3(),s=new THREE.Vector3(),L=[];let T=0;
+  g.traverse(o=>{if(!o.isMesh||o.userData.flag)return;b.setFromObject(o);b.getSize(s);if(Math.min(s.x,s.z)<.15)return;L.push(b.clone());T=Math.max(T,b.max.y)});
+  let w=0;for(const x of L)if(x.max.y>T-.5)w=Math.max(w,-x.min.x,x.max.x,-x.min.z,x.max.z);return{T,w}}
+/* Turm-Ausbau: Wehrturm (Bronzezeit Pfahlkranz + Schilde, sonst Zinnen + Kanone, Weltkrieg Sandsäcke + MG; ab Eisenzeit meist eigenes glTF-Modell, siehe Manifest „spec“) oder Aussichtsturm (Plattform, Fesselballon) */
+function towerSpecModel(g,kind,R,team,ep){const st=m3Plain(0x8d8a80,.9),tm=m3Team(team),T=new THREE.Box3().setFromObject(g).max.y,k=T/(R*3.5),ir=m3Plain(0x2c2c2c,.5,{metalness:.7});
+  if(kind==='def'){
+    if(ep<=1){const wd=m3Plain(0x6a4a2a,.9),H=R*3.2;
+      for(let i=0;i<16;i++){const a=(i+.5)/16*6.283,p=put(g,cyl(.06,.09,1.2,5),wd,Math.cos(a)*R*1.3,.5,Math.sin(a)*R*1.3);p.rotation.set(Math.sin(a)*.5,0,-Math.cos(a)*.5);put(p,cone(.06,.28,5),wd,0,.74,0)}
+      for(const[x,z]of[[0,R*.64],[R*.64,0],[0,-R*.64],[-R*.64,0]]){const s=put(g,cyl(.3,.3,.06,10),tm,x,H+.28,z);if(z)s.rotation.x=Math.PI/2;else s.rotation.z=Math.PI/2;put(g,new THREE.SphereGeometry(.08,6,5),m3Plain(0xb87333,.35,{metalness:.8}),x*1.06,H+.28,z*1.06)}
+      for(let i=0;i<6;i++)put(g,new THREE.DodecahedronGeometry(.2),m3Plain(0x8a8478,.95),R*.85+(i%3)*.28,.16+(i>2?.26:0),R*.55+(i%2)*.22)}
+    else if(ep>=6){const H=R*3,sd=m3Mat('cloth',0xb8a578);for(let j=0;j<2;j++)for(let i=0;i<22;i++){const a=(i+j*.5)/22*6.283,sb=put(g,new THREE.SphereGeometry(.24,7,5),sd,Math.cos(a)*R*1.4,.16+j*.26,Math.sin(a)*R*1.4);sb.scale.set(1.3,.65,1);sb.rotation.y=-a}
+      for(const s of[-1,1]){const mg=put(g,cyl(.045,.05,1.2,6),ir,s*R*.25,H+.8,R*.55);mg.rotation.x=Math.PI/2;put(g,new THREE.BoxGeometry(.24,.22,.45),ir,s*R*.25,H+.75,R*.15)}}
+    else{const tp=bldTop(g),r=Math.min(R*.9,Math.max(R*.45,tp.w*.85));for(let i=0;i<8;i++){const a=i/8*6.283;put(g,new THREE.BoxGeometry(.5,.55,.5),st,Math.cos(a)*r,tp.T+.2,Math.sin(a)*r)}
+      put(g,cyl(.22,.3,R*1.4,8),ir,R*.5,tp.T+.35,0).rotation.z=Math.PI/2-.25;put(g,new THREE.SphereGeometry(.3,8,6),ir,0,tp.T+.3,0)}}
   else{put(g,cyl(R*1.25,R*1.1,.3,12),m3Plain(0x7a5a3a,.9),0,T*.97,0);for(let i=0;i<10;i++){const a=i/10*6.283;put(g,cyl(.05,.05,.7,5),m3Plain(0x5b4228),Math.cos(a)*R*1.2,R*3.8,Math.sin(a)*R*1.2)}
     const bl=new THREE.Group();bl.position.set(0,T+R*4*k+R*2,0);g.add(bl);const ball=put(bl,new THREE.SphereGeometry(R*1.6,14,10),tm,0,0,0);ball.scale.y=1.2;
     for(const a of[0,1.57,3.14,4.71])put(bl,cyl(.02,.02,R*3,4),m3Plain(0xdddddd,.8),Math.cos(a)*R*.9,-R*1.7,Math.sin(a)*R*.9).rotation.z=Math.cos(a)*.3;
@@ -730,8 +741,8 @@ UNIT3.carro=viaGun('tank',.6);
 UNIT3.zero=(u,tm)=>jetBody(u,tm,{col:0xb8c0b0,wcol:0xc8d0c0});
 
 /* Ausbau-Zusätze je Gebäude und Richtung */
-function specModel(g,type,kind,R,team){
-  if(type==='tower')return towerSpecModel(g,kind,R,team);
+function specModel(g,type,kind,R,team,ep){
+  if(type==='tower')return towerSpecModel(g,kind,R,team,ep);
   const T=new THREE.Box3().setFromObject(g).max.y,tm=m3Team(team),wd=m3Plain(0x7a5a3a,.9);
   if(type==='hq'){
     if(kind==='eco'){for(let i=0;i<4;i++){const a=i*1.57+.8,x=Math.cos(a)*R*1.5,z=Math.sin(a)*R*1.5;put(g,new THREE.BoxGeometry(.9,.5,.7),wd,x,.25,z);put(g,cyl(.02,.02,.9,4),wd,x-.35,.9,z);put(g,new THREE.BoxGeometry(1.0,.05,.8),m3Plain([0xd8b84a,0xc8483a,0x3d72b8,0x5a9a4a][i],.8),x,1.35,z)}

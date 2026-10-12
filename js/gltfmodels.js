@@ -8,15 +8,17 @@ const EKMODELS=(()=>{
   let manifest=null,loader=null;const files=new Map(),failed=[],refCache={},teamMats=new Map();
   const R={ready:false,ver:0};
   const secOf=k=>k==='unit'?'units':k==='bld'?'buildings':k==='animal'?'animals':'nodes';
-  function entryFor(kind,type,ep){
-    const sec=manifest&&manifest[secOf(kind)];let en=sec&&sec[type];if(!en)return null;
-    const L=(Array.isArray(en)?en:[en]).filter(x=>x&&x.file&&!x.off&&files.has(x.file));for(const x of L)if(!x.epochs||x.epochs.includes(ep))return x;
+  /* sp = Ausbau-Richtung (BSPEC, z. B. 'def'): Einträge mit "spec" gelten nur für diesen Ausbau, sonst der normale Eintrag des Zeitalters */
+  function entryFor(kind,type,ep,sp){
+    const sec=manifest&&manifest[secOf(kind)];let en=sec&&sec[type];if(!en)return null;let base=null;
+    const L=(Array.isArray(en)?en:[en]).filter(x=>x&&x.file&&!x.off&&files.has(x.file));
+    for(const x of L)if(!x.epochs||x.epochs.includes(ep)){if(!x.spec){if(!base)base=x}else if(x.spec===sp)return x}
     /* Einheiten: kein Eintrag für dieses Zeitalter → nächstgelegenes Zeitalter (lieber das frühere) statt der alten Code-Figur */
-    if(kind!=='unit'||!L.length)return null;let best=null,bd=99;for(const x of L)for(const e of x.epochs){const d=e<=ep?ep-e:(e-ep)+.5;if(d<bd){bd=d;best=x}}return best}
+    if(base||kind!=='unit'||!L.length)return base;let best=null,bd=99;for(const x of L)if(!x.spec)for(const e of x.epochs||[]){const d=e<=ep?ep-e:(e-ep)+.5;if(d<bd){bd=d;best=x}}return best}
   /* Kennzeichen für die Modell-Signatur im Renderer: ändert sich, wenn ein glTF-Modell zuständig wird (dann wird die Figur neu gebaut) */
   function tag(e){if(!manifest||!files.size)return'';
     if(e.kind==='unit'){const en=entryFor('unit',e.type,e.lvl||0);return en?'|g:'+en.file:''}
-    if(e.kind==='bld'){const en=entryFor('bld',e.type,G.epoch[e.team]);return en?'|g:'+en.file:''}
+    if(e.kind==='bld'){const en=entryFor('bld',e.type,G.epoch[e.team],e.spec);return en?'|g:'+en.file:''}
     if(e.kind==='animal'){const en=entryFor('animal',e.type,0);return en?'|g:'+en.file:''}
     if(e.kind==='node'&&e.sea&&manifest.sea&&manifest.sea[e.type]&&files.size)return'|gs';return''}
   function has(kind,type,ep){return !!entryFor(kind,type,ep)}
@@ -26,6 +28,16 @@ const EKMODELS=(()=>{
       const fix=m=>{if(!m)return m;if(/team|farbe/i.test(m.name||'')){const k=m.uuid+':'+team;let c=teamMats.get(k);if(!c){c=m.clone();c.color.set(TC[team]);c.name=m.name;teamMats.set(k,c)}return c}
         if(m.isMeshStandardMaterial&&m.envMapIntensity>.5)m.envMapIntensity=.3;return m};
       o.material=Array.isArray(o.material)?o.material.map(fix):fix(o.material)})}
+  /* Farbtabellen-Texturen umfärben (Pakete mit Farbstreifen, z. B. die Türme): pal:{"#fff1c9":"#a39d90","#30a262":"team"} – Pixel nahe (Abstand < 24) an einer Quellfarbe
+     bekommen die Zielfarbe, "team" = Spielerfarbe. Je Material+Farbe+Tabelle einmal erzeugt (64×64-Bild, kostet nichts). */
+  const palMats=new Map(),hex3=s=>{const n=parseInt(String(s).slice(1),16);return[n>>16&255,n>>8&255,n&255]};
+  function palette(root,pal,team){const tc=TC[team]||'#888888',pk=JSON.stringify(pal);
+    root.traverse(o=>{if(!o.isMesh)return;const f=m=>{if(!m||!m.map||!m.map.image)return m;const k=m.uuid+tc+pk;let c=palMats.get(k);if(c)return c;
+      const im=m.map.image,cv=document.createElement('canvas');cv.width=im.width;cv.height=im.height;const x=cv.getContext('2d');x.drawImage(im,0,0);const d=x.getImageData(0,0,cv.width,cv.height),p=d.data;
+      const L=Object.entries(pal).map(([a,b])=>[hex3(a),hex3(b==='team'?tc:b)]);
+      for(let i=0;i<p.length;i+=4){let bd=24,to=null;for(const[a,b]of L){const dd=Math.abs(p[i]-a[0])+Math.abs(p[i+1]-a[1])+Math.abs(p[i+2]-a[2]);if(dd<bd){bd=dd;to=b}}if(to){p[i]=to[0];p[i+1]=to[1];p[i+2]=to[2]}}
+      x.putImageData(d,0,0);const t=new THREE.CanvasTexture(cv),s=m.map;t.flipY=s.flipY;t.colorSpace=s.colorSpace;t.wrapS=s.wrapS;t.wrapT=s.wrapT;t.magFilter=s.magFilter;t.minFilter=s.minFilter;
+      c=m.clone();c.map=t;palMats.set(k,c);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)})}
   const box=o=>{o.updateMatrixWorld(true);return new THREE.Box3().setFromObject(o)};
   /* Größe des bisherigen Code-Modells als Maßstab: so passt ein neues Modell automatisch zur Spielgröße */
   function refSize(kind,type,make){const k=kind+type;if(refCache[k])return refCache[k];try{const b=box(make()),s=b.getSize(new THREE.Vector3());return refCache[k]={h:s.y||1,m:Math.max(s.x,s.y,s.z)||1,w:Math.max(s.x,s.z)||1}}catch(_){return refCache[k]={h:2.3,m:3,w:3}}}
@@ -133,17 +145,21 @@ const EKMODELS=(()=>{
       if(en.rider){let rr=null;for(const as of[].concat(en.rider.as)){if(entryFor('unit',as,u.lvl||0)){rr=makeUnit(Object.assign({},u,{type:as}),origMake,'unit');break}}if(rr){
         /* sitzen: Oberschenkel nach vorn und leicht gespreizt (wird nach jeder Animation aufgesetzt) */rr.sit=['L','R'].map(s=>findBone(rr.g,new RegExp('^(UpperLeg|thigh|DEF-thigh)\\.?'+s+'$','i'))).filter(Boolean);rr.shin=['L','R'].map(s=>findBone(rr.g,new RegExp('^(LowerLeg|shin|DEF-shin)\\.?'+s+'$','i'))).filter(Boolean);if(en.rider.scale)rr.g.scale.multiplyScalar(en.rider.scale);const hb=box(wrap);rr.g.position.set(en.rider.x||0,(hb.max.y-hb.min.y)*(en.rider.seat||.55)-1.05,0);wrap.add(rr.g);rig.rider=rr}}
       return rig}catch(err){console.warn('glTF-Einheit',u.type,err);return null}}
-  function makeBld(type,R_,ep,team,origMake){
-    const en=entryFor('bld',type,ep);if(!en)return null;const gl=files.get(en.file);
+  function makeBld(type,R_,ep,team,origMake,sp){
+    const en=entryFor('bld',type,ep,sp);if(!en)return null;const gl=files.get(en.file);
     try{
-      const root=EKGLTF.SkeletonUtils.clone(gl.scene),wrap=new THREE.Group();wrap.add(root);prepare(root,team);cmapOf(root,en.cmap);root.rotation.y=(en.yaw||0)*Math.PI/180;
+      const root=EKGLTF.SkeletonUtils.clone(gl.scene),wrap=new THREE.Group();wrap.add(root);prepare(root,team);cmapOf(root,en.cmap);if(en.pal)palette(root,en.pal,team);root.rotation.y=(en.yaw||0)*Math.PI/180;
       let b=box(wrap),sz=b.getSize(new THREE.Vector3());
       const k=(en.footprint?en.footprint/(Math.max(sz.x,sz.z)||1):(R_*2.5*(en.fit||1))/(Math.max(sz.x,sz.z)||1))*(en.scale||1);
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y,-c.z);
-      wrap.userData.h=b.max.y-b.min.y;wrap.userData.flags=[];wrap.userData.gltf=true;
-      /* Beiwerk neben dem Gebäude (z. B. Pranger, Galgen): props:[{file,h,x,z,ry}] – x/z in Gebäude-Radien, h = Höhe in Welteinheiten */
+      wrap.userData.h=b.max.y-b.min.y;wrap.userData.flags=[];wrap.userData.gltf=true;wrap.userData.spec=en.spec||''/* eigenes Ausbau-Modell: Code-Zusätze (specModel) entfallen */;
+      /* Fahne in Spielerfarbe: flag:{x,z,y,h} – x/z in Gebäude-Radien, y = Anteil der Modellhöhe (1 = ganz oben), h = Mastlänge in Radien */
+      if(en.flag){const F=en.flag,H=wrap.userData.h,ph=(F.h||.9)*R_,pole=new THREE.Mesh(new THREE.CylinderGeometry(.035,.045,ph,5),m3Plain(0x4a3a2a,.8));
+        pole.position.set((F.x||0)*R_,(F.y===undefined?1:F.y)*H+ph/2-.05,(F.z||0)*R_);wrap.add(pole);const fp=new THREE.Group();fp.position.set(pole.position.x,pole.position.y+ph*.32,pole.position.z);fp.userData.flag=true;
+        const cl=new THREE.Mesh(new THREE.BoxGeometry(ph*.5,ph*.32,.03),m3Team(team));cl.position.x=ph*.25/* Tuch zeigt zur Kamera */;pole.castShadow=cl.castShadow=true;fp.add(cl);wrap.add(fp);wrap.userData.flags.push(fp)}
+      /* Beiwerk neben dem Gebäude (z. B. Pranger, Galgen): props:[{file,h,x,z,ry,y}] – x/z in Gebäude-Radien, h = Höhe in Welteinheiten */
       for(const pr of en.props||[]){const g2=files.get(pr.file);if(!g2)continue;const o=EKGLTF.SkeletonUtils.clone(g2.scene);prepare(o,team);o.rotation.y=(pr.ry||0)*Math.PI/180;
-        const s2=box(o).getSize(new THREE.Vector3());o.scale.setScalar((pr.h||1.5)/(s2.y||1));const b3=box(o),c3=b3.getCenter(new THREE.Vector3());o.position.set((pr.x||0)*R_-c3.x,-b3.min.y,(pr.z||0)*R_-c3.z);wrap.add(o)}
+        const s2=box(o).getSize(new THREE.Vector3());o.scale.setScalar((pr.h||1.5)/(s2.y||1));const b3=box(o),c3=b3.getCenter(new THREE.Vector3());o.position.set((pr.x||0)*R_-c3.x,-b3.min.y+(pr.y||0)*wrap.userData.h,(pr.z||0)*R_-c3.z);wrap.add(o)} /* y = Höhe in Gebäudehöhen (z. B. Ballon über dem Turm) */
       return wrap}catch(err){console.warn('glTF-Gebäude',type,err);return null}}
   /* Bäume, Felsen, Büsche als Instanzen: liefert die Einzelteile (Geometrie+Material) eines glTF-Modells. Grösse: k = fester Massstab (Modell-Einheiten → Spiel,
      behält die Grössenunterschiede innerhalb eines Pakets), sonst height, sonst Höhe des Code-Modells (refGeo); scale wirkt zusätzlich.
@@ -226,5 +242,5 @@ const EKMODELS=(()=>{
 (()=>{const origU=buildUnit,origB=buildBld;window.origBuildUnit=origU;
   buildUnit=function(u){const r=EKMODELS.makeUnit(u,origU);if(r){M3.curId=u.id;return r}return origU(u)};
   const origA=buildAnimal;buildAnimal=function(e){const r=EKMODELS.makeUnit(e,origA,'animal');return r||origA(e)};
-  buildBld=function(type,R,ep,team){const g=EKMODELS.makeBld(type,R,ep,team,origB);return g||origB(type,R,ep,team)};
+  buildBld=function(type,R,ep,team,sp){const g=EKMODELS.makeBld(type,R,ep,team,origB,sp);return g||origB(type,R,ep,team)};
 })();
