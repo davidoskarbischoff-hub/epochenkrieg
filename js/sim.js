@@ -189,7 +189,7 @@ function updUnit(u,dt){
     const cap=gc.carry*(1+G.tfx[u.team].carry+(d.naval?G.tfx[u.team].bcarry:0));
     if(u.carry>=cap){u.state='return';break}
     const fs=n.type==='field'?{x:n.x+Math.cos(u.id*2.4)*n.r*(.45+(u.id*53%10)/25),y:n.y+Math.sin(u.id*2.4)*n.r*(.45+(u.id*53%10)/25)}:null; /* Feld: jeder Arbeiter hat seinen Platz auf dem Acker */
-    if(fs?Math.hypot(u.x-fs.x,u.y-fs.y)<6:reach(u,n)){u.fa=fs?u.id%6.283:Math.atan2(n.y-u.y,n.x-u.x);u.gat=G.t;if((u.gt=(u.gt||0)-dt)<=0){u.gt=.75+Math.random()*.2;sfx(n.rt==='wood'?'chop':n.rt==='stone'||n.rt==='iron'||n.rt==='gold'?'mine':'pick',u);if(Math.random()<.22)sfx('grunt',u)}const rate=gRate(u,n);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;const sd=NODES[n.type].side;if(sd)for(const k in sd)(u.side||(u.side={}))[k]=(u.side[k]||0)+amt*sd[k]; /* Wal: Tran = Öl als Nebenprodukt */if(n.amount<=0.001){if(n.regen)n.amount=0;else kill(n)}if(u.carry>=cap)u.state='return'}
+    if(fs?Math.hypot(u.x-fs.x,u.y-fs.y)<6:reach(u,n)){u.fa=fs?u.id%6.283:Math.atan2(n.y-u.y,n.x-u.x);u.gat=G.t;if((u.gt=(u.gt||0)-dt)<=0){u.gt=.75+Math.random()*.2;sfx(n.rt==='wood'?'chop':n.rt==='stone'||n.rt==='iron'||n.rt==='gold'?'mine':'pick',u);if(Math.random()<.22)sfx('grunt',u)}const rate=gRate(u,n);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;const sd=NODES[n.type].side;if(sd)for(const k in sd)(u.byp||(u.byp={}))[k]=(u.byp[k]||0)+amt*sd[k]; /* Wal: Tran = Öl als Nebenprodukt */if(n.amount<=0.001){if(n.regen)n.amount=0;else kill(n)}if(u.carry>=cap)u.state='return'}
     else{
       // Absprache: ist der Baum/Busch schon voll besetzt, ein freies Vorkommen in der Nähe suchen
       if((G.load[n.id]||0)>NODES[n.type].cap&&G.t-(u.rs||0)>1.5){u.rs=G.t;const alt=nearestNode(u.rtype||n.rt,u.x,u.y,350,u,true);if(alt&&alt.id!==n.id){G.load[n.id]--;G.load[alt.id]=(G.load[alt.id]||0)+1;u.tid=alt.id;u.pf=null;n=alt}}
@@ -197,7 +197,7 @@ function updUnit(u,dt){
       if(u.pf&&u.pf.fail){(u.bad||(u.bad={}))[n.id]=G.t;u.tid=null;u.pf=null}}
     break}
   case 'return':{const dp=nearestDrop(u.team,u.x,u.y,!!d.naval,u.ctype);if(!dp||!u.ctype){u.state='idle';break}
-    if(reach(u,dp)){G.res[u.team][u.ctype]+=u.carry;if(u.side){for(const k in u.side)G.res[u.team][k]=(G.res[u.team][k]||0)+u.side[k];u.side=null}if(u.team===0)sfx('drop',u);u.carry=0;if(!(u.q&&u.q.length&&nextOrder(u)))u.state='gather'}else moveToward(u,dp.x,dp.y,dt,dp.id);break}
+    if(reach(u,dp)){G.res[u.team][u.ctype]+=u.carry;if(u.byp){for(const k in u.byp)G.res[u.team][k]=(G.res[u.team][k]||0)+u.byp[k];u.byp=null}if(u.team===0)sfx('drop',u);u.carry=0;if(!(u.q&&u.q.length&&nextOrder(u)))u.state='gather'}else moveToward(u,dp.x,dp.y,dt,dp.id);break}
   case 'build':{const b=get(u.tid);
     if(b&&b.built&&u.rep&&b.hp<b.maxHp-1){ /* Reparatur: kostenlos, etwas langsamer als Bauen */
       if(reach(u,b)){u.fa=Math.atan2(b.y-u.y,b.x-u.x);u.gat=G.t;if((u.bt=(u.bt||0)-dt)<=0){u.bt=.6;sfx('hammer',u)}b.hp=Math.min(b.maxHp,b.hp+dt*b.maxHp/((BLDS[b.type].time||60)*2.2))}else moveToward(u,b.x,b.y,dt,b.id);break}
