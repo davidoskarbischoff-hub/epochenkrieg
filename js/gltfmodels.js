@@ -159,6 +159,29 @@ const EKMODELS=(()=>{
     if(!H||!B)return null;const a=new THREE.Vector3(),b=new THREE.Vector3();H.getWorldPosition(a);B.getWorldPosition(b);
     const fx=a.x-b.x,fz=a.z-b.z;if(Math.hypot(fx,fz)<1e-5)return null;
     return Math.round(Math.atan2(fz,fx)/(Math.PI/2))*(Math.PI/2)}catch(_){return null}}
+  /* Leistung: alle sichtbaren Hautteile einer Figur (gleiches Skelett, Material ohne Textur) zu EINEM Teil zusammenfassen,
+     Materialfarben werden zu Eckpunkt-Farben; getrennt bleiben nur Gruppen mit anderem Glanz (Metall) – aus ~10 Zeichenaufrufen je Figur werden 1–2 */
+  function mergeSkin(root){
+    root.updateMatrixWorld(true);const groups=new Map();
+    root.traverse(o=>{if(!o.isSkinnedMesh||!o.visible||Array.isArray(o.material)||o.material.map||o.material.transparent||o.geometry.morphAttributes&&Object.keys(o.geometry.morphAttributes).length)return;
+      let v=true;for(let q=o;q;q=q.parent)if(!q.visible)v=false;if(!v)return;const m=o.material,key=(o.skeleton.bones[0]&&o.skeleton.bones[0].uuid)+'|'+o.parent.uuid+'|'+(m.metalness||0).toFixed(1)+(m.roughness||1).toFixed(1)+m.side+(m.emissive&&m.emissive.getHex()?m.emissive.getHex():'');
+      (groups.get(key)||groups.set(key,[]).get(key)).push(o)});
+    const eq=(a,b)=>a.elements.every((x,i)=>Math.abs(x-b.elements[i])<1e-5);
+    for(const L0 of groups.values()){const L=L0.filter(o=>eq(o.matrix,L0[0].matrix)&&eq(o.bindMatrix,L0[0].bindMatrix));if(L.length<2)continue;
+      let nv=0,ni=0;for(const o of L){const g=o.geometry;nv+=g.attributes.position.count;ni+=g.index?g.index.count:g.attributes.position.count}
+      const pos=new Float32Array(nv*3),nor=new Float32Array(nv*3),col=new Float32Array(nv*3),si=new Uint16Array(nv*4),sw=new Float32Array(nv*4),idx=nv>65535?new Uint32Array(ni):new Uint16Array(ni);let o0=0,oi=0;
+      const bones=[],inv=[],bi=new Map();/* gemeinsames Skelett: Knochen aller Teile vereinigen, Indizes umrechnen */
+      const remap=o=>o.skeleton.bones.map((b,i)=>{let j=bi.get(b);if(j===undefined){j=bones.length;bi.set(b,j);bones.push(b);inv.push(o.skeleton.boneInverses[i].clone())}return j});
+      for(const o of L){const g=o.geometry,P=g.attributes.position,N=g.attributes.normal,SI=g.attributes.skinIndex,SW=g.attributes.skinWeight,C=g.attributes.color,c=o.material.color,n=P.count,rm=remap(o);
+        for(let i=0;i<n;i++){const j=o0+i;pos[j*3]=P.getX(i);pos[j*3+1]=P.getY(i);pos[j*3+2]=P.getZ(i);if(N){nor[j*3]=N.getX(i);nor[j*3+1]=N.getY(i);nor[j*3+2]=N.getZ(i)}
+          const vc=o.material.vertexColors&&C;col[j*3]=c.r*(vc?C.getX(i):1);col[j*3+1]=c.g*(vc?C.getY(i):1);col[j*3+2]=c.b*(vc?C.getZ(i):1);
+          for(let q=0;q<4;q++){si[j*4+q]=rm[SI.getComponent(i,q)]||0;sw[j*4+q]=SW.getComponent(i,q)}}
+        if(g.index)for(let i=0;i<g.index.count;i++)idx[oi++]=g.index.getX(i)+o0;else for(let i=0;i<n;i++)idx[oi++]=o0+i;o0+=n}
+      const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('normal',new THREE.BufferAttribute(nor,3));g.setAttribute('color',new THREE.BufferAttribute(col,3));
+      g.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(si,4));g.setAttribute('skinWeight',new THREE.BufferAttribute(sw,4));g.setIndex(new THREE.BufferAttribute(idx,1));
+      const f=L[0],m=f.material.clone();m.vertexColors=true;m.color.setRGB(1,1,1);m.needsUpdate=true;
+      const sm=new THREE.SkinnedMesh(g,m);sm.name='merged';sm.position.copy(f.position);sm.quaternion.copy(f.quaternion);sm.scale.copy(f.scale);sm.castShadow=f.castShadow;sm.receiveShadow=f.receiveShadow;sm.frustumCulled=f.frustumCulled;
+      f.parent.add(sm);sm.bind(new THREE.Skeleton(bones,inv),f.bindMatrix);for(const o of L)o.parent.remove(o)}}
   function makeUnit(u,origMake,kind,enO){
     kind=kind||'unit';const en=enO||entryFor(kind,u.type,u.lvl||0);if(!en)return null;
     /* Abwechslung: vary:[Dateien] – jede Figur bekommt nach ihrer Nummer (u.id) eine davon (z. B. verschiedene Bauern), sonst file */
@@ -169,7 +192,7 @@ const EKMODELS=(()=>{
       let b=box(wrap),sz=b.getSize(new THREE.Vector3());const ref=refSize(kind,u.type,()=>origMake(u).g);
       const k=(en.human?(2.4/1.84):en.len?en.len/(Math.max(sz.x,sz.z)||1):en.height?en.height/(sz.y||1):(en.fit==='length'||(kind==='animal'&&!en.fit))?ref.m/(Math.max(sz.x,sz.y,sz.z)||1):ref.h/(sz.y||1))*(en.scale||1);
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y+(en.lift||0),-c.z);
-      cmapOf(root,en.cmap);dress(root,wrap,en,k,u.team,u);
+      cmapOf(root,en.cmap);dress(root,wrap,en,k,u.team,u);if(!window.__noMerge)try{mergeSkin(root)}catch(err){console.warn('mergeSkin',err)}
       const rig={g:wrap,gltf:true,bend:en.human?findBone(root,/^(Abdomen|Spine|Spine1|spine|DEF-spine\.?001)$/i):null,bendA:0,human:!!(en.human||(en.rider&&!en.rider.free)),legs:[],arms:[],tools:{},acts:{},cur:null};
       if(gl.animations&&gl.animations.length){rig.mixer=new THREE.AnimationMixer(root);const A=en.anim||{},cl=gl.animations;
         const map={idle:pickClip(cl,[A.idle],/idle|stand|rest/i),walk:pickClip(cl,[A.walk],/walk|run|move/i),attack:pickClip(cl,[A.attack],/attack|hit|strike|shoot|fire/i),work:pickClip(cl,[A.work],/work|gather|chop|mine|build|dig/i)};
