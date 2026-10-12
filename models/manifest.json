@@ -33,12 +33,12 @@
     "human": true,
     "work": {
      "chop": {
-      "clip": "Sword_Slash",
+      "clip": "Punch_Right",
       "tool": {
        "file": "neu/Axe Small.glb",
        "scale": 0.4,
        "rot": [
-        -90,
+        0,
         0,
         0
        ],
@@ -174,12 +174,12 @@
     "human": true,
     "work": {
      "chop": {
-      "clip": "Sword_Slash",
+      "clip": "Punch_Right",
       "tool": {
        "file": "neu/Axe Small.glb",
        "scale": 0.4,
        "rot": [
-        -90,
+        0,
         0,
         0
        ],
@@ -315,12 +315,12 @@
     "human": true,
     "work": {
      "chop": {
-      "clip": "Sword_Slash",
+      "clip": "Punch_Right",
       "tool": {
        "file": "neu/Axe Small.glb",
        "scale": 0.4,
        "rot": [
-        -90,
+        0,
         0,
         0
        ],
@@ -441,12 +441,12 @@
     "human": true,
     "work": {
      "chop": {
-      "clip": "Sword_Slash",
+      "clip": "Punch_Right",
       "tool": {
        "file": "neu/Axe Small.glb",
        "scale": 0.4,
        "rot": [
-        -90,
+        0,
         0,
         0
        ],
@@ -569,12 +569,12 @@
     "human": true,
     "work": {
      "chop": {
-      "clip": "Sword_Slash",
+      "clip": "Punch_Right",
       "tool": {
        "file": "neu/Axe Small.glb",
        "scale": 0.4,
        "rot": [
-        -90,
+        0,
         0,
         0
        ],
@@ -1468,20 +1468,6 @@
     "epochs": [
      1
     ],
-    "left": {
-     "file": "neu/Wooden Bow.glb",
-     "scale": 0.45,
-     "rot": [
-      0,
-      0,
-      0
-     ],
-     "pos": [
-      0,
-      0,
-      0
-     ]
-    },
     "skins": [
      "#e0ac85",
      "#c68c63",
@@ -1499,7 +1485,21 @@
     ],
     "hide": [
      "Backpack"
-    ]
+    ],
+    "hand": {
+     "file": "neu/Wooden Bow.glb",
+     "scale": 0.45,
+     "rot": [
+      0,
+      0,
+      90
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    },
    {
     "file": "neu/Adventurer.glb",
@@ -1521,20 +1521,6 @@
     "epochs": [
      2
     ],
-    "left": {
-     "file": "neu/Wooden Bow.glb",
-     "scale": 0.45,
-     "rot": [
-      0,
-      0,
-      0
-     ],
-     "pos": [
-      0,
-      0,
-      0
-     ]
-    },
     "skins": [
      "#e0ac85",
      "#c68c63",
@@ -1552,7 +1538,21 @@
     ],
     "hide": [
      "Backpack"
-    ]
+    ],
+    "hand": {
+     "file": "neu/Wooden Bow.glb",
+     "scale": 0.45,
+     "rot": [
+      0,
+      0,
+      90
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    },
    {
     "file": "neu/Medieval.glb",
@@ -1569,21 +1569,21 @@
     "hide": [
      "^Sword$"
     ],
-    "left": {
+    "human": true,
+    "hand": {
      "file": "neu/Wooden Bow.glb",
      "scale": 0.45,
      "rot": [
       0,
       0,
-      0
+      90
      ],
      "pos": [
       0,
       0,
       0
      ]
-    },
-    "human": true
+    }
    },
    {
     "file": "neu/Soldier.glb",
