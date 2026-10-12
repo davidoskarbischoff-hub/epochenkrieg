@@ -52,3 +52,12 @@ Ein Modell kann im Manifest „angezogen“ werden, damit man nicht für jede Ei
 - `hand` / `left`: Waffe oder Werkzeug in die rechte/linke Hand: `{"file":"neu/Spear.glb","scale":0.5,"rot":[-90,0,0],"pos":[0,0,0]}`.
 - `pelt`: Fell-Hüftrock in dieser Farbe, z. B. `"#6b4a2b"`.
 Beispiel: Steinzeit-Keulenträger = Basisfigur + Hautfarbe + Fellrock + Keule (`Wooden Torch`).
+
+## Natur: Bäume, Büsche, Felsen, Deko (Abschnitt `nodes`)
+Jeder Schlüssel ist eine **Liste von Varianten** (je mehr, desto abwechslungsreicher; jede Variante kostet einen Zeichenaufruf). Untexturierte Low-Poly-Modelle (z. B. Quaternius-Natur-Paket in `models/nature`) werden automatisch zu einem Teil mit Eckpunkt-Farben zusammengebacken.
+- Schlüssel: `pine` Nadelbäume, `broad` Laubbäume, `birch` Birkenhaine, `willow` Weiden am Wasser, `autumn` Herbst-Farbtupfer, `bush` Beerenstrauch, `bushE` abgeernteter Strauch (unter 25 %), `stump` Baumstumpf nach dem Fällen, `wheat` Getreide auf dem Feld, `alpine`/`snowy` Deko auf Bergen unter/über der Schneegrenze, `stone`/`iron`/`gold` Vorkommen.
+- `k`: fester Massstab (Modell-Einheiten → Spiel), z. B. `0.026` für die Quaternius-Bäume; ohne `k` gilt `height` bzw. die Höhe des eingebauten Modells.
+- `colors`: einzelne Materialien umfärben, z. B. `{"Green":"#4a7f31","Snow":"#f1f4f8"}`.
+- `w`: Gewicht einer Variante bei der Berg-Deko (häufiger/seltener).
+- `wheat`: `for` = Feld-Modell, zu dem die Reihen passen; `rows` = Reihen `[z, x von, x bis]` (Feldbreite = 1), `step` = Abstand, `y` = Höhe der Furchen.
+- Dateien verkleinern: `node tools/glbslim.js models/nature/*.glb` fasst Teile gleicher Farbe zusammen und lässt bei flach schattierten Modellen die Normalen weg (Datei etwa 5× kleiner, Aussehen gleich).

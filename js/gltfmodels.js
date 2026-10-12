@@ -145,20 +145,37 @@ const EKMODELS=(()=>{
       for(const pr of en.props||[]){const g2=files.get(pr.file);if(!g2)continue;const o=EKGLTF.SkeletonUtils.clone(g2.scene);prepare(o,team);o.rotation.y=(pr.ry||0)*Math.PI/180;
         const s2=box(o).getSize(new THREE.Vector3());o.scale.setScalar((pr.h||1.5)/(s2.y||1));const b3=box(o),c3=b3.getCenter(new THREE.Vector3());o.position.set((pr.x||0)*R_-c3.x,-b3.min.y,(pr.z||0)*R_-c3.z);wrap.add(o)}
       return wrap}catch(err){console.warn('glTF-Gebäude',type,err);return null}}
-  /* Bäume, Felsen, Büsche als Instanzen: liefert die Einzelteile (Geometrie+Material) eines glTF-Modells, auf Höhe/Grundfläche des Code-Modells (refGeo) angepasst */
+  /* Bäume, Felsen, Büsche als Instanzen: liefert die Einzelteile (Geometrie+Material) eines glTF-Modells. Grösse: k = fester Massstab (Modell-Einheiten → Spiel,
+     behält die Grössenunterschiede innerhalb eines Pakets), sonst height, sonst Höhe des Code-Modells (refGeo); scale wirkt zusätzlich.
+     Modelle ohne Texturen werden „gebacken“: alle Teile in EINE Geometrie mit Eckpunkt-Farben (1 Zeichenaufruf je Variante); colors:{Material:Farbe} färbt einzelne Materialien um */
+  const nodeList=key=>{const en0=manifest&&manifest.nodes&&manifest.nodes[key];return en0?(Array.isArray(en0)?en0:[en0]).filter(x=>x&&x.file&&!x.off&&files.has(x.file)):[]};
+  const pCache=new Map();
+  function bakeParts(parts,en){
+    let nv=0,ni=0;for(const p of parts){nv+=p.g.attributes.position.count;ni+=p.g.index?p.g.index.count:p.g.attributes.position.count}
+    const hasN=parts.every(p=>p.g.attributes.normal),pos=new Float32Array(nv*3),nor=hasN?new Float32Array(nv*3):null,col=new Float32Array(nv*3),idx=nv>65535?new Uint32Array(ni):new Uint16Array(ni),c=new THREE.Color();let o=0,oi=0,ro=0;
+    for(const p of parts){const P=p.g.attributes.position,N=p.g.attributes.normal,n=P.count,nm=(p.m.name||'').replace(/\.\d+$/,'');c.copy(p.m.color);if(en.tint)c.set(en.tint);else if(en.colors&&en.colors[nm])c.set(en.colors[nm]);
+      for(let i=0;i<n;i++){const j=(o+i)*3;pos[j]=P.getX(i);pos[j+1]=P.getY(i);pos[j+2]=P.getZ(i);if(nor){nor[j]=N.getX(i);nor[j+1]=N.getY(i);nor[j+2]=N.getZ(i)}col[j]=c.r;col[j+1]=c.g;col[j+2]=c.b}
+      if(p.g.index)for(let i=0;i<p.g.index.count;i++)idx[oi++]=p.g.index.getX(i)+o;else for(let i=0;i<n;i++)idx[oi++]=o+i;o+=n;ro+=p.m.roughness!==undefined?p.m.roughness:.9}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));if(nor)g.setAttribute('normal',new THREE.BufferAttribute(nor,3));g.setAttribute('color',new THREE.BufferAttribute(col,3));g.setIndex(new THREE.BufferAttribute(idx,1));
+    const m=new THREE.MeshStandardMaterial({vertexColors:true,roughness:Math.max(.6,ro/parts.length),metalness:0,flatShading:!nor,side:parts.some(p=>p.m.side===THREE.DoubleSide)?THREE.DoubleSide:THREE.FrontSide});m.envMapIntensity=.3;
+    return[{g,m,baked:true}]}
   function nodeParts(key,v,refGeo){
-    const sec=manifest&&manifest.nodes,en0=sec&&sec[key];if(!en0)return null;const L=(Array.isArray(en0)?en0:[en0]).filter(x=>x&&x.file&&!x.off&&files.has(x.file));if(!L.length)return null;
-    const en=L[v%L.length],gl=files.get(en.file),parts=[];gl.scene.updateMatrixWorld(true);
+    const L=nodeList(key);if(!L.length)return null;const ck=key+'|'+v;if(pCache.has(ck))return pCache.get(ck);
+    const en=L[v%L.length],gl=files.get(en.file);let parts=[];gl.scene.updateMatrixWorld(true);
     const want=en.mesh&&en.mesh.replace(/\./g,'');gl.scene.traverse(o=>{if(o.isMesh&&!o.isSkinnedMesh&&(!want||o.name===want)){const g=o.geometry.clone();g.applyMatrix4(o.matrixWorld);parts.push({g,m:o.material})}});if(!parts.length)return null;
+    if(en.bake!==false&&parts.every(p=>p.m&&p.m.color&&!p.m.map&&!p.g.attributes.color))parts=bakeParts(parts,en);
     const bb=new THREE.Box3();for(const p of parts){p.g.computeBoundingBox();bb.union(p.g.boundingBox)}
-    refGeo.computeBoundingBox();const rb=refGeo.boundingBox,rh=(rb.max.y-rb.min.y)||1,sz=bb.getSize(new THREE.Vector3()),k=(en.height?en.height/(sz.y||1):rh/(sz.y||1))*(en.scale||1),c=bb.getCenter(new THREE.Vector3());
-    const out=parts.map(p=>{p.g.translate(-c.x,-bb.min.y,-c.z);p.g.scale(k,k,k);const m=p.m.clone();if(en.tint&&m.color)m.color.set(en.tint);if(m.isMeshStandardMaterial&&m.envMapIntensity>.5)m.envMapIntensity=.3;return{geo:p.g,mat:m}});
+    const sz=bb.getSize(new THREE.Vector3());let rh=1;if(!en.k&&!en.height&&refGeo){refGeo.computeBoundingBox();const rb=refGeo.boundingBox;rh=(rb.max.y-rb.min.y)||1}
+    const k=(en.k||(en.height||rh)/(sz.y||1))*(en.scale||1),c=bb.getCenter(new THREE.Vector3());
+    const out=parts.map(p=>{p.g.translate(-c.x,-bb.min.y,-c.z);p.g.scale(k,k,k);if(p.baked)return{geo:p.g,mat:p.m};const m=p.m.clone();if(en.tint&&m.color)m.color.set(en.tint);if(m.isMeshStandardMaterial&&m.envMapIntensity>.5)m.envMapIntensity=.3;return{geo:p.g,mat:m}});
     /* Zusatz auf dem Felsen (z. B. Erz-Kristalle): extra:{file,mesh,tint,scale,y,n} – n Kristalle rund um die Kuppe */
     const X=en.extra,gx=X&&files.get(X.file);if(gx){gx.scene.updateMatrixWorld(true);const want2=X.mesh&&X.mesh.replace(/\./g,'');let src=null;gx.scene.traverse(o=>{if(!src&&o.isMesh&&(!want2||o.name===want2))src=o});
       if(src){const H=sz.y*k,W2=Math.max(sz.x,sz.z)*k;for(let i=0;i<(X.n||3);i++){const g=src.geometry.clone();g.applyMatrix4(src.matrixWorld);g.computeBoundingBox();const b2=g.boundingBox,s2=b2.getSize(new THREE.Vector3()),c2=b2.getCenter(new THREE.Vector3());
         const kk=H*(X.scale||.5)*(.75+.25*((i*7+v)%3))/(s2.y||1);g.translate(-c2.x,-b2.min.y,-c2.z);g.scale(kk,kk,kk);g.rotateZ((i-1)*.35);g.rotateY(i*2.1+v);const a=i*2.1+v,rr=W2*.18;g.translate(Math.cos(a)*rr,H*(X.y||.55),Math.sin(a)*rr);
         const m=src.material.clone();if(X.tint)m.color.set(X.tint);m.metalness=X.metal||.4;m.roughness=.35;if(X.glow){m.emissive=new THREE.Color(X.tint);m.emissiveIntensity=X.glow}out.push({geo:g,mat:m})}}}
-    return out}
+    pCache.set(ck,out);return out}
+  /* Anzahl der Varianten eines Natur-Schlüssels und Zusatzangaben (z. B. Getreide-Reihen auf dem Feld) */
+  const nodeN=key=>nodeList(key).length,nodeMeta=key=>nodeList(key)[0]||null;
   /* Symbole (Ressourcen in der oberen Leiste): echtes Modell aus manifest.icons, vom Symbol-Renderer (ICON3) in ein Bild gemalt */
   function iconModel(name){
     const en=manifest&&manifest.icons&&manifest.icons[name];if(!en||!files.has(en.file))return null;
@@ -199,11 +216,11 @@ const EKMODELS=(()=>{
     loader=new EKGLTF.GLTFLoader(mgr);try{loader.setMeshoptDecoder(EKGLTF.MeshoptDecoder)}catch(_){}
     const want=new Set();for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off){want.add(x.file);if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work))if(w.tool&&w.tool.file)want.add(w.tool.file);if(x.extra&&x.extra.file)want.add(x.extra.file);for(const pr of(x.props||[]).concat(x.extras||[]))if(pr&&pr.file)want.add(pr.file)}
     await Promise.all([...want].map(async f=>{try{files.set(f,await loader.loadAsync('models/'+f))}catch(err){failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}}));
-    R.ready=true;R.ver++;/* Einheiten/Gebäude/Tiere: Signaturen ändern sich über tag() von selbst; Bäume/Felsen: Instanzen neu aufbauen */try{if(typeof r3!=='undefined'&&r3.scene&&typeof G!=='undefined'&&G&&G.ents&&G.ents.length)r3NodesInit()}catch(_){}
+    pCache.clear();R.ready=true;R.ver++;/* Einheiten/Gebäude/Tiere: Signaturen ändern sich über tag() von selbst; Bäume/Felsen: Instanzen neu aufbauen */try{if(typeof r3!=='undefined'&&r3.scene&&typeof G!=='undefined'&&G&&G.ents&&G.ents.length)r3NodesInit()}catch(_){}
     try{if(typeof ICON3!=='undefined'){ICON3.clear();document.querySelectorAll('[data-ic]').forEach(el=>{el.innerHTML=ART.icon(el.dataset.ic)})}}catch(_){}}
   /* für Tests/Vorschau: Modell von Hand eintragen */
   function register(kind,type,entry,gltf){if(!manifest)manifest={units:{},buildings:{}};const s=secOf(kind);(manifest[s]||(manifest[s]={}))[type]=entry;files.set(entry.file,gltf);R.ver++}
-  return Object.assign(R,{init,tag,has,makeUnit,makeBld,makeSea,iconModel,nodeParts,animate,register,files,failed,refSize,dbg:()=>({refCache})})
+  return Object.assign(R,{init,tag,has,makeUnit,makeBld,makeSea,iconModel,nodeParts,nodeN,nodeMeta,nodeL:nodeList,animate,register,files,failed,refSize,dbg:()=>({refCache})})
 })();
 /* Modelle in die Bau-Funktionen einhängen (Rückfall auf die Code-Modelle, wenn nichts passt) */
 (()=>{const origU=buildUnit,origB=buildBld;window.origBuildUnit=origU;
