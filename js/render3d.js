@@ -165,28 +165,33 @@ function r3Grass(){
   for(let i=0;i<Math.round(52000*AREA*GQ[gfxQ].grass)&&pts.length<Math.round(15000*AREA*GQ[gfxQ].grass);i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;let ok=true;for(let k=0;k<4;k++)if(terrAt(x+Math.cos(k*1.57)*14,y+Math.sin(k*1.57)*14)!==2){ok=false;break}if(!ok)continue;
     const dens=.5+.5*Math.sin(x*.013+Math.cos(y*.011)*2);if(R()>dens*1.1)continue;pts.push({x,y,r:R()*6.28,s:.6+R()*.8,c:.8+R()*.5,j:R()})}
   for(let i=0;i<Math.round(9000*AREA*Math.min(1.5,GQ[gfxQ].grass))&&fl.length<Math.round(1800*AREA*Math.min(1.5,GQ[gfxQ].grass));i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;const cx=Math.cos(x*.02)*Math.sin(y*.017);if(cx<.35)continue;fl.push({x,y,r:R()*6.28,s:.7+R()*.6,k:(R()*5)|0})}
-  const blade=(r,h,ax,az,col)=>{const g=new THREE.ConeGeometry(r,h,3);g.translate(0,h/2,0);g.rotateZ(az);g.rotateX(ax);return[g,col]};
+  const blade=(r,h,ax,az,col)=>{const g=new THREE.ConeGeometry(r,h,3,1,true);/* ohne Boden: spart ein Drittel der Dreiecke */g.translate(0,h/2,0);g.rotateZ(az);g.rotateX(ax);return[g,col]};
   const tg=mergeColored([blade(.05,.5,.18,.2,0x5f8a3a),blade(.05,.62,-.15,-.1,0x6f9a44),blade(.045,.42,.1,-.3,0x4f7a32),blade(.045,.55,-.2,.25,0x7aa24b)]);
   r3.i_tuft=new THREE.InstancedMesh(tg,windify(new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide}),.55),pts.length);
-  r3.grassPts=pts;
   const fg=mergeColored([[tr3(cyl(.012,.012,.38,4),0,.19,0),0x4f7a32],[tr3(new THREE.IcosahedronGeometry(.085,0),0,.4,0),0xffffff]]);
-  r3.i_flower=new THREE.InstancedMesh(fg,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.8}),fl.length);r3.flowerPts=fl;
-  for(const m of[r3.i_tuft,r3.i_flower]){m.frustumCulled=false;m.castShadow=false;m.receiveShadow=true;scene.add(m)}
-  const o=new THREE.Object3D(),pal=[0xf4e66a,0xf7f3ea,0xe07a8a,0x9f7ad6,0xf0a24a];
-  pts.forEach((p,i)=>{o.position.set(p.x/S,hAt(p.x,p.y),p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(p.s);o.updateMatrix();r3.i_tuft.setMatrixAt(i,o.matrix)});
-  fl.forEach((p,i)=>{o.position.set(p.x/S,hAt(p.x,p.y),p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(p.s);o.updateMatrix();r3.i_flower.setMatrixAt(i,o.matrix);r3.i_flower.setColorAt(i,new THREE.Color(pal[p.k]))});
-  r3.i_tuft.instanceMatrix.needsUpdate=true;r3.i_flower.instanceMatrix.needsUpdate=true;r3.blk=new Uint8Array(FW*FH);r3.grassHid=new Uint8Array(pts.length+fl.length);
+  r3.i_flower=new THREE.InstancedMesh(fg,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.8}),fl.length);
+  for(const m of[r3.i_tuft,r3.i_flower]){m.frustumCulled=false;m.castShadow=false;m.receiveShadow=true;m.count=0;scene.add(m)}
+  /* Nur die Büschel im sichtbaren Ausschnitt kommen in die Instanzen (r3GrassView); dafür Punkte in 200-px-Zellen einsortieren */
+  const pal=[0xf4e66a,0xf7f3ea,0xe07a8a,0x9f7ad6,0xf0a24a],GC=200,gw=Math.ceil(W/GC),cells=(L)=>{const c=Array.from({length:gw*Math.ceil(H/GC)},()=>[]);L.forEach(p=>c[((p.y/GC)|0)*gw+((p.x/GC)|0)].push(p));return c};
+  for(const p of pts){p.h=hAt(p.x,p.y);p.hid=0}for(const p of fl){p.h=hAt(p.x,p.y);p.col=new THREE.Color(pal[p.k]);p.hid=0}
+  r3.grassPts=pts;r3.flowerPts=fl;r3.gCells={GC,gw,t:cells(pts),f:cells(fl)};r3.gKey='';r3.blk=new Uint8Array(FW*FH);
 }
+/* Gras im sichtbaren Ausschnitt in die Instanzen schreiben (nur wenn sich der Ausschnitt merklich ändert oder der Nebel neu schattiert wurde) */
+function r3GrassView(force){
+  const v=R3.view,gc=r3.gCells;if(!r3.i_tuft||!v||!gc)return;const key=[v.x0,v.x1,v.y0,v.y1].map(a=>Math.round(a/80)).join();if(!force&&key===r3.gKey)return;r3.gKey=key;
+  const S=R3.S,o=_gO||(_gO=new THREE.Object3D()),c=_gC||(_gC=new THREE.Color()),cx0=Math.max(0,(v.x0/gc.GC)|0),cx1=Math.min(gc.gw-1,(v.x1/gc.GC)|0),cy0=Math.max(0,(v.y0/gc.GC)|0),cy1=Math.min(((H-1)/gc.GC)|0,(v.y1/gc.GC)|0);
+  const fill=(m,cells,col)=>{let k=0;for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++)for(const p of cells[cy*gc.gw+cx]){if(p.hid)continue;o.position.set(p.x/S,p.h,p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(p.s);o.updateMatrix();m.setMatrixAt(k,o.matrix);m.setColorAt(k,col(p));k++}
+    m.count=k;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true};
+  fill(r3.i_tuft,gc.t,p=>{const sh=fogShade(p.x,p.y)*p.c;return c.setRGB(sh,sh*(.96+p.j*.08),sh*.95)});fill(r3.i_flower,gc.f,p=>p.col)}
+let _gO=null,_gC=null;
 /* Büschel unter Gebäuden und im Nebel ausblenden bzw. abdunkeln (alle 0,4 s) */
 function r3GrassShade(){
-  if(!r3.i_tuft)return;const blk=r3.blk,S=R3.S;blk.fill(0);
+  if(!r3.i_tuft)return;const blk=r3.blk;blk.fill(0);
   for(const e of G.ents)if(!e.dead&&e.kind==='bld'){const rr=e.r+10,x0=Math.max(0,(e.x-rr)/FC|0),x1=Math.min(FW-1,(e.x+rr)/FC|0),y0=Math.max(0,(e.y-rr)/FC|0),y1=Math.min(FH-1,(e.y+rr)/FC|0);for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)blk[y*FW+x]=1}
-  const c=new THREE.Color(),m=new THREE.Matrix4(),o=new THREE.Object3D();
-  r3.grassPts.forEach((p,i)=>{const hid=blk[fogIdx(p.x,p.y)]?1:0,sh=fogShade(p.x,p.y)*p.c;c.setRGB(sh,sh*(.96+p.j*.08),sh*.95);r3.i_tuft.setColorAt(i,c);
-    if(hid!==r3.grassHid[i]){r3.grassHid[i]=hid;o.position.set(p.x/S,hAt(p.x,p.y),p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(hid?.0001:p.s);o.updateMatrix();r3.i_tuft.setMatrixAt(i,o.matrix);r3.i_tuft.instanceMatrix.needsUpdate=true}});
-  r3.i_tuft.instanceColor.needsUpdate=true;
-  r3.flowerPts.forEach((p,i)=>{const j=r3.grassPts.length+i,hid=blk[fogIdx(p.x,p.y)]?1:0;if(hid!==r3.grassHid[j]){r3.grassHid[j]=hid;o.position.set(p.x/S,hAt(p.x,p.y),p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(hid?.0001:p.s);o.updateMatrix();r3.i_flower.setMatrixAt(i,o.matrix);r3.i_flower.instanceMatrix.needsUpdate=true}});
-}
+  const v=R3.view,inV=p=>!v||(p.x>v.x0-200&&p.x<v.x1+200&&p.y>v.y0-200&&p.y<v.y1+200);
+  for(const p of r3.grassPts)if(inV(p))p.hid=blk[fogIdx(p.x,p.y)];
+  for(const p of r3.flowerPts)if(inV(p))p.hid=blk[fogIdx(p.x,p.y)];
+  r3GrassView(true)}
 let _o=null,_c=null;
 function fogShade(x,y){const i=fogIdx(x,y),a=(1-visF[i])*(165-95*exF[i])/255;return 1-a*.82}
 /* Baum-Art (einmal je Baum bestimmt): Nadelbaum, Laubbaum, Birken in Hainen, Weiden am Wasser, Herbstfarben als Flecken in der Landschaft */
@@ -386,7 +391,7 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   for(const w of r3.waves){const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   {const V=R3.view,N=R3.nodeV;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>120||Math.abs((V.y0+V.y1)/2-N.y)>120||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
-  R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}
+  R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}else r3GrassView()
   r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;
