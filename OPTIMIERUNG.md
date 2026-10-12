@@ -25,7 +25,14 @@ Hilfsmittel:
   - Türme
   - Fischernetz für den Angler mit Animation
   - mittelalterliche Menschen
-- [ ] **R2:** Truppenlinien-Durchsicht. Jede Linie von Zeitalter 0 bis 6 als Kontaktbogen prüfen und Brüche beheben:
+- [ ] **R2:** Truppenlinien-Durchsicht. Gesamtbogen: scratchpad `s11.png`. Stand:
+  - [x] Rammbock, Katapult und Lore waren rosa (falsche Kenney-Farbtabelle) → Holz-Tönung `#9c8a78`, neues Manifest-Feld `cmap` je Eintrag
+  - [x] Kradmelder ohne Fahrer → Fahrer (rider rifle, free)
+  - [ ] Kriegerlinie bricht: Adventurer (bärtiger Mann, 0–2) → Medieval (Frau mit Kapuze, 3–4) → Soldier (Soldatin, 5–6). Ziel: ein Grundkörper durch alle Zeitalter.
+    - Kandidaten: neue mittelalterliche Menschen (Strang Menschen, falls animierbar) oder Adventurer mit echter Rüstung/Helm aus dem Archiv (Armor Metal/Leather, Helmet_01 aus „Military man“, Knights Character Kit)
+    - Entscheidung nach dem Ergebnis des Strangs Menschen
+  - [ ] Heiler 3–5 (Medieval/Soldier) entsprechend angleichen
+  - Ursprüngliche Aufgabe: Jede Linie von Zeitalter 0 bis 6 als Kontaktbogen prüfen und Brüche beheben:
   - Linien: Arbeiter, Keule/Speer, Schwert, Bogen → Armbrust → Muskete → Gewehr, Späher, Heiler, Reiterei, Belagerung, Schiffe, Flieger
   - Prüfen: gleicher Grundkörper, wachsende Ausrüstung, Waffe richtig gehalten, Blickrichtung, Größe, Teamfarbe erkennbar
 - [ ] **R3:** Gebäude-Durchsicht je Zeitalter:
