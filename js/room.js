@@ -1,7 +1,7 @@
 /* Spielzimmer: die Karte liegt als Spielbrett auf einem echten Schreibtisch in einer Werkstatt (Vorbild „Toy Soldiers“).
    Echte Modelle aus models/raum (Poly Haven, CC0), Rundum-Foto der Werkstatt als unscharfer Hintergrund.
    Hauptmenü: Kamera kreist im Raum um den Tisch; „Spiel starten“: Flug vom Raum aufs Brett. Abschaltbar: OPT.room=false. */
-const ROOM={on:false,ready:false,g:null,K:520,DESK:-6,mode:'game',t:0,fly:null,ang:0};
+const ROOM={BGS:{werkstatt:'artist_workshop.jpg',studio:'ferndale_studio.jpg'},on:false,ready:false,g:null,K:520,DESK:-6,mode:'game',t:0,fly:null,ang:0};
 (()=>{
   const B='models/raum/',K=ROOM.K;
   /* Platzierung in Welt-Einheiten (Karte = x 0..480, z 0..320; vorn = grosses z, unten im Bild). on:'desk'|'floor', s = Zusatz-Massstab */
@@ -41,7 +41,8 @@ const ROOM={on:false,ready:false,g:null,K:520,DESK:-6,mode:'game',t:0,fly:null,a
       if(p.top){o.updateMatrixWorld(true);const tb=box(o);await Promise.all(p.top.map(q=>place({f:q.f,x:p.x+q.dx,z:p.z,ry:q.ry},tb.max.y)))}};
     await Promise.all(DESK_PROPS.map(p=>place(p,deskTop)).concat(FLOOR_PROPS.map(p=>place(p,floor))));
     /* Rundum-Foto der Werkstatt als Hintergrund (unscharf) */
-    new THREE.TextureLoader().load(B+'artist_workshop.jpg',t=>{t.mapping=THREE.EquirectangularReflectionMapping;t.colorSpace=THREE.SRGBColorSpace;ROOM.bg=t;ROOM.apply()});
+    const bgf=ROOM.BGS[(typeof OPT!=='undefined'&&OPT.roomBg)||'werkstatt']||ROOM.BGS.werkstatt;
+    new THREE.TextureLoader().load(B+bgf,t=>{t.mapping=THREE.EquirectangularReflectionMapping;t.colorSpace=THREE.SRGBColorSpace;ROOM.bg=t;ROOM.apply()});
     /* Seiten des Bretts: dunkle Erde unter dem Kartenrand, damit die Karte wie eine Platte auf dem Tisch liegt */
     const sm=new THREE.MeshStandardMaterial({color:0x3b2a1c,roughness:.95}),W3=W/R3.S,H3=H/R3.S,T=Math.abs(ROOM.DESK)+1;
     for(const[w,x,z,ry]of[[W3,W3/2,0,0],[W3,W3/2,H3,Math.PI],[H3,0,H3/2,Math.PI/2],[H3,W3,H3/2,-Math.PI/2]]){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,T+3),sm);m.position.set(x,ROOM.DESK+(T+3)/2-.5,z);m.rotation.y=ry;m.material.side=THREE.DoubleSide;g.add(m)}
@@ -52,7 +53,7 @@ const ROOM={on:false,ready:false,g:null,K:520,DESK:-6,mode:'game',t:0,fly:null,a
     ROOM.ready=true;ROOM.apply()};
   /* an/aus: Hintergrund, Meer nur auf dem Brett, Sichtweite */
   ROOM.apply=function(){if(!R3.ok)return;const on=ROOM.ready&&!(typeof OPT!=='undefined'&&OPT.room===false);ROOM.on=on;if(ROOM.g)ROOM.g.visible=on;
-    const sc=r3.scene;if(on&&ROOM.bg){sc.background=ROOM.bg;sc.backgroundBlurriness=.07;sc.backgroundIntensity=.45;sc.fog.color.set(0x8f877a)}
+    const sc=r3.scene;if(on&&ROOM.bg){sc.background=ROOM.bg;sc.backgroundBlurriness=.025;sc.backgroundIntensity=.6;sc.fog.color.set(0x8f877a)}
     if(r3.sea){if(on){r3.sea.scale.set(W/R3.S/3600,1,H/R3.S/3600)}else r3.sea.scale.set(1,1,1)}
     r3.camera.far=on?9000:1400;r3.camera.updateProjectionMatrix()};
   /* Raum-Kamera: Blick von schräg oben auf Tisch und Brett, kreist langsam (Hauptmenü) */
