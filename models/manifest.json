@@ -853,7 +853,15 @@
      6
     ],
     "len": 2.6,
-    "yaw": 90
+    "yaw": 90,
+    "rider": {
+     "as": [
+      "rifle"
+     ],
+     "seat": 0.42,
+     "free": true,
+     "x": -0.15
+    }
    }
   ],
   "healer": [
@@ -2048,7 +2056,10 @@
   "catapult": {
    "file": "neu/siege-catapult.glb",
    "fit": "length",
-   "yaw": 0
+   "yaw": 0,
+   "tint": {
+    "colormap": "#9c8a78"
+   }
   },
   "plane": {
    "file": "neu/Aeroplane by Gilang Romadhan - 9VeIc0cybp4.glb",
@@ -2237,7 +2248,10 @@
   "ram": {
    "file": "neu/siege-ram.glb",
    "fit": "length",
-   "yaw": 0
+   "yaw": 0,
+   "tint": {
+    "colormap": "#9c8a78"
+   }
   },
   "knight": {
    "file": "neu/White Horse.glb",
@@ -2450,7 +2464,10 @@
      4
     ],
     "len": 2.4,
-    "yaw": 90
+    "yaw": 90,
+    "tint": {
+     "colormap": "#9c8a78"
+    }
    },
    {
     "file": "military/Truck.glb",

@@ -39,6 +39,9 @@ const EKMODELS=(()=>{
     const ws=new THREE.Vector3();bone.getWorldScale(ws);const sc=k*(spec.scale||1)/(ws.x||1);holder.scale.setScalar(sc);
     const r=spec.rot||[0,0,0];holder.rotation.set(r[0]*Math.PI/180,r[1]*Math.PI/180,r[2]*Math.PI/180);
     const q=spec.pos||[0,0,0];holder.position.set(q[0]*k/(ws.x||1),q[1]*k/(ws.x||1),q[2]*k/(ws.x||1));return holder}
+  /* Eigene Farbtabelle je Eintrag (Kenney-Bausätze haben unterschiedliche colormap-Aufteilungen): cmap:'neu/variation-c.png' */
+  const cmapCache={};function cmapOf(root,f){if(!f)return;const t=cmapCache[f]||(cmapCache[f]=(()=>{const x=new THREE.TextureLoader().load('models/'+f);x.flipY=false;x.colorSpace=THREE.SRGBColorSpace;x.magFilter=THREE.NearestFilter;return x})());
+    root.traverse(o=>{if(!o.isMesh)return;const f2=m=>{if(!m.map)return m;const n=m.clone();n.map=t;n.needsUpdate=true;return n};o.material=Array.isArray(o.material)?o.material.map(f2):f2(o.material)})}
   function dress(root,wrap,en,k,team,u){
     const id=(u&&u.id)||0;
     const hide=(en.hide||[]).concat(en.hand||en.left?['^Sword']:[]);/* eigene Waffe → eingebautes Schwert (Sword, Sword_1 …) weg */
@@ -117,7 +120,7 @@ const EKMODELS=(()=>{
       let b=box(wrap),sz=b.getSize(new THREE.Vector3());const ref=refSize(kind,u.type,()=>origMake(u).g);
       const k=(en.human?(2.4/1.84):en.len?en.len/(Math.max(sz.x,sz.z)||1):en.height?en.height/(sz.y||1):(en.fit==='length'||(kind==='animal'&&!en.fit))?ref.m/(Math.max(sz.x,sz.y,sz.z)||1):ref.h/(sz.y||1))*(en.scale||1);
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y+(en.lift||0),-c.z);
-      dress(root,wrap,en,k,u.team,u);
+      cmapOf(root,en.cmap);dress(root,wrap,en,k,u.team,u);
       const rig={g:wrap,gltf:true,bend:en.human?findBone(root,/^(Abdomen|Spine|Spine1|spine|DEF-spine\.?001)$/i):null,bendA:0,human:!!(en.human||(en.rider&&!en.rider.free)),legs:[],arms:[],tools:{},acts:{},cur:null};
       if(gl.animations&&gl.animations.length){rig.mixer=new THREE.AnimationMixer(root);const A=en.anim||{},cl=gl.animations;
         const map={idle:pickClip(cl,[A.idle],/idle|stand|rest/i),walk:pickClip(cl,[A.walk],/walk|run|move/i),attack:pickClip(cl,[A.attack],/attack|hit|strike|shoot|fire/i),work:pickClip(cl,[A.work],/work|gather|chop|mine|build|dig/i)};
@@ -133,7 +136,7 @@ const EKMODELS=(()=>{
   function makeBld(type,R_,ep,team,origMake){
     const en=entryFor('bld',type,ep);if(!en)return null;const gl=files.get(en.file);
     try{
-      const root=EKGLTF.SkeletonUtils.clone(gl.scene),wrap=new THREE.Group();wrap.add(root);prepare(root,team);root.rotation.y=(en.yaw||0)*Math.PI/180;
+      const root=EKGLTF.SkeletonUtils.clone(gl.scene),wrap=new THREE.Group();wrap.add(root);prepare(root,team);cmapOf(root,en.cmap);root.rotation.y=(en.yaw||0)*Math.PI/180;
       let b=box(wrap),sz=b.getSize(new THREE.Vector3());
       const k=(en.footprint?en.footprint/(Math.max(sz.x,sz.z)||1):(R_*2.5*(en.fit||1))/(Math.max(sz.x,sz.z)||1))*(en.scale||1);
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y,-c.z);
