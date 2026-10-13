@@ -13,4 +13,6 @@ if(fs.existsSync(mf)){fs.mkdirSync(path.join(dest,'models'),{recursive:true});fs
   for(const f of used){const a=path.join(root,'models',f);if(!fs.existsSync(a)){console.warn('Modell fehlt:',f);continue}const b=path.join(dest,'models',f);fs.mkdirSync(path.dirname(b),{recursive:true});fs.copyFileSync(a,b)}
   console.log('Modelle:',used.size)}
 for(const n of['sounds','music']){const s=path.join(root,n);if(fs.existsSync(s))fs.cpSync(s,path.join(dest,n),{recursive:true,filter:f=>!/\.md$/.test(f)})}
+/* Spielzimmer (js/room.js): Raum-Modelle (gltf/bin/Texturen) und Hintergrundbilder, ohne die grossen Rohdateien (EXR/HDR/ZIP) */
+{const s=path.join(root,'models','raum');if(fs.existsSync(s))fs.cpSync(s,path.join(dest,'models','raum'),{recursive:true,filter:f=>!/\.(md|exr|hdr|zip)$/i.test(f)})}
 console.log('Spiel kopiert nach',dest);

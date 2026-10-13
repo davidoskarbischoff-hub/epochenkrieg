@@ -235,7 +235,17 @@ function pieceWelt(){ // Weltkriegszeit: düsterer Marsch in Moll, Kleine Tromme
   const roots=['A2','A2','F2','E2','A2','A2','D2','E2'];
   for(let bar=0;bar<16;bar++){const r=roots[bar%8],o=bar*2;ev.push({b:o,m:midi(r),d:1.6,i:'pad',v:.34});ev.push({b:o,m:midi(r)+12,d:.8,i:'pluck',v:.3});ev.push({b:o,m:0,d:0,i:'drum',v:.5});for(const k of[.5,1,1.25,1.5])ev.push({b:o+k,m:0,d:0,i:'snare',v:k===1?.4:.22})}
   return{bpm:104,len:32,ev}}
-const PIECES=[pieceSatie(),piecePachelbel(),pieceGrieg(),pieceGreensleeves(),pieceOde(),pieceMarsch(),pieceWelt()];
+function pieceMoldau(){ // Hauptmenü: Smetana, „Die Moldau“ (1874, gemeinfrei) – fliessendes Thema über wellenförmigen Klavier-Arpeggien
+  const ev=[],P1=[['E4',1],['F#4',.5],['G4',1],['A4',.5],['B4',1.5],['B4',1.5],['C5',1.5],['C5',1.5],['B4',1.5],['B4',1.5],['A4',1.5],['A4',1.5],['G4',1.5],['G4',1.5],['F#4',1.5],['F#4',1.5],['E4',3]],
+    P2=[['E4',1],['F#4',.5],['G4',1],['A4',.5],['B4',1.5],['B4',1.5],['C5',1.5],['C5',1.5],['B4',3],['A4',1.5],['A4',1.5],['G4',1.5],['F#4',1.5],['E4',3],[null,3]],
+    CH={Em:['E3','B3','E4','G4','E4','B3'],Am:['A2','E3','A3','C4','A3','E3'],G:['G2','D3','G3','B3','G3','D3'],B7:['B2','F#3','A3','D#4','A3','F#3']},
+    bars=['Em','Em','Am','Em','Am','G','B7','Em','Em','Em','Am','Em','Am','B7','Em','Em'];
+  for(let rep=0;rep<2;rep++){const o=rep*48;
+    let t=line(ev,o,P1,'strings',.3);line(ev,t,P2,'strings',.3);
+    if(rep){t=line(ev,o,P1.map(([n,d])=>[n&&n.replace(/(\d)/,x=>+x+1),d]),'flute',.13);line(ev,t,P2.map(([n,d])=>[n&&n.replace(/(\d)/,x=>+x+1),d]),'flute',.13)}
+    bars.forEach((c,i)=>{const b=o+i*3;CH[c].forEach((n,k)=>ev.push({b:b+k*.5,m:midi(n),d:.9,i:'piano',v:.2}));ev.push({b,m:midi(CH[c][0])-12,d:2.9,i:'pad',v:.22});if(rep)ev.push({b,m:0,d:0,i:'drum',v:.22})})}
+  return{bpm:112,len:96,ev}}
+const PIECES=[pieceSatie(),piecePachelbel(),pieceGrieg(),pieceGreensleeves(),pieceOde(),pieceMarsch(),pieceWelt(),pieceMoldau()]; /* letzter Eintrag = Hauptmenü */
 
 /* Instrumente */
 const INST={

@@ -8,7 +8,7 @@ function resize(){const r=view.getBoundingClientRect();dpr=Math.min(2,window.dev
   const mr=mm.getBoundingClientRect();MW=mr.width;MH=mr.height;mm.width=Math.round(MW*dpr);mm.height=Math.round(MH*dpr);if(typeof r3Resize==='function')r3Resize();clampCam()}
 /* Kamera: cam.x/cam.y = Punkt in der Bildmitte (Spielpixel), cam.z = Zoom. Umrechnung Bildschirm ↔ Spiel: toWorld/scr in render3d.js */
 function clampCam(){const f=typeof playF==='number'?playF:1;
-  if(f<.999){/* kleinere Karten: Bildrand bleibt nahe am Spielfeld, vom Randgebirge nur ein schmaler Streifen (m) sichtbar */
+  if(f<.999&&!(typeof ROOM!=='undefined'&&ROOM.wide())){/* Raumkamera (Menü/Anflug) liefert keine Spielansicht → nicht begrenzen; kleinere Karten: Bildrand bleibt nahe am Spielfeld, vom Randgebirge nur ein schmaler Streifen (m) sichtbar */
     const c=typeof toWorld==='function'&&typeof VW==='number'?[toWorld(0,VH/2),toWorld(VW/2,0),toWorld(VW/2,VH),toWorld(VW/2,VH/2)]:null,hw=c?Math.min(W*.45,Math.abs(c[3].x-c[0].x)):0,hh=c?Math.min(H*.45,Math.abs(c[2].y-c[1].y)/2):0,m=120,
       lx=W*(1-f)/2-m+hw,ux=W-W*(1-f)/2+m-hw,ly=H*(1-f)/2-m+hh,uy=H-H*(1-f)/2+m-hh;
     cam.x=lx>ux?W/2:Math.max(lx,Math.min(ux,cam.x));cam.y=ly>uy?H/2:Math.max(ly,Math.min(uy,cam.y))}

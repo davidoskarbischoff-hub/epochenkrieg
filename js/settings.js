@@ -1,6 +1,6 @@
 /* Epochenkrieg – Einstellungen (Optionen-Menü). Werte werden im Browser gespeichert (localStorage) und von den anderen Dateien gelesen (OPT.xyz). */
 'use strict';
-const OPT_DEF={camSpeed:1,edgeScroll:true,zoomSpeed:1,hpBars:'hurt',tips:true,fps:false,shadows:true,grass:true,grade:true,bloom:true,combatMusic:true,voices:true,toasts:true};
+const OPT_DEF={camSpeed:1,edgeScroll:true,zoomSpeed:1,hpBars:'hurt',tips:true,fps:false,shadows:true,grass:true,grade:true,bloom:true,combatMusic:true,voices:true,toasts:true,room:true,roomStudio:false};
 /* Tastenkürzel: Aktion → Standardtaste (im Menü „Steuerung“ änderbar) */
 const KEYDEF=[['pause',' ','Pause','Leertaste'],['attack','q','Angriffsmarsch'],['rage','f','Kampfrausch'],['form','g','Formation wechseln'],['home','h','Zum Hauptlager'],['explore','e','Späher erkunden'],['idle','.','Untätigen Arbeiter wählen'],['loop','l','Befehlskette wiederholen'],['yes','y','Berater: annehmen'],['no','x','Berater: ablehnen'],['tree','t','Zeitalter-Baum'],['mute','m','Ton an/aus']];
 OPT_DEF.keys=Object.fromEntries(KEYDEF.map(k=>[k[0],k[1]]));
