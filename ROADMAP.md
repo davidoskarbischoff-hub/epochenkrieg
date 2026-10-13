@@ -285,6 +285,6 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Hauptmenü: Kamera kreist um den Tisch; Brett zeigt gewählte Karte (auch beim Drüberfahren) und Grösse
 - [x] Anflug vom Raum zum eigenen Hauptlager (~5 s), Menümusik „Die Moldau“
 - [x] Fische: ruhige Arten (Thunfisch, Schnapper), Schwarm mit Abstand
-- [ ] Raum-Auswahl (Werkstatt/Studio) im Menü anbieten
+- [x] Raum-Auswahl (Werkstatt/Studio) und Spielzimmer an/aus im Menü (Grafik)
 - [ ] Bei kleiner Karte: Randgebirge auf dem Brett eher als Brettrand gestalten
 - [ ] Ladezeit: Raum-Modelle (~45 MB) erst nach dem Spiel laden bzw. verkleinern

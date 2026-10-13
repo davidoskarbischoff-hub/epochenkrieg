@@ -38,18 +38,20 @@ const ROOM={BGS:{werkstatt:'artist_workshop.jpg',studio:'ferndale_studio.jpg'},o
       o.position.set(p.x-(p.only?(b.min.x+b.max.x)/2:0),p.ceil?floor+2.7*K-b.max.y:y0-b.min.y,p.z-(p.only?(b.min.z+b.max.z)/2:0));g.add(o);
       if(p.top){o.updateMatrixWorld(true);const tb=box(o);await Promise.all(p.top.map(q=>place({f:q.f,x:p.x+q.dx,z:p.z,ry:q.ry},tb.max.y)))}};
     await Promise.all(DESK_PROPS.map(p=>place(p,deskTop)).concat(FLOOR_PROPS.map(p=>place(p,floor))));
-    /* Rundum-Foto der Werkstatt als Hintergrund (unscharf) */
-    const bgf=ROOM.BGS[(typeof OPT!=='undefined'&&OPT.roomBg)||'werkstatt']||ROOM.BGS.werkstatt;
-    new THREE.TextureLoader().load(B+bgf,t=>{t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;const H=1.6*K,sk=groundSky(t,H,7000);sk.position.set(240,floor+H,160);g.add(sk);ROOM.sky=sk;ROOM.bg=t;ROOM.apply()});
     /* Seiten des Bretts: dunkle Erde unter dem Kartenrand, damit die Karte wie eine Platte auf dem Tisch liegt */
     const sm=new THREE.MeshStandardMaterial({color:0x3b2a1c,roughness:.95}),W3=W/R3.S,H3=H/R3.S,T=Math.abs(ROOM.DESK)+1;
     for(const[w,x,z,ry]of[[W3,W3/2,0,0],[W3,W3/2,H3,Math.PI],[H3,0,H3/2,Math.PI/2],[H3,W3,H3/2,-Math.PI/2]]){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,T+3),sm);m.position.set(x,ROOM.DESK+(T+3)/2-.5,z);m.rotation.y=ry;m.material.side=THREE.DoubleSide;g.add(m)}
     /* Boden (dunkles Holz) unter den Möbeln, damit nichts im Foto schwebt; Lampenlicht nur im Menü/Anflug */
     const sp=new THREE.SpotLight(0xffc68a,2.2,0,.75,.7,0);sp.position.set(-120,ROOM.DESK+620,-60);sp.target.position.set(260,ROOM.DESK,170);g.add(sp,sp.target);ROOM.spot=sp;
+    /* Rundum-Foto als Raum (Werkstatt oder Studio, OPT.roomStudio) */
+    ROOM.floorY=floor;ROOM.setBg();
     ROOM.ready=true;ROOM.apply()};
+  ROOM.setBg=function(){if(!ROOM.g)return;const bgf=ROOM.BGS[typeof OPT!=='undefined'&&OPT.roomStudio?'studio':'werkstatt'],floor=ROOM.floorY,g=ROOM.g;
+    new THREE.TextureLoader().load(B+bgf,t=>{if(ROOM.sky){g.remove(ROOM.sky);ROOM.sky.geometry.dispose();ROOM.sky.material.map.dispose();ROOM.sky.material.dispose()}t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;const H=1.6*K,sk=groundSky(t,H,7000);sk.position.set(240,floor+H,160);g.add(sk);ROOM.sky=sk;ROOM.bg=t;ROOM.apply()});
+  };
   /* an/aus: Hintergrund, Meer nur auf dem Brett, Sichtweite */
   ROOM.apply=function(){if(!R3.ok)return;const on=ROOM.ready&&!(typeof OPT!=='undefined'&&OPT.room===false);ROOM.on=on;if(ROOM.g)ROOM.g.visible=on;
-    const sc=r3.scene;if(on&&ROOM.bg){sc.background=new THREE.Color(0x2a241e);sc.fog.color.set(0x8f877a)}
+    const sc=r3.scene;if(on){sc.background=new THREE.Color(0x2a241e);sc.fog.color.set(0x8f877a)}else{sc.background=new THREE.Color(0x16384f);sc.fog.color.set(0x9db8c4)}
     if(r3.sea){if(on){r3.sea.scale.set(W/R3.S/3600,1,H/R3.S/3600)}else r3.sea.scale.set(1,1,1)}
     r3.camera.far=on?16000:1400;r3.camera.updateProjectionMatrix()};
   /* Raum-Kamera: Blick von schräg oben auf Tisch und Brett, kreist langsam (Hauptmenü) */
