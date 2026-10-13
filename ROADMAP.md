@@ -287,4 +287,4 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Fische: ruhige Arten (Thunfisch, Schnapper), Schwarm mit Abstand
 - [x] Raum-Auswahl (Werkstatt/Studio) und Spielzimmer an/aus im Menü (Grafik)
 - [ ] Bei kleiner Karte: Randgebirge auf dem Brett eher als Brettrand gestalten
-- [ ] Ladezeit: Raum-Modelle (~45 MB) erst nach dem Spiel laden bzw. verkleinern
+- [x] Ladezeit: Raum lädt erst nach den Spielmodellen; unbenutzte Raum-Modelle und Roh-Bilder ins Archiv (models/raum jetzt ~23 MB)
