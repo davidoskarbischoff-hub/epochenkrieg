@@ -50,7 +50,7 @@ const ROOM={BGS:{werkstatt:'artist_workshop.jpg',studio:'ferndale_studio.jpg'},o
     new THREE.TextureLoader().load(B+bgf,t=>{if(ROOM.sky){g.remove(ROOM.sky);ROOM.sky.geometry.dispose();ROOM.sky.material.map.dispose();ROOM.sky.material.dispose()}t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;const H=1.6*K,sk=groundSky(t,H,7000);sk.position.set(240,floor+H,160);g.add(sk);ROOM.sky=sk;ROOM.bg=t;ROOM.apply()});
   };
   /* an/aus: Hintergrund, Meer nur auf dem Brett, Sichtweite */
-  ROOM.apply=function(){if(!R3.ok)return;const on=ROOM.ready&&!(typeof OPT!=='undefined'&&OPT.room===false);ROOM.on=on;if(ROOM.g)ROOM.g.visible=on;
+  ROOM.apply=function(){if(!R3.ok)return;const on=ROOM.ready&&!(typeof OPT!=='undefined'&&OPT.room===false);ROOM.on=on;if(ROOM.g)ROOM.g.visible=on;document.body.classList.toggle('room',on);
     const sc=r3.scene;if(on){sc.background=new THREE.Color(0x2a241e);sc.fog.color.set(0x8f877a)}else{sc.background=new THREE.Color(0x16384f);sc.fog.color.set(0x9db8c4)}
     if(r3.sea){if(on){r3.sea.scale.set(W/R3.S/3600,1,H/R3.S/3600)}else r3.sea.scale.set(1,1,1)}
     r3.camera.far=on?16000:1400;r3.camera.updateProjectionMatrix()};
@@ -62,7 +62,9 @@ const ROOM={BGS:{werkstatt:'artist_workshop.jpg',studio:'ferndale_studio.jpg'},o
     const menu=document.body.classList.contains('mm');
     if(ROOM.spot)ROOM.spot.visible=menu||!!ROOM.fly;
     {const kk=.9/(typeof playF!=='undefined'?playF:.9),gg=ROOM.g;gg.scale.setScalar(gg.scale.x+(kk-gg.scale.x)*.08);gg.position.set(240*(1-gg.scale.x),ROOM.DESK*(1-gg.scale.x),160*(1-gg.scale.x))}
-    if(menu){ROOM.ang+=.0012;cmr.fov=50;cmr.updateProjectionMatrix();const P=roomPose(ROOM.ang);cmr.position.copy(P.p);cmr.lookAt(P.t);cmr.updateMatrixWorld();fg.near=1400;fg.far=6000;ROOM.fly={a:ROOM.ang,t0:-1};return}
+    /* Einzelspieler-Seite: Einstellungen rechts → Bild nach links schieben, damit das Brett frei sichtbar ist */
+    const side=menu&&!!document.querySelector('#overlay .mm-sp')&&innerWidth>820;if(side)cmr.setViewOffset(VW,VH,VW*.2,0,VW,VH);else if(cmr.view&&cmr.view.enabled)cmr.clearViewOffset();
+    if(menu){ROOM.ang+=side?.0004:.0012;cmr.fov=50;cmr.updateProjectionMatrix();const P=roomPose(ROOM.ang);cmr.position.copy(P.p);cmr.lookAt(P.t);cmr.updateMatrixWorld();fg.near=1400;fg.far=6000;ROOM.fly={a:ROOM.ang,t0:-1};return}
     if(ROOM.fly){const f=ROOM.fly;const now=performance.now();if(f.t0<0){f.t0=now;f.k=0}f.k+=Math.min(.05,(now-f.t0)/1000)/5;f.t0=now;const k=Math.min(1,f.k),e=ease(k);
       const P=roomPose(f.a),gp=cmr.position.clone(),gt=new THREE.Vector3(cam.x/R3.S,hAt(cam.x,cam.y),cam.y/R3.S);
       cmr.position.lerpVectors(P.p,gp,e);cmr.fov=50+(R3.FOV-50)*e;cmr.updateProjectionMatrix();cmr.lookAt(P.t.clone().lerp(gt,e));cmr.updateMatrixWorld();fg.near=1400+(fg.near-1400)*e;fg.far=6000+(fg.far-6000)*e;if(k>=1)ROOM.fly=null}};
