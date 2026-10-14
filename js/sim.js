@@ -68,7 +68,7 @@ function healAura(){for(const h of G.ents){if(h.dead||h.kind!=='unit'||h.type!==
 function useRage(team,ids){let n=0;for(const id of ids){const u=G.byId.get(id);if(!u||u.dead||u.team!==team||u.kind!=='unit'||UNITS[u.type].passive||UNITS[u.type].naval||u.upj)continue;if((u.rageCd||0)>G.t)continue;u.rage=G.t+RAGE.dur;u.rageCd=G.t+RAGE.cd;n++}if(n&&team===0)sfx('yell');return n}
 /* Angefangene Gebäude ohne Bauarbeiter bekommen einen: Arbeiter, der gerade nichts Wichtiges trägt, hilft beim Fertigbauen */
 function autoFinish(){
-  if(G.mp||!autoBuildOn)return;
+  if(G.mp||!(autoBuildOn||(typeof advisor!=="undefined"&&advisor.auto)))return;
   for(const b of G.ents){if(b.dead||b.kind!=='bld'||b.built||b.team!==0)continue;
     if(G.ents.some(w=>!w.dead&&w.team===0&&w.state==='build'&&w.tid===b.id))continue;
     let bw=null,bd=1e9;for(const w of G.ents){if(w.dead||w.team!==0||w.type!=='worker'||w.upj||w.state==='build'||w.state==='attack')continue;const d=Math.hypot(w.x-b.x,w.y-b.y)+(w.state==='idle'?0:(w.carry>3?400:120));if(d<bd){bd=d;bw=w}}
