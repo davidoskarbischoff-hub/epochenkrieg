@@ -46,7 +46,7 @@ function applySnap(s){
   G.jobs=s.jobs.map(a=>a.map(j=>({...j,ids:[],done:false})));G.stats=s.stats;G.bones=s.bn||[];
   const seen=new Set();
   for(let r of s.U){seen.add(r.i);let e0=G.byId.get(r.i);r=mergeRec(e0,r);if(r._d)continue;let e=e0;if(!e||e.dead){e=addUnit(r.ty,r.m,r.x,r.y,r.i)}
-    e._rec=r;e.team=r.m;e.tx=r.x;e.ty=r.y;e.fa=r.a;e.hp=r.h;e.maxHp=r.H;e.lvl=r.l;e.state=r.s;e.carry=r.c;e.ctype=r.ct||null;e.rtype=r.rt||null;e.tid=r.td||null;
+    if(r.ty&&e.type!==r.ty)e.type=r.ty;e._rec=r;e.team=r.m;e.tx=r.x;e.ty=r.y;e.fa=r.a;e.hp=r.h;e.maxHp=r.H;e.lvl=r.l;e.state=r.s;e.carry=r.c;e.ctype=r.ct||null;e.rtype=r.rt||null;e.tid=r.td||null;
     e.swing=r.sw>=0?G.t-r.sw:undefined;e.gat=r.ga>=0?G.t-r.ga:undefined;e.mvT=r.mv>=0?G.t-r.mv:undefined;e.upj=r.u?{}:null;e.cd=r.cd;e.gar=r.gr||undefined;e.inm=r.im||undefined;e.q=r.q||[];e.loop=r.lp?[{}]:null}
   for(let r of s.B){seen.add(r.i);let e0=G.byId.get(r.i);r=mergeRec(e0,r);if(r._d)continue;let e=e0;if(!e||e.dead){e=addBld(r.ty,r.m,r.x,r.y,!!r.b,r.i)}
     e._rec=r;e.team=r.m;e.x=r.x;e.y=r.y;e.hp=r.h;e.maxHp=r.H;e.lvl=r.l;e.built=!!r.b;e.prog=r.p;e.ang=r.an;e.spec=r.sp||undefined;e.empty=r.em||0;e.ore=r.or||undefined;e.pc=r.pc||undefined;e.upj=r.u?{}:null;e.queue=r.qu||[];e.rally=r.r||null}

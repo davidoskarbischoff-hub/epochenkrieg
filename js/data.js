@@ -115,6 +115,10 @@ const MOVE_K=.9; /* alle Landeinheiten etwas gemächlicher (David: Truppen liefe
 /* Minen: bis MINE_CAP Arbeiter arbeiten drinnen, das Erz sammelt sich im Minenlager (MINE_STOCK) und eine Lore (Einheit cart) fährt es zum nächsten Lager */
 const MINE_CAP=8,MINE_STOCK=300,CART_LOAD=60;
 const UPTO={hbow:5,sling:0,club:1,archer:2,warship:2,crossbow:3,catapult:3,ram:3,spear:4,sword:4,musket:4,cannon:4,galleon:4,knight:5};for(const k in UPTO)UNITS[k].upto=UPTO[k];
+/* Truppenlinien: wird eine Einheit nach ihrem letzten Zeitalter aufgewertet, wechselt sie zur Nachfolger-Einheit (Aussehen und Werte).
+   Fernkampf: Steinschleuder → Bogen → Armbrust → Muskete → Gewehr; Nahkampf: Keule → Speer → Gewehr; Schwert → Gewehr; Reiter → Panzer/Gewehr; Belagerung → Kanone → Haubitze */
+const NEXT={sling:'archer',archer:'crossbow',crossbow:'musket',musket:'rifle',club:'spear',spear:'rifle',sword:'rifle',hbow:'rifle',knight:'tank',ram:'cannon',catapult:'cannon',cannon:'howitzer',warship:'galleon'};
+function lineTo(k,ep){let n=0;while(UNITS[k]&&UNITS[k].upto!==undefined&&UNITS[k].upto<ep&&NEXT[k]&&UNITS[NEXT[k]]&&n++<9)k=NEXT[k];return k}
 const uOk=(k,ep)=>UNITS[k].ep<=ep&&!(UNITS[k].upto<ep);
 const UNAMES={knight:['Ritter','Ritter','Ritter','Ritter','Kürassier','Dragoner'],hbow:['Berittener Schütze','Berittener Schütze','Berittener Schütze','Berittener Armbrustschütze','Berittener Musketier','Karabinerreiter'],healer:['Schamane','Heiler','Priester','Feldscher','Sanitäter','Medizintechniker']};
 /* Nationen (ab der Industriezeit wählbar): Gruppe, Region, Farbe, Bonus (fx), Spezialeinheiten. fx: art = Artillerie-Schaden, gather = Sammeltempo, oilgold = Öl und Gold, tankCost = Panzerkosten, foodCost = Nahrungskosten der Truppen, prod = Ausbildungstempo, hp = Leben der Truppen, navhp = Leben der Schiffe, pop = Bevölkerung, air = Flugzeug-Leben */

@@ -283,6 +283,7 @@ function startResearch(team,id){if(NET.client&&team===0){NET.send({c:'tech',id})
   b.queue.push({tech:id,t:0,paid:0});G.rs[team].push({id,t:0,time:t.time,q:true,b:b.id});if(team===0){panelSig='';infoCache='';sfx('click');toast(tr('Forschung eingereiht: {0}',tr(t.name)))}return true}
 function grantAiTechs(team){for(const t of TECHS)if(t.ep<=G.epoch[team]&&t.id!=='statfish')G.tech[team].add(t.id);techRefresh(team)}
 function levelUp(e,to){if(e.dead||e.kind==='node'||e.lvl>=to)return;
+  if(e.kind==='unit'){const nt=lineTo(e.type,to);if(nt!==e.type){e.type=nt;e.tid=null;if(e.state==='attack')e.state='idle'}}
   const nm=e.kind==='unit'?unitHp(e.team,e.type,to):Math.round(BLDS[e.type].hp*LVL.bhp[to]*(1+G.nfx[e.team].bhp));e.hp=e.hp/e.maxHp*nm;e.maxHp=nm;e.lvl=to}
 function applyLevels(team){const to=G.epoch[team];for(const e of G.ents)if(e.team===team)levelUp(e,to)}
 const upgCost=(e,to)=>{const c={};for(let l=e.lvl+1;l<=to;l++){const k=UPG[e.kind==='unit'?'unit':'bld'][l];for(const r in k)c[r]=(c[r]||0)+k[r]}return c};
@@ -291,7 +292,7 @@ const upgTime=n=>Math.min(UPG_TIME.max,UPG_TIME.base+n*UPG_TIME.each);
 function pending(team){const to=G.epoch[team],groups=new Map();let nb=0,nu=0;const cost={};
   for(const e of G.ents){if(e.dead||e.team!==team||e.kind==='node'||e.lvl>=to||e.upj)continue;
     if(e.kind==='unit')nu++;else nb++;
-    const key=e.kind+':'+e.type;let g=groups.get(key);if(!g){g={key,kind:e.kind,type:e.type,nm:e.kind==='unit'?UNITS[e.type].name:BLDS[e.type].name,n:0,cost:{}};groups.set(key,g)}
+    const key=e.kind+':'+e.type;let g=groups.get(key);if(!g){g={key,kind:e.kind,type:e.type,nm:e.kind==='unit'?(lineTo(e.type,to)!==e.type?tr('{0} → {1}',UNITS[e.type].name,UNITS[lineTo(e.type,to)].name):UNITS[e.type].name):BLDS[e.type].name,n:0,cost:{}};groups.set(key,g)}
     g.n++;const c=upgCost(e,to);for(const r in c){g.cost[r]=(g.cost[r]||0)+c[r];cost[r]=(cost[r]||0)+c[r]}}
   const list=[...groups.values()].sort((a,b)=>(a.kind===b.kind?0:a.kind==='unit'?-1:1)||(a.type==='worker'?-1:b.type==='worker'?1:0));
   list.forEach(g=>g.time=upgTime(g.n));
