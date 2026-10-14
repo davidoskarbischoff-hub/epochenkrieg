@@ -103,7 +103,7 @@ const ANIMALS={
   stego:{name:'Stegosaurus',hp:520,spd:46,atk:28,rng:12,cd:1.6,r:16,sight:150,agg:55,leash:220,roam:70,food:600,h:36,ext:1,info:'Pflanzenfresser – friedlich, schlägt mit dem Stachelschwanz zurück'},
   bronto:{name:'Brontosaurus',hp:1300,spd:38,atk:45,rng:16,cd:2,r:24,sight:150,agg:45,leash:200,roam:60,food:1400,h:60,ext:1,info:'Riesiger Pflanzenfresser – nur gefährlich, wenn man ihn reizt. Enorm viel Nahrung'},
   raptor:{name:'Velociraptor',hp:85,spd:108,atk:11,rng:6,cd:.8,r:7,sight:200,agg:170,leash:460,roam:150,food:90,h:20,ext:1,pack:true,info:'Fleischfresser im Rudel – schnell und angriffslustig'},
-  trex:{name:'Tyrannosaurus',hp:950,spd:72,atk:58,rng:14,cd:1.4,r:20,sight:220,agg:180,leash:520,roam:140,food:900,h:56,ext:1,info:'Der König der Fleischfresser – greift alles an. Sehr selten'},
+  trex:{name:'Tyrannosaurus',hp:480,spd:72,atk:40,rng:14,cd:1.4,r:20,sight:220,agg:180,leash:520,roam:140,food:900,h:56,ext:1,info:'Der König der Fleischfresser – greift alles an. Sehr selten'},
   tiger:{name:'Tiger',from:2,hp:180,spd:98,atk:18,rng:6,cd:.9,r:9,sight:190,agg:170,leash:420,roam:140,food:160,h:26,info:'Schnell und gefährlich'}
 };
 /* Gegenstücke: Schadensfaktor Angreifer-Klasse -> Ziel-Klasse (Speer schlägt Reiter, Reiter jagen Fernkämpfer, Fernkämpfer schwächen Nahkämpfer, Nahkämpfer erreichen Fernkämpfer und Belagerung) */
