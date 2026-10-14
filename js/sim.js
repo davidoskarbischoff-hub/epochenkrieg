@@ -317,8 +317,9 @@ function mineCarts(){for(const b of G.ents){if(b.kind!=='bld'||b.type!=='mine'||
 /* Sammeltempo eines Arbeiters an einem Vorkommen (Technologien, Nation, Ausbau, Stufe, Schwierigkeit) */
 function gRate(u,n){const d=UNITS[u.type],gc=GATHER[n.rt];return .85*gc.rate*(1+G.tfx[u.team].gather+G.nfx[u.team].gather+((n.rt==='gold'||n.rt==='oil')?G.nfx[u.team].oilgold:0)+(d.naval?G.tfx[u.team].bgather+SF(u.team).bgather:0)+SF(u.team).gather)*(NODES[n.type].gm||1)*LVL.gather[u.lvl]*(u.team===1?DIFF[diff].gather:1)}
 function canGather(u,x){const need=typeof x==='string'?(NEED_LVL[x]||0):(NODES[x.type].lvl!==undefined?NODES[x.type].lvl:(NEED_LVL[x.rt]||0));return u.lvl>=need}
-const wkNeed=ep=>[5,10,20,30,40,45][Math.min(5,ep)]; /* Arbeiter, die für den Aufstieg aus Epoche ep nötig sind */
+const wkNeed=ep=>[14,22,30,40,46,50][Math.min(5,ep)]; /* Arbeiter, die für den Aufstieg aus Epoche ep nötig sind */
 const wkCount=t=>G.ents.reduce((n,e)=>n+(!e.dead&&e.team===t&&e.kind==='unit'&&e.type==='worker'?1:0),0);
+function advCost(team,ep){const c=EPOCHS[ep].cost;if(team!==1||G.mp)return c;const r={};for(const k in c)r[k]=Math.round(c[k]*AI_ADV_COST);return r}
 function advance(team,nat){
   const ep0=G.epoch[team];
   /* Beim Schritt aus der Industriezeit in die Weltkriegszeit wählt man eine Nation (Verzweigung im Zeitalter-Baum) */
@@ -328,7 +329,7 @@ function advance(team,nat){
   if(team===0&&G.jobs[0].length){toast(tr('Erst die laufenden Upgrades abwarten.'));sfx('error');return false}
   if(team===0&&pending(0).n){toast(tr('Erst alle Gebäude und Truppen auf Stufe {0} bringen.',LVLN[ep]));sfx('error');return false}
   if(team===0&&wkCount(0)<wkNeed(ep)){toast(tr('Für den Aufstieg brauchst du {0} Arbeiter.',wkNeed(ep)));sfx('error');return false}
-  const c=EPOCHS[ep].cost;
+  const c=advCost(team,ep);
   if(!pay(team,c)){if(team===0)toast(missing(team,c)+'.');return false}
   if(ep===5&&nat&&NATIONS[nat]){G.nation[team]=nat;G.nfx[team]=nationFx(nat);recount()}
   G.adv[team]={t:0,time:EPOCHS[ep].time};if(team===0){panelSig='';toast(tr('Aufstieg in die {0} begonnen.',tr(EPOCHS[ep+1].name)))}return true;

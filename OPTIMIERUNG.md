@@ -104,3 +104,8 @@ Hilfsmittel:
 - Erledigt (12.10. c): „Military man“ (1,5 MB) durch `archiv/Stahlhelm.glb` (227 KB) ersetzt; Nationen-Einheiten/Ingenieur nutzen den gemeinsamen Grundkörper Adventurer (weniger verschiedene Skelette/Dateien).
 
 - [x] Berater-Selbstspiel (Normal): Aufstieg 1 von 7,6 min auf 6 min, Aufstieg 2 bei ~13,5 min (zuvor nie). Ursachen: Arbeiterziel in Steinzeit nur 6 (jetzt 9/14), und Arbeiter in der Mine (Zustand `mine`) wurden von den Umverteilungs-Regeln nicht gezählt/umgestellt (Stein 2000+ gehortet, Nahrung leer). Offen: ein Lauf von zwei erreicht Aufstieg 2 knapp nach 15 min (Zufall der KI).
+
+## Spieltempo gebremst (14.10.)
+- Aufstiegskosten (`EPOCHS` in data.js) etwa verdreifacht (vor allem Nahrung/Holz), Bauzeit 100–220 s, `wkNeed` 14/22/30/40/46/50, Berater-Arbeiterziele 15/22/30/40/45. KI zahlt nur 40 % (`AI_ADV_COST`, `advCost` in sim.js), `AI_MINT` 620/1290/2030/2770/3500/4200.
+- Messung (Selbstspiel Berater, Normal, Seed 7, "Arbeiter denken mit" an): Spieler Aufstiege bei 15,4 / 28,1 / 40,4 / 51,8 min (vorher 5,8 / 12 / 17 / 28); KI 18,1 / 30,5 / 47 / 63,7 min.
+- Hinweis: Ohne "Arbeiter denken mit" bleibt eine vom Berater gesetzte Mine manchmal unfertig (Bauer verloren) - der Berater sollte Bauplätze nachbesetzen.

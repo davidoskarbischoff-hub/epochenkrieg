@@ -40,7 +40,7 @@ function aiTick(){
   aiLook(mine);
   const targetW=Math.round([6,12,20,30,36,38,40][ep]*ST.wk*(DIFF[diff].wk||1)),minT=ep<EPOCHS.length-1?AI_MINT[ep]*DIFF[diff].pace*ST.pace:0;
   const saving=ep<EPOCHS.length-1&&!G.adv[1]&&workers.length>=targetW-2&&G.t>=minT-60;
-  const adv=ep<EPOCHS.length-1?EPOCHS[ep].cost:null;
+  const adv=ep<EPOCHS.length-1?advCost(1,ep):null;
   if(workers.length+hq.queue.filter(q=>q.type==='worker').length<targetW&&hq.queue.length<2&&!(saving&&r.food<adv.food+50))enqueue(hq,'worker',1);
   // Späher: einer erkundet die Karte
   if(G.t>60&&r.food>=130&&!scouts.length&&!hq.queue.some(q=>q.type==='scout')&&hq.queue.length<2&&G.pop[1]<G.cap[1])enqueue(hq,'scout',1);
