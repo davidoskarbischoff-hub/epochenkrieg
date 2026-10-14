@@ -286,5 +286,9 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Anflug vom Raum zum eigenen Hauptlager (~5 s), Menümusik „Die Moldau“
 - [x] Fische: ruhige Arten (Thunfisch, Schnapper), Schwarm mit Abstand
 - [x] Raum-Auswahl (Werkstatt/Studio) und Spielzimmer an/aus im Menü (Grafik)
+- [x] Truppen-Linien beim Upgrade (Schleuder→Bogen→Armbrust→Muskete→Soldat usw.)
+- [x] Belagerungs-Balance: Fußtruppen schwach gegen Gebäude, Ramme ab Bronzezeit
+- [x] Mehrspieler: Gast kommt aufs Spielfeld; Einstellungen als rechtes Panel
+- [ ] Rest-Verzerrung am Fotorand, Tassen-Position prüfen
 - [ ] Bei kleiner Karte: Randgebirge auf dem Brett eher als Brettrand gestalten
 - [x] Ladezeit: Raum lädt erst nach den Spielmodellen; unbenutzte Raum-Modelle und Roh-Bilder ins Archiv (models/raum jetzt ~23 MB)
