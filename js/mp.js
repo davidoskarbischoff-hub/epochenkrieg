@@ -100,7 +100,7 @@ function startMP(o){
   const flip=NET.host?o.side==='B':o.side!=='B';
   const cf=o.cfg||{};if(cf.colH&&cf.colG){NET.host?setTeamColors(cf.colH,cf.colG):setTeamColors(cf.colG,cf.colH)}
   newGame('normal',false,{map:o.map,seed:o.seed,flip,mp:true,size:cf.size,speed:cf.speed});$('speedBtn').textContent=tr('Tempo {0}×',G.speed);
-  G.running=true;G.started=true;$('overlay').hidden=true;$('menu').hidden=true;menuOpen=false;
+  G.running=true;G.started=true;document.body.classList.remove('mm');$('overlay').className='';$('overlay').hidden=true;$('menu').hidden=true;menuOpen=false;
   toast(tr(NET.host?'Mehrspieler: Du bist der Gastgeber.':'Mehrspieler: Du bist der Gast.'));updateUI()}
 function endMP(){NetLog.saverReset();NET.mp=false;NET.host=false;NET.client=false;NET.send=null}
 function peerLeft(){if(!G||!NET.mp||G.over)return;if(G.running){G.over='win';G.leftMsg=true}}
