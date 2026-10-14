@@ -62,7 +62,7 @@ Hilfsmittel:
   - Flugplatz
   - Betonhafen
 - [ ] **R6:** Balance:
-  - Selbstspiel Berater gegen KI auf allen Schwierigkeiten
+  - [x] Selbstspiel Berater gegen KI auf allen Schwierigkeiten (10 Min: leicht 24:8 Einheiten, normal 23:22, schwer 28:31; kein Sieger, keine Änderung nötig)
   - Duell-Test der Einheiten (kostengleiche Gruppen)
   - Dino-Gefährlichkeit
   - Aufstiegstempo
