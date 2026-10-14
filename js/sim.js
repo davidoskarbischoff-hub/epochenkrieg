@@ -217,7 +217,7 @@ function updUnit(u,dt){
     else moveToward(u,b.x,b.y,dt,b.id);break}
   }
 }
-function hit(u,t){const d=UNITS[u.type];if(!u.yl||G.t-u.yl>25){u.yl=G.t;if(Math.random()<.5)sfx('yell',u)}sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);const mult=(t.kind==='bld'?(d.siege?1.8:d.ranged?.3:1):(d.siege&&!d.ranged?.35:1))*(1+(d.ranged?G.tfx[u.team].ratk:G.tfx[u.team].matk))*(d.cls==='siege'?1+G.nfx[u.team].art:1)*(t.kind==='unit'?((CTR[d.cls]||{})[UNITS[t.type].cls]||1)*(d.gun&&UNITS[t.type].cls==='cav'?1.3:1):1)*(u.rage>G.t?RAGE.dmg:1)*(u.am||1);
+function hit(u,t){const d=UNITS[u.type];if(!u.yl||G.t-u.yl>25){u.yl=G.t;if(Math.random()<.5)sfx('yell',u)}sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);/* Gebäude: Fusstruppen kratzen nur (Nahkampf .25, Fernkampf .1), Belagerungswaffen zerstören (×1,4) */const mult=(t.kind==='bld'?(d.siege?1.4:d.ranged?.1:.25):(d.siege&&!d.ranged?.35:1))*(1+(d.ranged?G.tfx[u.team].ratk:G.tfx[u.team].matk))*(d.cls==='siege'?1+G.nfx[u.team].art:1)*(t.kind==='unit'?((CTR[d.cls]||{})[UNITS[t.type].cls]||1)*(d.gun&&UNITS[t.type].cls==='cav'?1.3:1):1)*(u.rage>G.t?RAGE.dmg:1)*(u.am||1);
   if(d.ranged)G.proj.push({x:u.x,y:u.y,tid:t.id,dmg:d.atk*mult*LVL.atk[u.lvl],src:u.id,a:0,big:!!d.siege,gun:!!d.gun,sp:d.splash||0});else damage(t,d.atk*mult*LVL.atk[u.lvl],u)}
 function damage(t,amt,src){
   if(t.kind==='unit'&&G.ents.some(b=>b.kind==='bld'&&b.type==='trench'&&b.built&&!b.dead&&b.team===t.team&&Math.hypot(b.x-t.x,b.y-t.y)<30))amt*=.65;

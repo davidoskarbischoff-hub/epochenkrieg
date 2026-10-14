@@ -18,7 +18,7 @@ const UNITS={
   crossbow:{cls:'rng',tech:'crossbowbuild',name:'Armbrustschütze',sight:180,hp:110,spd:52,atk:28,rng:150,cd:2,r:7,cost:{food:70,wood:60,iron:30},time:18,ep:3,from:'barracks',ranged:true},
   musket:{cls:'rng',tech:'powder',name:'Musketier',sight:190,hp:135,spd:52,atk:46,rng:175,cd:2.2,r:7,cost:{gold:25,food:80,wood:40,iron:60},time:20,ep:4,from:'barracks',ranged:true,gun:true},
   cannon:{cls:'siege',tech:'foundry',name:'Kanone',sight:200,hp:170,spd:34,atk:60,rng:240,cd:4.2,r:11,cost:{gold:60,wood:160,iron:140},time:30,ep:4,from:'barracks',splash:40,ranged:true,siege:true},
-  ram:{cls:'siege',tech:'siegeworks',name:'Rammbock',sight:150,hp:330,spd:42,atk:42,rng:6,cd:2.2,r:11,cost:{wood:200,iron:60},time:26,ep:3,from:'barracks',siege:true},
+  ram:{cls:'siege',name:'Rammbock',sight:150,hp:330,spd:42,atk:42,rng:6,cd:2.2,r:11,cost:{wood:220,stone:40},time:26,ep:1,from:'barracks',siege:true},
   catapult:{cls:'siege',tech:'siegeworks',name:'Katapult',sight:190,hp:140,spd:36,atk:48,rng:250,cd:4.8,r:10,cost:{wood:220,stone:120},time:30,ep:3,from:'barracks',splash:40,ranged:true,siege:true},
   galleon:{cls:'ship',tech:'galleonbuild',name:'Galeone',naval:true,ranged:true,sight:260,hp:380,spd:58,atk:28,rng:210,cd:2.2,r:15,cost:{wood:200,iron:80},time:32,ep:3,from:'harbor'},
   rifle:{cls:'rng',tech:'rifles',name:'Gewehrschütze',sight:210,hp:190,spd:54,atk:74,rng:195,cd:1.9,r:7,cost:{gold:35,food:100,wood:40,iron:90},time:22,ep:5,from:'barracks',ranged:true,gun:true},
@@ -114,10 +114,10 @@ const MOVE_K=.9; /* alle Landeinheiten etwas gemächlicher (David: Truppen liefe
 /* Truppenlinien: ab einem späteren Zeitalter ist eine Einheit veraltet und nicht mehr ausbildbar (upto = letztes Zeitalter); vorhandene bleiben. uOk prüft beides. */
 /* Minen: bis MINE_CAP Arbeiter arbeiten drinnen, das Erz sammelt sich im Minenlager (MINE_STOCK) und eine Lore (Einheit cart) fährt es zum nächsten Lager */
 const MINE_CAP=8,MINE_STOCK=300,CART_LOAD=60;
-const UPTO={hbow:5,sling:0,club:1,archer:2,warship:2,crossbow:3,catapult:3,ram:3,spear:4,sword:4,musket:4,cannon:4,galleon:4,knight:5};for(const k in UPTO)UNITS[k].upto=UPTO[k];
+const UPTO={hbow:5,sling:0,club:1,archer:2,warship:2,crossbow:3,catapult:3,ram:2,spear:4,sword:4,musket:4,cannon:4,galleon:4,knight:5};for(const k in UPTO)UNITS[k].upto=UPTO[k];
 /* Truppenlinien: wird eine Einheit nach ihrem letzten Zeitalter aufgewertet, wechselt sie zur Nachfolger-Einheit (Aussehen und Werte).
    Fernkampf: Steinschleuder → Bogen → Armbrust → Muskete → Gewehr; Nahkampf: Keule → Speer → Gewehr; Schwert → Gewehr; Reiter → Panzer/Gewehr; Belagerung → Kanone → Haubitze */
-const NEXT={sling:'archer',archer:'crossbow',crossbow:'musket',musket:'rifle',club:'spear',spear:'rifle',sword:'rifle',hbow:'rifle',knight:'tank',ram:'cannon',catapult:'cannon',cannon:'howitzer',warship:'galleon'};
+const NEXT={sling:'archer',archer:'crossbow',crossbow:'musket',musket:'rifle',club:'spear',spear:'rifle',sword:'rifle',hbow:'rifle',knight:'tank',ram:'catapult',catapult:'cannon',cannon:'howitzer',warship:'galleon'};
 function lineTo(k,ep){let n=0;while(UNITS[k]&&UNITS[k].upto!==undefined&&UNITS[k].upto<ep&&NEXT[k]&&UNITS[NEXT[k]]&&n++<9)k=NEXT[k];return k}
 const uOk=(k,ep)=>UNITS[k].ep<=ep&&!(UNITS[k].upto<ep);
 const UNAMES={knight:['Ritter','Ritter','Ritter','Ritter','Kürassier','Dragoner'],hbow:['Berittener Schütze','Berittener Schütze','Berittener Schütze','Berittener Armbrustschütze','Berittener Musketier','Karabinerreiter'],healer:['Schamane','Heiler','Priester','Feldscher','Sanitäter','Medizintechniker']};
@@ -197,7 +197,7 @@ const TECHS=[
   {id:'whet',bld:'barracks',ep:1,name:'Schleifstein',desc:'Nahkämpfer machen 15 % mehr Schaden',cost:{food:150,stone:80},time:26,fx:{matk:.15}},
   {id:'smithy',bld:'barracks',ep:2,name:'Eisenschmiede',desc:'Erlaubt Schwertkämpfer',cost:{food:250,wood:150,iron:80},time:32,fx:{}},
   {id:'marksman',bld:'barracks',ep:2,name:'Treffsicherheit',desc:'Fernkämpfer machen 20 % mehr Schaden (bessere Genauigkeit)',cost:{food:240,wood:200},time:32,fx:{ratk:.2}},
-  {id:'siegeworks',bld:'barracks',ep:3,name:'Belagerungswerkstatt',desc:'Erlaubt Rammbock und Katapult',cost:{wood:350,iron:180},time:40,fx:{}},
+  {id:'siegeworks',bld:'barracks',ep:3,name:'Belagerungswerkstatt',desc:'Erlaubt das Katapult',cost:{wood:350,iron:180},time:40,fx:{}},
   {id:'stables',bld:'barracks',ep:3,name:'Reiterei',desc:'Erlaubt Ritter und berittene Schützen',cost:{food:400,wood:250,iron:150},time:38,fx:{}},
   {id:'crossbowbuild',bld:'barracks',ep:3,name:'Armbrustbau',desc:'Erlaubt Armbrustschützen',cost:{food:300,wood:250,iron:100},time:36,fx:{}},
   {id:'plate',bld:'barracks',ep:3,name:'Plattenpanzer',desc:'Alle Truppen haben 20 % mehr Leben',cost:{food:420,iron:200},time:40,fx:{hp:.2}},
