@@ -128,3 +128,8 @@ Bitte selbst herunterladen und hochladen (nur CC0/CC-BY). Lizenz auf der Seite v
 - Widelands: Wirtschaft über Straßen/Warenfluss mit sichtbaren Engpässen; für uns: Anzeige, welche Ressource gerade fehlt.
 
 - Mauer/Tor-Modelle geprüft (Messung im Spiel): lange Achse liegt richtig in Zugrichtung, aber Stücke waren 28,9 px lang bei 24 px Abstand (Überlappung). `fit` 0,85 für Holz/Stein-Mauer und Tor → 24,5 px, keine Lücken. Pfosten (`wallPosts`) unverändert. Keine Konsolenfehler; keine Screenshots nötig.
+
+## R10-Nachtrag: Berater-Tempo (Selbstspiel, Normal, 60 min)
+- Ursache: Berater-Arbeiterziel (45) lag unter dem Aufstiegsbedarf `wkNeed` (46) -> Aufstieg Epoche 3->4 wartete. Ausserdem: Hütten zu spät (Bevölkerungsgrenze bremste), wenig Truppen. Nahrung "ungenutzt" ist grossenteils Sparen für die Aufstiegskosten (6600 Nahrung ab Epoche 1) – Kosten bleiben unverändert.
+- Änderung (`advisor.js`): Arbeiterziel mindestens `wkNeed(ep)`, Taktik "Ausgewogen": mehr Arbeiter (18/28/38/48/54), `hs:5` (Hütten früher), Truppenziel 10+8*Ep, zweite Kaserne ab 20 Arbeitern, Angriff erst ab Epoche 4.
+- Ergebnis: vorher Epoche 4 nach 60 min, 26 Truppen, 15700 Nahrung; nachher Epoche 4 nach ~55–60 min bzw. Sieg über die KI (KI Epoche 2–3) nach 42–50 min mit 36 Truppen. Epoche 5 ohne Kostenänderung nicht erreichbar (~13 min je Aufstieg, Einkommen ist die Grenze).

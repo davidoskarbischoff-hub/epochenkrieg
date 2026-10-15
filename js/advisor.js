@@ -6,7 +6,7 @@ let advOn=true;try{advOn=localStorage.getItem('ek-advisor')!=='0'}catch(_){}
 const advisor={cur:null,ignore:{},next:0,last:-9,shown:'',strat:'balanced',intel:null,open:true,auto:false,autoAt:0};
 /* Taktiken des Beraters: wk = Arbeiterziel je Epoche, mil = Truppenziel, atk = ab so vielen Truppen Angriff, tow = Türme, barW = ab so vielen Arbeitern Kaserne, w = Reihenfolge der Vorschläge (kleiner = früher) */
 const STRATS={
-  balanced:{name:'Ausgewogen',desc:'Von allem etwas',wk:[15,22,30,40,45,46,48],mil:ep=>9+ep*4,atk:ep=>14+ep*4,tow:()=>1,barW:6,bar2:99,hs:1,w:{}},
+  balanced:{name:'Ausgewogen',desc:'Von allem etwas',wk:[18,28,38,48,54,56,58],mil:ep=>10+ep*8,atk:ep=>ep<4?99:10+ep*8,tow:()=>1,barW:6,bar2:20,hs:5,w:{}},
   turtle:{name:'Verteidigung',desc:'Türme, solide Armee, spät angreifen',wk:[15,22,30,40,45,46,48],mil:ep=>8+ep*3,atk:ep=>16+ep*4,tow:ep=>2+ep,barW:6,bar2:99,hs:1,w:{tower:1,upg:2,army:2,barracks:2,tech:3,attack:9}},
   boom:{name:'Aufstieg',desc:'So schnell wie möglich in die höchste Epoche',wk:[7,13,23,33,41,41,43],mil:ep=>3+ep*2,atk:ep=>14+ep*3,tow:()=>1,barW:9,bar2:99,hs:2,w:{adv:1,upg:1,tech:2,worker:2,house:2,balance:2,barracks:8,army:8,attack:9}},
   rush:{name:'Angriff',desc:'Früh viele Truppen, schnell zuschlagen',wk:[5,8,10,12,12,12,12],mil:ep=>12+ep*5,atk:ep=>5+ep,tow:()=>1,barW:4,bar2:8,hs:1,w:{barracks:1,army:1,attack:2,worker:4,adv:7,tech:7,upg:6}},
@@ -79,7 +79,7 @@ function advRules(){
     push({id:'house',txt:'eine Hütte bauen (die Bevölkerungsgrenze ist fast erreicht)',cost:BLDS.house.cost,go:()=>advBuild('house')});
   if(has('scout').some(u=>u.state==='idle'&&!u.upj))push({id:'explore',txt:'die Späher automatisch erkunden lassen',go:()=>{has('scout').forEach(u=>{if(u.state==='idle'){u.state='explore';u.ex=null}});sfx('order')}});
   if(idle.length)push(idle.length===1?{id:'idle',txt:'eine untätige Einheit an die Arbeit schicken',go:advIdle}:{id:'idle',txt:'{0} untätige Einheiten an die Arbeit schicken',args:[idle.length],go:advIdle});
-  if(workers.length+queuedW<S.wk[ep]&&hq.queue.length<2&&G.pop[0]<G.cap[0]&&afford(0,UNITS.worker.cost))
+  if(workers.length+queuedW<Math.max(S.wk[ep],wkNeed(ep))&&hq.queue.length<2&&G.pop[0]<G.cap[0]&&afford(0,UNITS.worker.cost))
     push({id:'worker',txt:'einen Arbeiter ausbilden',cost:UNITS.worker.cost,go:()=>enqueue(hq,'worker',0)&&(panelSig='')});
   const pd=pending(0);
   if(pd.n&&!G.adv[0]){const gs=pd.groups.filter(g=>afford(0,g.cost)).sort((a,b)=>a.n-b.n);
