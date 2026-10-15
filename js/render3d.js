@@ -140,7 +140,9 @@ function lodGeo(g,div){if(!g.attributes.color||g.attributes.uv&&g.attributes.uv.
   const pos=[],col=[];for(let t=0;t<nt;t++){const v=[0,1,2].map(q=>id[I?I.getX(t*3+q):t*3+q]);if(v[0]===v[1]||v[1]===v[2]||v[0]===v[2])continue;for(const j of v){const a=acc[j];pos.push(a[0]/a[6],a[1]/a[6],a[2]/a[6]);col.push(a[3]/a[6],a[4]/a[6],a[5]/a[6])}}
   if(pos.length/9>nt*.7)return null;const o=new THREE.BufferGeometry();o.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));o.setAttribute('color',new THREE.Float32BufferAttribute(col,3));o.computeVertexNormals();o.computeBoundingSphere();return o}
 const LOD_Z=.95; /* unterhalb dieses Zooms (weiter weg) zeichnen Bäume ihre vereinfachte Fassung */
-function r3Lod(){const on=cam.z<LOD_Z;if(on===R3.lodOn||!r3.ns)return;R3.lodOn=on;for(const gp of R3.chunkGrps||[]){if(!gp.parent){R3.chunkGrps.delete(gp);continue}for(const c of gp.children)if(c.userData.lo)c.geometry=on?c.userData.lo:c.userData.hi}for(const k in r3.ns)for(const m of r3.ns[k].L)if(m.isMulti)for(const q of m.parts)if(q.userData.lo)q.geometry=on?q.userData.lo:q.userData.hi}
+/* Fernsicht: Figuren werfen keinen Schatten (halbiert ihre Zeichenaufrufe/Dreiecke; aus der Ferne unsichtbar) */
+function r3UnitSh(obj,on){obj.traverse(x=>{if(!x.isMesh)return;if(x.userData.csh===undefined)x.userData.csh=x.castShadow;x.castShadow=on?false:x.userData.csh})}
+function r3Lod(){const on=cam.z<LOD_Z;if(on===R3.lodOn||!r3.ns)return;R3.lodOn=on;for(const e of G.ents)if(e.kind==='unit'||e.kind==='animal'){const o=R3.reg.get(entKey(e));if(o)r3UnitSh(o.obj,on)}for(const gp of R3.chunkGrps||[]){if(!gp.parent){R3.chunkGrps.delete(gp);continue}for(const c of gp.children)if(c.userData.lo)c.geometry=on?c.userData.lo:c.userData.hi}for(const k in r3.ns)for(const m of r3.ns[k].L)if(m.isMulti)for(const q of m.parts)if(q.userData.lo)q.geometry=on?q.userData.lo:q.userData.hi}
 function r3Multi(parts,n,wind){
   const ms=parts.map(p=>{const mt=p.mat;if(wind)windify(mt,wind);const m=new THREE.InstancedMesh(p.geo,mt,Math.max(1,n));/* keine vereinfachten Bäume mehr: die Raster-Vereinfachung liess Nadelbäume beim Rauszoomen verschwinden */if(wind&&window.__treeLod){if(p.lo===undefined)p.lo=lodGeo(p.geo,9);if(p.lo){m.userData.hi=p.geo;m.userData.lo=p.lo;if(R3.lodOn)m.geometry=p.lo}}m.userData.veg=true;m.castShadow=gfxQ>=2;/* Schatten der vielen Bäume nur ab Grafik „Hoch“ (spart die Hälfte der Zeichenarbeit) */m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);return m});
   return{isMulti:true,parts:ms,setMatrixAt(i,mx){ms.forEach(m=>m.setMatrixAt(i,mx))},setColorAt(i,c){ms.forEach(m=>m.setColorAt(i,c))},dispose(){ms.forEach(m=>m.dispose())}}}
@@ -277,7 +279,7 @@ function r3Sync(list,dt,t){
     let sig;const ep=e.kind==='bld'?(e.lvl??G.epoch[e.team]):0;sig=e.kind==='unit'?e.type+e.team+':'+(e.lvl||0)+(e.type==='worker'?':'+wkTier(e)+(G.tech[e.team].has('baskets')?'b':'')+(G.tech[e.team].has('carts')?'c':'')+(G.tech[e.team].has('shoes')?'s':''):''):e.kind==='bld'?e.type+':'+ep+':'+e.team+(e.spec||'')+(e.pc||''):e.kind==='animal'?e.type:e.type;
     sig+=EKMODELS.tag(e)+(e.empty?'x':'')+(e.ore||'');
     let o=R3.reg.get(key);
-    if(!o||o.sig!==sig){if(o)r3.gEnt.remove(o.obj);o=r3Make(e,sig);R3.reg.set(key,o);r3.gEnt.add(o.obj)}
+    if(!o||o.sig!==sig){if(o)r3.gEnt.remove(o.obj);o=r3Make(e,sig);if(R3.lodOn&&(e.kind==='unit'||e.kind==='animal'))r3UnitSh(o.obj,true);R3.reg.set(key,o);r3.gEnt.add(o.obj)}
     const h=hAt(e.x,e.y),obj=o.obj;if(o.off){o.off=0;obj.visible=true}
     if(e.kind==='unit')r3Unit(o,e,h,dt,t);
     else if(e.kind==='bld'){obj.position.set(e.x/S,h,e.y/S);const pr=e.built?1:.12+.88*e.prog;obj.scale.set(1,pr,1);if(obj.userData.props)for(const q of obj.userData.props)q.visible=pr>=1 /* Beiwerk (Figuren, Ballon) erst nach dem Bau */;

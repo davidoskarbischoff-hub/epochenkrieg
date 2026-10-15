@@ -75,7 +75,10 @@ Hilfsmittel:
   - offen: Einheiten-LOD in der Fernsicht, Gelände flacher Stellen gröber, Instanzen für Gebäude-Beiwerk
   - Draw-Calls und Dreiecke (`r3.renderer.info`) im späten Spiel
   - Instanzen für Deko
-  - Dateigrößen
+  - Dateigrößen (Bericht, nichts gelöscht): >3 MB nur `models/neu/UAL1_Standard.glb` 7,3 MB (in Benutzung) und in `models/archiv/` (unbenutzt, nicht in der App): `raum/artist_workshop_4k.exr` 23 MB, `raum/ferndale_studio_03_2k.hdr` 6,1 MB, Knights-Kit 4,1 MB, Trees 3,3 MB, Rocks 3,1 MB
+  - Messung spätes Zeitalter (`qa/perf.js`: Große Karte, Zeitalter 5, 100 Einheiten + 48 Gebäude, gemittelt über Haupt- und Schattenbild, Swiftshader): 100 Einheiten kosten etwa 0,63 Mio. Dreiecke und 470 Zeichenaufrufe (ohne Einheiten 0,83 Mio. / 568 von 1,46 Mio. / 1040); Arbeiter tragen Rucksack-/Werkzeugteile als eigene Meshes
+  - Gemacht: Figuren/Tiere werfen in der Fernsicht (Zoom < 0,95) keinen Schatten (`r3UnitSh` in `r3Lod`): Zoom 0,7 vorher 1521 Aufrufe / 2,27 Mio. Dreiecke, nachher 1274 / 1,87 Mio. (-16 % / -18 %); Zoom 1,0 unverändert (~1700 / 1,93 Mio.)
+  - weiter offen: vereinfachte Figuren-Geometrie in der Fernsicht (Skin-Gewichte!), Gelände flacher Stellen gröber, Beiwerk-Instanzen
 - [ ] **R8:** Häuser-Paket (House_01–20) einbauen, sobald David `House_texture_atlas.png` hochlädt.
 - [ ] **R9:** Oberfläche:
   - Vorschaubilder in den Knöpfen passend zu den neuen Modellen (ICON3)
