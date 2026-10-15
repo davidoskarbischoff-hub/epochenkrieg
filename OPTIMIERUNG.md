@@ -126,3 +126,5 @@ Bitte selbst herunterladen und hochladen (nur CC0/CC-BY). Lizenz auf der Seite v
 - OpenRA: Wegfindung mit Verkehrsregeln – stehende Einheiten weichen marschierenden aus, das löst Staus an Engstellen.
 - OpenRA: Bauwarteschlange pro Gebäudetyp und gesetzter Sammelpunkt (Rally) spart dem Spieler viele Klicks.
 - Widelands: Wirtschaft über Straßen/Warenfluss mit sichtbaren Engpässen; für uns: Anzeige, welche Ressource gerade fehlt.
+
+- Mauer/Tor-Modelle geprüft (Messung im Spiel): lange Achse liegt richtig in Zugrichtung, aber Stücke waren 28,9 px lang bei 24 px Abstand (Überlappung). `fit` 0,85 für Holz/Stein-Mauer und Tor → 24,5 px, keine Lücken. Pfosten (`wallPosts`) unverändert. Keine Konsolenfehler; keine Screenshots nötig.
