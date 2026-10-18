@@ -11,7 +11,7 @@ const ROOM={BGS:{werkstatt:'artist_workshop.jpg',studio:'ferndale_studio.jpg'},o
   const DESK_PROPS=[
     {f:'desk_lamp_arm_01',x:-150,z:150,ry:-1.6},
     {f:'vintage_oil_lamp',x:-170,z:-90,ry:0},
-    {f:'tea_set_01',x:640,z:-80,ry:.3,s:.9,only:1},
+    {f:'tea_set_01',x:585,z:-60,ry:.3,s:.9,only:1},
     {f:'book_encyclopedia_set_01',x:640,z:150,ry:1.57,s:.6},
     {f:'chess_set',x:615,z:380,ry:0,s:.6},
     {f:'stationery_supplies',x:200,z:420,ry:.25}];
@@ -32,7 +32,7 @@ const ROOM={BGS:{werkstatt:'artist_workshop.jpg',studio:'ferndale_studio.jpg'},o
     const L=new EKGLTF.GLTFLoader(),g=new THREE.Group();g.name='room';ROOM.g=g;g.visible=false;r3.scene.add(g);
     /* Schreibtisch: Platte so gross, dass das Brett (480×320) mit Rand Platz hat */
     const desk=await load(L,'metal_office_desk');let deskTop=ROOM.DESK,floor=ROOM.DESK-.75*K;
-    if(desk){prep(desk);desk.updateMatrixWorld(true);let b=box(desk),sz=b.getSize(new THREE.Vector3());
+    if(desk){prep(desk);ROOM.deskMats=[];desk.traverse(m=>{if(m.isMesh&&m.material&&!ROOM.deskMats.includes(m.material))ROOM.deskMats.push(m.material)});desk.updateMatrixWorld(true);let b=box(desk),sz=b.getSize(new THREE.Vector3());
       desk.scale.set(980/sz.x,(.75*K)/sz.y,640/sz.z);desk.updateMatrixWorld(true);b=box(desk);
       desk.position.set(240-(b.min.x+b.max.x)/2,deskTop-b.max.y,160-(b.min.z+b.max.z)/2);g.add(desk);floor=deskTop-(b.max.y-b.min.y)}
     ROOM.floor=floor;
@@ -40,19 +40,42 @@ const ROOM={BGS:{werkstatt:'artist_workshop.jpg',studio:'ferndale_studio.jpg'},o
       o.position.set(p.x-(p.only?(b.min.x+b.max.x)/2:0),p.ceil?floor+2.7*K-b.max.y:y0-b.min.y,p.z-(p.only?(b.min.z+b.max.z)/2:0));g.add(o);
       if(p.top){o.updateMatrixWorld(true);const tb=box(o);await Promise.all(p.top.map(q=>place({f:q.f,x:p.x+q.dx,z:p.z,ry:q.ry},tb.max.y)))}};
     await Promise.all(DESK_PROPS.map(p=>place(p,deskTop)).concat(FLOOR_PROPS.map(p=>place(p,floor))));
-    /* Seiten des Bretts: dunkle Erde unter dem Kartenrand, damit die Karte wie eine Platte auf dem Tisch liegt */
-    const sm=new THREE.MeshStandardMaterial({color:0x3b2a1c,roughness:.95}),W3=W/R3.S,H3=H/R3.S,T=Math.abs(ROOM.DESK)+1;
-    for(const[w,x,z,ry]of[[W3,W3/2,0,0],[W3,W3/2,H3,Math.PI],[H3,0,H3/2,Math.PI/2],[H3,W3,H3/2,-Math.PI/2]]){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,T+3),sm);m.position.set(x,ROOM.DESK+(T+3)/2-.5,z);m.rotation.y=ry;m.material.side=THREE.DoubleSide;g.add(m)}
+    /* Spielbrett: Holzrahmen rund um die Karte (steht direkt am Kartenrand, wird NICHT mit dem Raum skaliert) + weicher Schatten auf dem Tisch */
+    ROOM.makeBoard();
     /* Boden (dunkles Holz) unter den Möbeln, damit nichts im Foto schwebt; Lampenlicht nur im Menü/Anflug */
     const sp=new THREE.SpotLight(0xffc68a,2.2,0,.75,.7,0);sp.position.set(-120,ROOM.DESK+620,-60);sp.target.position.set(260,ROOM.DESK,170);g.add(sp,sp.target);ROOM.spot=sp;
     /* Rundum-Foto als Raum (Werkstatt oder Studio, OPT.roomStudio) */
     ROOM.floorY=floor;ROOM.setBg();
     ROOM.ready=true;ROOM.apply()};
+  /* Holzmaserung für den Brettrahmen (Längsrichtung = u) */
+  function woodTex(){const c=document.createElement('canvas');c.width=512;c.height=64;const x=c.getContext('2d');
+    const g=x.createLinearGradient(0,0,0,64);g.addColorStop(0,'#8b6240');g.addColorStop(.5,'#7a5535');g.addColorStop(1,'#6c4a2e');x.fillStyle=g;x.fillRect(0,0,512,64);
+    let r=7;const rnd=()=>(r=(r*16807)%2147483647)/2147483647;
+    for(let i=0;i<46;i++){const y=rnd()*64,l=120+rnd()*380,x0=rnd()*512;x.strokeStyle=rnd()<.55?'rgba(40,24,10,'+(.08+rnd()*.16)+')':'rgba(215,170,120,'+(.05+rnd()*.1)+')';x.lineWidth=.6+rnd()*1.6;x.beginPath();x.moveTo(x0,y);x.bezierCurveTo(x0+l*.3,y+(rnd()-.5)*3,x0+l*.7,y+(rnd()-.5)*3,x0+l,y+(rnd()-.5)*2);x.stroke()}
+    for(let i=0;i<4;i++){const kx=rnd()*512,ky=10+rnd()*44;x.fillStyle='rgba(50,30,14,.35)';x.beginPath();x.ellipse(kx,ky,6+rnd()*5,3+rnd()*2,0,0,6.283);x.fill()}
+    const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=THREE.RepeatWrapping;t.anisotropy=4;return t}
+  /* Rahmenbreite, Oberkante (y) des Rahmens: knapp über dem Meeresspiegel, der Kartenrand fällt nach aussen ab */
+  ROOM.FRAME={w:3.4,top:-1.1};
+  ROOM.makeBoard=function(){if(ROOM.board)return;const W3=W/R3.S,H3=H/R3.S,fw=ROOM.FRAME.w,y1=ROOM.FRAME.top,y0=ROOM.DESK,hh=y1-y0,g=new THREE.Group();g.name='board';g.visible=false;
+    const tex=woodTex(),mk=(L)=>{const t=tex.clone();t.needsUpdate=true;t.repeat.set(L/150,1);return new THREE.MeshStandardMaterial({map:t,color:0x8a7768,emissive:0x2a1a0e,roughness:.72,metalness:0,envMapIntensity:.35})};
+    /* vorn/hinten über die Ecken, links/rechts dazwischen: so überlappen sich keine Flächen (kein Flackern) */
+    for(const[L,x,z,ry]of[[W3+2*fw,W3/2,-fw/2,0],[W3+2*fw,W3/2,H3+fw/2,0],[H3,-fw/2,H3/2,Math.PI/2],[H3,W3+fw/2,H3/2,Math.PI/2]]){
+      const m=new THREE.Mesh(new THREE.BoxGeometry(L,hh,fw),mk(L));m.position.set(x,y0+hh/2,z);m.rotation.y=ry;m.castShadow=true;m.receiveShadow=true;m.userData.noShadow=true;g.add(m)}
+    /* Schatten des Bretts auf der Tischplatte (weich, leicht nach rechts/vorn versetzt wie das Sonnenlicht von links hinten) */
+    {const pad=46,pw=W3+2*fw+2*pad,ph=H3+2*fw+2*pad,sc=1.6,c=document.createElement('canvas');c.width=Math.round(pw*sc);c.height=Math.round(ph*sc);const x=c.getContext('2d');
+      x.shadowColor='rgba(0,0,0,.8)';x.shadowBlur=15*sc;x.shadowOffsetX=0;x.fillStyle='#000';x.fillRect(pad*sc+3*sc,pad*sc+4*sc,(W3+2*fw)*sc,(H3+2*fw)*sc);
+      const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(pw,ph),new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:.62,depthWrite:false,fog:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
+      m.rotation.x=-Math.PI/2;m.position.set(W3/2,ROOM.DESK+.12,H3/2);m.renderOrder=0;g.add(m)}
+    r3.scene.add(g);ROOM.board=g};
+  /* Tischplatte im Spiel: die Schreibtisch-Textur ist ein helles Metall und wirkt unter der kräftigen Spielsonne weiss überstrahlt → im Spiel matter und dunkler (k: 0 = Menü-Look, 1 = Spiel-Look, weicher Übergang) */
+  ROOM.tone=function(k){if(!ROOM.deskMats)return;if(Math.abs(k-(ROOM.tk||0))<.002&&ROOM.tk!==undefined)return;ROOM.tk=k;
+    for(const t of ROOM.deskMats){if(!t.userData.c0)t.userData.c0=t.color.clone();t.color.copy(t.userData.c0).multiplyScalar(1-.55*k);t.metalness=1-k;t.roughness=1-.2*k;t.envMapIntensity=1-.7*k}};
   ROOM.setBg=function(){if(!ROOM.g)return;const bgf=ROOM.BGS[typeof OPT!=='undefined'&&OPT.roomStudio?'studio':'werkstatt'],floor=ROOM.floorY,g=ROOM.g;
     new THREE.TextureLoader().load(B+bgf,t=>{if(ROOM.sky){g.remove(ROOM.sky);ROOM.sky.geometry.dispose();ROOM.sky.material.map.dispose();ROOM.sky.material.dispose()}t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;const H=1.5*K,sk=groundSky(t,H,12000);sk.position.set(240,floor+H,160);g.add(sk);ROOM.sky=sk;ROOM.bg=t;ROOM.apply()});
   };
   /* an/aus: Hintergrund, Meer nur auf dem Brett, Sichtweite */
-  ROOM.apply=function(){if(!R3.ok)return;const on=ROOM.ready&&!(typeof OPT!=='undefined'&&OPT.room===false);ROOM.on=on;if(ROOM.g)ROOM.g.visible=on;document.body.classList.toggle('room',on);
+  ROOM.apply=function(){if(!R3.ok)return;const on=ROOM.ready&&!(typeof OPT!=='undefined'&&OPT.room===false);ROOM.on=on;if(ROOM.g)ROOM.g.visible=on;if(ROOM.board)ROOM.board.visible=on;document.body.classList.toggle('room',on);
     const sc=r3.scene;if(on){sc.background=new THREE.Color(0x2a241e);sc.fog.color.set(0x8f877a)}else{const A=R3.atmo;sc.background=new THREE.Color(A?A.sky:0x16384f);sc.fog.color.set(A?A.fog:0x9db8c4)}
     if(r3.sea){if(on){r3.sea.scale.set(W/R3.S/3600,1,H/R3.S/3600)}else r3.sea.scale.set(1,1,1)}
     r3.camera.far=on?16000:1400;r3.camera.updateProjectionMatrix()};
@@ -63,6 +86,7 @@ const ROOM={BGS:{werkstatt:'artist_workshop.jpg',studio:'ferndale_studio.jpg'},o
   camUpdate=function(){oCam();if(!ROOM.on||!R3.ok)return;const cmr=r3.camera,fg=r3.scene.fog;
     const menu=document.body.classList.contains('mm');
     if(ROOM.spot)ROOM.spot.visible=menu||!!ROOM.fly;
+    {const now=performance.now(),dt=Math.min(.1,(now-(ROOM.tt||now))/1000);ROOM.tt=now;const tg=menu?0:1,k0=ROOM.tk===undefined?tg:ROOM.tk;ROOM.tone(k0+(tg-k0)*(1-Math.exp(-dt/.7)))}
     {const kk=.9/(typeof playF!=='undefined'?playF:.9),gg=ROOM.g;gg.scale.setScalar(gg.scale.x+(kk-gg.scale.x)*.08);gg.position.set(240*(1-gg.scale.x),ROOM.DESK*(1-gg.scale.x),160*(1-gg.scale.x))}
     /* Einzelspieler-Seite: Einstellungen rechts → Bild nach links schieben, damit das Brett frei sichtbar ist */
     const side=menu&&!!document.querySelector('#overlay .mm-sp')&&innerWidth>820;if(side)cmr.setViewOffset(VW,VH,VW*.2,0,VW,VH);else if(cmr.view&&cmr.view.enabled)cmr.clearViewOffset();
