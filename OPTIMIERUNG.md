@@ -72,13 +72,34 @@ Hilfsmittel:
   - Vorkommen/Deko mit Bildschirm-Test (`onS` in `r3Nodes`): Bergland Zoom 1: 1,06 Mio. → 0,78 Mio.
   - Figuren zu einem Teil zusammengefasst (`mergeSkin` in gltfmodels.js, `window.__noMerge=true` schaltet es zum Vergleich ab): 120 Einheiten 2010 → 517 Zeichenaufrufe
   - Figuren außerhalb des Bildes versteckt statt gelöscht (bis 20 s, `o.off`), Schattenkarte jedes 2. Bild
-  - offen: Einheiten-LOD in der Fernsicht, Gelände flacher Stellen gröber, Instanzen für Gebäude-Beiwerk
+  - (die frühere Liste „Einheiten-LOD, flache Stellen gröber, Beiwerk“ ist in R7 Runde 2 unten abgearbeitet)
   - Draw-Calls und Dreiecke (`r3.renderer.info`) im späten Spiel
   - Instanzen für Deko
   - Dateigrößen (Bericht, nichts gelöscht): >3 MB nur `models/neu/UAL1_Standard.glb` 7,3 MB (in Benutzung) und in `models/archiv/` (unbenutzt, nicht in der App): `raum/artist_workshop_4k.exr` 23 MB, `raum/ferndale_studio_03_2k.hdr` 6,1 MB, Knights-Kit 4,1 MB, Trees 3,3 MB, Rocks 3,1 MB
   - Messung spätes Zeitalter (`qa/perf.js`: Große Karte, Zeitalter 5, 100 Einheiten + 48 Gebäude, gemittelt über Haupt- und Schattenbild, Swiftshader): 100 Einheiten kosten etwa 0,63 Mio. Dreiecke und 470 Zeichenaufrufe (ohne Einheiten 0,83 Mio. / 568 von 1,46 Mio. / 1040); Arbeiter tragen Rucksack-/Werkzeugteile als eigene Meshes
   - Gemacht: Figuren/Tiere werfen in der Fernsicht (Zoom < 0,95) keinen Schatten (`r3UnitSh` in `r3Lod`): Zoom 0,7 vorher 1521 Aufrufe / 2,27 Mio. Dreiecke, nachher 1274 / 1,87 Mio. (-16 % / -18 %); Zoom 1,0 unverändert (~1700 / 1,93 Mio.)
-  - weiter offen: vereinfachte Figuren-Geometrie in der Fernsicht (Skin-Gewichte!), Gelände flacher Stellen gröber, Beiwerk-Instanzen
+  - **R7 Runde 2 (18.10., späte Partie mit großen Heeren)** – Messung: Küste L, Zeitalter 5, Armee-Szenario mit 1301 Objekten (`SCEN=army`, Swiftshader, gemittelt über Haupt- und Schattenbild, `r3.renderer.info` mit `autoReset=false`). Vorher = Stand vor der Runde, nachher = jetzt:
+    - Zoom 1,0: Zeichenaufrufe 1518 → 646 (-57 %), Dreiecke 2,21 → 1,50 Mio. (-32 %)
+    - Zoom 0,7: Zeichenaufrufe 1430 → 727 (-49 %), Dreiecke 2,34 → 1,85 Mio. (-21 %)
+    - Rechenzeit je Bild (nur JavaScript `r3Sync` samt Animation): 5,8 → 4,4 ms (Zoom 1), 4,4 → 2,3 ms (Zoom 0,7); Zeichen-Aufruf-Zeit (Swiftshader, schwankt von Lauf zu Lauf) etwa 35–47 → 15–20 ms bei Zoom 1, bei Zoom 0,7 19–25 → 18–21 ms (kaum Unterschied: dort bremst die Software-Darstellung durch die vielen Dreiecke, nicht die Aufrufe). Auf einer echten Grafikkarte zählt vor allem die Zahl der Aufrufe.
+    - Das Bild bleibt gleich: Eckpunkt-Lagen der zusammengefassten Teile gegen die alten Teile verglichen (64 Fälle, größte Abweichung 0,005), Pixelvergleich aller Einheiten- und Gebäudetypen vorher/nachher identisch.
+  - Gemacht (alles in `js/gltfmodels.js` und `js/render3d.js`; `window.__noMerge=true` bzw. `window.__noLod=true` schalten es zum Vergleichen ab):
+    - `mergeSkin` fasst jetzt auch fest angebundene Teile (Waffen, Schilde, Helme, Rüstung) mit dem Körper zusammen: starr an einen Knochen gebunden (Gewicht 1), Farbe in Eckpunktfarben gebacken. Gleiche Figuren teilen Geometrie und Material (`mergeCache`, höchstens 120). Ausnahme: das umschaltbare Werkzeug der Ingenieure.
+    - Texturen werden vereinheitlicht (`dedupTex`, Bilder ≤ 512 px, Vergleich per Hash): alle Waffen hatten dieselbe 256-px-Karte, dadurch fallen die Waffengruppen auf zwei Materialien zusammen.
+    - `mergeStatic`: Gebäude (Hauptmodell + Beiwerk `props` in einem Container) und Einheiten ohne Animation (Schiffe, Fahrzeuge, Katapulte, Code-Gebäude über den `buildBld`-Einstieg) werden zu wenigen Meshes verschmolzen, mit gemeinsamem Zwischenspeicher (`statCache`, höchstens 100). Minen ausgenommen (`noStone`), weil der Erz-Farbton Materialien namens stone/rock färbt.
+    - Figuren-LOD (`lodTris`, `r3FigLod`, `FIG_LOD_PX` = 60): Figuren, die auf dem Bildschirm kleiner als 60 Pixel sind (`R3.k*25 < 60`; bei 720p ist ein Mensch bei Zoom 1 etwa 37 px hoch, bei Full-HD etwa 56 px), zeigen eine vereinfachte Fassung (36 % der Dreiecke, mindestens 2600). Die Vereinfachung behält je Rasterzelle einen echten Eckpunkt mit seinen eigenen Skin-Gewichten (kein Mitteln der Gewichte), deshalb stimmt die Animation. Kontaktbogen voll gegen vereinfacht bei 3 Größen (Schwert, Ritter, Gewehr, Arbeiter, Bogen): kein sichtbarer Unterschied; auf sehr großen Bildschirmen (Mensch ≥ 60 px) bleibt die volle Fassung.
+    - Animation weit entfernter Figuren seltener (`thr` in `r3Unit`: unter 18 px Höhe nur jedes 3., unter 30 px jedes 2. Bild, immer sofort bei Wechsel der Tätigkeit).
+    - Speicher-Leck behoben: ausgetauschte Modelle gaben Geometrien und Knochen-Texturen nicht frei (je Einheit +1 Textur). `r3Drop` gibt sie jetzt frei (Wechsel der Signatur, Löschen, Karte, Leichen, Geisterbild). Seefische werfen keinen Schatten mehr.
+    - Texturen verkleinert (`tools/glbtex.py` verkleinert nur noch zu große Bilder, behält PNG bei Alpha/Normalkarten, sonst JPEG q94): Pine 2,15 → 0,60 MB, drei Felsen je 1,06 → 0,11 MB, Kristalle, Eidechse, Katze, Bison, Bär, Flugzeug (0,32 → 0,16 MB), Stahlhelm 227 → 48 KB. Unterschied im Bild: im Mittel höchstens 0,7 von 255. Grafikspeicher der benutzten Modelle geschätzt 138 → etwa 40 MB, Dateien rund 5 MB kleiner. Nichts gelöscht.
+    - Arbeiter-Haltungen (`js/workpose.js`, Punkt 4 der Liste): 150 arbeitende Arbeiter bei Zoom ≥ 0,8 kosteten 5,1 ms je Bild (Hälfte davon Neuberechnung der Knochenketten bei jeder Abfrage), die Grenze von 80 Haltungen je Bild bleibt. Jetzt merkt sich die Berechnung Änderungs-Stempel je Knochen und rechnet nur die geänderten Ketten neu: 5,1 → 1,6 ms (Gesamtzeit `r3Sync` 7,5 → 4,0 ms bei Zoom 1; 2,2 → 1,4 ms bei Zoom 0,6). Ergebnis identisch: alle Knochen-Matrizen in 54 Fällen (6 Figuren × 9 Tätigkeiten) vergleichen mit Abweichung 0.
+  - Untersucht und bewusst nicht eingebaut:
+    - Gelände flacher Stellen gröber (`r3Chunks`): es gibt in der Praxis keine ganz flachen Stücke (Höhenrauschen, Terrassen, Küste), eine Vereinfachung hätte sichtbare Stufen gebracht.
+    - Bäume vereinfachen auch im normalen Zoom (Raster-Vereinfachung): Kronen werden löchrig, sieht schlechter aus. Bäume sind bei herausgezoomter Ansicht 36–50 % der Dreiecke; dafür braucht es einen echten Kanten-Zusammenzug (Edge-Collapse) mit Prüfung, nicht das Raster.
+  - Weiter offen:
+    - Bäume: Kanten-Zusammenzug statt Raster (größter Posten bei herausgezoomter Ansicht).
+    - Gelände wird in vier Durchgängen gezeichnet (Boden, Schaum, Gebiet, Nebel). Zu einem Durchgang zusammenlegen würde schwache Grafikkarten entlasten, braucht aber Sorgfalt bei der Wasserschichtung.
+    - Schattenbild kostet etwa so viel wie das Hauptbild (Einheiten/Gebäude). Ein gröberes Schatten-Ersatzmodell geht in Three.js r160 nur mit zusätzlichen Aufrufen.
+    - Animations-Clips in den Mensch-Dateien kürzen (etwa 0,2 MB je Datei).
 - [ ] **R8:** Häuser-Paket (House_01–20) einbauen, sobald David `House_texture_atlas.png` hochlädt.
 - [ ] **R9:** Oberfläche:
   - Vorschaubilder in den Knöpfen passend zu den neuen Modellen (ICON3)

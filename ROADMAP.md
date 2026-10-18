@@ -261,6 +261,8 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Mehr Land auf Küste/Bucht/Bergland; Kartenvorschau mit Höhen, Fels, Schnee, Hangschatten
 - [x] Fischgründe klein und verteilt, auch im tiefen Wasser; Delfine brauchen das Segelboot (Stufe IV), Wale den Kutter (Stufe VI), beide mehr Nahrung, Wal gibt zusätzlich Öl
 - [x] Leistung: Gras nur im Bild, Bäume und Gelände vereinfacht in der Fernsicht, Bäume genauer am Bildrand abgeschnitten, Figuren als ein Teil gezeichnet, versteckt statt gelöscht außerhalb des Bildes, Schatten jedes 2. Bild (siehe Messwerte in OPTIMIERUNG.md)
+- [x] Leistung R7 (18.10.): große Heere und viele Gebäude – Zeichenaufrufe -57 % (Zoom 1) / -49 % (Zoom 0,7), Dreiecke -32 % / -21 %: Waffen/Schilde/Helme in die Figur eingeschmolzen, Gebäude samt Beiwerk und unanimierte Fahrzeuge/Schiffe zusammengefasst, vereinfachte Figuren unter 60 px Höhe, Animation ferner Figuren seltener, Speicher-Leck bei ausgetauschten Modellen behoben, Texturen verkleinert (ca. -100 MB Grafikspeicher), Arbeiter-Haltungen 3-mal schneller
+- [ ] Leistung später: Bäume echt vereinfachen (Edge-Collapse, größter Posten beim Herauszoomen), Gelände-Durchgänge (Boden/Schaum/Gebiet/Nebel) zusammenlegen, Animations-Clips in den Mensch-Dateien kürzen
 
 ### Merkliste (später)
 - [x] Jahreszeiten: Frühling (blühend), Sommer, Herbst (orange/gelbe Bäume), Winter (Schnee, Eis) – siehe „Karten, Jahreszeiten, Vorschau“
