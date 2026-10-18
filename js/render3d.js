@@ -433,11 +433,11 @@ function wkPhase(o,e,kd,dt,want,hunt,d){
 /* Aufprall: Späne am Werkzeugkopf (nur Optik), Baum wackelt kurz */
 const SHK=new Map();
 function r3Impact(o,e,kd,rig){
-  const S=R3.S,n=e.tid!=null?G.byId.get(e.tid):null,tip=rig.wp&&rig.wp.tip;if(kd!=='chop'&&kd!=='mine')return;
-  let x,y,z;if(tip&&(tip.x||tip.z)){x=tip.x*S;y=tip.z*S;z=Math.max(3,(tip.y-hAt(x,y))*S)}else if(n){x=n.x;y=n.y;z=10}else return;
-  const c=kd==='chop'?'168,122,68':'196,192,182',R=Math.random,bx=Math.cos(e.fa),by=Math.sin(e.fa);
-  for(let i=0;i<(kd==='chop'?5:4);i++)addPart('chip',x,y,z,-bx*(10+R()*30)+(R()-.5)*40,-by*(10+R()*30)+(R()-.5)*40,40+R()*50,.45+R()*.2,1.5+R(),c);
-  if(kd==='chop'&&n&&n.type==='tree')SHK.set(n.id,{t:0,ax:bx,az:by,ix:null})}
+  const n=e.tid!=null?G.byId.get(e.tid):null;if(!n||(kd!=='chop'&&kd!=='mine'))return;
+  /* Aufprallpunkt: am Stamm bzw. Fels auf der Seite der Figur, in Brusthöhe (unabhängig vom Spieltempo, die Axt trifft dort) */
+  const c=kd==='chop'?'168,122,68':'196,192,182',R=Math.random,bx=Math.cos(e.fa),by=Math.sin(e.fa),rr=kd==='chop'?3.5:n.r*.9,x=n.x-bx*rr,y=n.y-by*rr,z=kd==='chop'?14:10;
+  for(let i=0;i<(kd==='chop'?5:4);i++)addPart('chip',x,y,z+R()*4,-bx*(10+R()*30)+(R()-.5)*40,-by*(10+R()*30)+(R()-.5)*40,40+R()*50,.45+R()*.2,1.5+R(),c);
+  if(kd==='chop'&&n.type==='tree')SHK.set(n.id,{t:0,ax:bx,az:by,ix:null})}
 /* Baumwackeln: die Instanz des getroffenen Baums kurz neigen (Matrix wird je Bild überschrieben, danach stellt r3Nodes sie wieder gerade) */
 const _so=new THREE.Object3D(),_sq=new THREE.Quaternion(),_sa=new THREE.Vector3(),_sb=new THREE.Euler();
 function r3Shake(dt){
@@ -463,7 +463,7 @@ function r3Unit(o,e,h,dt,t){
       const wantW=!hunt&&((e.state==='attack'&&G.t-(e.swing||-9)<1)||(!moving&&G.t-(e.healT||-9)<.6))?'attack':(work||build||hunt)?'work':moving?'walk':'idle';
       const wp=rig.wp&&near?wkPhase(o,e,kd,dt,wantW,hunt,d):null;if(wantW!=='work')o.pg=undefined;
       EKMODELS.animate(rig,wantW,dt,moving?Math.max(.6,d.spd/60):1,kd,{v:moving?d.spd*(e.spk||1)*(e.rage>G.t?RAGE.spd:1)/10/(obj.scale.x||1):0,hit:o.fl>.2,fight:(e.state==='attack'||e.state==='amove')&&!d.gather&&e.type!=='worker',
-        near,ph:wp?wp.ph:undefined,n:o.wn||0,cv:e.carry>0&&e.state==='return'});
+        near,ph:wp?wp.ph:undefined,n:o.wn||0,cv:e.carry>0&&e.state==='return',ct:e.ctype});
       e._wi=!!(wp&&rig.wp.cur&&(kd==='chop'||kd==='mine'));/* Späne kommen dann vom Aufprall (r3Impact), nicht vom Takt in render.js */
       if(wp&&wp.imp)r3Impact(o,e,kd,rig);
       /* Figur tritt beim Arbeiten bis auf Griffweite an Baum/Strauch heran (nur Darstellung, die Spielposition bleibt) */
@@ -514,7 +514,7 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   {const V=R3.view,N=R3.nodeV;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
   r3Lod();R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}else r3GrassView();if(SHK.size)r3Shake(dt)
-  r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
+  if(typeof WPOSE!=='undefined')WPOSE.n=0;r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;
   /* Schattenkarte nur jedes 2. Bild neu (bewegt sich die Kamera, sofort) – halbiert die Schatten-Zeichenarbeit, Unterschied ist nicht zu sehen */

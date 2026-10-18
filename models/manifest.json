@@ -6619,6 +6619,15 @@
   "_info": "Beiwerk für die Arbeits-Haltungen (js/workpose.js): bag = Beutel für die Beeren.",
   "bag": {
    "file": "archiv/Bag Open.glb"
+  },
+  "logs": {
+   "file": "neu/Logs.glb",
+   "w": 0.5,
+   "ry": 90
+  },
+  "sack": {
+   "file": "archiv/Bags.glb",
+   "w": 0.34
   }
  },
  "_neue_kits": {
