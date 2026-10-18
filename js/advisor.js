@@ -24,7 +24,10 @@ function advIntelText(I){
   const p=[];if(I.known)p.push(tr('Gegner: {0}',tr(EPOCHS[I.ep].name)));
   if(I.bars)p.push(tr('{0} Kaserne(n)',I.bars));if(I.towers)p.push(tr('{0} Türme/Burgen',I.towers));if(I.harbor)p.push(tr('Hafen'));
   if(I.vis)p.push(tr('{0} Truppen in Sicht',I.vis));return p.join(' · ')}
-function advFindSpot(type){
+let advH={};
+/* bekannte Fischgründe, die der Spieler schon fangen darf (für den Hafen-Standort) */
+function advFish(){return G.ents.filter(n=>n.kind==='node'&&!n.dead&&n.sea&&nodeKnown(n)&&!(NODES[n.type].lvl>G.epoch[0]))}
+function advFindSpot(type,need){
   const hq=G.ents.find(e=>e.type==='hq'&&e.team===0&&!e.dead);if(!hq)return null;const d0=BLDS[type];
   const base=Math.atan2(H/2-hq.y,W/2-hq.x),far=type==='tower';
   if(far){/* Türme verteilt: möglichst weit weg von eigenen Türmen/Burgen (mind. 300 px), bevorzugt Richtung Gegner, Ring wächst mit der Anzahl */
@@ -33,6 +36,13 @@ function advFindSpot(type){
       let g=1e9;for(const t of tw)g=Math.min(g,Math.hypot(t.x-x,t.y-y));if(g<300)continue;
       const da=Math.abs(Math.atan2(Math.sin(a-base),Math.cos(a-base)));const sc=Math.min(g,700)-da*120-Math.abs(d-300)*.3;if(sc>bs){bs=sc;best={x,y}}}
     return best}
+  if(type==='harbor'){/* Hafen dort, wo Fisch ist: Uferplätze nach Schwärmen im Umkreis bewerten, kleiner Abzug für den Weg zum Hauptlager (Ergebnis kurz gemerkt) */
+    if(advH.spot&&G.t>=advH.t&&G.t-advH.t<4&&!placeBlock(type,advH.spot.x,advH.spot.y))return advH.spot;
+    const fish=advFish();if(fish.length){let best=null,bs=-1e9;
+      for(let d=80;d<=520;d+=20)for(let k=0;k<48;k++){const a=base+(k%2?1:-1)*Math.ceil(k/2)*.131,x=hq.x+Math.cos(a)*d,y=hq.y+Math.sin(a)*d;if(placeBlock(type,x,y))continue;
+        let c=0,nd=1e9;for(const n of fish){const dd=Math.hypot(n.x-x,n.y-y);if(dd<nd)nd=dd;if(dd<300)c+=1-dd/300}
+        if(!c)continue;const sc=c*100-nd*.5-d*.12;if(sc>bs){bs=sc;best={x,y}}}
+      if(best){advH={spot:best,t:G.t};return best}if(need)return null}}
   /* andere Gebäude: mit Abstand zu eigenen Gebäuden (Kante zu Kante), damit Wege frei bleiben und es nicht gedrängt aussieht */
   const gap={house:26,farm:22,barracks:46,store:40,market:44,refinery:40,harbor:30,airfield:50,castle:60}[type]||30,own=G.ents.filter(e=>!e.dead&&e.team===0&&e.kind==='bld');
   const free=(x,y)=>{for(const e of own){if(e.type==='wall'||e.type==='gate'||e.type==='trench')continue;if(Math.hypot(e.x-x,e.y-y)-e.r-d0.r<gap)return false}return true};
@@ -88,7 +98,7 @@ function advRules(){
   if(ep<EPOCHS.length-1&&!G.adv[0]&&!pd.n&&!G.jobs[0].length&&afford(0,EPOCHS[ep].cost))push({id:'adv',txt:'in die {0} aufsteigen',args:[tr(EPOCHS[ep+1].name)],cost:EPOCHS[ep].cost,go:()=>advance(0)});
   if(!bars.length&&workers.length>=S.barW&&afford(0,BLDS.barracks.cost)&&advFindSpot('barracks'))push({id:'barracks',txt:'eine Kaserne bauen, um Truppen auszubilden',cost:BLDS.barracks.cost,go:()=>advBuild('barracks')});
   if(ep>=(advisor.strat==='turtle'?0:1)&&has('tower').length<S.tow(ep)&&workers.length>=8&&afford(0,BLDS.tower.cost)&&advFindSpot('tower'))push({id:'tower',txt:'einen Wachturm bauen, um Land zu erobern und zu überblicken',cost:BLDS.tower.cost,go:()=>advBuild('tower')});
-  if(!has('harbor').length&&workers.length>=9&&afford(0,BLDS.harbor.cost)&&advFindSpot('harbor'))push({id:'harbor',txt:'einen Hafen bauen, um Fische zu fangen',cost:BLDS.harbor.cost,go:()=>advBuild('harbor')});
+  if(!has('harbor').length&&workers.length>=9&&afford(0,BLDS.harbor.cost)&&advFish().length&&advFindSpot('harbor',1))push({id:'harbor',txt:'einen Hafen bauen, um Fische zu fangen',cost:BLDS.harbor.cost,go:()=>advBuild('harbor',advFindSpot('harbor',1))});
   if(ep>=1&&workers.length>=8&&has('farm').length<Math.min(2+ep,5)&&R.food<420&&afford(0,BLDS.farm.cost)&&advFindSpot('farm')&&!mine.some(e=>e.type==='farm'&&!e.built))push({id:'farm',txt:'ein Feld anlegen (Nahrung, die nie ausgeht)',cost:BLDS.farm.cost,go:()=>advBuild('farm')});
   // Minen: Eisen ab der Eisenzeit, Gold ab dem Mittelalter; Markt zum Tauschen
   if(ep>=1&&workers.length>=6&&!mine.some(e=>(e.type==='mine'||e.type==='derrick')&&!e.built))for(const rt of['stone','iron','gold','oil']){if(ep<RES_EP[rt])continue;const bt=MINE_RT[rt],sp=advMineSpot(rt,hq);if(!afford(0,BLDS[bt].cost))continue;

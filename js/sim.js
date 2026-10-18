@@ -181,7 +181,14 @@ function updUnit(u,dt){
   case 'explore':{ /* Späher-Kreislauf: erst zum Gegner (Lage auskundschaften), dann Unerforschtes, dann wieder zum Gegner … */
     if(!u.exPh)u.exPh=d.naval?'map':'enemy';
     if(u.exPh==='enemy'){const hq=G.ents.find(e=>e.type==='hq'&&!e.dead&&e.team>=0&&e.team!==u.team),tx=hq?hq.x:W-u.x,ty=hq?hq.y:H-u.y;
-      if(Math.hypot(tx-u.x,ty-u.y)<d.sight*.9||(u.pf&&u.pf.fail)){u.exPh='map';u.pf=null;u.ex=null}else{moveToward(u,tx,ty,dt);break}}
+      if(Math.hypot(tx-u.x,ty-u.y)<d.sight*.9||(u.pf&&u.pf.fail)){if(hq&&!(u.pf&&u.pf.fail)){u.exPh='orbit';u.orb={id:hq.id,a:Math.atan2(u.y-hq.y,u.x-hq.x),dir:u.id%2?1:-1,sw:0,t:G.t,hp:u.hp,fails:0}}else u.exPh='map';u.pf=null;u.ex=null}else{moveToward(u,tx,ty,dt);break}}
+    if(u.exPh==='orbit'){ /* einmal rund ums feindliche Lager kreisen (alle Gebäude ansehen); abbrechen bei Treffer, Zeitablauf oder Sackgassen */
+      const o=u.orb,hq=get(o.id);
+      if(!hq||hq.dead||u.hp<o.hp-.5||o.sw>=6.4||G.t-o.t>50||o.fails>8){u.exPh='map';u.orb=null;u.pf=null;u.ex=null;break}
+      const R=Math.min(300,hq.r+((BLDS[hq.type].shoot||{}).rng||0)+d.r+40),px=hq.x+Math.cos(o.a)*R,py=hq.y+Math.sin(o.a)*R;
+      if(moveToward(u,px,py,dt)||Math.hypot(px-u.x,py-u.y)<24){o.a+=o.dir*.7;o.sw+=.7;u.pf=null}
+      else if(u.pf&&u.pf.fail){o.a+=o.dir*.7;o.sw+=.7;o.fails++;u.pf=null}
+      break}
     const g=exGrid(u.team);if(!u.ex||G.t>u.ex.until||g[u.ex.i]){u.ex=pickExplore(u);if(!u.ex){if(d.naval){u.state='idle'}else{u.exPh='enemy';u.pf=null}break}u.ex.until=G.t+45;u.pf=null}
     const done=moveToward(u,u.ex.x,u.ex.y,dt);if(u.pf&&u.pf.fail){(u.badEx||(u.badEx={}))[u.ex.i]=G.t;u.ex=null;u.pf=null}else if(done)u.ex=null;break}
   case 'move':if(moveToward(u,u.dest.x,u.dest.y,dt))u.state='idle';break;
