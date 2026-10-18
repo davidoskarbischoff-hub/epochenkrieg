@@ -100,7 +100,7 @@ function r3Weather(dt,t){
   m.instanceMatrix.needsUpdate=true;m.count=n}
 function r3Map(){
   const S=R3.S,{scene}=r3;r3Season();
-  for(const o of R3.reg.values())r3.gEnt.remove(o.obj);R3.reg.clear();
+  for(const o of R3.reg.values()){r3.gEnt.remove(o.obj);r3Drop(o.obj)}R3.reg.clear();
   if(r3.terrain){scene.remove(r3.terrain);r3.terrain.geometry.dispose();r3.terrain.material.map.dispose();scene.remove(r3.terrOv);scene.remove(r3.fogOv)}
   const GW=TW,GH=TH,lg=new Float32Array(GW*GH),sg=new Float32Array(GW*GH);
   const cell=(a,x,y)=>a[Math.max(0,Math.min(GH-1,y))*GW+Math.max(0,Math.min(GW-1,x))];
@@ -187,7 +187,13 @@ function lodGeo(g,div){if(!g.attributes.color||g.attributes.uv&&g.attributes.uv.
 const LOD_Z=.95; /* unterhalb dieses Zooms (weiter weg) zeichnen Bäume ihre vereinfachte Fassung */
 /* Fernsicht: Figuren werfen keinen Schatten (halbiert ihre Zeichenaufrufe/Dreiecke; aus der Ferne unsichtbar) */
 function r3UnitSh(obj,on){obj.traverse(x=>{if(!x.isMesh)return;if(x.userData.csh===undefined)x.userData.csh=x.castShadow;x.castShadow=on?false:x.userData.csh})}
-function r3Lod(){const on=cam.z<LOD_Z;if(on===R3.lodOn||!r3.ns)return;R3.lodOn=on;for(const e of G.ents)if(e.kind==='unit'||e.kind==='animal'){const o=R3.reg.get(entKey(e));if(o)r3UnitSh(o.obj,on)}for(const gp of R3.chunkGrps||[]){if(!gp.parent){R3.chunkGrps.delete(gp);continue}for(const c of gp.children)if(c.userData.lo)c.geometry=on?c.userData.lo:c.userData.hi}for(const k in r3.ns)for(const m of r3.ns[k].L)if(m.isMulti)for(const q of m.parts)if(q.userData.lo)q.geometry=on?q.userData.lo:q.userData.hi}
+/* Figuren: auf dem Bildschirm kleiner als FIG_LOD_PX Pixel (R3.k = Bildschirm-Pixel je Spielpixel, ein Mensch ist ~25 Spielpixel hoch) nehmen sie ihre grobe Fassung (~1/3 der Dreiecke, nur anderer Index) */
+const FIG_LOD_PX=60;
+/* Entfernte Objekte: Eckpunkt-Daten, die nur dem Objekt gehören (zusammengefasste Gebäude ohne Zwischenspeicher), und die Knochen-Textur der Figuren im Grafikspeicher freigeben */
+function r3Drop(obj){obj.traverse(x=>{if(x.isMesh&&x.geometry.userData.own)x.geometry.dispose();if(x.isSkinnedMesh&&x.skeleton)x.skeleton.dispose()/* Knochen-Textur der Figur */})}
+function r3UnitLod(obj,on){obj.traverse(x=>{if(x.isSkinnedMesh&&x.userData.lo)x.geometry=on?x.userData.lo:x.userData.hi})}
+function r3FigLod(){const on=R3.k*25<FIG_LOD_PX&&!window.__noLod;if(on===R3.figLod)return;R3.figLod=on;for(const e of G.ents)if(e.kind==='unit'||e.kind==='animal'){const o=R3.reg.get(entKey(e));if(o)r3UnitLod(o.obj,on)}}
+function r3Lod(){r3FigLod();const on=cam.z<LOD_Z;if(on===R3.lodOn||!r3.ns)return;R3.lodOn=on;for(const e of G.ents)if(e.kind==='unit'||e.kind==='animal'){const o=R3.reg.get(entKey(e));if(o)r3UnitSh(o.obj,on)}for(const gp of R3.chunkGrps||[]){if(!gp.parent){R3.chunkGrps.delete(gp);continue}for(const c of gp.children)if(c.userData.lo)c.geometry=on?c.userData.lo:c.userData.hi}for(const k in r3.ns)for(const m of r3.ns[k].L)if(m.isMulti)for(const q of m.parts)if(q.userData.lo)q.geometry=on?q.userData.lo:q.userData.hi}
 function r3Multi(parts,n,wind){
   const ms=parts.map(p=>{const mt=p.mat;if(wind)windify(mt,wind);const m=new THREE.InstancedMesh(p.geo,mt,Math.max(1,n));/* keine vereinfachten Bäume mehr: die Raster-Vereinfachung liess Nadelbäume beim Rauszoomen verschwinden */if(wind&&window.__treeLod){if(p.lo===undefined)p.lo=lodGeo(p.geo,9);if(p.lo){m.userData.hi=p.geo;m.userData.lo=p.lo;if(R3.lodOn)m.geometry=p.lo}}m.userData.veg=true;m.castShadow=gfxQ>=2;/* Schatten der vielen Bäume nur ab Grafik „Hoch“ (spart die Hälfte der Zeichenarbeit) */m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);return m});
   return{isMulti:true,parts:ms,setMatrixAt(i,mx){ms.forEach(m=>m.setMatrixAt(i,mx))},setColorAt(i,c){ms.forEach(m=>m.setColorAt(i,c))},dispose(){ms.forEach(m=>m.dispose())}}}
@@ -344,7 +350,7 @@ function r3Sync(list,dt,t){
     let sig;const ep=e.kind==='bld'?(e.lvl??G.epoch[e.team]):0;sig=e.kind==='unit'?e.type+e.team+':'+(e.lvl||0)+(e.type==='worker'?':'+wkTier(e)+(G.tech[e.team].has('baskets')?'b':'')+(G.tech[e.team].has('carts')?'c':'')+(G.tech[e.team].has('shoes')?'s':''):''):e.kind==='bld'?e.type+':'+ep+':'+e.team+(e.spec||'')+(e.pc||''):e.kind==='animal'?e.type:e.type;
     sig+=EKMODELS.tag(e)+(e.empty?'x':'')+(e.ore||'');
     let o=R3.reg.get(key);
-    if(!o||o.sig!==sig){if(o)r3.gEnt.remove(o.obj);o=r3Make(e,sig);if(R3.lodOn&&(e.kind==='unit'||e.kind==='animal'))r3UnitSh(o.obj,true);R3.reg.set(key,o);r3.gEnt.add(o.obj)}
+    if(!o||o.sig!==sig){if(o){r3.gEnt.remove(o.obj);r3Drop(o.obj)}o=r3Make(e,sig);if(R3.lodOn&&(e.kind==='unit'||e.kind==='animal'))r3UnitSh(o.obj,true);if(R3.figLod&&(e.kind==='unit'||e.kind==='animal'))r3UnitLod(o.obj,true);R3.reg.set(key,o);r3.gEnt.add(o.obj)}
     const h=hAt(e.x,e.y),obj=o.obj;if(o.off){o.off=0;obj.visible=true}
     if(e.kind==='unit')r3Unit(o,e,h,dt,t);
     else if(e.kind==='bld'){obj.position.set(e.x/S,h,e.y/S);const pr=e.built?1:.12+.88*e.prog;obj.scale.set(1,pr,1);if(obj.userData.props)for(const q of obj.userData.props)q.visible=pr>=1 /* Beiwerk (Figuren, Ballon) erst nach dem Bau */;
@@ -358,12 +364,12 @@ function r3Sync(list,dt,t){
   for(const[k,o]of R3.reg)if(!seen.has(k)){
     if(o.e&&o.e.dead&&o.rig&&!o.rig.ship&&(o.e.kind==='animal'||o.rig.up||(o.rig.acts&&o.rig.acts.die))&&R3.corpses.length<40){R3.corpses.push({obj:o.obj,rig:o.rig,t:0,animal:o.e.kind==='animal',big:o.e.kind==='animal'&&(ANIMALS[o.e.type].r>10)})}
     else if(o.e&&!o.e.dead&&(o.off||0)<20&&R3.reg.size<1500){if(!o.off)o.obj.visible=false;o.off=(o.off||0)+Math.max(dt,.001);continue} /* nur aus dem Bild: versteckt aufheben statt löschen (Neubau beim Zurückschwenken ruckelt) */
-    else r3.gEnt.remove(o.obj);R3.reg.delete(k)}
+    else{r3.gEnt.remove(o.obj);r3Drop(o.obj)}R3.reg.delete(k)}
   for(let i=R3.corpses.length-1;i>=0;i--){const c=R3.corpses[i];c.t+=dt;const f=Math.min(1,c.t/.4);
     const dA=c.rig.acts&&c.rig.acts.die;if(dA){if(!c.dp){c.dp=1;c.rig.mixer.stopAllAction();dA.reset();dA.setLoop(THREE.LoopOnce,1);dA.clampWhenFinished=true;dA.play()}c.rig.mixer.update(dt)} /* echte Sterbe-Bewegung (UAL) */
     else if(c.animal)c.rig.g.rotation.x=f*1.45;else{c.rig.g.rotation.z=-f*1.5;if(c.rig.up){c.rig.up.rotation.z=0;for(const l of c.rig.legs)l.rotation.z=0;for(const a of c.rig.arms)a.rotation.z=1.6*f}}
     c.obj.position.y=c.t>2.4?-(c.t-2.4)*.9:c.obj.position.y;
-    if(c.t>3.2){r3.gEnt.remove(c.obj);R3.corpses.splice(i,1)}}
+    if(c.t>3.2){r3.gEnt.remove(c.obj);r3Drop(c.obj);R3.corpses.splice(i,1)}}
   r3Bones()
 }
 /* Kontaktschatten: weicher dunkler Fleck unter Gebäuden – die Bauten sitzen dadurch „im“ Boden statt darauf zu schweben */
@@ -377,7 +383,7 @@ function r3Make(e,sig){
   if(e.kind==='unit'){const rig=buildUnit(e);let sc=(UNITS[e.type].vr||e.r)/7*1.25*(UNITS[e.type].naval?.46:e.type==='tank'||e.type==='mark1'?.72:UNITS[e.type].siege?.7:UNITS[e.type].cls==='cav'?.74:e.type==='worker'?.8:1);if(rig.human)sc=UNITS.worker.vr/7*1.25*.8/* alle Menschen so groß wie der Arbeiter */;rig.g.scale.setScalar(sc*(.94+((e.id*37)%13)/13*.12));const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
   if(e.kind==='bld'){M3.curId=e.id;const g=buildBld(e.type,e.r/S*1.05,e.lvl??G.epoch[e.team]/* Aussehen erst nach dem Upgrade */,e.team,e.spec);if(e.empty)g.traverse(o=>{if(o.isMesh){const f=m=>{const c=m.clone();if(c.color)c.color.multiplyScalar(.45);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}}) /* erschöpfte Mine: dunkel/grau */;if(e.ore&&e.ore!=='stone'&&!e.empty){const tc=new THREE.Color(e.ore==='gold'?0xffd166:0xd08a6a);g.traverse(o=>{if(o.isMesh){const f=m=>{if(!/stone|rock/i.test(m.name||''))return m;const c=m.clone();if(c.color)c.color.lerp(tc,.45);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}})} /* Eisen-/Goldmine: rötlich bzw. golden getönt */;if(e.type!=='wall'&&e.type!=='gate'&&e.type!=='trench'&&e.type!=='farm')g.add(aoDecal(e.r/S*1.55));if(e.pc&&typeof wallPostModel==='function')wallPostModel(g,e.pc,e.r/S*1.05,G.epoch[e.team],e.team);if(e.spec&&!g.userData.spec&&typeof specModel==='function')specModel(g,e.type,e.spec,e.r/S*1.05,e.team,G.epoch[e.team]);return{obj:g,sig,flags:g.userData.flags||[]}}
   if(e.kind==='animal'){const rig=buildAnimal(e);const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
-  const g=EKMODELS.makeSea(e)||seaModel(e);return{obj:g,sig,flags:[]}}
+  const g=EKMODELS.makeSea(e)||seaModel(e);g.traverse(o=>{if(o.isMesh)o.castShadow=false})/* Fische unter Wasser: Schatten nicht sichtbar, spart Zeichenaufrufe in der Schattenkarte */;return{obj:g,sig,flags:[]}}
 /* Gliederbewegung der Menschen: Gehen (Gegenschwung, Neigen, Wippen), Atmen im Stand, Arbeiten je Werkzeug, Kampf mit Ausholen/Schlag/Rückstoß, Zucken bei Treffern */
 function r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t){
   const up=rig.up,L=rig.legs,K=rig.knees,A=rig.arms,E=rig.elbows,id=e.id,since=G.t-(e.swing||-9),k=Math.max(0,Math.min(1,since/.5)),fresh=since<.5;
@@ -498,7 +504,7 @@ function r3Ring(x,y,r,col,op){
   if(!m){m=new THREE.Mesh(new THREE.RingGeometry(.9,1,40).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,depthWrite:false,fog:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));m.renderOrder=4;R3.rings.push(m);r3.scene.add(m)}
   R3.ringN++;m.visible=true;m.material.color.set(col);m.material.opacity=op===undefined?.95:op;const rr=r/S;m.scale.set(rr,1,rr);m.position.set(x/S,hAt(x,y)+.1,y/S)}
 function r3Ghost(type,x,y,ok){
-  if(!r3.ghost||r3.ghostKey!==type+':'+G.epoch[0]){if(r3.ghost)r3.scene.remove(r3.ghost);const g=buildBld(type,BLDS[type].r/R3.S*1.05,G.epoch[0],0);g.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;o.material.opacity=.55;o.castShadow=false}});r3.ghost=g;r3.ghostKey=type+':'+G.epoch[0];r3.scene.add(g)}
+  if(!r3.ghost||r3.ghostKey!==type+':'+G.epoch[0]){if(r3.ghost){r3.scene.remove(r3.ghost);r3Drop(r3.ghost)}const g=buildBld(type,BLDS[type].r/R3.S*1.05,G.epoch[0],0);g.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;o.material.opacity=.55;o.castShadow=false}});r3.ghost=g;r3.ghostKey=type+':'+G.epoch[0];r3.scene.add(g)}
   r3.ghost.visible=true;r3.ghost.position.set(x/R3.S,hAt(x,y),y/R3.S);r3.ghost.traverse(o=>{if(o.isMesh&&o.material.emissive)o.material.emissive.setHex(ok?0x1c3a10:0x4a1208)})}
 
 /* ---------- Ein Bild zeichnen ---------- */
