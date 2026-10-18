@@ -259,6 +259,7 @@ const EKMODELS=(()=>{
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y+(en.lift||0),-c.z);
       cmapOf(root,en.cmap);dress(root,wrap,en,k,u.team,u);if(!window.__noMerge)try{mergeSkin(root)}catch(err){console.warn('mergeSkin',err)}
       const rig={g:wrap,gltf:true,bend:en.human?findBone(root,/^(Abdomen|Spine|Spine1|spine|DEF-spine\.?001)$/i):null,bendA:0,human:!!(en.human||(en.rider&&!en.rider.free)),legs:[],arms:[],tools:{},acts:{},cur:null,gl};
+      if(en.human&&typeof WPOSE!=='undefined'&&!window.__noWpose){try{rig.wp=WPOSE.setup(rig,root,wrap,k,u);if(rig.wp)WPOSE.props(rig,root,wrap,k)}catch(err){console.warn('WPOSE',err);rig.wp=null}}
       if(gl.animations&&gl.animations.length){rig.mixer=new THREE.AnimationMixer(root);const A=en.anim||{},cl=gl.animations;
         const map={idle:pickClip(cl,[A.idle],/idle|stand|rest/i),walk:pickClip(cl,[A.walk],/walk|run|move/i),attack:pickClip(cl,[A.attack],/attack|hit|strike|shoot|fire/i),work:pickClip(cl,[A.work],/work|gather|chop|mine|build|dig/i)};
         for(const n in map)if(map[n])rig.acts[n]=rig.mixer.clipAction(map[n]);
@@ -267,8 +268,8 @@ const EKMODELS=(()=>{
         if(en.human){const hc=[];for(const n of A.hit?[].concat(A.hit):['UAL:Hit_Chest','UAL:Hit_Head']){const c=pickClip(cl,[n],/^$/);if(c)hc.push(rig.mixer.clipAction(c))}if(hc.length){hc.forEach(a=>{a.setLoop(THREE.LoopOnce,1);a.clampWhenFinished=true});rig.hits=hc}}
         if(A.ready){const c=pickClip(cl,[A.ready],/^$/);if(c)rig.acts.ready=rig.mixer.clipAction(c)}if(A.run){const c=pickClip(cl,[A.run],/^$/);if(c)rig.acts.run=rig.mixer.clipAction(c)}
         if(en.work){rig.wtools={};const hb=findBone(root,/hand\.?r|wrist\.?r/i);rig.hand=wrap.userData.handHolder||null;
-          for(const kd in en.work){const w=en.work[kd],c=pickClip(cl,[w.clip],/work|interact/i);if(c)rig.acts['w:'+kd]=rig.mixer.clipAction(c);
-            const h=w.net?netRig(rig,root,wrap,w.net,u.id||0,cl):w.tool&&hb?attach(root,hb,w.tool,k):null;if(h){h.visible=false;rig.wtools[kd]=h}}}
+          for(const kd in en.work){const w=en.work[kd],B=rig.wp&&WPOSE.baseOf(kd),c=pickClip(cl,[B?B.clip:w.clip],/work|interact/i);if(c)rig.acts['w:'+kd]=rig.mixer.clipAction(c);if(B&&B.at)(rig.hold||(rig.hold={}))['w:'+kd]=B;
+            const h=w.net?netRig(rig,root,wrap,w.net,u.id||0,cl):w.tool&&rig.wp&&WPOSE.hasTool(kd)?WPOSE.tool(rig,root,wrap,w.tool,kd,k,u.team):w.tool&&hb?attach(root,hb,w.tool,k):null;if(h){h.visible=false;rig.wtools[kd]=h}}}
         if(en.human&&!rig.acts.run){const c=pickClip(cl,['Run','Jog_Fwd_Loop'],/^$/);if(c)rig.acts.jog=rig.mixer.clipAction(c)}
         /* Schrittweite je Lauf-Clip messen (Fuss vor/zurück), daraus die natürliche Geschwindigkeit → Clip-Tempo passt zur echten Bewegung (kein Fussgleiten) */
         if(en.human){rig.nat={};rig.natKey=(en.file||'')+'|'+k.toFixed(4);rig.natRoot=root;for(const n of['walk','run','jog'])natOf(rig,wrap,n)}
@@ -359,7 +360,7 @@ const EKMODELS=(()=>{
       /* Fischerboot: der Ruderer dreht sich zur Bordwand (net.turn, Seite je Boot) und hält das Netz ins Wasser */const rf=r.net&&want==='work'&&kind==='fish';
       if(r.net){const tn=rf?(r.net.s.turn||0)*Math.PI/180*(r.net.side||1):0,sp=typeof G!=='undefined'&&(G.paused||G.netPause)?0:1;r.g.rotation.y+=(tn-r.g.rotation.y)*Math.min(1,dt*sp*3)}
       animate(r,r.pusher?(want==='walk'?'walk':'idle'):rf?'work':want==='walk'||want==='work'?'idle':want,dt,1,rf?'fish':'',r.pusher&&opt?{v:opt.v,push:1}:null);pose(1);r.posed=1}
-    if(!rig.mixer)return;if(typeof G!=='undefined')dt*=G.paused||G.netPause?0:(G.speed||1);
+    if(!rig.mixer)return;if(typeof G!=='undefined')dt*=G.paused||G.netPause?0:Math.min(G.speed||1,3)/* schnelles Spiel: Bewegungen höchstens 3× so schnell, sonst zappeln die Figuren */;if(rig.wp&&rig.wp.saved)WPOSE.restore(rig.wp);
     if(rig.wtools){for(const kd in rig.wtools)rig.wtools[kd].visible=(want==='work'&&kind===kd);if(rig.hand)rig.hand.visible=!(want==='work'&&rig.wtools[kind])}
     const wkey=want==='work'&&kind&&rig.acts['w:'+kind]?'w:'+kind:null;
     if(want==='idle'&&!rig.acts.idle&&rig.cur){rig.acts[rig.cur].fadeOut(.2);rig.cur=null}if(want==='idle'&&!rig.acts.idle){rig.mixer.update(dt*(speedScale||1));return}
@@ -368,14 +369,19 @@ const EKMODELS=(()=>{
     if(rig.hitCd>0)rig.hitCd-=dt;if(rig.hitT>0){rig.hitT-=dt;if(rig.hitT>0)w='hit'}
     else if(opt&&opt.hit&&rig.hits&&!(rig.hitCd>0)){const a=rig.hits[(rig.hitN=(rig.hitN||0)+1)%rig.hits.length];rig.acts.hit=a;a.timeScale=1.3;rig.hitT=Math.min(.7,a.getClip().duration/1.3*.85);rig.hitCd=rig.hitT+1.5;const p=rig.cur&&rig.acts[rig.cur];a.reset().fadeIn(.08).play();if(p&&p!==a)p.fadeOut(.08);rig.cur='hit';w='hit'}
     /* gleicher Clip unter zwei Namen (z. B. Fischen = Idle) ist dieselbe Aktion: nicht ein- und zugleich ausblenden (sonst Gewicht 0 = Grundhaltung) */
-    if(w&&rig.cur!==w){const a=rig.acts[w],p=rig.cur&&rig.acts[rig.cur];if(a!==p){a.reset().fadeIn(.2).play();if(p)p.fadeOut(.2)}rig.cur=w}
+    if(w&&rig.cur!==w){const a=rig.acts[w],p=rig.cur&&rig.acts[rig.cur];if(a!==p){const hd=rig.hold&&rig.hold[w],ph=rig.hold&&rig.hold[rig.cur];
+      /* Knien (Beeren): hinknien ab hd.from, danach halten; beim Aufstehen den Rest des Clips (Aufrichten) überblenden */
+      a.reset().fadeIn(hd?hd.fade:.2).play();if(hd){a.time=hd.from;a.timeScale=hd.rate}
+      if(p){if(ph){p.timeScale=ph.outRate;p.time=ph.out;p.fadeOut(ph.outFade)}else p.fadeOut(.2)}}rig.cur=w}
+    {const hd=rig.hold&&rig.hold[rig.cur],a=hd&&rig.acts[rig.cur];if(a&&a.timeScale>0&&a.time>=hd.at&&a.time<hd.out-.2){a.time=hd.at;a.timeScale=0}}
     if(rig.bend&&rig.bendP){rig.bend.rotation.x-=rig.bendP;rig.bendP=0}if(rig.net&&rig.net.on){rig.net.sv.forEach(([b,q])=>b.quaternion.copy(q));rig.net.on=0}
     /* Lauf-Tempo an die echte Geschwindigkeit koppeln (opt.v = Welteinheiten je Spielsekunde), weich nachgeführt */
     let ss=speedScale||1;if(opt&&opt.v&&rig.nat&&rig.nat[w]){const tsc=Math.max(.6,Math.min(1.9,opt.v/rig.nat[w]));rig.tsc=rig.tsc?rig.tsc+(tsc-rig.tsc)*Math.min(1,dt*6):tsc;ss=rig.tsc}
     rig.mixer.update(dt*ss);
+    if(rig.wp&&opt)WPOSE.run(rig,want,kind,dt,opt);
     /* Beeren pflücken / Fischen: Oberkörper nach vorn beugen (nach der Animation aufgesetzt), beim Fischen danach Netz-Pose */
     const fish=rig.net&&want==='work'&&kind==='fish';
-    if(rig.bend){const t=want==='work'&&kind==='pick'?.75:fish?rig.net.bend:0;rig.bendA+=(t-rig.bendA)*Math.min(1,dt*5);if(rig.bendA>.01){rig.bend.rotation.x+=rig.bendA;rig.bendP=rig.bendA}}
+    if(rig.bend){const t=want==='work'&&kind==='pick'&&!rig.wp?.75:fish?rig.net.bend:0;rig.bendA+=(t-rig.bendA)*Math.min(1,dt*5);if(rig.bendA>.01){rig.bend.rotation.x+=rig.bendA;rig.bendP=rig.bendA}}
     if(fish)netPose(rig,dt)}
   async function init(url){
     if(typeof EKGLTF==='undefined'){return}
@@ -383,7 +389,7 @@ const EKMODELS=(()=>{
     /* Kenney-Bausätze verweisen auf Textures/colormap.png: stattdessen die Farbtabelle aus dem Manifest (cmap) nehmen */
     const mgr=new THREE.LoadingManager();if(manifest.cmap)mgr.setURLModifier(u=>/colormap\.png$/.test(u)?'models/'+manifest.cmap:u);
     loader=new EKGLTF.GLTFLoader(mgr);try{loader.setMeshoptDecoder(EKGLTF.MeshoptDecoder)}catch(_){}
-    const want=new Set();if(manifest.ual)want.add(manifest.ual);for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off&&!x.when){want.add(x.file);for(const f of x.vary||[])want.add(f);for(const v of x.variants||[]){if(v.file)want.add(v.file);for(const pr of v.props||[])if(pr&&pr.file)want.add(pr.file)}if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work)){if(w.tool&&w.tool.file)want.add(w.tool.file);if(w.net&&w.net.file)want.add(w.net.file)}if(x.extra&&x.extra.file)want.add(x.extra.file);for(const l of Object.values(x.load||{}))if(l&&l.file)want.add(l.file);for(const pr of(x.props||[]).concat(x.extras||[],x.wear||[]))if(pr&&pr.file)want.add(pr.file)}
+    const want=new Set();if(manifest.ual)want.add(manifest.ual);for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const x of Object.values(manifest.wprops||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off&&!x.when){want.add(x.file);for(const f of x.vary||[])want.add(f);for(const v of x.variants||[]){if(v.file)want.add(v.file);for(const pr of v.props||[])if(pr&&pr.file)want.add(pr.file)}if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work)){if(w.tool&&w.tool.file)want.add(w.tool.file);if(w.net&&w.net.file)want.add(w.net.file)}if(x.extra&&x.extra.file)want.add(x.extra.file);for(const l of Object.values(x.load||{}))if(l&&l.file)want.add(l.file);for(const pr of(x.props||[]).concat(x.extras||[],x.wear||[]))if(pr&&pr.file)want.add(pr.file)}
     const cm=new Set();for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x){if(x.cmap)cm.add(x.cmap);for(const pr of x.props||[])if(pr&&typeof pr.cmap==='string')cm.add(pr.cmap)}
     await Promise.all([...cm].map(cmapLoad));
     await Promise.all([...want].map(async f=>{try{files.set(f,await loader.loadAsync('models/'+f))}catch(err){failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}}));
@@ -399,7 +405,7 @@ const EKMODELS=(()=>{
     if(n)pCache.clear();return n}
   /* für Tests/Vorschau: Modell von Hand eintragen */
   function register(kind,type,entry,gltf){if(!manifest)manifest={units:{},buildings:{}};const s=secOf(kind);(manifest[s]||(manifest[s]={}))[type]=entry;files.set(entry.file,gltf);R.ver++}
-  return Object.assign(R,{init,cmapLoad,loadWhen,tag,has,makeUnit,makeBld,makeSea,iconModel,nodeParts,nodeN,nodeMeta,nodeL:nodeList,animate,register,files,ualFor,failed,refSize,dbg:()=>({refCache})})
+  return Object.assign(R,{init,cmapLoad,loadWhen,tag,has,makeUnit,makeBld,makeSea,iconModel,nodeParts,nodeN,nodeMeta,nodeL:nodeList,animate,register,files,ualFor,failed,refSize,dbg:()=>({refCache}),util:{findBone,ik2,turnW,aimBone,box,prepare,pickClip,V,Q,man:()=>manifest}})
 })();
 /* Modelle in die Bau-Funktionen einhängen (Rückfall auf die Code-Modelle, wenn nichts passt) */
 (()=>{const origU=buildUnit,origB=buildBld;window.origBuildUnit=origU;

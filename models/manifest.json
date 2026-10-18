@@ -6615,6 +6615,12 @@
    ]
   }
  },
+ "wprops": {
+  "_info": "Beiwerk für die Arbeits-Haltungen (js/workpose.js): bag = Beutel für die Beeren.",
+  "bag": {
+   "file": "archiv/Bag Open.glb"
+  }
+ },
  "_neue_kits": {
   "info": "Kenney-Kits (boat-*, ship-*, siege-*, tower-*, wall-*, roof-* …) brauchen die Farbtextur Textures/colormap.png im selben Ordner (models/neu/Textures/colormap.png). Ohne sie sind die Modelle weiß. Danach: Blickrichtung +Z → yaw 90."
  },

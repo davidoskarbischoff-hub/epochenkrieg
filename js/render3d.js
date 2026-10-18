@@ -286,7 +286,7 @@ function r3Nodes(){
   if(R3.natG!==G){R3.natG=G;R3.tk=new Map();R3.tl=new Map();R3.stumps=[]} /* neue Partie: Baum-Arten und Stümpfe vergessen */
   const S=R3.S,B={},V=R3.view,M=260,fr=R3.fr=(R3.fr||0)+1,tl=R3.tl;
   /* Instanz vormerken: Schlüssel ohne eigene Modelle → Ersatz (alt) */
-  const add=(key,v,x,y,z,ry,sx,sy,r,g,b)=>{let d;while((!r3.ns[key]||!r3.ns[key].L.length)&&(d=NSET[key])&&d.alt)key=d.alt;const s=r3.ns[key];if(!s||!s.L.length)return;const bb=B[key]||(B[key]=[]),i=v%s.L.length;(bb[i]||(bb[i]=[])).push(x,y,z,ry,sx,sy,r,g,b)};
+  const add=(key,v,x,y,z,ry,sx,sy,r,g,b)=>{let d;while((!r3.ns[key]||!r3.ns[key].L.length)&&(d=NSET[key])&&d.alt)key=d.alt;const s=r3.ns[key];if(!s||!s.L.length)return;const bb=B[key]||(B[key]=[]),i=v%s.L.length;(bb[i]||(bb[i]=[])).push(x,y,z,ry,sx,sy,r,g,b);return{key,v:i,i:bb[i].length/9-1,p:[x,y,z,ry,sx,sy]}};
   const inV0=(x,y,m)=>!V||(x>=V.x0-m&&x<=V.x1+m&&y>=V.y0-m&&y<=V.y1+m);
   /* genauer: Fusspunkt auf dem Bildschirm (Rand links/rechts 170 px, oben 120 px, unten 300 px für hohe Bäume, deren Krone ins Bild ragt) */
   const sv=r3.vec,pm=new THREE.Matrix4().multiplyMatrices(r3.camera.projectionMatrix,r3.camera.matrixWorldInverse),mx=1+340/Math.max(1,VW),myT=1+240/Math.max(1,VH),myB=1+600/Math.max(1,VH);
@@ -301,7 +301,7 @@ function r3Nodes(){
     if(e.type==='field'){fields.set(e.farm,e.amount/e.maxAmt);continue}
     if(!inV(e.x,e.y,M))continue;
     const k=Math.max(.5,Math.sqrt(e.amount/e.maxAmt)),sh=fogShade(e.x,e.y),h=hAt(e.x,e.y),x=e.x/S,z=e.y/S,sd=e.seed;
-    if(e.type==='tree'){const s=e.r/11*.62*(.85+sd*.35)*(.55+.45*k),tk=treeKind(e),v=.9+((sd*97)%1)*.2;{const ts=treeSea(tk.k,sd);add(ts[0],tk.v,x,h-.05,z,sd*6.28,s,s*(.9+((sd*31)%1)*.3),v*sh*ts[1],(.95+((sd*53)%1)*.12)*v*sh*ts[2],v*sh*ts[3])}}
+    if(e.type==='tree'){const s=e.r/11*.62*(.85+sd*.35)*(.55+.45*k),tk=treeKind(e),v=.9+((sd*97)%1)*.2;{const ts=treeSea(tk.k,sd),ix=add(ts[0],tk.v,x,h-.05,z,sd*6.28,s,s*(.9+((sd*31)%1)*.3),v*sh*ts[1],(.95+((sd*53)%1)*.12)*v*sh*ts[2],v*sh*ts[3]);if(ix&&SHK.size){const sk=SHK.get(e.id);if(sk)sk.ix=ix}}}
     else if(e.type==='bush'){const s=e.r/10*(.55+.45*k);add(e.amount<e.maxAmt*.25?'bushE':'bush',(sd*97)|0,x,h-.03,z,sd*6.28,s,s,sh,sh,sh)} /* fast leer gepflückt: Busch ohne Beeren */
     else{if(HIDDEN_NODES.has(e.type)&&!nodeKnown(e))continue;if(!NSET[e.type])continue;const kv=Math.floor(sd*3)%3,base=e.r/10*(.6+.4*k)*.78;
       const nn=e.type==='oil'?1:5;for(let j=0;j<nn;j++){const a=sd*20+j*1.9,dd=j?e.r/S*.62:0,sz=base*(j?.55+((j*37+sd*50)%7)/14:1.05),xx=x+Math.cos(a)*dd,zz=z+Math.sin(a)*dd,cc=sh*(.92+(j%3)*.05);add(e.type,kv,xx,hAt(xx*S,zz*S)-.1,zz,a,sz,sz*(j?1:1.15),cc,cc,sh*(.95+(j%2)*.05))}}}
@@ -420,6 +420,32 @@ function r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t){
 }
 /* Welche Arbeit macht die Einheit gerade? (bestimmt Werkzeug und Bewegung) */
 function wkKind(e){if(e.state==='build')return'build';const n=e.tid!=null&&e.tid!==undefined?G.byId.get(e.tid):null;if(!n)return'';if(n.kind==='animal')return'hunt';const t=n.type;return t==='tree'?'chop':(t==='stone'||t==='iron'||t==='gold'||t==='oil')?'mine':t==='field'?'farm':t==='bush'?'pick':n.sea?'fish':''}
+/* Takt der Arbeit für die Arbeits-Haltungen: ph 0..1, ph = 0 ist der Aufprall. Aus der Spielrechnung (u.gt/u.gl Sammeln, u.bt/u.bl Bauen, u.cd Jagd),
+   sonst (Mehrspieler-Gast, dort fehlt gt) ein eigener Takt. imp = in diesem Bild hat ein neuer Hieb begonnen (Geräusch kam vom Spiel). */
+const WCYC={chop:1.2,mine:1.1,pick:2.1,farm:1.5,build:.6,hunt:1.2};
+function wkPhase(o,e,kd,dt,want,hunt,d){
+  if(want!=='work')return null;let ph,imp=false;const tm=hunt?(d.cd||1.2):kd==='build'?(e.bl||.6):(e.gl||0),cur=hunt?e.cd:kd==='build'?e.bt:e.gt;
+  if(tm&&cur!==undefined&&!NET.client){ph=1-Math.max(0,Math.min(1,cur/tm));if(o.pg!==undefined&&cur>o.pg+.12){imp=true;o.wn=(o.wn||0)+1}o.pg=cur}
+  else{o.fph=((o.fph||0)+(G.paused||G.netPause?0:dt*Math.min(G.speed||1,2)/(WCYC[kd]||1.2)))%1;if(o.fph<(o.pf||0)){imp=true;o.wn=(o.wn||0)+1}o.pf=o.fph;ph=o.fph}
+  /* sehr schnelles Spiel (3×, 5×): ein Hieb dehnt sich über mehrere Takte, damit die Figur nicht zappelt */
+  const N=Math.max(1,Math.round((G.speed||1)/2));if(N>1)ph=(((o.wn||0)%N)+ph)/N;
+  return{ph,imp}}
+/* Aufprall: Späne am Werkzeugkopf (nur Optik), Baum wackelt kurz */
+const SHK=new Map();
+function r3Impact(o,e,kd,rig){
+  const S=R3.S,n=e.tid!=null?G.byId.get(e.tid):null,tip=rig.wp&&rig.wp.tip;if(kd!=='chop'&&kd!=='mine')return;
+  let x,y,z;if(tip&&(tip.x||tip.z)){x=tip.x*S;y=tip.z*S;z=Math.max(3,(tip.y-hAt(x,y))*S)}else if(n){x=n.x;y=n.y;z=10}else return;
+  const c=kd==='chop'?'168,122,68':'196,192,182',R=Math.random,bx=Math.cos(e.fa),by=Math.sin(e.fa);
+  for(let i=0;i<(kd==='chop'?5:4);i++)addPart('chip',x,y,z,-bx*(10+R()*30)+(R()-.5)*40,-by*(10+R()*30)+(R()-.5)*40,40+R()*50,.45+R()*.2,1.5+R(),c);
+  if(kd==='chop'&&n&&n.type==='tree')SHK.set(n.id,{t:0,ax:bx,az:by,ix:null})}
+/* Baumwackeln: die Instanz des getroffenen Baums kurz neigen (Matrix wird je Bild überschrieben, danach stellt r3Nodes sie wieder gerade) */
+const _so=new THREE.Object3D(),_sq=new THREE.Quaternion(),_sa=new THREE.Vector3(),_sb=new THREE.Euler();
+function r3Shake(dt){
+  for(const[id,s]of SHK){s.t+=dt;const done=s.t>.9;if(!s.ix){if(done)SHK.delete(id);continue}
+    const ix=s.ix,m=r3.ns&&r3.ns[ix.key]&&r3.ns[ix.key].L[ix.v];if(!m){SHK.delete(id);continue}
+    const a=done?0:.05*Math.exp(-s.t*4.2)*Math.sin(s.t*24);_sa.set(-s.az,0,s.ax);_sq.setFromAxisAngle(_sa,a);_so.position.set(ix.p[0],ix.p[1],ix.p[2]);_so.quaternion.setFromEuler(_sb.set(0,ix.p[3],0)).premultiply(_sq);_so.scale.set(ix.p[4],ix.p[5],ix.p[4]);_so.updateMatrix();m.setMatrixAt(ix.i,_so.matrix);
+    for(const q of m.isMulti?m.parts:[m]){const im=q.instanceMatrix;im.clearUpdateRanges();im.addUpdateRange(ix.i*16,16);im.needsUpdate=true}
+    if(done)SHK.delete(id)}}
 function r3Unit(o,e,h,dt,t){
   const S=R3.S,d=UNITS[e.type],rig=o.rig,moving=G.t-(e.mvT||-9)<.2,obj=o.obj;
   let want=-e.fa,dy=want-o.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));o.yaw+=dy*Math.min(1,dt*14);
@@ -432,7 +458,17 @@ function r3Unit(o,e,h,dt,t){
     if(rig.props){y=h+5+Math.sin(t*1.5+e.id)*.25;rig.props.forEach(pr=>pr.rotation.x+=dt*40);obj.rotation.z=moving?-.12:0}
     else if(moving&&!rig.gltf)y+=Math.abs(s)*.07*(rig.horse?1.6:1);
     if(rig.loads)for(const k in rig.loads)rig.loads[k].visible=e.carry>0&&e.ctype===k;
-    if(rig.gltf)EKMODELS.animate(rig,(e.state==='attack'&&G.t-(e.swing||-9)<1)||(!moving&&G.t-(e.healT||-9)<.6)?'attack':(work||build)?'work':moving?'walk':'idle',dt,moving?Math.max(.6,d.spd/60):1,wkKind(e),{v:moving?d.spd*(e.spk||1)*(e.rage>G.t?RAGE.spd:1)/10/(obj.scale.x||1):0,hit:o.fl>.2,fight:(e.state==='attack'||e.state==='amove')&&!d.gather&&e.type!=='worker'});
+    if(rig.gltf){
+      const kd=wkKind(e),near=cam.z>=.8,hunt=!!rig.wp&&near&&kd==='hunt'&&e.state==='attack'&&!moving&&d.gather&&G.t-(e.swing||-9)<2.6;/* Arbeiter jagt mit dem Speer */
+      const wantW=!hunt&&((e.state==='attack'&&G.t-(e.swing||-9)<1)||(!moving&&G.t-(e.healT||-9)<.6))?'attack':(work||build||hunt)?'work':moving?'walk':'idle';
+      const wp=rig.wp&&near?wkPhase(o,e,kd,dt,wantW,hunt,d):null;if(wantW!=='work')o.pg=undefined;
+      EKMODELS.animate(rig,wantW,dt,moving?Math.max(.6,d.spd/60):1,kd,{v:moving?d.spd*(e.spk||1)*(e.rage>G.t?RAGE.spd:1)/10/(obj.scale.x||1):0,hit:o.fl>.2,fight:(e.state==='attack'||e.state==='amove')&&!d.gather&&e.type!=='worker',
+        near,ph:wp?wp.ph:undefined,n:o.wn||0,cv:e.carry>0&&e.state==='return'});
+      e._wi=!!(wp&&rig.wp.cur&&(kd==='chop'||kd==='mine'));/* Späne kommen dann vom Aufprall (r3Impact), nicht vom Takt in render.js */
+      if(wp&&wp.imp)r3Impact(o,e,kd,rig);
+      /* Figur tritt beim Arbeiten bis auf Griffweite an Baum/Strauch heran (nur Darstellung, die Spielposition bleibt) */
+      let sh=0;if(wp&&rig.wp.cur&&(kd==='chop'||kd==='pick'||kd==='mine')){const nd=G.byId.get(e.tid);if(nd){const dd=Math.hypot(nd.x-e.x,nd.y-e.y)/S,gap=kd==='chop'?1.35:kd==='pick'?1.15:nd.r/S*.9+1;sh=Math.max(-.3,Math.min(1.1,dd-gap))}}
+      o.sh=(o.sh||0)+(sh-(o.sh||0))*Math.min(1,dt*3)}
     else if(rig.horse){rig.legs.forEach((l,i)=>l.rotation.z=(i%2?s:-s)*.7);const rd=rig.rider;rd.arms[1].rotation.z=.2+sw*.6}
     else if(rig.wheels){if(rig.load){rig.load.visible=(e.carry||0)>0;if(rig.loadMat&&rig.lc!==e.ctype){rig.lc=e.ctype;rig.loadMat.color.set({stone:0x8a8278,iron:0x8a4e3a,gold:0xe8c048}[e.ctype]||0x8a8278);if(rig.loadMat.metalness!==undefined)rig.loadMat.metalness=e.ctype==='gold'?.7:e.ctype==='iron'?.3:0}}if(rig.pusher&&moving){const p=rig.pusher,s=Math.sin(G.t*9);(p.legs||[]).forEach((l,i)=>l.rotation.z=(i?s:-s)*.5)}if(moving)rig.wheels.forEach(w=>w.rotation[w.userData.axis||'y']+=dt*3.2*(d.spd/40));if(rig.log)rig.log.position.x=sw*.9;if(rig.arm)rig.arm.rotation.z=-sw*1.8;if(rig.barrel)rig.barrel.position.x=.1-sw*.35}
     else if(rig.up){r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t)}
@@ -448,7 +484,7 @@ function r3Unit(o,e,h,dt,t){
       if(rig.tool){const k=build?'build':(e.state==='gather'||e.state==='return'||work)?e.rtype:null;rig.tool(k==='food'&&e.carry>0&&e.state==='return'?null:k);if(rig.sack){rig.sack.visible=e.carry>0&&e.state!=='gather'||e.carry>4;rig.sack.scale.setScalar(.6+Math.min(1,e.carry/CARRY)*.6)}}
     }
   }
-  obj.position.set(e.x/S,y,e.y/S);obj.rotation.y=o.yaw;
+  obj.position.set(e.x/S+(o.sh?Math.cos(e.fa)*o.sh:0),y,e.y/S+(o.sh?Math.sin(e.fa)*o.sh:0));obj.rotation.y=o.yaw;
 }
 function r3Animal(o,e,h,dt,t){const S=R3.S,rig=o.rig,moving=G.t-(e.mvT||-9)<.2;let dy=-e.fa-o.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));o.yaw+=dy*Math.min(1,dt*10);if(moving)o.ph+=dt*(6+UNITS_A(e).spd*.05);const s=Math.sin(o.ph);
   if(rig.gltf){EKMODELS.animate(rig,e.state==='graze'?'work':(e.swing&&G.t-e.swing<.8)?'attack':moving?'walk':'idle',dt,moving?1.4:1);if(!rig.mixer)rig.g.rotation.z=moving?Math.sin(o.ph)*.06:0}
@@ -477,7 +513,7 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   for(const w of r3.waves){w.material.opacity=w.userData.op0*(1-(R3.ice||0)*.72);const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   {const V=R3.view,N=R3.nodeV;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
-  r3Lod();R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}else r3GrassView()
+  r3Lod();R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}else r3GrassView();if(SHK.size)r3Shake(dt)
   r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;
