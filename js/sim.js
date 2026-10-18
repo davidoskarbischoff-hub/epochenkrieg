@@ -68,7 +68,7 @@ function healAura(){for(const h of G.ents){if(h.dead||h.kind!=='unit'||h.type!==
 function useRage(team,ids){let n=0;for(const id of ids){const u=G.byId.get(id);if(!u||u.dead||u.team!==team||u.kind!=='unit'||UNITS[u.type].passive||UNITS[u.type].naval||u.upj)continue;if((u.rageCd||0)>G.t)continue;u.rage=G.t+RAGE.dur;u.rageCd=G.t+RAGE.cd;n++}if(n&&team===0)sfx('yell');return n}
 /* Angefangene Gebäude ohne Bauarbeiter bekommen einen: Arbeiter, der gerade nichts Wichtiges trägt, hilft beim Fertigbauen */
 function autoFinish(){
-  if(G.mp||!autoBuildOn)return;
+  if(G.mp||!(autoBuildOn||(typeof advisor!=="undefined"&&advisor.auto)))return;
   for(const b of G.ents){if(b.dead||b.kind!=='bld'||b.built||b.team!==0)continue;
     if(G.ents.some(w=>!w.dead&&w.team===0&&w.state==='build'&&w.tid===b.id))continue;
     let bw=null,bd=1e9;for(const w of G.ents){if(w.dead||w.team!==0||w.type!=='worker'||w.upj||w.state==='build'||w.state==='attack')continue;const d=Math.hypot(w.x-b.x,w.y-b.y)+(w.state==='idle'?0:(w.carry>3?400:120));if(d<bd){bd=d;bw=w}}
@@ -217,7 +217,7 @@ function updUnit(u,dt){
     else moveToward(u,b.x,b.y,dt,b.id);break}
   }
 }
-function hit(u,t){const d=UNITS[u.type];if(!u.yl||G.t-u.yl>25){u.yl=G.t;if(Math.random()<.5)sfx('yell',u)}sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);const mult=(t.kind==='bld'?(d.siege?1.8:d.ranged?.3:1):(d.siege&&!d.ranged?.35:1))*(1+(d.ranged?G.tfx[u.team].ratk:G.tfx[u.team].matk))*(d.cls==='siege'?1+G.nfx[u.team].art:1)*(t.kind==='unit'?((CTR[d.cls]||{})[UNITS[t.type].cls]||1)*(d.gun&&UNITS[t.type].cls==='cav'?1.3:1):1)*(u.rage>G.t?RAGE.dmg:1)*(u.am||1);
+function hit(u,t){const d=UNITS[u.type];if(!u.yl||G.t-u.yl>25){u.yl=G.t;if(Math.random()<.5)sfx('yell',u)}sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);/* Gebäude: Fusstruppen kratzen nur (Nahkampf .25, Fernkampf .1), Belagerungswaffen zerstören (×1,4) */const mult=(t.kind==='bld'?(d.siege?1.4:d.ranged?.1:.25):(d.siege&&!d.ranged?.35:1))*(1+(d.ranged?G.tfx[u.team].ratk:G.tfx[u.team].matk))*(d.cls==='siege'?1+G.nfx[u.team].art:1)*(t.kind==='unit'?((CTR[d.cls]||{})[UNITS[t.type].cls]||1)*(d.gun&&UNITS[t.type].cls==='cav'?1.3:1):1)*(u.rage>G.t?RAGE.dmg:1)*(u.am||1);
   if(d.ranged)G.proj.push({x:u.x,y:u.y,tid:t.id,dmg:d.atk*mult*LVL.atk[u.lvl],src:u.id,a:0,big:!!d.siege,gun:!!d.gun,sp:d.splash||0});else damage(t,d.atk*mult*LVL.atk[u.lvl],u)}
 function damage(t,amt,src){
   if(t.kind==='unit'&&G.ents.some(b=>b.kind==='bld'&&b.type==='trench'&&b.built&&!b.dead&&b.team===t.team&&Math.hypot(b.x-t.x,b.y-t.y)<30))amt*=.65;
@@ -283,6 +283,7 @@ function startResearch(team,id){if(NET.client&&team===0){NET.send({c:'tech',id})
   b.queue.push({tech:id,t:0,paid:0});G.rs[team].push({id,t:0,time:t.time,q:true,b:b.id});if(team===0){panelSig='';infoCache='';sfx('click');toast(tr('Forschung eingereiht: {0}',tr(t.name)))}return true}
 function grantAiTechs(team){for(const t of TECHS)if(t.ep<=G.epoch[team]&&t.id!=='statfish')G.tech[team].add(t.id);techRefresh(team)}
 function levelUp(e,to){if(e.dead||e.kind==='node'||e.lvl>=to)return;
+  if(e.kind==='unit'){const nt=lineTo(e.type,to);if(nt!==e.type){e.type=nt;e.tid=null;if(e.state==='attack')e.state='idle'}}
   const nm=e.kind==='unit'?unitHp(e.team,e.type,to):Math.round(BLDS[e.type].hp*LVL.bhp[to]*(1+G.nfx[e.team].bhp));e.hp=e.hp/e.maxHp*nm;e.maxHp=nm;e.lvl=to}
 function applyLevels(team){const to=G.epoch[team];for(const e of G.ents)if(e.team===team)levelUp(e,to)}
 const upgCost=(e,to)=>{const c={};for(let l=e.lvl+1;l<=to;l++){const k=UPG[e.kind==='unit'?'unit':'bld'][l];for(const r in k)c[r]=(c[r]||0)+k[r]}return c};
@@ -291,7 +292,7 @@ const upgTime=n=>Math.min(UPG_TIME.max,UPG_TIME.base+n*UPG_TIME.each);
 function pending(team){const to=G.epoch[team],groups=new Map();let nb=0,nu=0;const cost={};
   for(const e of G.ents){if(e.dead||e.team!==team||e.kind==='node'||e.lvl>=to||e.upj)continue;
     if(e.kind==='unit')nu++;else nb++;
-    const key=e.kind+':'+e.type;let g=groups.get(key);if(!g){g={key,kind:e.kind,type:e.type,nm:e.kind==='unit'?UNITS[e.type].name:BLDS[e.type].name,n:0,cost:{}};groups.set(key,g)}
+    const key=e.kind+':'+e.type;let g=groups.get(key);if(!g){g={key,kind:e.kind,type:e.type,nm:e.kind==='unit'?(lineTo(e.type,to)!==e.type?tr('{0} → {1}',UNITS[e.type].name,UNITS[lineTo(e.type,to)].name):UNITS[e.type].name):BLDS[e.type].name,n:0,cost:{}};groups.set(key,g)}
     g.n++;const c=upgCost(e,to);for(const r in c){g.cost[r]=(g.cost[r]||0)+c[r];cost[r]=(cost[r]||0)+c[r]}}
   const list=[...groups.values()].sort((a,b)=>(a.kind===b.kind?0:a.kind==='unit'?-1:1)||(a.type==='worker'?-1:b.type==='worker'?1:0));
   list.forEach(g=>g.time=upgTime(g.n));
@@ -316,8 +317,9 @@ function mineCarts(){for(const b of G.ents){if(b.kind!=='bld'||b.type!=='mine'||
 /* Sammeltempo eines Arbeiters an einem Vorkommen (Technologien, Nation, Ausbau, Stufe, Schwierigkeit) */
 function gRate(u,n){const d=UNITS[u.type],gc=GATHER[n.rt];return .85*gc.rate*(1+G.tfx[u.team].gather+G.nfx[u.team].gather+((n.rt==='gold'||n.rt==='oil')?G.nfx[u.team].oilgold:0)+(d.naval?G.tfx[u.team].bgather+SF(u.team).bgather:0)+SF(u.team).gather)*(NODES[n.type].gm||1)*LVL.gather[u.lvl]*(u.team===1?DIFF[diff].gather:1)}
 function canGather(u,x){const need=typeof x==='string'?(NEED_LVL[x]||0):(NODES[x.type].lvl!==undefined?NODES[x.type].lvl:(NEED_LVL[x.rt]||0));return u.lvl>=need}
-const wkNeed=ep=>[5,10,20,30,40,45][Math.min(5,ep)]; /* Arbeiter, die für den Aufstieg aus Epoche ep nötig sind */
+const wkNeed=ep=>[14,22,30,40,46,50][Math.min(5,ep)]; /* Arbeiter, die für den Aufstieg aus Epoche ep nötig sind */
 const wkCount=t=>G.ents.reduce((n,e)=>n+(!e.dead&&e.team===t&&e.kind==='unit'&&e.type==='worker'?1:0),0);
+function advCost(team,ep){const c=EPOCHS[ep].cost;if(team!==1||G.mp)return c;const r={};for(const k in c)r[k]=Math.round(c[k]*AI_ADV_COST);return r}
 function advance(team,nat){
   const ep0=G.epoch[team];
   /* Beim Schritt aus der Industriezeit in die Weltkriegszeit wählt man eine Nation (Verzweigung im Zeitalter-Baum) */
@@ -327,7 +329,7 @@ function advance(team,nat){
   if(team===0&&G.jobs[0].length){toast(tr('Erst die laufenden Upgrades abwarten.'));sfx('error');return false}
   if(team===0&&pending(0).n){toast(tr('Erst alle Gebäude und Truppen auf Stufe {0} bringen.',LVLN[ep]));sfx('error');return false}
   if(team===0&&wkCount(0)<wkNeed(ep)){toast(tr('Für den Aufstieg brauchst du {0} Arbeiter.',wkNeed(ep)));sfx('error');return false}
-  const c=EPOCHS[ep].cost;
+  const c=advCost(team,ep);
   if(!pay(team,c)){if(team===0)toast(missing(team,c)+'.');return false}
   if(ep===5&&nat&&NATIONS[nat]){G.nation[team]=nat;G.nfx[team]=nationFx(nat);recount()}
   G.adv[team]={t:0,time:EPOCHS[ep].time};if(team===0){panelSig='';toast(tr('Aufstieg in die {0} begonnen.',tr(EPOCHS[ep+1].name)))}return true;

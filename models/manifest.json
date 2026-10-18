@@ -4887,6 +4887,48 @@
     "spec": "def",
     "fit": 1
    }
+  ],
+  "wall": [
+   {
+    "file": "archiv/Wooden Wall.glb",
+    "epochs": [
+     0,
+     1,
+     2
+    ],
+    "fit": 0.85
+   },
+   {
+    "file": "archiv/Stone Wall.glb",
+    "epochs": [
+     3,
+     4,
+     5,
+     6
+    ],
+    "fit": 0.85
+   }
+  ],
+  "gate": [
+   {
+    "file": "archiv/Wooden Fortress Gate.glb",
+    "epochs": [
+     0,
+     1,
+     2
+    ],
+    "fit": 0.85
+   },
+   {
+    "file": "archiv/Castle Gate.glb",
+    "epochs": [
+     3,
+     4,
+     5,
+     6
+    ],
+    "fit": 0.85
+   }
   ]
  },
  "animals": {

@@ -6,15 +6,17 @@ const ROOM={BGS:{werkstatt:'artist_workshop.jpg',studio:'ferndale_studio.jpg'},o
   const B='models/raum/',K=ROOM.K;
   /* Platzierung in Welt-Einheiten (Karte = x 0..480, z 0..320; vorn = grosses z, unten im Bild). on:'desk'|'floor', s = Zusatz-Massstab */
   /* aufgeräumt: auf dem Tisch nur Lampe, Schach, Bücher, Öllampe, Tee, Stifte; der Rest steht geordnet an der Rückwand bzw. auf dem Teewagen */
-  const DESK_PROPS=[ /* Tisch: x -250..730, z -160..480; Brett 0..480 × 0..320 → nur die Ränder sind frei */
-    {f:'desk_lamp_arm_01',x:-150,z:-60,ry:2.4},
-    {f:'book_encyclopedia_set_01',x:-150,z:170,ry:1.57,s:.6},
-    {f:'chess_set',x:615,z:60,ry:0,s:.6},
-    {f:'vintage_oil_lamp',x:-160,z:400,ry:0},
-    {f:'tea_set_01',x:600,z:400,ry:.3,s:.9,only:1},
-    {f:'stationery_supplies',x:260,z:410,ry:0}];
-  /* Möbel am Boden: nur der Stuhl – den Raum selbst liefert das Foto (Boden = auf den Boden projiziertes Foto) */
-  const FLOOR_PROPS=[{f:'plastic_monobloc_chair_01',x:240,z:720,ry:3.14}];
+  /* Anordnung aus Sicht des Spielers auf dem Stuhl vorn (z gross, Blick nach hinten; rechts = +x). Tisch: x -250..730, z -160..480; Brett 0..480 × 0..320.
+     Lampe links, Kopf zeigt aufs Brett (Lampenkopf liegt im Modell bei −z → ry = atan2(−dx,−dz)); Tasse hinten rechts; Bücher und Schach rechts; Öllampe hinten links; Stifte vorn. */
+  const DESK_PROPS=[
+    {f:'desk_lamp_arm_01',x:-150,z:150,ry:-1.6},
+    {f:'vintage_oil_lamp',x:-170,z:-90,ry:0},
+    {f:'tea_set_01',x:640,z:-80,ry:.3,s:.9,only:1},
+    {f:'book_encyclopedia_set_01',x:640,z:150,ry:1.57,s:.6},
+    {f:'chess_set',x:615,z:380,ry:0,s:.6},
+    {f:'stationery_supplies',x:200,z:420,ry:.25}];
+  /* Möbel am Boden: Stuhl des Spielers vorn, Sofa hinten an der Wand (Blick zum Tisch) */
+  const FLOOR_PROPS=[{f:'plastic_monobloc_chair_01',x:240,z:760,ry:3.14},{f:'sofa_02',x:240,z:-1500,ry:0}];
   const load=(L,f)=>new Promise(r=>L.load(B+f+'/'+f+'_1k.gltf',g=>r(g.scene),undefined,e=>{console.warn('Raum-Modell',f,e&&e.message);r(null)}));
   const box=o=>new THREE.Box3().setFromObject(o);
   function prep(o){o.traverse(m=>{if(m.isMesh){m.castShadow=false;m.receiveShadow=true;m.userData.noShadow=true;if(m.material){m.material.fog=true}}})}
@@ -47,7 +49,7 @@ const ROOM={BGS:{werkstatt:'artist_workshop.jpg',studio:'ferndale_studio.jpg'},o
     ROOM.floorY=floor;ROOM.setBg();
     ROOM.ready=true;ROOM.apply()};
   ROOM.setBg=function(){if(!ROOM.g)return;const bgf=ROOM.BGS[typeof OPT!=='undefined'&&OPT.roomStudio?'studio':'werkstatt'],floor=ROOM.floorY,g=ROOM.g;
-    new THREE.TextureLoader().load(B+bgf,t=>{if(ROOM.sky){g.remove(ROOM.sky);ROOM.sky.geometry.dispose();ROOM.sky.material.map.dispose();ROOM.sky.material.dispose()}t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;const H=1.6*K,sk=groundSky(t,H,7000);sk.position.set(240,floor+H,160);g.add(sk);ROOM.sky=sk;ROOM.bg=t;ROOM.apply()});
+    new THREE.TextureLoader().load(B+bgf,t=>{if(ROOM.sky){g.remove(ROOM.sky);ROOM.sky.geometry.dispose();ROOM.sky.material.map.dispose();ROOM.sky.material.dispose()}t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;const H=1.5*K,sk=groundSky(t,H,12000);sk.position.set(240,floor+H,160);g.add(sk);ROOM.sky=sk;ROOM.bg=t;ROOM.apply()});
   };
   /* an/aus: Hintergrund, Meer nur auf dem Brett, Sichtweite */
   ROOM.apply=function(){if(!R3.ok)return;const on=ROOM.ready&&!(typeof OPT!=='undefined'&&OPT.room===false);ROOM.on=on;if(ROOM.g)ROOM.g.visible=on;document.body.classList.toggle('room',on);

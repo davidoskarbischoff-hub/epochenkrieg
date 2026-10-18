@@ -62,10 +62,10 @@ Hilfsmittel:
   - Flugplatz
   - Betonhafen
 - [ ] **R6:** Balance:
-  - Selbstspiel Berater gegen KI auf allen Schwierigkeiten
+  - [x] Selbstspiel Berater gegen KI auf allen Schwierigkeiten (10 Min: leicht 24:8 Einheiten, normal 23:22, schwer 28:31; kein Sieger, keine Änderung nötig)
   - Duell-Test der Einheiten (kostengleiche Gruppen)
-  - Dino-Gefährlichkeit
-  - Aufstiegstempo
+  - [x] Dino-Gefährlichkeit (Rechnung: 6 Steinzeit-Kämpfer ~30 Schaden/s; T-Rex vorher 950 Leben/58 Schaden unschaffbar, jetzt 480/40 = mit ~8 Kämpfern knapp schaffbar; Pflanzenfresser nur wehrhaft, Raptor ok)
+  - [x] Aufstiegstempo (Berater-Auto, Normal: 1. Aufstieg 7,6 min, 2. Aufstieg nicht in 15 min, braucht 10 Arbeiter; keine Änderung)
 - [~] **R7:** Leistung mit allen neuen Modellen (Runde 12.10., Messung große Karte, `qa/perf.js`, `qa/army.js`):
   - Gras nur im sichtbaren Ausschnitt (`r3GrassView`), Halme ohne Boden: normale Ansicht 1,42 Mio. → 0,41 Mio. Dreiecke
   - Fernsicht (Zoom < 0,95, `LOD_Z`): vereinfachte Bäume (`lodGeo`) und Gelände (jeder 2. Eckpunkt): 1,8 Mio. → 0,37–0,42 Mio.
@@ -75,12 +75,15 @@ Hilfsmittel:
   - offen: Einheiten-LOD in der Fernsicht, Gelände flacher Stellen gröber, Instanzen für Gebäude-Beiwerk
   - Draw-Calls und Dreiecke (`r3.renderer.info`) im späten Spiel
   - Instanzen für Deko
-  - Dateigrößen
+  - Dateigrößen (Bericht, nichts gelöscht): >3 MB nur `models/neu/UAL1_Standard.glb` 7,3 MB (in Benutzung) und in `models/archiv/` (unbenutzt, nicht in der App): `raum/artist_workshop_4k.exr` 23 MB, `raum/ferndale_studio_03_2k.hdr` 6,1 MB, Knights-Kit 4,1 MB, Trees 3,3 MB, Rocks 3,1 MB
+  - Messung spätes Zeitalter (`qa/perf.js`: Große Karte, Zeitalter 5, 100 Einheiten + 48 Gebäude, gemittelt über Haupt- und Schattenbild, Swiftshader): 100 Einheiten kosten etwa 0,63 Mio. Dreiecke und 470 Zeichenaufrufe (ohne Einheiten 0,83 Mio. / 568 von 1,46 Mio. / 1040); Arbeiter tragen Rucksack-/Werkzeugteile als eigene Meshes
+  - Gemacht: Figuren/Tiere werfen in der Fernsicht (Zoom < 0,95) keinen Schatten (`r3UnitSh` in `r3Lod`): Zoom 0,7 vorher 1521 Aufrufe / 2,27 Mio. Dreiecke, nachher 1274 / 1,87 Mio. (-16 % / -18 %); Zoom 1,0 unverändert (~1700 / 1,93 Mio.)
+  - weiter offen: vereinfachte Figuren-Geometrie in der Fernsicht (Skin-Gewichte!), Gelände flacher Stellen gröber, Beiwerk-Instanzen
 - [ ] **R8:** Häuser-Paket (House_01–20) einbauen, sobald David `House_texture_atlas.png` hochlädt.
 - [ ] **R9:** Oberfläche:
   - Vorschaubilder in den Knöpfen passend zu den neuen Modellen (ICON3)
   - Hauptmenü-Hintergrund mit Szene
-- [ ] **R10:** Durchspiel-Audit aller Zeitalter wie ein Spieler und Auffälligkeiten sammeln (Agent `epochen-qa`).
+- [x] **R10 (technisch, ohne Bilder):** 60 Spielminuten Selbstspiel (Berater Auto, Normal, Küste M, 1 Spieler gegen KI): 0 JS-Fehler, 0 NaN in Leben/Position, keine negativen Vorräte, keine dauerhaft festhängenden Einheiten, Gebäude werden fertig. Nur Warnungen von Three.js/SwiftShader. Offen: Berater-Auto kam nur bis Epoche 4 (KI Epoche 3); Bevölkerung 73/100, Nahrung stieg auf ~24000 ungenutzt, Berater gibt Überschuss nicht aus (Truppen/Aufstieg zu zögerlich). Visueller Teil von R10 (Agent `epochen-qa`) bleibt offen.
 
 ## Erledigt
 - (wird je Runde ergänzt)
@@ -95,10 +98,38 @@ Hilfsmittel:
   - Kaserne 5: Backsteinbau mit Übungspuppe/Zielscheibe; Kaserne 6: Zeltlager mit Jeep und Lastwagen
   - Hafen 5–6: Frachthafen
 - [ ] Noch Code-Rückfall:
-  - Kanone (Renaissance): kein passendes Modell vorhanden → David um ein Artillerie-/Kanonen-Paket bitten
+  - Kanone (Zeitalter 4): kein Manifest-Eintrag, `entryFor` findet nichts zum Ausweichen. Vorhanden sind nur `models/towers/cannon_*.glb` (Geschützturm, keine Feldkanone) → fehlt: fahrbare Feldkanone auf Lafette (glTF), David bitten
   - Turm 5–6 (Strang Türme)
-  - Mauer, Tor, Graben (Mauerlogik mit Drehung/Pfosten: eigene Runde)
-  - Bohrturm, Raffinerie, Flugplatz: keine passenden Modelle → David bitten (Ölförderung, Hangar)
+  - Mauer, Tor (14.10.): jetzt echte Modelle (Holzwand/Holztor Zeitalter 0–2, Steinmauer/Burgtor ab 3, aus `archiv/`); Länge der Mauersegmente und Pfosten im Spiel noch prüfen. Graben: kein passendes Modell, bleibt Code → David bitten
+  - Bohrturm, Raffinerie, Flugplatz (Zeitalter 6, kein Manifest-Eintrag): fehlt Ölförderung/Raffinerie und ein Hangar/Flugfeld (nur `arch/Barn.glb`, passt nicht) → David bitten
+  - Geprüft 14.10. und bewusst nicht benutzt: Propangastank (als Raffinerie), Scheune/Lagerschuppen/Zelt (als Hangar), `towers/cannon_*` (Geschützturm statt Feldkanone). Bitte Pakete hochladen: Feldkanone auf Lafette, Ölbohrturm, Raffinerie, Hangar/Flugfeld, Schützengraben.
 - [x] Fell-Umhang, Fellrock und Zahnkette (aus Formen gebaut, `cloth()`) an allen Figuren entfernt. Die Zeitalter unterscheiden sich jetzt über die Kleidungsfarben, Späher sind grün, Heiler hell.
 
 - Erledigt (12.10. c): „Military man“ (1,5 MB) durch `archiv/Stahlhelm.glb` (227 KB) ersetzt; Nationen-Einheiten/Ingenieur nutzen den gemeinsamen Grundkörper Adventurer (weniger verschiedene Skelette/Dateien).
+
+- [x] Berater-Selbstspiel (Normal): Aufstieg 1 von 7,6 min auf 6 min, Aufstieg 2 bei ~13,5 min (zuvor nie). Ursachen: Arbeiterziel in Steinzeit nur 6 (jetzt 9/14), und Arbeiter in der Mine (Zustand `mine`) wurden von den Umverteilungs-Regeln nicht gezählt/umgestellt (Stein 2000+ gehortet, Nahrung leer). Offen: ein Lauf von zwei erreicht Aufstieg 2 knapp nach 15 min (Zufall der KI).
+
+## Spieltempo gebremst (14.10.)
+- Aufstiegskosten (`EPOCHS` in data.js) etwa verdreifacht (vor allem Nahrung/Holz), Bauzeit 100–220 s, `wkNeed` 14/22/30/40/46/50, Berater-Arbeiterziele 15/22/30/40/45. KI zahlt nur 40 % (`AI_ADV_COST`, `advCost` in sim.js), `AI_MINT` 620/1290/2030/2770/3500/4200.
+- Messung (Selbstspiel Berater, Normal, Seed 7, "Arbeiter denken mit" an): Spieler Aufstiege bei 15,4 / 28,1 / 40,4 / 51,8 min (vorher 5,8 / 12 / 17 / 28); KI 18,1 / 30,5 / 47 / 63,7 min.
+- Behoben: Eine vom Berater gesetzte Mine blieb unfertig, weil nur ein Bauarbeiter geschickt wurde und er abgezogen werden konnte. `autoFinish` (sim.js) läuft jetzt auch bei Berater-Auto ohne "Arbeiter denken mit" und besetzt unfertige Gebäude neu. Test (30 Min, Normal, M): Mine fertig bei 954 s, Aufstieg bei 894 s.
+
+## Kandidaten für fehlende Modelle (15.10., Recherche; Download war nicht möglich, kenney.nl ist im Proxy gesperrt)
+Bitte selbst herunterladen und hochladen (nur CC0/CC-BY). Lizenz auf der Seite vor dem Einbau prüfen, nichts davon ist hier geprüft/eingebaut.
+- Feldkanone auf Lafette: Kenney "Pirate Kit" (CC0, enthält Kanone, GLB) – https://kenney.nl/assets/pirate-kit ; Kenney "Castle Kit" – https://kenney.nl/assets/castle-kit (Belagerungsgerät). Nur falls Stil passt.
+- Ölbohrturm / Pumpe, Raffinerie, Hangar, Schützengraben: kein CC0-GLB gefunden. Suche auf https://poly.pizza (Filter CC0/CC-BY, Stichwort "oil", "hangar", "trench"), https://quaternius.com und https://opengameart.org ("oil derrick", "refinery", "hangar", "trench"). Gefundene Pumpjacks (thepixellab, CGTrader, RenderHub) sind nicht CC0 oder kostenpflichtig, nicht nehmen.
+- Hangar-Ersatz: Kenney "Modular Buildings"/"City Kit (Industrial)" – https://kenney.nl/assets/city-kit-industrial (CC0, Hallen/Tanks, könnte Raffinerie/Hangar per Umfärben ergeben).
+
+## Ideen aus anderen Open-Source-RTS (nur Ideen)
+- 0 A.D.: Gebäude und Einheiten haben Rüstung gegen Hieb/Stich/Druck getrennt, so entsteht Stein-Schere-Papier ohne neue Werte pro Einheit.
+- 0 A.D.: Einheiten sammeln Erfahrung (Ränge) und werden durch Kämpfe stärker, das macht kleine Truppen wertvoll.
+- OpenRA: Wegfindung mit Verkehrsregeln – stehende Einheiten weichen marschierenden aus, das löst Staus an Engstellen.
+- OpenRA: Bauwarteschlange pro Gebäudetyp und gesetzter Sammelpunkt (Rally) spart dem Spieler viele Klicks.
+- Widelands: Wirtschaft über Straßen/Warenfluss mit sichtbaren Engpässen; für uns: Anzeige, welche Ressource gerade fehlt.
+
+- Mauer/Tor-Modelle geprüft (Messung im Spiel): lange Achse liegt richtig in Zugrichtung, aber Stücke waren 28,9 px lang bei 24 px Abstand (Überlappung). `fit` 0,85 für Holz/Stein-Mauer und Tor → 24,5 px, keine Lücken. Pfosten (`wallPosts`) unverändert. Keine Konsolenfehler; keine Screenshots nötig.
+
+## R10-Nachtrag: Berater-Tempo (Selbstspiel, Normal, 60 min)
+- Ursache: Berater-Arbeiterziel (45) lag unter dem Aufstiegsbedarf `wkNeed` (46) -> Aufstieg Epoche 3->4 wartete. Ausserdem: Hütten zu spät (Bevölkerungsgrenze bremste), wenig Truppen. Nahrung "ungenutzt" ist grossenteils Sparen für die Aufstiegskosten (6600 Nahrung ab Epoche 1) – Kosten bleiben unverändert.
+- Änderung (`advisor.js`): Arbeiterziel mindestens `wkNeed(ep)`, Taktik "Ausgewogen": mehr Arbeiter (18/28/38/48/54), `hs:5` (Hütten früher), Truppenziel 10+8*Ep, zweite Kaserne ab 20 Arbeitern, Angriff erst ab Epoche 4.
+- Ergebnis: vorher Epoche 4 nach 60 min, 26 Truppen, 15700 Nahrung; nachher Epoche 4 nach ~55–60 min bzw. Sieg über die KI (KI Epoche 2–3) nach 42–50 min mit 36 Truppen. Epoche 5 ohne Kostenänderung nicht erreichbar (~13 min je Aufstieg, Einkommen ist die Grenze).

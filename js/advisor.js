@@ -6,8 +6,8 @@ let advOn=true;try{advOn=localStorage.getItem('ek-advisor')!=='0'}catch(_){}
 const advisor={cur:null,ignore:{},next:0,last:-9,shown:'',strat:'balanced',intel:null,open:true,auto:false,autoAt:0};
 /* Taktiken des Beraters: wk = Arbeiterziel je Epoche, mil = Truppenziel, atk = ab so vielen Truppen Angriff, tow = Türme, barW = ab so vielen Arbeitern Kaserne, w = Reihenfolge der Vorschläge (kleiner = früher) */
 const STRATS={
-  balanced:{name:'Ausgewogen',desc:'Von allem etwas',wk:[6,12,22,32,40,40,42],mil:ep=>9+ep*4,atk:ep=>14+ep*4,tow:()=>1,barW:6,bar2:99,hs:1,w:{}},
-  turtle:{name:'Verteidigung',desc:'Türme, solide Armee, spät angreifen',wk:[6,12,22,32,40,40,42],mil:ep=>8+ep*3,atk:ep=>16+ep*4,tow:ep=>2+ep,barW:6,bar2:99,hs:1,w:{tower:1,upg:2,army:2,barracks:2,tech:3,attack:9}},
+  balanced:{name:'Ausgewogen',desc:'Von allem etwas',wk:[18,28,38,48,54,56,58],mil:ep=>10+ep*8,atk:ep=>ep<4?99:10+ep*8,tow:()=>1,barW:6,bar2:20,hs:5,w:{}},
+  turtle:{name:'Verteidigung',desc:'Türme, solide Armee, spät angreifen',wk:[15,22,30,40,45,46,48],mil:ep=>8+ep*3,atk:ep=>16+ep*4,tow:ep=>2+ep,barW:6,bar2:99,hs:1,w:{tower:1,upg:2,army:2,barracks:2,tech:3,attack:9}},
   boom:{name:'Aufstieg',desc:'So schnell wie möglich in die höchste Epoche',wk:[7,13,23,33,41,41,43],mil:ep=>3+ep*2,atk:ep=>14+ep*3,tow:()=>1,barW:9,bar2:99,hs:2,w:{adv:1,upg:1,tech:2,worker:2,house:2,balance:2,barracks:8,army:8,attack:9}},
   rush:{name:'Angriff',desc:'Früh viele Truppen, schnell zuschlagen',wk:[5,8,10,12,12,12,12],mil:ep=>12+ep*5,atk:ep=>5+ep,tow:()=>1,barW:4,bar2:8,hs:1,w:{barracks:1,army:1,attack:2,worker:4,adv:7,tech:7,upg:6}},
   eco:{name:'Wirtschaft',desc:'Viele Arbeiter, große Vorräte',wk:[8,14,26,36,44,44,46],mil:ep=>4+ep*2,atk:ep=>12+ep*3,tow:()=>1,barW:10,bar2:99,hs:3,w:{worker:1,house:1,balance:1,harbor:2,tech:2,shift:2,adv:3,upg:3,barracks:7,army:7,attack:9}}
@@ -59,7 +59,7 @@ function advIdle(){
     const rt0=order[i++%order.length];
     for(const rt of [rt0,'wood','food']){if(!UNITS[u.type].naval&&!canGather(u,rt))continue;const n=nearestNode(rt,u.x,u.y,900,u,true)||nearestNode(rt,u.x,u.y,900,u);if(n){u.state='gather';u.tid=n.id;u.rtype=rt;u.pf=null;break}}}
   sfx('order')}
-function shiftWorkers(from,to,n){let k=0;for(const w of G.ents){if(k>=n)break;if(w.dead||w.team!==0||w.type!=='worker'||w.rtype!==from||w.state!=='gather'||w.upj||!canGather(w,to))continue;const nd=nearestNode(to,w.x,w.y,900,w,true)||nearestNode(to,w.x,w.y,900,w);if(nd){w.tid=nd.id;w.rtype=to;w.pf=null;w.carry=0;k++}}sfx('order')}
+function shiftWorkers(from,to,n){let k=0;for(const w of G.ents){if(k>=n)break;if(w.dead||w.team!==0||w.type!=='worker'||w.rtype!==from||(w.state!=='gather'&&w.state!=='mine')||w.upj||!canGather(w,to))continue;const nd=nearestNode(to,w.x,w.y,900,w,true)||nearestNode(to,w.x,w.y,900,w);if(nd){if(w.inm)mineOut(w);w.state='gather';w.tid=nd.id;w.rtype=to;w.pf=null;w.carry=0;k++}}sfx('order')}
 function sendArmy(tx,ty){const us=G.ents.filter(u=>!u.dead&&u.team===0&&u.kind==='unit'&&!UNITS[u.type].passive&&!UNITS[u.type].naval&&!u.upj);const cols=Math.ceil(Math.sqrt(us.length)||1);us.forEach((u,i)=>giveOrder(u,{t:'amove',x:tx+(i%cols-(cols-1)/2)*20,y:ty+(Math.floor(i/cols)-(cols-1)/2)*20},false));fxMark(tx,ty,'attack');sfx('order')}
 /* Reihenfolge der Vorschläge: kleiner = wichtiger (Verteidigung 0, Mangel/Untätige 1, ...) */
 function advKey(r){const S=STRATS[advisor.strat]||STRATS.balanced,bw=S.w||{},base={defend:0,low:0.5,idle:1,adv:1.5,balance:2,explore:3,in:4},k=r.id.split(':')[0];return bw[k]!==undefined?bw[k]:base[k]!==undefined?base[k]:5}
@@ -79,7 +79,7 @@ function advRules(){
     push({id:'house',txt:'eine Hütte bauen (die Bevölkerungsgrenze ist fast erreicht)',cost:BLDS.house.cost,go:()=>advBuild('house')});
   if(has('scout').some(u=>u.state==='idle'&&!u.upj))push({id:'explore',txt:'die Späher automatisch erkunden lassen',go:()=>{has('scout').forEach(u=>{if(u.state==='idle'){u.state='explore';u.ex=null}});sfx('order')}});
   if(idle.length)push(idle.length===1?{id:'idle',txt:'eine untätige Einheit an die Arbeit schicken',go:advIdle}:{id:'idle',txt:'{0} untätige Einheiten an die Arbeit schicken',args:[idle.length],go:advIdle});
-  if(workers.length+queuedW<S.wk[ep]&&hq.queue.length<2&&G.pop[0]<G.cap[0]&&afford(0,UNITS.worker.cost))
+  if(workers.length+queuedW<Math.max(S.wk[ep],wkNeed(ep))&&hq.queue.length<2&&G.pop[0]<G.cap[0]&&afford(0,UNITS.worker.cost))
     push({id:'worker',txt:'einen Arbeiter ausbilden',cost:UNITS.worker.cost,go:()=>enqueue(hq,'worker',0)&&(panelSig='')});
   const pd=pending(0);
   if(pd.n&&!G.adv[0]){const gs=pd.groups.filter(g=>afford(0,g.cost)).sort((a,b)=>a.n-b.n);
@@ -106,17 +106,17 @@ function advRules(){
     if(tgt&&mil>=S.atk(ep)&&!foes.length)push({id:'attack',txt:'mit {0} Truppen das gegnerische {1} angreifen',args:[mil,tr(BLDS[tgt.type].name)],go:()=>sendArmy(tgt.x,tgt.y)})}
   // Rohstoffmangel: für den nächsten Aufstieg fehlt eine Ressource, aber kaum jemand sammelt sie
   if(ep<EPOCHS.length-1&&workers.length>=8){const goal=EPOCHS[ep].cost;
-    for(const rt of RES){const need=goal[rt]||0;if(!need||R[rt]>=need)continue;const on=workers.filter(w=>w.rtype===rt&&(w.state==='gather'||w.state==='return')).length;if(on>=2||!workers.some(w=>canGather(w,rt)))continue;
+    for(const rt of RES){const need=goal[rt]||0;if(!need||R[rt]>=need)continue;const on=workers.filter(w=>w.rtype===rt&&((w.state==='gather'||w.state==='mine')||w.state==='return')).length;if(on>=5||!workers.some(w=>canGather(w,rt)))continue;
       const donor=RES.filter(x=>x!==rt&&R[x]>(goal[x]||0)+150).sort((a,b)=>R[b]-R[a])[0];if(donor){push({id:'shift:'+rt,txt:'Arbeiter auf {0} umstellen (wird für den Aufstieg gebraucht)',args:[rn(rt)],go:()=>shiftWorkers(donor,rt,3)});break}}}
   // Knappe Vorräte: sofort reagieren, wenn eine Ressource fast leer ist
   if(workers.length>=6)for(const rt of RES){const goal={food:60,wood:60,stone:30,iron:30}[rt];if(!goal||R[rt]>=goal||!workers.some(w=>canGather(w,rt)))continue;
-    const on=workers.filter(w=>w.rtype===rt&&w.state==='gather').length,donor=RES.filter(x=>x!==rt&&on<3&&workers.filter(w=>w.rtype===x&&w.state==='gather').length>=4).sort((x,y)=>R[y]-R[x])[0];
+    const on=workers.filter(w=>w.rtype===rt&&(w.state==='gather'||w.state==='mine')).length,donor=RES.filter(x=>x!==rt&&on<3&&workers.filter(w=>w.rtype===x&&(w.state==='gather'||w.state==='mine')).length>=4).sort((x,y)=>R[y]-R[x])[0];
     if(donor){push({id:'low:'+rt,txt:'{0} ist knapp ({1}) – 3 Arbeiter von {2} auf {0} umstellen',args:[rn(rt),Math.floor(R[rt]),rn(donor)],go:()=>shiftWorkers(donor,rt,3)});break}}
   // Fischerboote: Nahrung vom Meer
   {const hb=has('harbor').find(b=>b.built&&b.queue.length<1),nb=has('boat').length;
     if(hb&&nb<2+Math.min(3,ep)&&G.pop[0]<G.cap[0]&&afford(0,UNITS.boat.cost))push({id:'boat',txt:'ein Fischerboot ausbilden (Nahrung vom Meer)',cost:UNITS.boat.cost,go:()=>enqueue(hb,'boat',0)&&(panelSig='')})}
   // Arbeiter umverteilen: ein Rohstoff fehlt, ein anderer liegt ungenutzt herum
-  if(workers.length>=8){const can=RES.filter(rt=>workers.some(w=>canGather(w,rt))),on=rt=>workers.filter(w=>w.rtype===rt&&w.state==='gather').length;
+  if(workers.length>=8){const can=RES.filter(rt=>workers.some(w=>canGather(w,rt))),on=rt=>workers.filter(w=>w.rtype===rt&&(w.state==='gather'||w.state==='mine')).length;
     const lo=can.filter(rt=>R[rt]<100).sort((x,y)=>R[x]-R[y])[0],hi=can.filter(rt=>R[rt]>420&&on(rt)>=4).sort((x,y)=>R[y]-R[x])[0];
     if(lo&&hi&&lo!==hi)push({id:'balance:'+lo,txt:'3 Arbeiter von {0} auf {1} umstellen (hier fehlt es, dort liegt genug)',args:[rn(hi),rn(lo)],go:()=>shiftWorkers(hi,lo,3)})}
   // Lager am Wald: wenn viele Holzfäller weit vom nächsten Abgabegebäude arbeiten

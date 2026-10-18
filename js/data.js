@@ -18,7 +18,7 @@ const UNITS={
   crossbow:{cls:'rng',tech:'crossbowbuild',name:'Armbrustschütze',sight:180,hp:110,spd:52,atk:28,rng:150,cd:2,r:7,cost:{food:70,wood:60,iron:30},time:18,ep:3,from:'barracks',ranged:true},
   musket:{cls:'rng',tech:'powder',name:'Musketier',sight:190,hp:135,spd:52,atk:46,rng:175,cd:2.2,r:7,cost:{gold:25,food:80,wood:40,iron:60},time:20,ep:4,from:'barracks',ranged:true,gun:true},
   cannon:{cls:'siege',tech:'foundry',name:'Kanone',sight:200,hp:170,spd:34,atk:60,rng:240,cd:4.2,r:11,cost:{gold:60,wood:160,iron:140},time:30,ep:4,from:'barracks',splash:40,ranged:true,siege:true},
-  ram:{cls:'siege',tech:'siegeworks',name:'Rammbock',sight:150,hp:330,spd:42,atk:42,rng:6,cd:2.2,r:11,cost:{wood:200,iron:60},time:26,ep:3,from:'barracks',siege:true},
+  ram:{cls:'siege',name:'Rammbock',sight:150,hp:330,spd:42,atk:42,rng:6,cd:2.2,r:11,cost:{wood:220,stone:40},time:26,ep:1,from:'barracks',siege:true},
   catapult:{cls:'siege',tech:'siegeworks',name:'Katapult',sight:190,hp:140,spd:36,atk:48,rng:250,cd:4.8,r:10,cost:{wood:220,stone:120},time:30,ep:3,from:'barracks',splash:40,ranged:true,siege:true},
   galleon:{cls:'ship',tech:'galleonbuild',name:'Galeone',naval:true,ranged:true,sight:260,hp:380,spd:58,atk:28,rng:210,cd:2.2,r:15,cost:{wood:200,iron:80},time:32,ep:3,from:'harbor'},
   rifle:{cls:'rng',tech:'rifles',name:'Gewehrschütze',sight:210,hp:190,spd:54,atk:74,rng:195,cd:1.9,r:7,cost:{gold:35,food:100,wood:40,iron:90},time:22,ep:5,from:'barracks',ranged:true,gun:true},
@@ -87,7 +87,7 @@ const NODES={tree:{cap:3,rt:'wood',amt:420,r:11,name:'Baum'},bush:{cap:3,rt:'foo
   fish:{cap:2,sea:true,rt:'food',amt:160,r:8,name:'Fischschwarm',gm:1,regen:.55},
   dolphin:{cap:3,sea:true,rt:'food',amt:700,r:11,name:'Delfine',gm:1.8,lvl:3,regen:.45},
   whale:{cap:4,sea:true,rt:'food',amt:2400,r:16,name:'Wal',gm:2.6,lvl:5,regen:.5,side:{oil:.25}}};
-const EPOCHS=[{name:'Steinzeit',cost:{food:350,wood:200},time:30},{name:'Bronzezeit',cost:{food:500,wood:250,stone:200},time:40},{name:'Eisenzeit',cost:{food:700,wood:350,stone:300,iron:150},time:50},{name:'Mittelalter',cost:{food:900,wood:450,stone:450,iron:350,gold:200},time:60},{name:'Renaissance',cost:{food:1100,wood:600,stone:500,iron:450,gold:350},time:70},{name:'Industriezeit',cost:{food:1300,wood:700,stone:600,iron:550,gold:450,oil:150},time:80},{name:'Weltkriegszeit'}];
+const EPOCHS=[{name:'Steinzeit',cost:{food:3800,wood:2500},time:120},{name:'Bronzezeit',cost:{food:6600,wood:4200,stone:600},time:150},{name:'Eisenzeit',cost:{food:9500,wood:6000,stone:800,iron:550},time:180},{name:'Mittelalter',cost:{food:12500,wood:7500,stone:1000,iron:800,gold:450},time:220},{name:'Renaissance',cost:{food:1100,wood:600,stone:500,iron:450,gold:350},time:70},{name:'Industriezeit',cost:{food:1300,wood:700,stone:600,iron:550,gold:450,oil:150},time:80},{name:'Weltkriegszeit'}];
 /* Wilde Tiere: agg = Aggro-Reichweite (greift an, wenn jemand näher kommt), leash = so weit folgt es seinem Revier-Mittelpunkt, roam = Streifgebiet,
    flee = friedliche Tiere fliehen ab dieser Nähe, food = Nahrung für den, der es erlegt, h = Höhe fürs Anzeigen */
 const ANIMALS={
@@ -103,7 +103,7 @@ const ANIMALS={
   stego:{name:'Stegosaurus',hp:520,spd:46,atk:28,rng:12,cd:1.6,r:16,sight:150,agg:55,leash:220,roam:70,food:600,h:36,ext:1,info:'Pflanzenfresser – friedlich, schlägt mit dem Stachelschwanz zurück'},
   bronto:{name:'Brontosaurus',hp:1300,spd:38,atk:45,rng:16,cd:2,r:24,sight:150,agg:45,leash:200,roam:60,food:1400,h:60,ext:1,info:'Riesiger Pflanzenfresser – nur gefährlich, wenn man ihn reizt. Enorm viel Nahrung'},
   raptor:{name:'Velociraptor',hp:85,spd:108,atk:11,rng:6,cd:.8,r:7,sight:200,agg:170,leash:460,roam:150,food:90,h:20,ext:1,pack:true,info:'Fleischfresser im Rudel – schnell und angriffslustig'},
-  trex:{name:'Tyrannosaurus',hp:950,spd:72,atk:58,rng:14,cd:1.4,r:20,sight:220,agg:180,leash:520,roam:140,food:900,h:56,ext:1,info:'Der König der Fleischfresser – greift alles an. Sehr selten'},
+  trex:{name:'Tyrannosaurus',hp:480,spd:72,atk:40,rng:14,cd:1.4,r:20,sight:220,agg:180,leash:520,roam:140,food:900,h:56,ext:1,info:'Der König der Fleischfresser – greift alles an. Sehr selten'},
   tiger:{name:'Tiger',from:2,hp:180,spd:98,atk:18,rng:6,cd:.9,r:9,sight:190,agg:170,leash:420,roam:140,food:160,h:26,info:'Schnell und gefährlich'}
 };
 /* Gegenstücke: Schadensfaktor Angreifer-Klasse -> Ziel-Klasse (Speer schlägt Reiter, Reiter jagen Fernkämpfer, Fernkämpfer schwächen Nahkämpfer, Nahkämpfer erreichen Fernkämpfer und Belagerung) */
@@ -114,7 +114,11 @@ const MOVE_K=.9; /* alle Landeinheiten etwas gemächlicher (David: Truppen liefe
 /* Truppenlinien: ab einem späteren Zeitalter ist eine Einheit veraltet und nicht mehr ausbildbar (upto = letztes Zeitalter); vorhandene bleiben. uOk prüft beides. */
 /* Minen: bis MINE_CAP Arbeiter arbeiten drinnen, das Erz sammelt sich im Minenlager (MINE_STOCK) und eine Lore (Einheit cart) fährt es zum nächsten Lager */
 const MINE_CAP=8,MINE_STOCK=300,CART_LOAD=60;
-const UPTO={hbow:5,sling:0,club:1,archer:2,warship:2,crossbow:3,catapult:3,ram:3,spear:4,sword:4,musket:4,cannon:4,galleon:4,knight:5};for(const k in UPTO)UNITS[k].upto=UPTO[k];
+const UPTO={hbow:5,sling:0,club:1,archer:2,warship:2,crossbow:3,catapult:3,ram:2,spear:4,sword:4,musket:4,cannon:4,galleon:4,knight:5};for(const k in UPTO)UNITS[k].upto=UPTO[k];
+/* Truppenlinien: wird eine Einheit nach ihrem letzten Zeitalter aufgewertet, wechselt sie zur Nachfolger-Einheit (Aussehen und Werte).
+   Fernkampf: Steinschleuder → Bogen → Armbrust → Muskete → Gewehr; Nahkampf: Keule → Speer → Gewehr; Schwert → Gewehr; Reiter → Panzer/Gewehr; Belagerung → Kanone → Haubitze */
+const NEXT={sling:'archer',archer:'crossbow',crossbow:'musket',musket:'rifle',club:'spear',spear:'rifle',sword:'rifle',hbow:'rifle',knight:'tank',ram:'catapult',catapult:'cannon',cannon:'howitzer',warship:'galleon'};
+function lineTo(k,ep){let n=0;while(UNITS[k]&&UNITS[k].upto!==undefined&&UNITS[k].upto<ep&&NEXT[k]&&UNITS[NEXT[k]]&&n++<9)k=NEXT[k];return k}
 const uOk=(k,ep)=>UNITS[k].ep<=ep&&!(UNITS[k].upto<ep);
 const UNAMES={knight:['Ritter','Ritter','Ritter','Ritter','Kürassier','Dragoner'],hbow:['Berittener Schütze','Berittener Schütze','Berittener Schütze','Berittener Armbrustschütze','Berittener Musketier','Karabinerreiter'],healer:['Schamane','Heiler','Priester','Feldscher','Sanitäter','Medizintechniker']};
 /* Nationen (ab der Industriezeit wählbar): Gruppe, Region, Farbe, Bonus (fx), Spezialeinheiten. fx: art = Artillerie-Schaden, gather = Sammeltempo, oilgold = Öl und Gold, tankCost = Panzerkosten, foodCost = Nahrungskosten der Truppen, prod = Ausbildungstempo, hp = Leben der Truppen, navhp = Leben der Schiffe, pop = Bevölkerung, air = Flugzeug-Leben */
@@ -147,7 +151,8 @@ const AI_STYLES={
   eco:{name:'Wirtschaft',desc:'Viele Arbeiter, große Vorräte, späte Armee',wk:1.3,pace:.95,army:.7,first:1.5,wave:1.3,tow:0,bar:0,def:260},
   boom:{name:'Aufstieg',desc:'Steigt so schnell wie möglich auf',wk:1.1,pace:.7,army:.6,first:1.4,wave:1.2,tow:0,bar:0,def:260}
 };
-const AI_MINT=[230,520,900,1320,1800,2300]; /* früheste Zeit (s), zu der die KI in die nächste Epoche steigen darf (normal) */
+const AI_ADV_COST=.4; /* die KI zahlt nur diesen Anteil der Aufstiegskosten (ihre Wirtschaft ist schwächer als die des Spielers) */
+const AI_MINT=[620,1290,2030,2770,3500,4200]; /* früheste Zeit (s), zu der die KI in die nächste Epoche steigen darf (normal) */
 const TC=['#3d72b8','#b9442f'],TCD=['#1f3f6b','#6e2215'],TCL=['#8fb4e6','#ef9b86'];
 /* Teamfarben zur Auswahl (Mehrspieler) */
 const PALETTE=[['Blau','#3d72b8'],['Rot','#b9442f'],['Grün','#4a8a3a'],['Gelb','#d1a82c'],['Violett','#7a4aa8'],['Orange','#d27a2a'],['Türkis','#2a9a9a'],['Weiss','#d8d8d0']];
@@ -193,7 +198,7 @@ const TECHS=[
   {id:'whet',bld:'barracks',ep:1,name:'Schleifstein',desc:'Nahkämpfer machen 15 % mehr Schaden',cost:{food:150,stone:80},time:26,fx:{matk:.15}},
   {id:'smithy',bld:'barracks',ep:2,name:'Eisenschmiede',desc:'Erlaubt Schwertkämpfer',cost:{food:250,wood:150,iron:80},time:32,fx:{}},
   {id:'marksman',bld:'barracks',ep:2,name:'Treffsicherheit',desc:'Fernkämpfer machen 20 % mehr Schaden (bessere Genauigkeit)',cost:{food:240,wood:200},time:32,fx:{ratk:.2}},
-  {id:'siegeworks',bld:'barracks',ep:3,name:'Belagerungswerkstatt',desc:'Erlaubt Rammbock und Katapult',cost:{wood:350,iron:180},time:40,fx:{}},
+  {id:'siegeworks',bld:'barracks',ep:3,name:'Belagerungswerkstatt',desc:'Erlaubt das Katapult',cost:{wood:350,iron:180},time:40,fx:{}},
   {id:'stables',bld:'barracks',ep:3,name:'Reiterei',desc:'Erlaubt Ritter und berittene Schützen',cost:{food:400,wood:250,iron:150},time:38,fx:{}},
   {id:'crossbowbuild',bld:'barracks',ep:3,name:'Armbrustbau',desc:'Erlaubt Armbrustschützen',cost:{food:300,wood:250,iron:100},time:36,fx:{}},
   {id:'plate',bld:'barracks',ep:3,name:'Plattenpanzer',desc:'Alle Truppen haben 20 % mehr Leben',cost:{food:420,iron:200},time:40,fx:{hp:.2}},
