@@ -89,9 +89,9 @@ const EKMODELS=(()=>{
   /* Umbauen eines Modells ohne neue Datei: Material einfärben (tint), Teile verstecken (hide), Waffen/Werkzeuge in die Hände (hand/off), Fell-Hüftrock (pelt).
      So wird aus der nackten Basisfigur ein Steinzeit-Jäger, aus der Mittelalterfigur ein Speerträger usw. Siehe MODELLE.md. */
   function findBone(root,re){let f=null;root.traverse(o=>{if(!f&&o.isBone&&re.test(o.name))f=o});return f}
-  function attach(root,bone,spec,k){
+  function attach(root,bone,spec,k,team){
     const gl=files.get(spec.file);if(!bone||!gl)return null;const p=EKGLTF.SkeletonUtils.clone(gl.scene);prepare(p,0);
-    const holder=new THREE.Group();holder.add(p);bone.add(holder);root.updateMatrixWorld(true);
+    if(spec.tint){const t={};for(const n in spec.tint)t[n]=spec.tint[n]==='team'?(TC[team||0]||'#888888'):spec.tint[n];tintMats(p,t)}/* Waffe umfärben: tint:{"Metalic":"#b08040"} (Bronze) */const holder=new THREE.Group();holder.add(p);bone.add(holder);root.updateMatrixWorld(true);
     const ws=new THREE.Vector3();bone.getWorldScale(ws);const sc=k*(spec.scale||1)/(ws.x||1);holder.scale.setScalar(sc);
     const r=spec.rot||[0,0,0];holder.rotation.set(r[0]*Math.PI/180,r[1]*Math.PI/180,r[2]*Math.PI/180);
     const q=spec.pos||[0,0,0];holder.position.set(q[0]*k/(ws.x||1),q[1]*k/(ws.x||1),q[2]*k/(ws.x||1));return holder}
@@ -112,9 +112,9 @@ const EKMODELS=(()=>{
         /* Haut je Figur verschieden (Material Skin oder Farbe 'skin' = barfuss/nackte Beine), Haare/Augenbrauen aus 'hairs' */
         const f=m=>{let c=en.tint&&en.tint[m.name];if(sk&&(c==='skin'||(/^(M_Main|M_Joints|Skin)$/.test(m.name))))c=sk;if(hr&&/^(Hair|Eyebrows|Moustache)$/.test(m.name))c=hr;if(c==='team')c=TC[team];if(!c)return m;const n=m.clone();n.color.set(c);n.name=m.name;return n};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}})}
     if(en.tintAll){root.traverse(o=>{if(!o.isMesh)return;const f=m=>{const n=m.clone();n.vertexColors=false;n.map=null;n.color.set(en.tintAll);n.needsUpdate=true;return n};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)})}
-    if(en.extras)for(const x of en.extras)attach(root,root,x,k);
-    let hh=null;if(en.hand)hh=attach(root,findBone(root,/hand\.?r|wrist\.?r/i),en.hand,k);wrap.userData.handHolder=hh;
-    if(en.left)attach(root,findBone(root,/hand\.?l|wrist\.?l/i),en.left,k);
+    if(en.extras)for(const x of en.extras)attach(root,root,x,k,team);
+    let hh=null;if(en.hand)hh=attach(root,findBone(root,/hand\.?r|wrist\.?r/i),en.hand,k,team);wrap.userData.handHolder=hh;
+    if(en.left)attach(root,findBone(root,/hand\.?l|wrist\.?l/i),en.left,k,team);
     if(en.wear)for(const w of en.wear)wear(root,w,k,team);
     if(en.pelt||en.cape||en.tooth)cloth(root,en,k,id);}
   /* Ausrüstung aus echten Modellen an einen Knochen hängen (Helm, Brustpanzer): wear:[{file,bone,mesh,scale,rot,pos,tint}]

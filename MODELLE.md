@@ -79,3 +79,9 @@ Jeder Schlüssel ist eine **Liste von Varianten** (je mehr, desto abwechslungsre
 - `tint` am Gebäude (`{"colormap":"#c4cca6","colormap-specular":"#c4cca6"}`) färbt das ganze Modell um (z. B. olivgrüne Hangars).
 - `variants`: Liste `[{"file":…,"fit":…},…]` – je nach Nummer des Gebäudes ein anderes Aussehen (Wohnhäuser Weltkriegszeit).
 
+## Waffen und Ausrüstung (Weapons Pack, `models/waffen`)
+- Alle Waffen des Pakets teilen dieselbe 1024-px-Farbtabelle (550 KB je Datei). `python3 tools/glbtex.py models/waffen 256 models/neu/<Datei>.glb …` legt verkleinerte Kopien an (30–90 KB). Nur benutzte Waffen in `models/waffen` lassen.
+- Waffen schauen mit der Klinge nach +Y (anders als die alten Quaternius-Waffen): in der Hand `rot:[180,0,0]` = Klinge zeigt nach oben. Schild: `rot:[0,0,0]` in `left`. Bogen: `rot:[0,-90,0]`.
+- `tint` an `hand`/`left`/`wear` färbt Materialien der Waffe: `{"Metalic":"#c8964e"}` (Bronze), `"team"` statt Farbe = Spielerfarbe (Schildrand).
+- Eingesetzt: Stachelkeule (Keulenträger Bronzezeit), Schilde (Speer/Schwert/Ritter), Schwert, Bogen mit Pfeilen auf dem Rücken (Bogenschütze), Druidenstab (Heiler Zeitalter 0–3), Horn (Späher), Streitaxt (Ingenieur).
+
