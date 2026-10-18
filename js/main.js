@@ -24,6 +24,7 @@ function frame(ts){
     NetLog.refresh();
   }catch(e){NetLog.err('Bild',e)}
 }
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&typeof r3Revive==='function')r3Revive(false)});
 new ResizeObserver(resize).observe(view);new ResizeObserver(resize).observe(mm);
 window.EKG={startMP,endMP,execRemote,applySnap,peerLeft,toast,tr:(...a)=>tr(...a),get G(){return G},showStart:()=>showStart(),NET,setMap:m=>{curMap=m}};
 window.__ek={terrOk,navOpen,navCell,navLos,flipTeams,encodeSnap,applySnap,execRemote,startMP,NET,bgCanvas:()=>bg,fogEx:()=>fogEx,grantAiTechs,startResearch,get G(){return G},applyLevels,pending,addUnit,addBld,placeBlock,spawn,nearestNode,centerOn,terrAt,cam};
