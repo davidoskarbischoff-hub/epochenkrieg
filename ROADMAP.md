@@ -84,7 +84,8 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Mehrspieler-Fehler behoben: Gast-Aufstieg stufte dessen Einheiten wie bei der KI sofort hoch und schenkte alle Technologien („Alle upgraden“ beim Gast wirkungslos); Gast konnte keine Mine setzen (Gastgeber prüfte Erze gegen seinen eigenen Nebel)
 - [ ] Mehrspieler weiter ausbauen: Reconnect, Chat, Bereit-Knopf, Zuschauer, Spiel pausieren, 3–4 Spieler, Team-Farben wählbar, Sound-Events beim Gast
 - [ ] Mehrspieler: Berater und Pause im Mehrspieler; verzögerungsfreie Vorhersage für den Gast
-- [ ] Karten: Höhenstufen (Plateaus mit Rampen), Brücken, Karte-Zufallsauswahl, mehr Kartenarten
+- [x] Karten: Zufallsauswahl („Zufällige Karte“, „Neu würfeln“) und mehr Kartenarten (jetzt 13)
+- [ ] Karten: Höhenstufen (Plateaus mit Rampen), Brücken
 - [ ] Spielstand speichern, Kartengröße wählbar, mehrere KI-Gegner/Teams
 
 ### Einfach
@@ -262,7 +263,8 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Leistung: Gras nur im Bild, Bäume und Gelände vereinfacht in der Fernsicht, Bäume genauer am Bildrand abgeschnitten, Figuren als ein Teil gezeichnet, versteckt statt gelöscht außerhalb des Bildes, Schatten jedes 2. Bild (siehe Messwerte in OPTIMIERUNG.md)
 
 ### Merkliste (später)
-- [ ] Jahreszeiten: Frühling (blühend), Sommer, Herbst (orange/gelbe Bäume, die Herbstbäume sind schon im Natur-Paket), Winter (Schnee); evtl. ausgetrocknet im Sommer
+- [x] Jahreszeiten: Frühling (blühend), Sommer, Herbst (orange/gelbe Bäume), Winter (Schnee, Eis) – siehe „Karten, Jahreszeiten, Vorschau“
+- [ ] Jahreszeiten: Sommer ausgetrocknet (Dürre), Frühlingsregen, Nebel am Morgen
 - [ ] Kolosseum als Hauptlager der Nation Italien (größer skaliert)
 - [ ] Lore auf Schienen nach dem Ausbau „Schienen“ an der Mine – braucht ein echtes Loren-Modell (David um ein Paket bitten; die alte Code-Lore ist nach Davids Regel nicht erlaubt)
 - [ ] Holzfällen: eigene Hack-Animation von oben (es gibt im Paket nur Schlag/Schwert-Bewegungen)
@@ -292,3 +294,17 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Rest-Verzerrung am Fotorand, Tassen-Position prüfen
 - [ ] Bei kleiner Karte: Randgebirge auf dem Brett eher als Brettrand gestalten
 - [x] Ladezeit: Raum lädt erst nach den Spielmodellen; unbenutzte Raum-Modelle und Roh-Bilder ins Archiv (models/raum jetzt ~23 MB)
+
+## Karten, Jahreszeiten, Vorschau (18.10.)
+- [x] 6 neue Kartenarten mit eigener Form: Inselreich, Fjordland, Wüste (Oasen), Canyon (Plateaus, Fluss), Sumpfdelta (Kanäle), Kraterrand (Ringgebirge, See); Gebirgspass mit richtigen Pässen
+- [x] Regler Wasser (wenig/mittel/viel) und Gebirge (keine/wenige/viele) wirken auf alle Kartenarten
+- [x] Knöpfe „Zufällige Karte“ und „Neu würfeln“; Vorschau, Brett und Partie zeigen dieselbe Karte (Zahlenwert `seed`)
+- [x] Garantien: Landweg zwischen den Basen, Startvorkommen nah, Hafen/Fisch wo Wasser ist (Prüfung über 702 Kombinationen)
+- [x] Jahreszeiten (Frühling, Sommer, Herbst, Winter, Zufall) als reine Optik: Bodenfarben, Bäume (echte Modelle, umgefärbt bzw. Jahreszeit-Sätze), Gras, Schnee, Eis, Licht, Himmel, Wasser, Wetter (Laub, Schnee, Blüten; Option im Menü)
+- [x] Neue Vorschaubilder: echte erzeugte Karte mit Höhenschatten, Schaum, Jahreszeit, Startpunkten und Vorkommen-Symbolen, grosse Live-Vorschau im Menü und in der Lobby, Zwischenspeicher
+- [x] Mehrspieler-Lobby: Wasser, Gebirge, Jahreszeit, Würfel (Gastgeber entscheidet), gleiche Karte bei beiden
+- [x] Latenter Fehler behoben: Wegfinde-Cache (`navFields`) blieb zwischen Partien stehen
+- [ ] Hafen bei „wenig Wasser“ auf grossen Karten oft weit vom Start (KI baut dann keinen Hafen)
+- [ ] Kraterrand: kleinen Teich nah am Start ergänzen (Fische, Hafen)
+- [ ] Jahreszeit im Mehrspieler-Spiel vom Gast frei wählbar (nur Vorschlag)
+- [ ] Karten-Seed per Eingabefeld teilen/merken („Lieblingskarten“)
