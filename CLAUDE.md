@@ -55,6 +55,7 @@ Erkläre Änderungen deshalb kurz und in einfacher Sprache auf Deutsch.
 ## Arbeitsweise
 - WICHTIG (Davids Vorgabe): Modelle nie blind einbauen. Immer das Gesamtbild im Spiel ansehen und mit den Nachbarmodellen vergleichen: gleiches Zeitalter, Vorgänger und Nachfolger, Größe, Stil, Farben. Ein Modell, das nicht passt oder nicht schön aussieht, wird nicht benutzt, auch wenn David es hochgeladen hat. Dann lieber das bisherige behalten und kurz begründen.
 - WICHTIG (Davids Vorgabe): Keine selbst gebauten Code-Modelle (Formen aus Quadern/Zylindern) als Ersatz für echte Modelle verwenden – das wirkt wie ein Rückschritt zum ersten Release. Immer echte Modelle (glTF aus models/) nehmen, notfalls umfärben (`tint`), kombinieren (`props`) oder David um ein passendes Paket bitten. Vor jedem Commit mit dem Lücken-Skript prüfen, dass keine Einheit/kein Gebäude in einem Zeitalter auf die Code-Figur zurückfällt.
+- WICHTIG (Davids Vorgabe, 18.10. zuletzt geändert): Immer nur EIN Agent gleichzeitig, sparsam mit Ressourcen; Ergebnis kritisch prüfen, bevor committet/gepusht wird.
 - Pro Session ein klar umrissenes Feature. Vor grösseren Umbauten kurz den Plan nennen.
 - Nach jeder Änderung das Spiel im Browser testen (laden, Partie starten, Feature ausprobieren, Konsole auf Fehler prüfen).
 - Bestehende Steuerung und Spielbarkeit nicht kaputt machen. Wenn `game.js` zu gross wird, sinnvoll in weitere Dateien aufteilen.
