@@ -20,7 +20,7 @@ const MAPS={
   lakes:{name:'Seenplatte',desc:'Viele Seen und Teiche mit Inseln, Fische im Binnenland',full:1,amp:1,plat:.4,bank:.6,mount:1,cliff:0,lakes:1.7,mthr0:0.62,lakeIsl:.1},
   mountains:{name:'Bergland',desc:'Hohe Berge und Klippen, Häfen nur an Zugängen',mid:760,ends:1350,amp:1.15,wind:.7,plat:.3,bank:.6,mount:1,cliff:1,lakes:.9,islets:2},
   river:{name:'Flusstal',desc:'Ein Fluss mit Schleifen trennt die Basen, nur wenige Furten führen hinüber',full:1,amp:1,plat:.5,bank:.6,mount:1,cliff:0,river:1,rw:80,mthr0:0.62,lakes0:.7},
-  pass:{name:'Gebirgspass',desc:'Bergmassiv mit engen Pässen als Engstellen',full:1,amp:1,plat:.2,bank:.6,mount:1,cliff:0,mthr0:.4,lakes0:.7},
+  pass:{name:'Gebirgspass',desc:'Bergmassiv mit engen Pässen als Engstellen',full:1,amp:1,plat:.2,bank:.6,mount:1,cliff:0,mthr0:.4,pmargin:1,lakes0:.7},
   bay:{name:'Große Bucht',desc:'Viel Wasser, breite Landbrücke, Inselchen',mid:600,ends:1250,amp:1,wind:1,plat:.45,bank:.5,mount:1,cliff:0,lakes:.8,mthr0:0.62,islets:4},
   /* neue Kartenarten mit eigener Silhouette */
   archipel:{name:'Inselreich',desc:'Große und kleine Inseln, verbunden durch Landbrücken und flache Furten',shape:'archipel',nIsl:3,isl:1,plat:.35,bank:.5,mount:1,cliff:0,mthr0:.64,amp:1,ppMax:0,forest:.8,islets:2},

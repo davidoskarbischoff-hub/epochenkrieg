@@ -25,9 +25,9 @@ function clearBases(bases){const RC=300;for(const b of bases){const h0=HL[Math.f
 /* Garantie Landweg: von Hauptlager zu Hauptlager führt immer ein Weg zu Fuss (Land oder flaches Wasser, mit Abstand zu Fels). Sonst wird ein geschwungener
    Streifen (punktsymmetrisch) freigelegt: Fels wird Land, tiefes Wasser wird flach. Zählt in MAPDBG.walkFix (Kartenprüfung). */
 function ensureWalk(bases){
-  const reach=()=>{const hz=new Uint8Array(TW*TH),er=new Uint8Array(TW*TH),seen=new Uint8Array(TW*TH);
-    for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){let v=0;for(let d=-2;d<=2&&!v;d++){const nx=x+d;if(nx>=0&&nx<TW&&TERR[y*TW+nx]===3)v=1}hz[y*TW+x]=v}
-    for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){let v=0;for(let d=-2;d<=2&&!v;d++){const ny=y+d;if(ny>=0&&ny<TH&&hz[ny*TW+x])v=1}er[y*TW+x]=!v&&(TERR[y*TW+x]===2||TERR[y*TW+x]===1)?1:0}
+  const pm=(MAPCFG&&MAPCFG.pmargin)||2,reach=()=>{const hz=new Uint8Array(TW*TH),er=new Uint8Array(TW*TH),seen=new Uint8Array(TW*TH);
+    for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){let v=0;for(let d=-pm;d<=pm&&!v;d++){const nx=x+d;if(nx>=0&&nx<TW&&TERR[y*TW+nx]===3)v=1}hz[y*TW+x]=v}
+    for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){let v=0;for(let d=-pm;d<=pm&&!v;d++){const ny=y+d;if(ny>=0&&ny<TH&&hz[ny*TW+x])v=1}er[y*TW+x]=!v&&(TERR[y*TW+x]===2||TERR[y*TW+x]===1)?1:0}
     const s0=walkNear(bases[0].x,bases[0].y),tg=walkNear(bases[1].x,bases[1].y),st=[s0];seen[s0]=1;
     while(st.length){const i=st.pop();if(i===tg)return true;const x=i%TW,y=(i/TW)|0;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=TW||ny>=TH)continue;const j=ny*TW+nx;if(!seen[j]&&er[j]){seen[j]=1;st.push(j)}}}
     return false};

@@ -92,9 +92,9 @@ function genTerrain(seed,mapId){
       if(near&&sym(n5,(x+.5)*TG,(y+.5)*TG)<.58)cliffs[i]=1}
     const passable=a=>{const seen=new Uint8Array(TW*TH),st=[walkNear(a0.x,a0.y)];
       /* Engstellen müssen auch für Einheiten breit genug sein: Felder bis 2 Felder neben Fels zählen nicht als frei */
-      const hz=new Uint8Array(TW*TH),er=new Uint8Array(TW*TH);
-      for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){let v=0;for(let d=-2;d<=2&&!v;d++){const nx=x+d;if(nx>=0&&nx<TW&&a[y*TW+nx]===3)v=1}hz[y*TW+x]=v}
-      for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){let v=0;for(let d=-2;d<=2&&!v;d++){const ny=y+d;if(ny>=0&&ny<TH&&hz[ny*TW+x])v=1}er[y*TW+x]=!v&&(a[y*TW+x]===2||a[y*TW+x]===1)?1:0}seen[st[0]]=1;const tgt=walkNear(b0.x,b0.y);
+      const hz=new Uint8Array(TW*TH),er=new Uint8Array(TW*TH),pm=cfg.pmargin||2; /* pmargin: Abstand zum Fels, der als frei zählt (Pass: 1 = schmale Pässe) */
+      for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){let v=0;for(let d=-pm;d<=pm&&!v;d++){const nx=x+d;if(nx>=0&&nx<TW&&a[y*TW+nx]===3)v=1}hz[y*TW+x]=v}
+      for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){let v=0;for(let d=-pm;d<=pm&&!v;d++){const ny=y+d;if(ny>=0&&ny<TH&&hz[ny*TW+x])v=1}er[y*TW+x]=!v&&(a[y*TW+x]===2||a[y*TW+x]===1)?1:0}seen[st[0]]=1;const tgt=walkNear(b0.x,b0.y);
       while(st.length){const i=st.pop();if(i===tgt)return true;const x=i%TW,y=(i/TW)|0;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=TW||ny>=TH)continue;const j=ny*TW+nx;if(!seen[j]&&er[j]){seen[j]=1;st.push(j)}}}return false};
     let thr=cfg.mthr0||.54,ok=false;const base=TERR.slice();
     for(let k=0;k<8&&!ok;k++,thr+=.04){const T=base.slice();

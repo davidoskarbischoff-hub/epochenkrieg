@@ -39,6 +39,7 @@ const MPV=(()=>{
     for(let y=0;y<TH;y++)for(let xx=0;xx<TW;xx++){const i=y*TW+xx,g=(a,b)=>hs[clamp(b,0,TH-1)*TW+clamp(a,0,TW-1)];shd[i]=g(xx-1,y-1)-g(xx+1,y+1);slp[i]=Math.hypot(g(xx+1,y)-g(xx-1,y),g(xx,y+1)-g(xx,y-1))}
     let mx=0;for(let i=0;i<N;i++)if(T[i]===3&&H0[i]>mx)mx=H0[i];
     const grass=P.grass,gB=P.gB.map(num),deep=P.deep,shal=P.shal,rock=P.rock,sand=P.sand,wet=P.wet,snowC=[238,243,248],iceC=[212,232,240],foamC=num(P.surf2),sn=mx>2.2&&P.peak>0?mx*.5/P.peak:99;
+    const tn={spring:[.02,.04,-.02],autumn:[.08,.02,-.1],winter:[-.08,-.02,.08]}[P.season]||[0,0,0]; /* Rand der Vorschau nimmt die Stimmung der Jahreszeit an */
     let r=0,g=0,b=0;const mixt=(t,a)=>{r+=(a[0]-r)*t;g+=(a[1]-g)*t;b+=(a[2]-b)*t};
     for(let Y=0;Y<h;Y++){const fy=clamp((Y+.5)/sc-.5,0,TH-1.001),iy=fy|0,ty=fy-iy;
       for(let X=0;X<w;X++){const fx=clamp((X+.5)/sc-.5,0,TW-1.001),ix=fx|0,tx=fx-ix,i0=iy*TW+ix;
@@ -57,12 +58,14 @@ const MPV=(()=>{
           if(P.snow)mixt(P.snow*(1-rr*.55)*(1-s3(.12,.55,SL))*(.88+.12*nz2),snowC);
           const k=1+clamp(SH*(.17+rr*.14),-.34,.34);r*=k;g*=k;b*=k;
           r=R0+(r-R0)*m;g=G0+(g-G0)*m;b=B0+(b-B0)*m}
-        const vg=1-.3*(Math.pow(X/w-.5,2)+Math.pow(Y/h-.5,2))*2,o=(Y*w+X)*4;d[o]=clamp(r*vg,0,255);d[o+1]=clamp(g*vg,0,255);d[o+2]=clamp(b*vg,0,255);d[o+3]=255}}
+        const q2=(Math.pow(X/w-.5,2)+Math.pow(Y/h-.5,2))*2,vg=1-.3*q2,sun=1+.07*(1-(X/w+Y/h))*(P.snow?.5:1),o=(Y*w+X)*4;d[o]=clamp(r*vg*sun*(1+tn[0]*q2),0,255);d[o+1]=clamp(g*vg*sun*(1+tn[1]*q2),0,255);d[o+2]=clamp(b*vg*sun*(1+tn[2]*q2),0,255);d[o+3]=255}}
     x.putImageData(im,0,0);
     /* Vorkommen als kleine Symbole (nur grosse Vorschau) */
     const U=sc/TG;
     if(opt.syms&&S.nodes.length){
-      x.fillStyle='rgba(28,60,24,.78)';x.beginPath();for(const n of S.nodes)if(n.t==='tree'){x.moveTo(n.x*U+1.7*sc/2,n.y*U);x.arc(n.x*U,n.y*U,1.7*sc/2,0,6.283)}x.fill();
+      const tc=P.season==='winter'?['rgba(24,36,30,.5)','rgba(46,84,60,.95)']:P.season==='autumn'?['rgba(40,24,10,.5)','rgba(150,72,22,.9)']:['rgba(10,28,10,.5)','rgba(28,70,26,.9)'];
+      x.fillStyle=tc[0];x.beginPath();for(const n of S.nodes)if(n.t==='tree'){x.moveTo(n.x*U+1.7*sc/2+.6,n.y*U+.8);x.arc(n.x*U+.6,n.y*U+.8,1.7*sc/2,0,6.283)}x.fill();
+      x.fillStyle=tc[1];x.beginPath();for(const n of S.nodes)if(n.t==='tree'){x.moveTo(n.x*U+1.7*sc/2,n.y*U);x.arc(n.x*U,n.y*U,1.7*sc/2,0,6.283)}x.fill();
       x.fillStyle='#d83a4a';x.beginPath();for(const n of S.nodes)if(n.t==='bush'){x.moveTo(n.x*U+1.4*sc/2,n.y*U);x.arc(n.x*U,n.y*U,1.4*sc/2,0,6.283)}x.fill();
       x.fillStyle='rgba(235,250,255,.85)';x.beginPath();for(const n of S.nodes)if(n.t==='fish'||n.t==='dolphin'||n.t==='whale'){const q=n.t==='fish'?1:n.t==='dolphin'?1.5:2.2;x.moveTo(n.x*U+1.5*q,n.y*U);x.ellipse(n.x*U,n.y*U,1.6*q*sc/2,.9*q*sc/2,0,0,6.283)}x.fill();
       const ore={stone:['#c9c4b8','#4a463e','sq'],iron:['#d8754a','#3c1a10','hex'],gold:['#ffd23c','#5a3c06','dia'],oil:['#1a1a22','#8fd6ff','drop']};
@@ -73,8 +76,11 @@ const MPV=(()=>{
     /* Startplätze: Gebiet als weicher Kreis, Fahne mit Haus */
     if(opt.marks!==false)for(const[i,bs]of S.bases.entries()){const col=i?['#e0533c','rgba(224,83,60,.18)','#ffb0a0']:['#4a8fe0','rgba(74,143,224,.2)','#a8cfff'],px=bs.x*U,py=bs.y*U;
       if(opt.syms){x.beginPath();x.arc(px,py,260*U,0,6.283);x.fillStyle=col[1];x.fill();x.lineWidth=Math.max(1,sc*.5);x.strokeStyle=col[2];x.setLineDash([sc*2,sc*1.6]);x.stroke();x.setLineDash([])}
-      const q=(opt.syms?6.5:5)*sc/2.2;x.beginPath();x.arc(px,py,q,0,6.283);x.fillStyle=col[0];x.fill();x.lineWidth=Math.max(1.2,sc*.55);x.strokeStyle='#fff';x.stroke();
+      const q=opt.syms?6.5*sc/2.2:4.4;x.beginPath();x.arc(px,py,q,0,6.283);x.fillStyle=col[0];x.fill();x.lineWidth=Math.max(1.2,sc*.55);x.strokeStyle='#fff';x.stroke();
       x.beginPath();x.moveTo(px-q*.55,py+q*.4);x.lineTo(px-q*.55,py-q*.1);x.lineTo(px,py-q*.55);x.lineTo(px+q*.55,py-q*.1);x.lineTo(px+q*.55,py+q*.4);x.closePath();x.fillStyle='#fff';x.fill()}
+    if(opt.syms){const cx=w-34*sc/3,cy=34*sc/3,R0=20*sc/3;x.save();x.translate(cx,cy);x.globalAlpha=.85;x.beginPath();x.arc(0,0,R0,0,6.283);x.fillStyle='rgba(20,15,8,.55)';x.fill();x.lineWidth=Math.max(1,sc*.35);x.strokeStyle='#e3b66a';x.stroke();
+      x.beginPath();x.moveTo(0,-R0*.85);x.lineTo(R0*.2,0);x.lineTo(0,R0*.25);x.lineTo(-R0*.2,0);x.closePath();x.fillStyle='#f3d79a';x.fill();x.beginPath();x.moveTo(0,R0*.85);x.lineTo(R0*.16,0);x.lineTo(-R0*.16,0);x.closePath();x.fillStyle='#8a6a32';x.fill();
+      x.fillStyle='#f3d79a';x.font='bold '+Math.round(R0*.6)+'px Georgia,serif';x.textAlign='center';x.textBaseline='middle';x.fillText('N',0,-R0*1.35);x.restore()}
     return cv}
 
   /* ----- Kacheln: gestaffelt erzeugen (je Aufruf höchstens eine Karte), mit Zwischenspeicher ----- */
