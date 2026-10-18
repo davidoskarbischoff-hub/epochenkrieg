@@ -104,7 +104,7 @@ let wallAng=null,lastPlaced=null;const WALLHALF=11.5;
 function wallSnap(wx,wy){
   let best=null,bd=40;for(const w of G.ents){if(w.dead||w.kind!=='bld'||(w.type!=='wall'&&w.type!=='gate'))continue;const a=w.ang||0;for(const s of[-1,1]){const ex=w.x+Math.cos(a)*WALLHALF*s,ey=w.y+Math.sin(a)*WALLHALF*s,d=Math.hypot(ex-wx,ey-wy);if(d<bd){bd=d;best={x:ex,y:ey,a,s}}}}
   if(best){let a=wallAng!==null?wallAng:best.a;if(Math.abs(Math.atan2(Math.sin(a-best.a),Math.cos(a-best.a)))>.9)a=best.a;const k=(Math.cos(a)*(wx-best.x)+Math.sin(a)*(wy-best.y))>=0?1:-1;return{x:best.x+Math.cos(a)*WALLHALF*k,y:best.y+Math.sin(a)*WALLHALF*k,a:a}}
-  let nb=null;bd=34;for(const n of G.ents){if(n.dead||n.kind!=='node'||n.sea||n.r<18)continue;const d=Math.hypot(n.x-wx,n.y-wy)-n.r;if(d<bd){bd=d;nb=n}}
+  let nb=null;bd=34;for(const n of G.ents){if(n.dead||n.kind!=='node'||n.sea||n.r<18||!nodeKnown(n))continue;const d=Math.hypot(n.x-wx,n.y-wy)-n.r;if(d<bd){bd=d;nb=n}}
   if(nb){const a=Math.atan2(wy-nb.y,wx-nb.x),dd=nb.r+BLDS.wall.r+1;return{x:nb.x+Math.cos(a)*dd,y:nb.y+Math.sin(a)*dd,a:wallAng!==null?wallAng:a+Math.PI/2}}
   return{x:wx,y:wy,a:wallAng!==null?wallAng:0}}
 /* ---------- Mauer ziehen: Maustaste halten, ziehen, loslassen = durchgehende Mauer von A nach B ----------

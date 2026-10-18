@@ -13,7 +13,10 @@ function fogReset(){fogEx=new Uint8Array(FW*FH);fogVis=new Uint8Array(FW*FH);vis
 const fogIdx=(x,y)=>Math.max(0,Math.min(FH-1,y/FC|0))*FW+Math.max(0,Math.min(FW-1,x/FC|0));
 /* Erze, Gold und Öl sieht man erst, wenn das Gebiet erkundet wurde (Nebel des Krieges); Bäume und Büsche sieht man immer */
 const HIDDEN_NODES=new Set(['stone','iron','gold','oil']);
-function nodeKnown(e){return NET.trust||!HIDDEN_NODES.has(e.type)||!fogEx||fogEx[fogIdx(e.x,e.y)]===1}
+/* Zeitalter-Regel: ein Vorkommen gibt es für ein Team erst, wenn dessen Zeitalter den Rohstoff abbauen darf (RES_EP: Stein 1, Eisen 2, Gold 3, Öl 5; Delfine/Wale: Stufe NODES[..].lvl).
+   Für den Menschen (Team 0) heisst das: nicht gezeichnet, nicht anklickbar, nicht auf der Minikarte, kein Befehlsziel. Die Simulation (KI) kennt alles weiter. Im Mehrspieler ist jeder für sich "Team 0". */
+function nodeEpochOk(e,team){const ep=typeof G!=='undefined'&&G&&G.epoch;if(!ep)return true;const t=team||0,r=HIDDEN_NODES.has(e.type)?RES_EP[e.type]:undefined;if(r!==undefined)return ep[t]>=r;const d=NODES[e.type],l=d&&d.lvl;return !(l>ep[t])}
+function nodeKnown(e){if(!nodeEpochOk(e,0))return false;return NET.trust||!HIDDEN_NODES.has(e.type)||!fogEx||fogEx[fogIdx(e.x,e.y)]===1}
 function sightOf(e){return e.kind==='unit'?UNITS[e.type].sight:e.built?BLDS[e.type].sight*(e.spec==='obs'?2:1)*(1.2+.05*(G.epoch[e.team]||0)):50}
 /* Gebiet: jedes fertige Gebäude beansprucht einen Kreis; bei Überschneidung gewinnt das nähere Gebäude */
 const ss=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t)};
@@ -25,6 +28,16 @@ function terrUpdate(){
 }
 /* Warum darf hier nicht gebaut werden? (null = erlaubt) */
 function harborOk(x,y,r){if(terrAt(x,y)!==1)return false;let land=0,water=0;for(let k=0;k<16;k++){const a=k*.3927,px=x+Math.cos(a)*(r+24),py=y+Math.sin(a)*(r+24);if(onLand(px,py))land++;else if(terrAt(px,py)<=1&&navDyn[navCell(px,py)]===0)water++}return land>=2&&water>=3}
+/* Hafen-Standort bei Fisch (Berater und KI gemeinsam): Uferplätze im Ring um das Hauptlager nach Fischschwärmen im Umkreis bewerten (Punkte für jeden Schwarm
+   unter 300 px, Abzug für Abstand zum nächsten Schwarm und für den Weg zum Hauptlager). ok(x,y) = darf dort gebaut werden (wird nur für bessere Plätze geprüft, spart Rechenzeit).
+   Ohne Schwarm im Umkreis: null. Der Ring beginnt in Richtung Kartenmitte (gleichstarke Plätze → eher zum Gegner hin). */
+function harborNearFish(hq,fish,ok,dmin,dmax){
+  if(!fish.length)return null;const base=Math.atan2(H/2-hq.y,W/2-hq.x);let best=null,bs=-1e9;
+  for(let d=dmin||80;d<=(dmax||520);d+=20)for(let k=0;k<48;k++){const a=base+(k%2?1:-1)*Math.ceil(k/2)*.131,x=hq.x+Math.cos(a)*d,y=hq.y+Math.sin(a)*d;
+    if(x<20||y<20||x>W-20||y>H-20||terrAt(x,y)!==1)continue; /* nur flaches Wasser kommt als Hafenplatz in Frage */
+    let c=0,nd=1e9;for(const n of fish){const dd=Math.hypot(n.x-x,n.y-y);if(dd<nd)nd=dd;if(dd<300)c+=1-dd/300}
+    if(!c)continue;const sc=c*100-nd*.5-d*.12;if(sc<=bs||!ok(x,y))continue;bs=sc;best={x,y}}
+  return best}
 /* Mauern und Tore dürfen an andere Mauerstücke, Vorkommen und Gebäude anstossen (sonst bliebe zwischen den Stücken immer eine Lücke).
    Nur fast deckungsgleiche Mauerstücke sind verboten; Einheiten und Tiere stören nicht (sie gehen zur Seite). */
 function wallSpot(x,y,r){
