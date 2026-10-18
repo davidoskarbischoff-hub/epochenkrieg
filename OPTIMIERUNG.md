@@ -107,6 +107,27 @@ Hilfsmittel:
   - Hauptmenü-Hintergrund mit Szene
 - [x] **R10 (technisch, ohne Bilder):** 60 Spielminuten Selbstspiel (Berater Auto, Normal, Küste M, 1 Spieler gegen KI): 0 JS-Fehler, 0 NaN in Leben/Position, keine negativen Vorräte, keine dauerhaft festhängenden Einheiten, Gebäude werden fertig. Nur Warnungen von Three.js/SwiftShader. Offen: Berater-Auto kam nur bis Epoche 4 (KI Epoche 3); Bevölkerung 73/100, Nahrung stieg auf ~24000 ungenutzt, Berater gibt Überschuss nicht aus (Truppen/Aufstieg zu zögerlich). Visueller Teil von R10 (Agent `epochen-qa`) bleibt offen.
 
+## Davids Rückmeldungen (18.10., nach dem Testspiel) – Arbeitspakete
+Regeln: immer nur EIN Agent gleichzeitig, danach prüft Claude Ergebnis und Bilder kritisch, erst dann commit/push. Sparsam arbeiten (kleine Fenster, gezielte Dateiausschnitte). Keine selbst gebauten Code-Modelle. Vor Commit `node tools/modell-luecken.js` und `node --check`.
+- [ ] **Paket A – Regeln & KI** (Agent 1)
+  - [ ] A1 Zoom: näher ran UND weiter weg zoomen (Mausrad `input.js` bisher .55–1.8, Pinch, Tasten; Gras/Schatten/LOD/Nebel/Leistung bei den neuen Grenzen prüfen)
+  - [ ] A2 Vorkommen erst im passenden Zeitalter sichtbar: Öl erst viel später, Eisen erst wenn man es abbauen kann, Stein/Gold ebenso (`RES_EP`, `HIDDEN_NODES`, Anzeige, Minikarte, Auswahl, Befehle)
+  - [ ] A3 Eisen und Gold viel kleiner, wie Stein (Grösse `sz`, Modell-Massstab, Vergleich mit Stein/Hütte/Baum)
+  - [ ] A4 KI baut den Hafen beim Fisch (nicht ans nächste Wasser): `aiPlaceHarbor` wie `advFindSpot('harbor')` beim Berater
+  - [ ] A5 KI baut Verteidigungstürme sinnvoll (`aiPlaceTower`): Lage, Abstände, Richtung zum Gegner, nicht komisch verstreut
+- [ ] **Paket C – Figuren-Animation** (Agent 2)
+  - [ ] C1 Getragene Last (Holz/Erz/Beeren…) schwebt auf dem Rücken → sieht richtig getragen aus (`wprops` in `workpose.js`/Manifest: Sack/Bündel/Korb am Körper, nicht in der Luft)
+  - [ ] C2 Lore-Schieber (Steinmine): Füsse zeigen nach innen → Beine/Füsse beim Schieben richtig (`rider.push` in `gltfmodels.js`)
+- [ ] **Paket D – Startbildschirm & Spielzimmer** (Agent 3, nur dafür)
+  - [ ] D1 Ladebild/Anfang schöner, mit Geschichte: das Spiel ist ein Brettspiel (z. B. Spielkarton/Titelbild, später Davids Titelbild einsetzbar), Vorschau soll beim Laden passen
+  - [ ] D2 Rundum-Foto nicht mehr verzerrt (`groundSky` in `room.js`): als normales Bild/Hintergrund, Boden sauber gefüllt
+  - [ ] D3 Modelle am Tisch neu anordnen: Sofa ergibt so keinen Sinn, Stifte weg bzw. nur einzelne Teile, nichts schwebt, Gesamtlayout viel besser
+- [ ] **Paket B – Meer & Wasser** (Agent 4)
+  - [ ] B1 Delfin hat ein falsches Modell (Tuna/Schwertfisch): echtes Delfin-Aussehen (vorhandenes Modell suchen, sonst David um Modell bitten)
+  - [ ] B2 Wale zu klein im Vergleich zu Delfinen → Wal deutlich grösser als Delfin
+  - [ ] B3 Wasser an den Ufern zu kantig → weichere Küstenlinien (Gelände/`renderBg`/`r3Map`)
+- Davids Lob (nicht kaputt machen): Karten, Jahreszeiten, Arbeiter-Animationen.
+
 ## Erledigt
 - (wird je Runde ergänzt)
 
