@@ -18,9 +18,11 @@ const EKMODELS=(()=>{
   /* Kennzeichen für die Modell-Signatur im Renderer: ändert sich, wenn ein glTF-Modell zuständig wird (dann wird die Figur neu gebaut) */
   function tag(e){if(!manifest||!files.size)return'';
     if(e.kind==='unit'){const en=entryFor('unit',e.type,e.lvl||0);return en?'|g:'+en.file:''}
-    if(e.kind==='bld'){const en=entryFor('bld',e.type,e.lvl??G.epoch[e.team],e.spec);return en?'|g:'+en.file:''}
+    if(e.kind==='bld'){const en=bldVar(entryFor('bld',e.type,e.lvl??G.epoch[e.team],e.spec),e.id);return en?'|g:'+en.file+(en.cmap||'')+(en.sig||''):''}
     if(e.kind==='animal'){const en=entryFor('animal',e.type,0);return en?'|g:'+en.file:''}
     if(e.kind==='node'&&e.sea&&manifest.sea&&manifest.sea[e.type]&&files.size)return'|gs';return''}
+  /* Gebäude mit mehreren Aussehen (z. B. Wohnhäuser): "variants":[{"file":..,"fit":..},…] – je nach Nummer des Gebäudes eine davon (überschreibt die Felder des Eintrags) */
+  const bldVar=(en,id)=>en&&en.variants&&en.variants.length?Object.assign({},en,en.variants[(id|0)%en.variants.length]):en;
   function has(kind,type,ep){return !!entryFor(kind,type,ep)}
   /* Material mit „Team“ im Namen → Spielerfarbe (je Team ein eigenes Material); alle anderen: schwache Himmelsspiegelung wie im Rest des Spiels */
   function prepare(root,team){
@@ -94,7 +96,9 @@ const EKMODELS=(()=>{
     const r=spec.rot||[0,0,0];holder.rotation.set(r[0]*Math.PI/180,r[1]*Math.PI/180,r[2]*Math.PI/180);
     const q=spec.pos||[0,0,0];holder.position.set(q[0]*k/(ws.x||1),q[1]*k/(ws.x||1),q[2]*k/(ws.x||1));return holder}
   /* Eigene Farbtabelle je Eintrag (Kenney-Bausätze haben unterschiedliche colormap-Aufteilungen): cmap:'neu/variation-c.png' */
-  const cmapCache={};function cmapOf(root,f){if(!f)return;const t=cmapCache[f]||(cmapCache[f]=(()=>{const x=new THREE.TextureLoader().load('models/'+f);x.flipY=false;x.colorSpace=THREE.SRGBColorSpace;x.magFilter=THREE.NearestFilter;return x})());
+  const cmapCache={},cmapP={};
+  function cmapLoad(f){return cmapP[f]||(cmapP[f]=new Promise(res=>{const x=new THREE.TextureLoader().load('models/'+f,()=>res(x),undefined,()=>res(x));x.flipY=false;x.colorSpace=THREE.SRGBColorSpace;x.magFilter=THREE.NearestFilter;cmapCache[f]=x}))}
+  function cmapOf(root,f){if(!f)return;if(!cmapCache[f])cmapLoad(f);const t=cmapCache[f];
     root.traverse(o=>{if(!o.isMesh)return;const f2=m=>{if(!m.map)return m;const n=m.clone();n.map=t;n.needsUpdate=true;return n};o.material=Array.isArray(o.material)?o.material.map(f2):f2(o.material)})}
   /* Materialfarbe nach Materialname setzen (bei Texturen = abdunkeln/tönen), je Material+Farbe nur einmal geklont: {"People_texture_map":"#d0c8c0"} */
   const tintCache=new Map(),natCache=new Map();
@@ -279,10 +283,10 @@ const EKMODELS=(()=>{
       if(en.rider){let rr=null;for(const as of[].concat(en.rider.as)){if(entryFor('unit',as,u.lvl||0)){rr=makeUnit(Object.assign({},u,{type:as}),origMake,'unit');break}}if(rr){
         /* sitzen: Oberschenkel nach vorn und leicht gespreizt (wird nach jeder Animation aufgesetzt); push = Figur geht hinter dem Karren und schiebt */if(en.rider.push){rr.pusher=1;rr.pushA=en.rider.arm;rr.pushAx=en.rider.armAx;rr.pushM=en.rider.armMirror}if(en.rider.push&&en.rider.clip&&rr.mixer){const pc=pickClip([],[en.rider.clip],/^$/);if(pc){rr.acts.walk=rr.mixer.clipAction(pc);rr.pushClip=1;if(rr.nat){delete rr.nat.walk;natOf(rr,rr.g,'walk')}}}if(en.rider.push&&!rr.pushClip)rr.push=['L','R'].map(s=>findBone(rr.g,new RegExp('^(UpperArm|Upperarm|upper_arm|DEF-upper_arm)\\.?'+s+'$','i'))).filter(Boolean);else rr.sit=['L','R'].map(s=>findBone(rr.g,new RegExp('^(UpperLeg|thigh|DEF-thigh)\\.?'+s+'$','i'))).filter(Boolean);rr.shin=['L','R'].map(s=>findBone(rr.g,new RegExp('^(LowerLeg|shin|DEF-shin)\\.?'+s+'$','i'))).filter(Boolean);if(en.rider.scale)rr.g.scale.multiplyScalar(en.rider.scale);if(en.rider.net&&rr.net){rr.net.s=Object.assign({},rr.net.s,en.rider.net);rr.net.side=(u.id||0)%2?1:-1}/* Netz-Haltung im Boot: turn = Drehung zur Bordwand, pitch flacher */const hb=box(wrap);if(en.rider.push)rr.g.position.set(hb.min.x-(en.rider.x||.3),hb.min.y,0);else rr.g.position.set(en.rider.x||0,(hb.max.y-hb.min.y)*(en.rider.seat||.55)-1.05,0);wrap.add(rr.g);rig.rider=rr}}
       return rig}catch(err){console.warn('glTF-Einheit',u.type,err);return null}}
-  function makeBld(type,R_,ep,team,origMake,sp){
-    const en=entryFor('bld',type,ep,sp);if(!en)return null;const gl=files.get(en.file);
+  function makeBld(type,R_,ep,team,origMake,sp,id){
+    const en=bldVar(entryFor('bld',type,ep,sp),id);if(!en||!files.has(en.file))return null;const gl=files.get(en.file);
     try{
-      const root=EKGLTF.SkeletonUtils.clone(gl.scene),wrap=new THREE.Group();wrap.add(root);prepare(root,team);cmapOf(root,en.cmap);if(en.pal)palette(root,en.pal,team);root.rotation.y=(en.yaw||0)*Math.PI/180;
+      const root=EKGLTF.SkeletonUtils.clone(gl.scene),wrap=new THREE.Group();wrap.add(root);prepare(root,team);cmapOf(root,en.cmap);if(en.tint)tintMats(root,en.tint);if(en.pal)palette(root,en.pal,team);root.rotation.y=(en.yaw||0)*Math.PI/180;
       let b=box(wrap),sz=b.getSize(new THREE.Vector3());
       const k=(en.footprint?en.footprint/(Math.max(sz.x,sz.z)||1):(R_*2.5*(en.fit||1))/(Math.max(sz.x,sz.z)||1))*(en.scale||1);
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y,-c.z);
@@ -292,8 +296,8 @@ const EKMODELS=(()=>{
         pole.position.set((F.x||0)*R_,(F.y===undefined?1:F.y)*H+ph/2-.05,(F.z||0)*R_);wrap.add(pole);const fp=new THREE.Group();fp.position.set(pole.position.x,pole.position.y+ph*.32,pole.position.z);fp.userData.flag=true;
         const cl=new THREE.Mesh(new THREE.BoxGeometry(ph*.5,ph*.32,.03),m3Team(team));cl.position.x=ph*.25/* Tuch zeigt zur Kamera */;pole.castShadow=cl.castShadow=true;fp.add(cl);wrap.add(fp);wrap.userData.flags.push(fp)}
       /* Beiwerk neben dem Gebäude (z. B. Pranger, Galgen): props:[{file,h,x,z,ry,y}] – x/z in Gebäude-Radien, h = Höhe in Welteinheiten */
-      for(const pr of en.props||[]){const g2=files.get(pr.file);if(!g2)continue;const o=EKGLTF.SkeletonUtils.clone(g2.scene);prepare(o,team);if(pr.tint)tintMats(o,pr.tint);o.rotation.y=(pr.ry||0)*Math.PI/180;
-        const s2=box(o).getSize(new THREE.Vector3());o.scale.setScalar((pr.h||1.5)/(s2.y||1));const b3=box(o),c3=b3.getCenter(new THREE.Vector3());o.position.set((pr.x||0)*R_-c3.x,-b3.min.y+(pr.y||0)*wrap.userData.h,(pr.z||0)*R_-c3.z);wrap.add(o);(wrap.userData.props||(wrap.userData.props=[])).push(o)
+      for(const pr of en.props||[]){const g2=files.get(pr.file);if(!g2)continue;const o=EKGLTF.SkeletonUtils.clone(g2.scene);prepare(o,team);if(pr.cmap)cmapOf(o,pr.cmap===true?en.cmap:pr.cmap);if(pr.tint)tintMats(o,pr.tint);o.rotation.y=(pr.ry||0)*Math.PI/180;
+        const s2=box(o).getSize(new THREE.Vector3());o.scale.setScalar(pr.w?pr.w/(Math.max(s2.x,s2.z)||1):(pr.h||1.5)/(s2.y||1));/* w = Breite statt Höhe (flache Teile wie Strassenplatten) */const b3=box(o),c3=b3.getCenter(new THREE.Vector3());o.position.set((pr.x||0)*R_-c3.x,-b3.min.y+(pr.y||0)*wrap.userData.h,(pr.z||0)*R_-c3.z);wrap.add(o);(wrap.userData.props||(wrap.userData.props=[])).push(o)
         /* Figuren als Beiwerk (König, Bürger): anim = Clip, der dauernd läuft (z. B. Idle = Atmen), versetzt gestartet; der Renderer ruft userData.mix je Bild auf */
         const ac=pr.anim&&pickClip(g2.animations||[],[pr.anim],/idle/i);if(ac){const mx=new THREE.AnimationMixer(o);mx.clipAction(ac).play();mx.update((pr.x||0)*7%ac.duration+ac.duration);(wrap.userData.mix||(wrap.userData.mix=[])).push(mx)}} /* y = Höhe in Gebäudehöhen (z. B. Ballon über dem Turm) */
       return wrap}catch(err){console.warn('glTF-Gebäude',type,err);return null}}
@@ -379,7 +383,9 @@ const EKMODELS=(()=>{
     /* Kenney-Bausätze verweisen auf Textures/colormap.png: stattdessen die Farbtabelle aus dem Manifest (cmap) nehmen */
     const mgr=new THREE.LoadingManager();if(manifest.cmap)mgr.setURLModifier(u=>/colormap\.png$/.test(u)?'models/'+manifest.cmap:u);
     loader=new EKGLTF.GLTFLoader(mgr);try{loader.setMeshoptDecoder(EKGLTF.MeshoptDecoder)}catch(_){}
-    const want=new Set();if(manifest.ual)want.add(manifest.ual);for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off&&!x.when){want.add(x.file);for(const f of x.vary||[])want.add(f);if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work)){if(w.tool&&w.tool.file)want.add(w.tool.file);if(w.net&&w.net.file)want.add(w.net.file)}if(x.extra&&x.extra.file)want.add(x.extra.file);for(const l of Object.values(x.load||{}))if(l&&l.file)want.add(l.file);for(const pr of(x.props||[]).concat(x.extras||[],x.wear||[]))if(pr&&pr.file)want.add(pr.file)}
+    const want=new Set();if(manifest.ual)want.add(manifest.ual);for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off&&!x.when){want.add(x.file);for(const f of x.vary||[])want.add(f);for(const v of x.variants||[]){if(v.file)want.add(v.file);for(const pr of v.props||[])if(pr&&pr.file)want.add(pr.file)}if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work)){if(w.tool&&w.tool.file)want.add(w.tool.file);if(w.net&&w.net.file)want.add(w.net.file)}if(x.extra&&x.extra.file)want.add(x.extra.file);for(const l of Object.values(x.load||{}))if(l&&l.file)want.add(l.file);for(const pr of(x.props||[]).concat(x.extras||[],x.wear||[]))if(pr&&pr.file)want.add(pr.file)}
+    const cm=new Set();for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x){if(x.cmap)cm.add(x.cmap);for(const pr of x.props||[])if(pr&&typeof pr.cmap==='string')cm.add(pr.cmap)}
+    await Promise.all([...cm].map(cmapLoad));
     await Promise.all([...want].map(async f=>{try{files.set(f,await loader.loadAsync('models/'+f))}catch(err){failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}}));
     pCache.clear();R.ready=true;R.ver++;/* Einheiten/Gebäude/Tiere: Signaturen ändern sich über tag() von selbst; Bäume/Felsen: Instanzen neu aufbauen */try{if(typeof r3!=='undefined'&&r3.scene&&typeof G!=='undefined'&&G&&G.ents&&G.ents.length)r3NodesInit()}catch(_){}
     try{if(typeof ICON3!=='undefined'){ICON3.clear();document.querySelectorAll('[data-ic]').forEach(el=>{el.innerHTML=ART.icon(el.dataset.ic)})}}catch(_){}}
@@ -393,11 +399,11 @@ const EKMODELS=(()=>{
     if(n)pCache.clear();return n}
   /* für Tests/Vorschau: Modell von Hand eintragen */
   function register(kind,type,entry,gltf){if(!manifest)manifest={units:{},buildings:{}};const s=secOf(kind);(manifest[s]||(manifest[s]={}))[type]=entry;files.set(entry.file,gltf);R.ver++}
-  return Object.assign(R,{init,loadWhen,tag,has,makeUnit,makeBld,makeSea,iconModel,nodeParts,nodeN,nodeMeta,nodeL:nodeList,animate,register,files,ualFor,failed,refSize,dbg:()=>({refCache})})
+  return Object.assign(R,{init,cmapLoad,loadWhen,tag,has,makeUnit,makeBld,makeSea,iconModel,nodeParts,nodeN,nodeMeta,nodeL:nodeList,animate,register,files,ualFor,failed,refSize,dbg:()=>({refCache})})
 })();
 /* Modelle in die Bau-Funktionen einhängen (Rückfall auf die Code-Modelle, wenn nichts passt) */
 (()=>{const origU=buildUnit,origB=buildBld;window.origBuildUnit=origU;
   buildUnit=function(u){const r=EKMODELS.makeUnit(u,origU);if(r){M3.curId=u.id;return r}return origU(u)};
   const origA=buildAnimal;buildAnimal=function(e){const r=EKMODELS.makeUnit(e,origA,'animal');return r||origA(e)};
-  buildBld=function(type,R,ep,team,sp){const g=EKMODELS.makeBld(type,R,ep,team,origB,sp);return g||origB(type,R,ep,team)};
+  buildBld=function(type,R,ep,team,sp){const g=EKMODELS.makeBld(type,R,ep,team,origB,sp,M3.curId);return g||origB(type,R,ep,team)};
 })();

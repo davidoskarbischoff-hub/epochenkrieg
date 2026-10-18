@@ -4312,11 +4312,30 @@
     "fit": 1
    },
    {
-    "file": "neu/Small Building-gyjF60t7CG.glb",
+    "file": "kenney/building-small-d.glb",
     "epochs": [
      6
     ],
-    "fit": 1
+    "fit": 0.85,
+    "cmap": "kenney/colormap.png",
+    "variants": [
+     {
+      "file": "kenney/building-small-d.glb",
+      "fit": 0.85
+     },
+     {
+      "file": "kenney/building-small-b.glb",
+      "fit": 0.7
+     },
+     {
+      "file": "kenney/building-small-a.glb",
+      "fit": 0.85
+     },
+     {
+      "file": "kenney/building-small-c.glb",
+      "fit": 0.62
+     }
+    ]
    }
   ],
   "store": [
@@ -4371,12 +4390,52 @@
     "fit": 1
    },
    {
-    "file": "arch/Barn.glb",
+    "file": "neu/building-s.glb",
     "epochs": [
-     5,
+     5
+    ],
+    "fit": 0.95,
+    "cmap": "neu/ind-b.png",
+    "props": [
+     {
+      "file": "neu/shipping-container-a.glb",
+      "x": 0.6,
+      "z": 1.0,
+      "h": 0.95,
+      "cmap": true
+     },
+     {
+      "file": "neu/shipping-container-c.glb",
+      "x": -0.7,
+      "z": 1.0,
+      "h": 0.95,
+      "cmap": true
+     }
+    ]
+   },
+   {
+    "file": "neu/building-s.glb",
+    "epochs": [
      6
     ],
-    "fit": 1
+    "fit": 0.95,
+    "cmap": "neu/ind-c.png",
+    "props": [
+     {
+      "file": "neu/shipping-container-a.glb",
+      "x": 0.6,
+      "z": 1.0,
+      "h": 0.95,
+      "cmap": true
+     },
+     {
+      "file": "neu/shipping-container-c.glb",
+      "x": -0.7,
+      "z": 1.0,
+      "h": 0.95,
+      "cmap": true
+     }
+    ]
    }
   ],
   "barracks": [
@@ -4928,6 +4987,116 @@
      6
     ],
     "fit": 0.85
+   }
+  ],
+  "refinery": [
+   {
+    "file": "neu/building-e.glb",
+    "epochs": [
+     5
+    ],
+    "fit": 0.8,
+    "cmap": "neu/ind-b.png",
+    "props": [
+     {
+      "file": "neu/detail-tank-large.glb",
+      "x": 1.0,
+      "z": 0.6,
+      "h": 1.6,
+      "cmap": true
+     },
+     {
+      "file": "neu/detail-tank.glb",
+      "x": -1.0,
+      "z": 0.9,
+      "h": 0.9,
+      "cmap": true
+     },
+     {
+      "file": "neu/detail-tank.glb",
+      "x": 1.1,
+      "z": -0.5,
+      "h": 0.9,
+      "ry": 90,
+      "cmap": true
+     }
+    ]
+   },
+   {
+    "file": "neu/building-e.glb",
+    "epochs": [
+     6
+    ],
+    "fit": 0.8,
+    "cmap": "neu/ind-c.png",
+    "props": [
+     {
+      "file": "neu/detail-tank-large.glb",
+      "x": 1.0,
+      "z": 0.6,
+      "h": 1.6,
+      "cmap": true
+     },
+     {
+      "file": "neu/detail-tank.glb",
+      "x": -1.0,
+      "z": 0.9,
+      "h": 0.9,
+      "cmap": true
+     },
+     {
+      "file": "neu/detail-tank.glb",
+      "x": 1.1,
+      "z": -0.5,
+      "h": 0.9,
+      "ry": 90,
+      "cmap": true
+     }
+    ]
+   }
+  ],
+  "airfield": [
+   {
+    "file": "neu/building-j.glb",
+    "epochs": [
+     6
+    ],
+    "fit": 0.5,
+    "cmap": "neu/ind-c.png",
+    "tint": {
+     "colormap": "#c4cca6",
+     "colormap-specular": "#c4cca6"
+    },
+    "props": [
+     {
+      "file": "neu/building-j.glb",
+      "x": -0.92,
+      "z": 0.0,
+      "h": 1.9,
+      "cmap": "neu/ind-c.png",
+      "tint": {
+       "colormap": "#c4cca6",
+       "colormap-specular": "#c4cca6"
+      }
+     },
+     {
+      "file": "neu/building-j.glb",
+      "x": 0.92,
+      "z": 0.0,
+      "h": 1.9,
+      "cmap": "neu/ind-c.png",
+      "tint": {
+       "colormap": "#c4cca6",
+       "colormap-specular": "#c4cca6"
+      }
+     }
+    ],
+    "flag": {
+     "x": 0,
+     "z": 0.95,
+     "y": 0,
+     "h": 0.8
+    }
    }
   ]
  },
