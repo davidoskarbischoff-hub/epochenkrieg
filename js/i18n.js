@@ -267,7 +267,7 @@ const EN={
 ,'Wasser wirkt hier auf: {0}. Gebirge: {1}.':'Here water affects: {0}. Mountains: {1}.'
 ,'Meer und Seen':'sea and lakes','Berge und Klippen':'mountains and cliffs','Seen':'lakes','Berge':'mountains','Flussbreite und Seen':'river width and lakes','Bergmassiv':'mountain massif','Meer, Inselchen und Seen':'sea, islets and lakes'
 ,'Größe und Zahl der Inseln':'size and number of islands','Berge auf den Inseln':'mountains on the islands','Zahl der Meeresarme':'number of sea inlets','Zahl der Oasen':'number of oases','Felsen und Mesas':'rocks and mesas','Flussbreite':'river width','Plateaus und Felsen':'plateaus and rocks'
-,'Breite der Wasserarme':'width of the waterways','Felsen (nur bei „Viele“)':'rocks (only with "Many")','Größe des Kratersees':'size of the crater lake','Ringgebirge (ohne: sanfter Wall)':'ring of mountains (none: gentle ridge)'
+,'Breite der Wasserarme':'width of the waterways','Felsen (nur bei „Viele“)':'rocks (only with "Many")','Größe des Kratersees':'size of the crater lake','Ringgebirge (ohne: sanfter Wall)':'ring of mountains (none: gentle ridge)','Wetter (Laub, Schnee)':'Weather (leaves, snow)','Fallende Blätter im Herbst, Blütenblätter im Frühling, Schnee im Winter – nur Optik':'Falling leaves in autumn, petals in spring, snow in winter – looks only'
 };
 let LANG='de';try{LANG=localStorage.getItem('ek-lang')==='en'?'en':'de'}catch(_){}
 function tr(de,...a){let s=LANG==='en'&&EN[de]!==undefined?EN[de]:de;a.forEach((v,i)=>{s=s.split('{'+i+'}').join(v)});return s}

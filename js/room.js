@@ -53,7 +53,7 @@ const ROOM={BGS:{werkstatt:'artist_workshop.jpg',studio:'ferndale_studio.jpg'},o
   };
   /* an/aus: Hintergrund, Meer nur auf dem Brett, Sichtweite */
   ROOM.apply=function(){if(!R3.ok)return;const on=ROOM.ready&&!(typeof OPT!=='undefined'&&OPT.room===false);ROOM.on=on;if(ROOM.g)ROOM.g.visible=on;document.body.classList.toggle('room',on);
-    const sc=r3.scene;if(on){sc.background=new THREE.Color(0x2a241e);sc.fog.color.set(0x8f877a)}else{sc.background=new THREE.Color(0x16384f);sc.fog.color.set(0x9db8c4)}
+    const sc=r3.scene;if(on){sc.background=new THREE.Color(0x2a241e);sc.fog.color.set(0x8f877a)}else{const A=R3.atmo;sc.background=new THREE.Color(A?A.sky:0x16384f);sc.fog.color.set(A?A.fog:0x9db8c4)}
     if(r3.sea){if(on){r3.sea.scale.set(W/R3.S/3600,1,H/R3.S/3600)}else r3.sea.scale.set(1,1,1)}
     r3.camera.far=on?16000:1400;r3.camera.updateProjectionMatrix()};
   /* Raum-Kamera: Blick von schräg oben auf Tisch und Brett, kreist langsam (Hauptmenü) */

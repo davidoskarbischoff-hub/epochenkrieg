@@ -5036,7 +5036,7 @@
   }
  },
  "nodes": {
-  "_info": "Natur (Quaternius-Natur-Paket in models/nature): je Schlüssel eine Liste von Varianten. k = fester Massstab (Modell-Einheiten → Spiel), height = Höhe, sonst Höhe des Code-Modells; colors färbt einzelne Materialien um. broad = Laubbäume, birch = Birkenhaine, willow = Weiden am Wasser, autumn = Herbst-Farbtupfer, bush = Beerenstrauch, bushE = abgeernteter Strauch, stump = Baumstumpf nach dem Fällen, wheat = Getreide auf dem Feld (rows = Reihen [z, x von, x bis] im Feld-Modell „for“), alpine/snowy = Deko auf Bergen unter/über der Schneegrenze.",
+  "_info": "Natur (Quaternius-Natur-Paket in models/nature): je Schlüssel eine Liste von Varianten. k = fester Massstab (Modell-Einheiten → Spiel), height = Höhe, sonst Höhe des Code-Modells; colors färbt einzelne Materialien um. broad = Laubbäume, birch = Birkenhaine, willow = Weiden am Wasser, autumn = Herbst-Farbtupfer, bush = Beerenstrauch, bushE = abgeernteter Strauch, stump = Baumstumpf nach dem Fällen, wheat = Getreide auf dem Feld (rows = Reihen [z, x von, x bis] im Feld-Modell „for“), alpine/snowy = Deko auf Bergen unter/über der Schneegrenze. Mit \"when\" (Jahreszeit spring/autumn/winter oder pal:desert/pal:canyon) werden Modelle erst geladen, wenn die Karte sie braucht (broadA/birchA/willowA = Herbst, broadW/birchW/willowW = Winter mit Schnee, bloom/bloomW = Frühling mit Blüten, broadD = dürre Bäume, cactus = Kakteen als Deko).",
   "pine": {
    "file": "neu/Pine.glb",
    "scale": 1.35
@@ -5533,6 +5533,555 @@
      "metal": 0.8,
      "glow": 0.25
     }
+   }
+  ],
+  "broadA": [
+   {
+    "file": "nature/CommonTree_Autumn_1.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#d9731c",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/CommonTree_Autumn_2.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#c23c18",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/CommonTree_Autumn_3.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#e8b82c",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/CommonTree_Autumn_4.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#cf8a22",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/CommonTree_Autumn_5.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#b8431c",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/CommonTree_Autumn_1.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#e0a428",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   }
+  ],
+  "birchA": [
+   {
+    "file": "nature/BirchTree_Autumn_1.glb",
+    "k": 0.02,
+    "colors": {
+     "Orange": "#d89a2c",
+     "LightOrange": "#e8c040",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/BirchTree_Autumn_2.glb",
+    "k": 0.02,
+    "colors": {
+     "Orange": "#c8601c",
+     "LightOrange": "#e09a30",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/BirchTree_Autumn_3.glb",
+    "k": 0.02,
+    "colors": {
+     "Orange": "#e0b030",
+     "LightOrange": "#f0d060",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/BirchTree_Autumn_4.glb",
+    "k": 0.02,
+    "colors": {
+     "Orange": "#cf7a24",
+     "LightOrange": "#e8b040",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    },
+    "when": "autumn"
+   }
+  ],
+  "willowA": [
+   {
+    "file": "nature/Willow_Autumn_1.glb",
+    "k": 0.025,
+    "colors": {
+     "Orange": "#c8a838",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/Willow_Autumn_2.glb",
+    "k": 0.025,
+    "colors": {
+     "Orange": "#d89a34",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/Willow_Autumn_3.glb",
+    "k": 0.025,
+    "colors": {
+     "Orange": "#b8b040",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/Willow_Autumn_4.glb",
+    "k": 0.025,
+    "colors": {
+     "Orange": "#cc8a2c",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   }
+  ],
+  "broadW": [
+   {
+    "file": "nature/CommonTree_Snow_1.glb",
+    "k": 0.026,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/CommonTree_Snow_2.glb",
+    "k": 0.026,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/CommonTree_Snow_3.glb",
+    "k": 0.026,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/CommonTree_Snow_4.glb",
+    "k": 0.026,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/CommonTree_Dead_Snow_1.glb",
+    "k": 0.026,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter",
+    "w": 1
+   },
+   {
+    "file": "nature/CommonTree_Dead_Snow_3.glb",
+    "k": 0.026,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter",
+    "w": 1
+   }
+  ],
+  "birchW": [
+   {
+    "file": "nature/BirchTree_Snow_1.glb",
+    "k": 0.02,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/BirchTree_Snow_2.glb",
+    "k": 0.02,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/BirchTree_Snow_3.glb",
+    "k": 0.02,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/BirchTree_Snow_4.glb",
+    "k": 0.02,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/BirchTree_Dead_Snow_1.glb",
+    "k": 0.02,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   }
+  ],
+  "willowW": [
+   {
+    "file": "nature/Willow_Snow_1.glb",
+    "k": 0.025,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/Willow_Snow_2.glb",
+    "k": 0.025,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/Willow_Snow_3.glb",
+    "k": 0.025,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/Willow_Snow_4.glb",
+    "k": 0.025,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   }
+  ],
+  "bloom": [
+   {
+    "file": "nature/CommonTree_1.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#f0b4ca",
+     "DarkGreen": "#e394b4",
+     "Wood": "#6b4630"
+    },
+    "when": "spring"
+   },
+   {
+    "file": "nature/CommonTree_2.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#f0b4ca",
+     "DarkGreen": "#e394b4",
+     "Wood": "#6b4630"
+    },
+    "when": "spring"
+   },
+   {
+    "file": "nature/CommonTree_3.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#f0b4ca",
+     "DarkGreen": "#e394b4",
+     "Wood": "#6b4630"
+    },
+    "when": "spring"
+   },
+   {
+    "file": "nature/BirchTree_1.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#f4d0dc",
+     "DarkGreen": "#ecb0c6",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    },
+    "when": "spring"
+   },
+   {
+    "file": "nature/BirchTree_2.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#f4d0dc",
+     "DarkGreen": "#ecb0c6",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    },
+    "when": "spring"
+   }
+  ],
+  "bloomW": [
+   {
+    "file": "nature/CommonTree_4.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#f8f2ea",
+     "DarkGreen": "#e6dfd2",
+     "Wood": "#6b4630"
+    },
+    "when": "spring"
+   },
+   {
+    "file": "nature/CommonTree_5.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#f8f2ea",
+     "DarkGreen": "#e6dfd2",
+     "Wood": "#6b4630"
+    },
+    "when": "spring"
+   },
+   {
+    "file": "nature/BirchTree_3.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#f8f4ee",
+     "DarkGreen": "#e8e0d4",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    },
+    "when": "spring"
+   }
+  ],
+  "broadD": [
+   {
+    "file": "nature/CommonTree_1.glb",
+    "k": 0.024,
+    "colors": {
+     "Green": "#8c8e3a",
+     "DarkGreen": "#6f7430",
+     "Wood": "#6a4a30"
+    },
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/CommonTree_2.glb",
+    "k": 0.024,
+    "colors": {
+     "Green": "#8c8e3a",
+     "DarkGreen": "#6f7430",
+     "Wood": "#6a4a30"
+    },
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/CommonTree_3.glb",
+    "k": 0.024,
+    "colors": {
+     "Green": "#8c8e3a",
+     "DarkGreen": "#6f7430",
+     "Wood": "#6a4a30"
+    },
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/CommonTree_4.glb",
+    "k": 0.024,
+    "colors": {
+     "Green": "#8c8e3a",
+     "DarkGreen": "#6f7430",
+     "Wood": "#6a4a30"
+    },
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   }
+  ],
+  "cactus": [
+   {
+    "file": "nature/Cactus_1.glb",
+    "k": 0.022,
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/Cactus_2.glb",
+    "k": 0.022,
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/Cactus_3.glb",
+    "k": 0.022,
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/Cactus_4.glb",
+    "k": 0.022,
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/Cactus_5.glb",
+    "k": 0.022,
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/CactusFlower_1.glb",
+    "k": 0.022,
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
    }
   ]
  },
