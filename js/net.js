@@ -4,10 +4,10 @@
    2) Lokal testen: zwei Tabs im selben Browser sprechen über einen BroadcastChannel (Link …?join=local:CODE).
    Das Spiel selbst (Spielstand, Befehle) steckt in game.js (EKG.startMP, applySnap, execRemote). */
 const Lobby=(()=>{
-  let pingTimer=null,role=null,view='menu',peer=null,conn=null,bc=null,raw=null,link='',helloTimer=null,inGame=false;
-  const SIZES={S:{n:'Klein',maps:['pass','river','lakes']},M:{n:'Mittel',maps:['land','coast','bay']},L:{n:'Gross',maps:['mountains','coast','land']}};
+  let lbT=0,pingTimer=null,role=null,view='menu',peer=null,conn=null,bc=null,raw=null,link='',helloTimer=null,inGame=false;
+  const SIZES={S:{n:'Klein',maps:MAP_ORDER},M:{n:'Mittel',maps:MAP_ORDER},L:{n:'Gross',maps:MAP_ORDER}}; /* alle Kartenarten in jeder Grösse (Kartengrösse wirkt über playF) */
   const SPEEDS=[[1,'Normal (1×)'],[2,'Schnell (2×)'],[3,'Superschnell (3×)']];
-  const st={cfg:{size:'M',map:'land',speed:1,side:'A',colH:PALETTE[0][1],colG:PALETTE[1][1]},prop:{},connected:false,status:'',error:''};
+  const st={cfg:{size:'M',map:'land',speed:1,side:'A',colH:PALETTE[0][1],colG:PALETTE[1][1],water:1,mount:1,season:'summer',seed:(Math.random()*1e9)|0},prop:{},connected:false,status:'',error:''};
   const $=id=>document.getElementById(id);
   /* In der Desktop-App zeigt der Einladungslink auf die Web-Version (die App selbst hat keine öffentliche Adresse) */
   const baseUrl=()=>(window.EK_APP&&window.EK_APP.webUrl)||location.href.split('?')[0].split('#')[0];
@@ -93,7 +93,7 @@ const Lobby=(()=>{
     rejoinTimer=setInterval(tryOnce,2500);tryOnce()}
   function start(){
     if(role!=='host'||!st.connected)return;
-    const seed=(Math.random()*1e9)|0;inGame=true;NetLog.reset();NetLog.set('state','verbunden');raw({t:'start',seed,map:st.cfg.map,side:st.cfg.side,cfg:st.cfg});
+    const seed=st.cfg.seed||((Math.random()*1e9)|0);inGame=true; /* Kartennummer aus der Lobby: die Vorschau zeigt genau diese Karte */NetLog.reset();NetLog.set('state','verbunden');raw({t:'start',seed,map:st.cfg.map,side:st.cfg.side,cfg:st.cfg});
     EKG.startMP({role:'host',seed,map:st.cfg.map,side:st.cfg.side,cfg:st.cfg,send:msg=>raw&&raw(msg)});
   }
   function leave(){close();role=null;view='menu';inGame=false}
@@ -106,14 +106,19 @@ const Lobby=(()=>{
     const host_=role==='host',c=st.cfg,pr=st.prop;
     const mark=(k,cur,prop)=>cur===k?'true':'false';
     const sizes=`<div class="diff" role="group">${Object.entries(SIZES).map(([k,v])=>`<button data-z="${k}" aria-pressed="${c.size===k}" class="${!host_&&pr.size===k?'prop':''}">${T(v.n)}</button>`).join('')}</div>`;
-    const maps=`<div class="maps" role="group">${SIZES[c.size].maps.map(k=>{const m=MAPS[k];return`<button data-m="${k}" aria-pressed="${c.map===k}" class="${!host_&&pr.map===k?'prop':''}"><b>${T(m.name)}</b><img src="${mapPreview(k)}" alt="" title="${T(m.desc)}"></button>`}).join('')}</div>`;
+    const mo={seed:c.seed||1,size:c.size,water:c.water===undefined?1:c.water,mount:c.mount===undefined?1:c.mount,season:c.season||'summer'};
+    const maps=`<div class="maps lbmaps" role="group">${SIZES[c.size].maps.map(k=>{const m=MAPS[k];return`<button data-m="${k}" aria-pressed="${c.map===k}" class="${!host_&&pr.map===k?'prop':''}" title="${T(m.desc)}"><b>${T(m.name)}</b><img data-pv="${k}" alt=""></button>`}).join('')}</div>`;
+    const grp=(attr,list,cur,key)=>`<div class="diff" role="group">${list.map(([k,l])=>`<button data-${attr}="${k}" aria-pressed="${cur===k}" class="${!host_&&pr[key]===k?'prop':''}">${T(l)}</button>`).join('')}</div>`;
+    const waters=grp('w',[[0,'Wenig'],[1,'Mittel'],[2,'Viel']],mo.water,'water'),mounts=grp('g',[[0,'Keine'],[1,'Wenige'],[2,'Viele']],mo.mount,'mount');
+    const seasons=grp('se',[['spring','Frühling'],['summer','Sommer'],['autumn','Herbst'],['winter','Winter'],['random','Zufall']],mo.season,'season');
+    const pvBox=`<div class="lbpv"><div class="mm-frame"><canvas id="lbPv" width="480" height="320"></canvas></div><div class="mm-pvbar"><div class="mm-pvt"><b>${T(MAPS[c.map].name)}</b><small>${T(SEASON_NAMES[seasonOf(mo.season,mo.seed)])} · ${T('Karte Nr.')} ${mo.seed.toString(36).toUpperCase().padStart(6,'0').slice(-6)}</small></div>${host_?`<div class="mm-dice"><button class="mm-d main" id="lbRand">🎲 ${T('Zufällige Karte')}</button><button class="mm-d" id="lbRe">↻ ${T('Neu würfeln')}</button></div>`:''}</div></div>`;
     const speeds=`<div class="diff" role="group">${SPEEDS.map(([k,l])=>`<button data-v="${k}" aria-pressed="${c.speed===k}" class="${!host_&&pr.speed===k?'prop':''}">${T(l)}</button>`).join('')}</div>`;
     const sides=`<div class="diff" role="group">${[['A','Start unten links'],['B','Start oben rechts']].map(([k,l])=>`<button data-s="${k}" ${host_?'':'disabled'} aria-pressed="${k===c.side}">${T(l)}</button>`).join('')}</div>`;
     const mine=host_?c.colH:c.colG,other=host_?c.colG:c.colH;
     const cols=`<div class="swatches" role="group">${PALETTE.map(([n,h])=>`<button data-c="${h}" title="${T(n)}" style="background:${h}" aria-pressed="${mine===h}" ${other===h?'disabled':''}></button>`).join('')}</div>`;
-    const propBox=host_&&Object.keys(pr).length?`<div class="propbox"><b>${T('Vorschlag des Mitspielers')}</b>: ${[pr.size?T('Grösse')+' '+T(SIZES[pr.size].n):'',pr.map?T('Karte')+' '+T(MAPS[pr.map].name):'',pr.speed?T('Tempo')+' '+pr.speed+'×':''].filter(Boolean).join(' · ')}<span><button class="btn2" id="pOk">${T('Übernehmen')}</button><button class="btn2" id="pNo">${T('Ablehnen')}</button></span></div>`:'';
+    const propBox=host_&&Object.keys(pr).length?`<div class="propbox"><b>${T('Vorschlag des Mitspielers')}</b>: ${[pr.size?T('Grösse')+' '+T(SIZES[pr.size].n):'',pr.map?T('Karte')+' '+T(MAPS[pr.map].name):'',pr.water!==undefined?T('Wasser')+' '+T(WATER_NAMES[pr.water]):'',pr.mount!==undefined?T('Gebirge')+' '+T(MOUNT_NAMES[pr.mount]):'',pr.season?T('Jahreszeit')+' '+T(SEASON_NAMES[pr.season]):'',pr.speed?T('Tempo')+' '+pr.speed+'×':''].filter(Boolean).join(' · ')}<span><button class="btn2" id="pOk">${T('Übernehmen')}</button><button class="btn2" id="pNo">${T('Ablehnen')}</button></span></div>`:'';
     const note=!host_&&Object.keys(pr).length?`<p class="lnote">${T('Dein Vorschlag wurde an den Gastgeber geschickt.')}</p>`:'';
-    const settings=`<label class="llabel">${T('Kartengrösse')}</label>${sizes}<label class="llabel">${T('Karte')}</label>${maps}<label class="llabel">${T('Spielgeschwindigkeit')}</label>${speeds}<label class="llabel">${T('Deine Seite')}</label>${sides}<label class="llabel">${T('Deine Farbe')}</label>${cols}`;
+    const settings=`<label class="llabel">${T('Kartengrösse')}</label>${sizes}<label class="llabel">${T('Karte')}</label>${pvBox}${maps}<label class="llabel">${T('Wasser')}</label>${waters}<label class="llabel">${T('Gebirge')}</label>${mounts}<label class="llabel">${T('Jahreszeit')}</label>${seasons}<label class="llabel">${T('Spielgeschwindigkeit')}</label>${speeds}<label class="llabel">${T('Deine Seite')}</label>${sides}<label class="llabel">${T('Deine Farbe')}</label>${cols}`;
     const err=st.error?`<p class="lerr">${T(st.error)}</p>`:'';
     let h='';
     if(view==='menu')h=`<h1>${T('Mehrspieler')}</h1><p>${T('Spiele mit einem Freund: Du erstellst ein Spiel und schickst ihm den Einladungslink.')}</p>
@@ -137,6 +142,12 @@ const Lobby=(()=>{
     ov.querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>setCfg('size',b.dataset.z));
     ov.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>setCfg('map',b.dataset.m));
     ov.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>setCfg('speed',+b.dataset.v));
+    ov.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>setCfg('water',+b.dataset.w));ov.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>setCfg('mount',+b.dataset.g));ov.querySelectorAll('[data-se]').forEach(b=>b.onclick=()=>setCfg('season',b.dataset.se));
+    /* Würfeln (nur Gastgeber): neue Kartennummer, oder alles zufällig */
+    on('lbRe',()=>{c.seed=(Math.random()*1e9)|0;pushLobby();render()});
+    on('lbRand',()=>{const pick=l=>l[(Math.random()*l.length)|0];c.map=pick(MAP_ORDER);c.water=(Math.random()*3)|0;c.mount=(Math.random()*3)|0;c.season=pick(SEASON_IDS);c.seed=(Math.random()*1e9)|0;pushLobby();render()});
+    /* Vorschau: Kacheln gestaffelt, grosses Bild kurz verzögert */
+    if(view==='host'||st.connected&&view!=='menu'&&view!=='enter'){MPV.fill(ov,mo,c.map);clearTimeout(lbT);lbT=setTimeout(()=>{const cv=$('lbPv');if(cv)try{MPV.big(cv,c.map,mo,2)}catch(err){console.warn(err)}},120)}
     ov.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{if(host_){c.side=b.dataset.s;pushLobby();render()}});
     ov.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{if(host_){c.colH=b.dataset.c;pushLobby();render()}else{c.colG=b.dataset.c;if(raw)raw({t:'col',c:b.dataset.c});render()}});
     on('pOk',()=>{Object.assign(c,pr);if(!SIZES[c.size].maps.includes(c.map))c.map=SIZES[c.size].maps[0];st.prop={};pushLobby();render()});

@@ -13,7 +13,7 @@ const ICON3=(()=>{
     if(focus){c.y=bb.max.y-sz.y*focus*.5;R=sz.y*focus*.62+.01}
     const dist=R/Math.tan(cam.fov*Math.PI/360);const v=(dir||new THREE.Vector3(1,.85,1.25)).clone().normalize();cam.position.copy(c).addScaledVector(v,dist);cam.lookAt(c);cam.updateProjectionMatrix();
     rd.render(scene,cam);const url=rd.domElement.toDataURL('image/png');scene.remove(g);
-    g.traverse(o=>{if(o.geometry)o.geometry.dispose&&0});return url}
+    g.traverse(o=>{if(o.geometry&&o.geometry.userData.own)o.geometry.dispose()});return url}
   const mat=(c,r=.7,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
   const M=(g,geo,m,x=0,y=0,z=0)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);g.add(o);return o};
   const RES={

@@ -84,7 +84,8 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Mehrspieler-Fehler behoben: Gast-Aufstieg stufte dessen Einheiten wie bei der KI sofort hoch und schenkte alle Technologien („Alle upgraden“ beim Gast wirkungslos); Gast konnte keine Mine setzen (Gastgeber prüfte Erze gegen seinen eigenen Nebel)
 - [ ] Mehrspieler weiter ausbauen: Reconnect, Chat, Bereit-Knopf, Zuschauer, Spiel pausieren, 3–4 Spieler, Team-Farben wählbar, Sound-Events beim Gast
 - [ ] Mehrspieler: Berater und Pause im Mehrspieler; verzögerungsfreie Vorhersage für den Gast
-- [ ] Karten: Höhenstufen (Plateaus mit Rampen), Brücken, Karte-Zufallsauswahl, mehr Kartenarten
+- [x] Karten: Zufallsauswahl („Zufällige Karte“, „Neu würfeln“) und mehr Kartenarten (jetzt 13)
+- [ ] Karten: Höhenstufen (Plateaus mit Rampen), Brücken
 - [ ] Spielstand speichern, Kartengröße wählbar, mehrere KI-Gegner/Teams
 
 ### Einfach
@@ -260,9 +261,12 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Mehr Land auf Küste/Bucht/Bergland; Kartenvorschau mit Höhen, Fels, Schnee, Hangschatten
 - [x] Fischgründe klein und verteilt, auch im tiefen Wasser; Delfine brauchen das Segelboot (Stufe IV), Wale den Kutter (Stufe VI), beide mehr Nahrung, Wal gibt zusätzlich Öl
 - [x] Leistung: Gras nur im Bild, Bäume und Gelände vereinfacht in der Fernsicht, Bäume genauer am Bildrand abgeschnitten, Figuren als ein Teil gezeichnet, versteckt statt gelöscht außerhalb des Bildes, Schatten jedes 2. Bild (siehe Messwerte in OPTIMIERUNG.md)
+- [x] Leistung R7 (18.10.): große Heere und viele Gebäude – Zeichenaufrufe -57 % (Zoom 1) / -49 % (Zoom 0,7), Dreiecke -32 % / -21 %: Waffen/Schilde/Helme in die Figur eingeschmolzen, Gebäude samt Beiwerk und unanimierte Fahrzeuge/Schiffe zusammengefasst, vereinfachte Figuren unter 60 px Höhe, Animation ferner Figuren seltener, Speicher-Leck bei ausgetauschten Modellen behoben, Texturen verkleinert (ca. -100 MB Grafikspeicher), Arbeiter-Haltungen 3-mal schneller
+- [ ] Leistung später: Bäume echt vereinfachen (Edge-Collapse, größter Posten beim Herauszoomen), Gelände-Durchgänge (Boden/Schaum/Gebiet/Nebel) zusammenlegen, Animations-Clips in den Mensch-Dateien kürzen
 
 ### Merkliste (später)
-- [ ] Jahreszeiten: Frühling (blühend), Sommer, Herbst (orange/gelbe Bäume, die Herbstbäume sind schon im Natur-Paket), Winter (Schnee); evtl. ausgetrocknet im Sommer
+- [x] Jahreszeiten: Frühling (blühend), Sommer, Herbst (orange/gelbe Bäume), Winter (Schnee, Eis) – siehe „Karten, Jahreszeiten, Vorschau“
+- [ ] Jahreszeiten: Sommer ausgetrocknet (Dürre), Frühlingsregen, Nebel am Morgen
 - [ ] Kolosseum als Hauptlager der Nation Italien (größer skaliert)
 - [ ] Lore auf Schienen nach dem Ausbau „Schienen“ an der Mine – braucht ein echtes Loren-Modell (David um ein Paket bitten; die alte Code-Lore ist nach Davids Regel nicht erlaubt)
 - [ ] Holzfällen: eigene Hack-Animation von oben (es gibt im Paket nur Schlag/Schwert-Bewegungen)
@@ -292,3 +296,37 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Rest-Verzerrung am Fotorand, Tassen-Position prüfen
 - [ ] Bei kleiner Karte: Randgebirge auf dem Brett eher als Brettrand gestalten
 - [x] Ladezeit: Raum lädt erst nach den Spielmodellen; unbenutzte Raum-Modelle und Roh-Bilder ins Archiv (models/raum jetzt ~23 MB)
+
+## Karten, Jahreszeiten, Vorschau (18.10.)
+- [x] 6 neue Kartenarten mit eigener Form: Inselreich, Fjordland, Wüste (Oasen), Canyon (Plateaus, Fluss), Sumpfdelta (Kanäle), Kraterrand (Ringgebirge, See); Gebirgspass mit richtigen Pässen
+- [x] Regler Wasser (wenig/mittel/viel) und Gebirge (keine/wenige/viele) wirken auf alle Kartenarten
+- [x] Knöpfe „Zufällige Karte“ und „Neu würfeln“; Vorschau, Brett und Partie zeigen dieselbe Karte (Zahlenwert `seed`)
+- [x] Garantien: Landweg zwischen den Basen, Startvorkommen nah, Hafen/Fisch wo Wasser ist (Prüfung über 702 Kombinationen)
+- [x] Jahreszeiten (Frühling, Sommer, Herbst, Winter, Zufall) als reine Optik: Bodenfarben, Bäume (echte Modelle, umgefärbt bzw. Jahreszeit-Sätze), Gras, Schnee, Eis, Licht, Himmel, Wasser, Wetter (Laub, Schnee, Blüten; Option im Menü)
+- [x] Neue Vorschaubilder: echte erzeugte Karte mit Höhenschatten, Schaum, Jahreszeit, Startpunkten und Vorkommen-Symbolen, grosse Live-Vorschau im Menü und in der Lobby, Zwischenspeicher
+- [x] Mehrspieler-Lobby: Wasser, Gebirge, Jahreszeit, Würfel (Gastgeber entscheidet), gleiche Karte bei beiden
+- [x] Latenter Fehler behoben: Wegfinde-Cache (`navFields`) blieb zwischen Partien stehen
+- [ ] Hafen bei „wenig Wasser“ auf grossen Karten oft weit vom Start (KI baut dann keinen Hafen)
+- [ ] Kraterrand: kleinen Teich nah am Start ergänzen (Fische, Hafen)
+- [ ] Jahreszeit im Mehrspieler-Spiel vom Gast frei wählbar (nur Vorschlag)
+- [ ] Karten-Seed per Eingabefeld teilen/merken („Lieblingskarten“)
+
+## Industrie- und Waffen-Modelle (18.10.)
+- [x] Farbtabellen repariert (Davids Upload hatte `variation-a/b/c.png` überschrieben); Industrie-Tabellen heissen `ind-a/b/c.png`
+- [x] Raffinerie (Zeitalter 5/6), Flugplatz (Zeitalter 6), Lager (Zeitalter 5/6) und Wohnhäuser (Zeitalter 6, vier Varianten) aus Kenney-Kits; Lücken-Skript: nur noch `trench`, `derrick`, `cannon`
+- [x] Waffen-Paket: Stachelkeule, Schilde (Schildrand in Teamfarbe), Schwert, Bogen mit Pfeilen, Druidenstab (Heiler), Horn (Späher), Streitaxt (Ingenieur); verkleinert in `models/waffen`
+- [ ] Bohrturm, Schützengraben, Feldkanone, Armbrust: weiter kein passendes Modell (David um Pakete bitten)
+- [ ] Wohnhäuser Zeitalter 5 sind noch Fachwerk (Industrie-Kit hat nur Fabriken/Lager; ein Backstein-Wohnhaus fehlt)
+- [ ] Hafen Zeitalter 5/6: Container auf dem Steg würden gut passen, ragen aber über die schmalen Stege (Beiwerk-Höhe/Platz nötig)
+- [ ] Waffen-Pack: Äxte, Stäbe, Schwert-/Schildfarben (A/B/C/E), Pfeile B ungenutzt (Variation je Einheit möglich)
+
+## Arbeiter-Animationen (18.10.)
+- [x] Beeren pflücken: Arbeiter kniet sich hin, greift in den Strauch, führt die Beeren zum Beutel, steht beim Abliefern auf (Zyklus 2,1 s)
+- [x] Holzfäller: breiter Stand, Axt über den Kopf, kräftiger Hieb mit Rumpf, Aufprall im Takt von Geräusch, Späne am Stamm, Baum wackelt
+- [x] Bauen (Hammer, 3 Schläge + Pause), Feldarbeit (Sense), Jagd (Speerstoß), Tragen (Stämme/Sack auf dem Rücken), Umschauen im Stand
+- [x] Animationsgeschwindigkeit höchstens 3×, Hiebe bei 3×/5× über mehrere Takte gedehnt
+- [ ] Finger um den Werkzeugstiel schliessen (Faust), Schulterblatt mitbewegen bei hohen Armen
+- [ ] Fischen: Haltung im Stand am Ufer prüfen, Fang aus dem Wasser ziehen
+- [ ] Mehr Abwechslung (Müdigkeit, Wischen der Stirn, Wasser trinken), Aufstehen/Hinknien auch bei Beerenwechsel
+- [ ] Soldaten: Ausholen/Treffer mit demselben Haltungs-System (Schwert-Hieb mit Rumpf, Schuss-Anschlag)
+

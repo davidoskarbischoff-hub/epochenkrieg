@@ -72,3 +72,16 @@ Jeder Schlüssel ist eine **Liste von Varianten** (je mehr, desto abwechslungsre
 - `w`: Gewicht einer Variante bei der Berg-Deko (häufiger/seltener).
 - `wheat`: `for` = Feld-Modell, zu dem die Reihen passen; `rows` = Reihen `[z, x von, x bis]` (Feldbreite = 1), `step` = Abstand, `y` = Höhe der Furchen.
 - Dateien verkleinern: `node tools/glbslim.js models/nature/*.glb` fasst Teile gleicher Farbe zusammen und lässt bei flach schattierten Modellen die Normalen weg (Datei etwa 5× kleiner, Aussehen gleich).
+
+## Kenney-Bausätze im Spiel (Industrie, Stadthäuser)
+- Farbtabellen: jeder Eintrag darf `cmap` haben (z. B. `"cmap":"neu/ind-b.png"`). Industrie-Kit: `ind-a` violett/orange, `ind-b` Backstein (Industriezeit), `ind-c` grau/weiss (Weltkriegszeit). Starter-Kit: `kenney/colormap.png`. Die Tabellen `neu/variation-a/b/c.png` gehören zum Pirate-/Castle-Kit (Boote, Rammbock) – nicht überschreiben!
+- Beiwerk (`props`) mit Kenney-Teilen braucht `"cmap":true` (= die Tabelle des Gebäudes) oder einen eigenen Pfad; `w` gibt die Breite statt der Höhe vor. Flache Teile ausserhalb des Gebäudes (Strassenplatten, Brunnen) verschwinden im Gelände (der Boden steigt an) – nur Beiwerk mit Höhe benutzen.
+- `tint` am Gebäude (`{"colormap":"#c4cca6","colormap-specular":"#c4cca6"}`) färbt das ganze Modell um (z. B. olivgrüne Hangars).
+- `variants`: Liste `[{"file":…,"fit":…},…]` – je nach Nummer des Gebäudes ein anderes Aussehen (Wohnhäuser Weltkriegszeit).
+
+## Waffen und Ausrüstung (Weapons Pack, `models/waffen`)
+- Alle Waffen des Pakets teilen dieselbe 1024-px-Farbtabelle (550 KB je Datei). `python3 tools/glbtex.py models/waffen 256 models/neu/<Datei>.glb …` legt verkleinerte Kopien an (30–90 KB). Nur benutzte Waffen in `models/waffen` lassen.
+- Waffen schauen mit der Klinge nach +Y (anders als die alten Quaternius-Waffen): in der Hand `rot:[180,0,0]` = Klinge zeigt nach oben. Schild: `rot:[0,0,0]` in `left`. Bogen: `rot:[0,-90,0]`.
+- `tint` an `hand`/`left`/`wear` färbt Materialien der Waffe: `{"Metalic":"#c8964e"}` (Bronze), `"team"` statt Farbe = Spielerfarbe (Schildrand).
+- Eingesetzt: Stachelkeule (Keulenträger Bronzezeit), Schilde (Speer/Schwert/Ritter), Schwert, Bogen mit Pfeilen auf dem Rücken (Bogenschütze), Druidenstab (Heiler Zeitalter 0–3), Horn (Späher), Streitaxt (Ingenieur).
+

@@ -713,7 +713,21 @@
      "#1c1410",
      "#6b4a2a",
      "#3a2414"
-    ]
+    ],
+    "hand": {
+     "file": "waffen/HornB_1_1_A.glb",
+     "scale": 1.4,
+     "rot": [
+      0,
+      90,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    },
    {
     "file": "neu/Adventurer.glb",
@@ -756,7 +770,21 @@
      "#1c1410",
      "#6b4a2a",
      "#3a2414"
-    ]
+    ],
+    "hand": {
+     "file": "waffen/HornB_1_1_A.glb",
+     "scale": 1.4,
+     "rot": [
+      0,
+      90,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    },
    {
     "file": "neu/Adventurer.glb",
@@ -799,7 +827,21 @@
      "#1c1410",
      "#6b4a2a",
      "#3a2414"
-    ]
+    ],
+    "hand": {
+     "file": "waffen/HornB_1_1_A.glb",
+     "scale": 1.4,
+     "rot": [
+      0,
+      90,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    },
    {
     "file": "neu/Adventurer.glb",
@@ -845,6 +887,20 @@
      "Grey": "#4a3a2a",
      "Black": "#2a2018",
      "Gold": "#9aa0a6"
+    },
+    "hand": {
+     "file": "waffen/HornB_1_1_A.glb",
+     "scale": 1.4,
+     "rot": [
+      0,
+      90,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
     }
    },
    {
@@ -891,6 +947,20 @@
      "Grey": "#2a2018",
      "Black": "#1c1c1c",
      "Gold": "#c9a24a"
+    },
+    "hand": {
+     "file": "waffen/HornB_1_1_A.glb",
+     "scale": 1.4,
+     "rot": [
+      0,
+      90,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
     }
    },
    {
@@ -933,6 +1003,20 @@
      "Grey": "#1c1c1c",
      "Black": "#1c1c1c",
      "Gold": "#9aa0a6"
+    },
+    "hand": {
+     "file": "waffen/HornB_1_1_A.glb",
+     "scale": 1.4,
+     "rot": [
+      0,
+      90,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
     }
    },
    {
@@ -994,7 +1078,21 @@
      "#1c1410",
      "#6b4a2a",
      "#3a2414"
-    ]
+    ],
+    "hand": {
+     "file": "waffen/DruidStaff_2_1_A.glb",
+     "scale": 0.9,
+     "rot": [
+      180,
+      0,
+      8
+     ],
+     "pos": [
+      0,
+      0.4,
+      0
+     ]
+    }
    },
    {
     "file": "neu/Adventurer.glb",
@@ -1037,7 +1135,21 @@
      "#1c1410",
      "#6b4a2a",
      "#3a2414"
-    ]
+    ],
+    "hand": {
+     "file": "waffen/DruidStaff_2_1_A.glb",
+     "scale": 0.9,
+     "rot": [
+      180,
+      0,
+      8
+     ],
+     "pos": [
+      0,
+      0.4,
+      0
+     ]
+    }
    },
    {
     "file": "neu/Adventurer.glb",
@@ -1080,7 +1192,21 @@
      "#1c1410",
      "#6b4a2a",
      "#3a2414"
-    ]
+    ],
+    "hand": {
+     "file": "waffen/DruidStaff_2_1_A.glb",
+     "scale": 0.9,
+     "rot": [
+      180,
+      0,
+      8
+     ],
+     "pos": [
+      0,
+      0.4,
+      0
+     ]
+    }
    },
    {
     "file": "neu/Adventurer.glb",
@@ -1127,6 +1253,20 @@
      "Grey": "#4a3a2a",
      "Black": "#2a2018",
      "Gold": "#9aa0a6"
+    },
+    "hand": {
+     "file": "waffen/DruidStaff_2_1_A.glb",
+     "scale": 0.9,
+     "rot": [
+      180,
+      0,
+      8
+     ],
+     "pos": [
+      0,
+      0.4,
+      0
+     ]
     }
    },
    {
@@ -1377,6 +1517,20 @@
        }
       }
      }
+    },
+    "hand": {
+     "file": "waffen/BattleAxe_1_1_A.glb",
+     "scale": 0.8,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
     }
    },
    {
@@ -1538,7 +1692,21 @@
       },
       "scale": 1.4
      }
-    ]
+    ],
+    "hand": {
+     "file": "waffen/BattleAxe_1_1_A.glb",
+     "scale": 0.8,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    }
    }
   ],
   "spear": [
@@ -1577,18 +1745,21 @@
      ]
     },
     "left": {
-     "file": "neu/Shield Round.glb",
-     "scale": 0.22,
+     "file": "waffen/Shield_1_A.glb",
+     "scale": 0.65,
      "rot": [
       0,
-      -90,
+      0,
       0
      ],
      "pos": [
       0,
       0,
       0
-     ]
+     ],
+     "tint": {
+      "Metalic": "team"
+     }
     },
     "skins": [
      "#e0ac85",
@@ -1644,18 +1815,21 @@
      ]
     },
     "left": {
-     "file": "neu/Shield Round.glb",
-     "scale": 0.22,
+     "file": "waffen/Shield_1_A.glb",
+     "scale": 0.65,
      "rot": [
       0,
-      -90,
+      0,
       0
      ],
      "pos": [
       0,
       0,
       0
-     ]
+     ],
+     "tint": {
+      "Metalic": "team"
+     }
     },
     "skins": [
      "#e0ac85",
@@ -1847,8 +2021,8 @@
      2
     ],
     "hand": {
-     "file": "neu/Sword.glb",
-     "scale": 0.3,
+     "file": "waffen/Sword_1_A.glb",
+     "scale": 0.8,
      "rot": [
       180,
       0,
@@ -1861,18 +2035,21 @@
      ]
     },
     "left": {
-     "file": "neu/Shield Heater.glb",
-     "scale": 0.22,
+     "file": "waffen/Shield_2_A.glb",
+     "scale": 0.65,
      "rot": [
       0,
-      -90,
+      0,
       0
      ],
      "pos": [
       0,
       0,
       0
-     ]
+     ],
+     "tint": {
+      "Metalic": "team"
+     }
     },
     "skins": [
      "#e0ac85",
@@ -1953,8 +2130,8 @@
      }
     ],
     "hand": {
-     "file": "neu/Sword.glb",
-     "scale": 0.3,
+     "file": "waffen/Sword_1_A.glb",
+     "scale": 0.8,
      "rot": [
       180,
       0,
@@ -1967,18 +2144,21 @@
      ]
     },
     "left": {
-     "file": "neu/Shield Heater.glb",
-     "scale": 0.22,
+     "file": "waffen/Shield_2_A.glb",
+     "scale": 0.65,
      "rot": [
       0,
-      -90,
+      0,
       0
      ],
      "pos": [
       0,
       0,
       0
-     ]
+     ],
+     "tint": {
+      "Metalic": "team"
+     }
     }
    },
    {
@@ -2041,8 +2221,8 @@
      }
     ],
     "hand": {
-     "file": "neu/Sword.glb",
-     "scale": 0.3,
+     "file": "waffen/Sword_1_A.glb",
+     "scale": 0.8,
      "rot": [
       180,
       0,
@@ -2055,18 +2235,21 @@
      ]
     },
     "left": {
-     "file": "neu/Shield Heater.glb",
-     "scale": 0.22,
+     "file": "waffen/Shield_2_A.glb",
+     "scale": 0.65,
      "rot": [
       0,
-      -90,
+      0,
       0
      ],
      "pos": [
       0,
       0,
       0
-     ]
+     ],
+     "tint": {
+      "Metalic": "team"
+     }
     }
    }
   ],
@@ -2110,19 +2293,51 @@
      "Backpack"
     ],
     "hand": {
-     "file": "neu/Wooden Bow.glb",
-     "scale": 0.45,
+     "file": "waffen/Bow_1_1_A_001.glb",
+     "scale": 0.55,
      "rot": [
       0,
-      0,
-      90
+      -90,
+      0
      ],
      "pos": [
       0,
       0,
       0
      ]
-    }
+    },
+    "wear": [
+     {
+      "file": "waffen/Arrow_1_A.glb",
+      "bone": "^Chest$",
+      "scale": 1.0,
+      "pos": [
+       0,
+       -0.12,
+       -0.1
+      ],
+      "rot": [
+       180,
+       0,
+       10
+      ]
+     },
+     {
+      "file": "waffen/Arrow_2_A.glb",
+      "bone": "^Chest$",
+      "scale": 1.0,
+      "pos": [
+       0.03,
+       -0.12,
+       -0.1
+      ],
+      "rot": [
+       180,
+       0,
+       -10
+      ]
+     }
+    ]
    },
    {
     "file": "neu/Adventurer.glb",
@@ -2163,19 +2378,51 @@
      "Backpack"
     ],
     "hand": {
-     "file": "neu/Wooden Bow.glb",
-     "scale": 0.45,
+     "file": "waffen/Bow_1_1_A_001.glb",
+     "scale": 0.55,
      "rot": [
       0,
-      0,
-      90
+      -90,
+      0
      ],
      "pos": [
       0,
       0,
       0
      ]
-    }
+    },
+    "wear": [
+     {
+      "file": "waffen/Arrow_1_A.glb",
+      "bone": "^Chest$",
+      "scale": 1.0,
+      "pos": [
+       0,
+       -0.12,
+       -0.1
+      ],
+      "rot": [
+       180,
+       0,
+       10
+      ]
+     },
+     {
+      "file": "waffen/Arrow_2_A.glb",
+      "bone": "^Chest$",
+      "scale": 1.0,
+      "pos": [
+       0.03,
+       -0.12,
+       -0.1
+      ],
+      "rot": [
+       180,
+       0,
+       -10
+      ]
+     }
+    ]
    }
   ],
   "crossbow": [
@@ -2746,8 +2993,8 @@
      "work": "Interact"
     },
     "hand": {
-     "file": "neu/Wooden Torch.glb",
-     "scale": 0.45,
+     "file": "waffen/SpikedClub_1_A.glb",
+     "scale": 0.9,
      "rot": [
       180,
       0,
@@ -2757,7 +3004,10 @@
       0,
       0,
       0
-     ]
+     ],
+     "tint": {
+      "Metalic": "#c8964e"
+     }
     },
     "skins": [
      "#e0ac85",
@@ -3526,7 +3776,24 @@
        0
       ]
      }
-    ]
+    ],
+    "left": {
+     "file": "waffen/Shield_2_A.glb",
+     "scale": 0.65,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ],
+     "tint": {
+      "Metalic": "team"
+     }
+    }
    },
    {
     "file": "neu/Adventurer.glb",
@@ -3597,7 +3864,24 @@
        0
       ]
      }
-    ]
+    ],
+    "left": {
+     "file": "waffen/Shield_2_A.glb",
+     "scale": 0.65,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ],
+     "tint": {
+      "Metalic": "team"
+     }
+    }
    },
    {
     "file": "neu/Adventurer.glb",
@@ -4312,11 +4596,30 @@
     "fit": 1
    },
    {
-    "file": "neu/Small Building-gyjF60t7CG.glb",
+    "file": "kenney/building-small-d.glb",
     "epochs": [
      6
     ],
-    "fit": 1
+    "fit": 0.85,
+    "cmap": "kenney/colormap.png",
+    "variants": [
+     {
+      "file": "kenney/building-small-d.glb",
+      "fit": 0.85
+     },
+     {
+      "file": "kenney/building-small-b.glb",
+      "fit": 0.7
+     },
+     {
+      "file": "kenney/building-small-a.glb",
+      "fit": 0.85
+     },
+     {
+      "file": "kenney/building-small-c.glb",
+      "fit": 0.62
+     }
+    ]
    }
   ],
   "store": [
@@ -4371,12 +4674,52 @@
     "fit": 1
    },
    {
-    "file": "arch/Barn.glb",
+    "file": "neu/building-s.glb",
     "epochs": [
-     5,
+     5
+    ],
+    "fit": 0.95,
+    "cmap": "neu/ind-b.png",
+    "props": [
+     {
+      "file": "neu/shipping-container-a.glb",
+      "x": 0.6,
+      "z": 1.0,
+      "h": 0.95,
+      "cmap": true
+     },
+     {
+      "file": "neu/shipping-container-c.glb",
+      "x": -0.7,
+      "z": 1.0,
+      "h": 0.95,
+      "cmap": true
+     }
+    ]
+   },
+   {
+    "file": "neu/building-s.glb",
+    "epochs": [
      6
     ],
-    "fit": 1
+    "fit": 0.95,
+    "cmap": "neu/ind-c.png",
+    "props": [
+     {
+      "file": "neu/shipping-container-a.glb",
+      "x": 0.6,
+      "z": 1.0,
+      "h": 0.95,
+      "cmap": true
+     },
+     {
+      "file": "neu/shipping-container-c.glb",
+      "x": -0.7,
+      "z": 1.0,
+      "h": 0.95,
+      "cmap": true
+     }
+    ]
    }
   ],
   "barracks": [
@@ -4929,6 +5272,116 @@
     ],
     "fit": 0.85
    }
+  ],
+  "refinery": [
+   {
+    "file": "neu/building-e.glb",
+    "epochs": [
+     5
+    ],
+    "fit": 0.8,
+    "cmap": "neu/ind-b.png",
+    "props": [
+     {
+      "file": "neu/detail-tank-large.glb",
+      "x": 1.0,
+      "z": 0.6,
+      "h": 1.6,
+      "cmap": true
+     },
+     {
+      "file": "neu/detail-tank.glb",
+      "x": -1.0,
+      "z": 0.9,
+      "h": 0.9,
+      "cmap": true
+     },
+     {
+      "file": "neu/detail-tank.glb",
+      "x": 1.1,
+      "z": -0.5,
+      "h": 0.9,
+      "ry": 90,
+      "cmap": true
+     }
+    ]
+   },
+   {
+    "file": "neu/building-e.glb",
+    "epochs": [
+     6
+    ],
+    "fit": 0.8,
+    "cmap": "neu/ind-c.png",
+    "props": [
+     {
+      "file": "neu/detail-tank-large.glb",
+      "x": 1.0,
+      "z": 0.6,
+      "h": 1.6,
+      "cmap": true
+     },
+     {
+      "file": "neu/detail-tank.glb",
+      "x": -1.0,
+      "z": 0.9,
+      "h": 0.9,
+      "cmap": true
+     },
+     {
+      "file": "neu/detail-tank.glb",
+      "x": 1.1,
+      "z": -0.5,
+      "h": 0.9,
+      "ry": 90,
+      "cmap": true
+     }
+    ]
+   }
+  ],
+  "airfield": [
+   {
+    "file": "neu/building-j.glb",
+    "epochs": [
+     6
+    ],
+    "fit": 0.5,
+    "cmap": "neu/ind-c.png",
+    "tint": {
+     "colormap": "#c4cca6",
+     "colormap-specular": "#c4cca6"
+    },
+    "props": [
+     {
+      "file": "neu/building-j.glb",
+      "x": -0.92,
+      "z": 0.0,
+      "h": 1.9,
+      "cmap": "neu/ind-c.png",
+      "tint": {
+       "colormap": "#c4cca6",
+       "colormap-specular": "#c4cca6"
+      }
+     },
+     {
+      "file": "neu/building-j.glb",
+      "x": 0.92,
+      "z": 0.0,
+      "h": 1.9,
+      "cmap": "neu/ind-c.png",
+      "tint": {
+       "colormap": "#c4cca6",
+       "colormap-specular": "#c4cca6"
+      }
+     }
+    ],
+    "flag": {
+     "x": 0,
+     "z": 0.95,
+     "y": 0,
+     "h": 0.8
+    }
+   }
   ]
  },
  "animals": {
@@ -5036,7 +5489,7 @@
   }
  },
  "nodes": {
-  "_info": "Natur (Quaternius-Natur-Paket in models/nature): je Schlüssel eine Liste von Varianten. k = fester Massstab (Modell-Einheiten → Spiel), height = Höhe, sonst Höhe des Code-Modells; colors färbt einzelne Materialien um. broad = Laubbäume, birch = Birkenhaine, willow = Weiden am Wasser, autumn = Herbst-Farbtupfer, bush = Beerenstrauch, bushE = abgeernteter Strauch, stump = Baumstumpf nach dem Fällen, wheat = Getreide auf dem Feld (rows = Reihen [z, x von, x bis] im Feld-Modell „for“), alpine/snowy = Deko auf Bergen unter/über der Schneegrenze.",
+  "_info": "Natur (Quaternius-Natur-Paket in models/nature): je Schlüssel eine Liste von Varianten. k = fester Massstab (Modell-Einheiten → Spiel), height = Höhe, sonst Höhe des Code-Modells; colors färbt einzelne Materialien um. broad = Laubbäume, birch = Birkenhaine, willow = Weiden am Wasser, autumn = Herbst-Farbtupfer, bush = Beerenstrauch, bushE = abgeernteter Strauch, stump = Baumstumpf nach dem Fällen, wheat = Getreide auf dem Feld (rows = Reihen [z, x von, x bis] im Feld-Modell „for“), alpine/snowy = Deko auf Bergen unter/über der Schneegrenze. Mit \"when\" (Jahreszeit spring/autumn/winter oder pal:desert/pal:canyon) werden Modelle erst geladen, wenn die Karte sie braucht (broadA/birchA/willowA = Herbst, broadW/birchW/willowW = Winter mit Schnee, bloom/bloomW = Frühling mit Blüten, broadD = dürre Bäume, cactus = Kakteen als Deko).",
   "pine": {
    "file": "neu/Pine.glb",
    "scale": 1.35
@@ -5534,6 +5987,555 @@
      "glow": 0.25
     }
    }
+  ],
+  "broadA": [
+   {
+    "file": "nature/CommonTree_Autumn_1.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#d9731c",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/CommonTree_Autumn_2.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#c23c18",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/CommonTree_Autumn_3.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#e8b82c",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/CommonTree_Autumn_4.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#cf8a22",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/CommonTree_Autumn_5.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#b8431c",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/CommonTree_Autumn_1.glb",
+    "k": 0.026,
+    "colors": {
+     "Orange": "#e0a428",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   }
+  ],
+  "birchA": [
+   {
+    "file": "nature/BirchTree_Autumn_1.glb",
+    "k": 0.02,
+    "colors": {
+     "Orange": "#d89a2c",
+     "LightOrange": "#e8c040",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/BirchTree_Autumn_2.glb",
+    "k": 0.02,
+    "colors": {
+     "Orange": "#c8601c",
+     "LightOrange": "#e09a30",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/BirchTree_Autumn_3.glb",
+    "k": 0.02,
+    "colors": {
+     "Orange": "#e0b030",
+     "LightOrange": "#f0d060",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/BirchTree_Autumn_4.glb",
+    "k": 0.02,
+    "colors": {
+     "Orange": "#cf7a24",
+     "LightOrange": "#e8b040",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    },
+    "when": "autumn"
+   }
+  ],
+  "willowA": [
+   {
+    "file": "nature/Willow_Autumn_1.glb",
+    "k": 0.025,
+    "colors": {
+     "Orange": "#c8a838",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/Willow_Autumn_2.glb",
+    "k": 0.025,
+    "colors": {
+     "Orange": "#d89a34",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/Willow_Autumn_3.glb",
+    "k": 0.025,
+    "colors": {
+     "Orange": "#b8b040",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   },
+   {
+    "file": "nature/Willow_Autumn_4.glb",
+    "k": 0.025,
+    "colors": {
+     "Orange": "#cc8a2c",
+     "Wood": "#6b4630"
+    },
+    "when": "autumn"
+   }
+  ],
+  "broadW": [
+   {
+    "file": "nature/CommonTree_Snow_1.glb",
+    "k": 0.026,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/CommonTree_Snow_2.glb",
+    "k": 0.026,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/CommonTree_Snow_3.glb",
+    "k": 0.026,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/CommonTree_Snow_4.glb",
+    "k": 0.026,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/CommonTree_Dead_Snow_1.glb",
+    "k": 0.026,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter",
+    "w": 1
+   },
+   {
+    "file": "nature/CommonTree_Dead_Snow_3.glb",
+    "k": 0.026,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter",
+    "w": 1
+   }
+  ],
+  "birchW": [
+   {
+    "file": "nature/BirchTree_Snow_1.glb",
+    "k": 0.02,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/BirchTree_Snow_2.glb",
+    "k": 0.02,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/BirchTree_Snow_3.glb",
+    "k": 0.02,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/BirchTree_Snow_4.glb",
+    "k": 0.02,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/BirchTree_Dead_Snow_1.glb",
+    "k": 0.02,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   }
+  ],
+  "willowW": [
+   {
+    "file": "nature/Willow_Snow_1.glb",
+    "k": 0.025,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/Willow_Snow_2.glb",
+    "k": 0.025,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/Willow_Snow_3.glb",
+    "k": 0.025,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   },
+   {
+    "file": "nature/Willow_Snow_4.glb",
+    "k": 0.025,
+    "colors": {
+     "Snow": "#f1f4f8",
+     "Wood": "#5e4030",
+     "Green": "#3f6e30",
+     "DarkGreen": "#355f2a",
+     "White": "#ebe7dc",
+     "Black": "#3a3631",
+     "Rock": "#8a8f99"
+    },
+    "when": "winter"
+   }
+  ],
+  "bloom": [
+   {
+    "file": "nature/CommonTree_1.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#f0b4ca",
+     "DarkGreen": "#e394b4",
+     "Wood": "#6b4630"
+    },
+    "when": "spring"
+   },
+   {
+    "file": "nature/CommonTree_2.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#f0b4ca",
+     "DarkGreen": "#e394b4",
+     "Wood": "#6b4630"
+    },
+    "when": "spring"
+   },
+   {
+    "file": "nature/CommonTree_3.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#f0b4ca",
+     "DarkGreen": "#e394b4",
+     "Wood": "#6b4630"
+    },
+    "when": "spring"
+   },
+   {
+    "file": "nature/BirchTree_1.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#f4d0dc",
+     "DarkGreen": "#ecb0c6",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    },
+    "when": "spring"
+   },
+   {
+    "file": "nature/BirchTree_2.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#f4d0dc",
+     "DarkGreen": "#ecb0c6",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    },
+    "when": "spring"
+   }
+  ],
+  "bloomW": [
+   {
+    "file": "nature/CommonTree_4.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#f8f2ea",
+     "DarkGreen": "#e6dfd2",
+     "Wood": "#6b4630"
+    },
+    "when": "spring"
+   },
+   {
+    "file": "nature/CommonTree_5.glb",
+    "k": 0.026,
+    "colors": {
+     "Green": "#f8f2ea",
+     "DarkGreen": "#e6dfd2",
+     "Wood": "#6b4630"
+    },
+    "when": "spring"
+   },
+   {
+    "file": "nature/BirchTree_3.glb",
+    "k": 0.02,
+    "colors": {
+     "Green": "#f8f4ee",
+     "DarkGreen": "#e8e0d4",
+     "White": "#ebe7dc",
+     "Black": "#3a3631"
+    },
+    "when": "spring"
+   }
+  ],
+  "broadD": [
+   {
+    "file": "nature/CommonTree_1.glb",
+    "k": 0.024,
+    "colors": {
+     "Green": "#8c8e3a",
+     "DarkGreen": "#6f7430",
+     "Wood": "#6a4a30"
+    },
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/CommonTree_2.glb",
+    "k": 0.024,
+    "colors": {
+     "Green": "#8c8e3a",
+     "DarkGreen": "#6f7430",
+     "Wood": "#6a4a30"
+    },
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/CommonTree_3.glb",
+    "k": 0.024,
+    "colors": {
+     "Green": "#8c8e3a",
+     "DarkGreen": "#6f7430",
+     "Wood": "#6a4a30"
+    },
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/CommonTree_4.glb",
+    "k": 0.024,
+    "colors": {
+     "Green": "#8c8e3a",
+     "DarkGreen": "#6f7430",
+     "Wood": "#6a4a30"
+    },
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   }
+  ],
+  "cactus": [
+   {
+    "file": "nature/Cactus_1.glb",
+    "k": 0.022,
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/Cactus_2.glb",
+    "k": 0.022,
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/Cactus_3.glb",
+    "k": 0.022,
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/Cactus_4.glb",
+    "k": 0.022,
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/Cactus_5.glb",
+    "k": 0.022,
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   },
+   {
+    "file": "nature/CactusFlower_1.glb",
+    "k": 0.022,
+    "when": [
+     "pal:desert",
+     "pal:canyon"
+    ]
+   }
   ]
  },
  "sea": {
@@ -5611,6 +6613,21 @@
     0,
     0
    ]
+  }
+ },
+ "wprops": {
+  "_info": "Beiwerk für die Arbeits-Haltungen (js/workpose.js): bag = Beutel für die Beeren.",
+  "bag": {
+   "file": "archiv/Bag Open.glb"
+  },
+  "logs": {
+   "file": "neu/Logs.glb",
+   "w": 0.5,
+   "ry": 90
+  },
+  "sack": {
+   "file": "archiv/Bags.glb",
+   "w": 0.34
   }
  },
  "_neue_kits": {

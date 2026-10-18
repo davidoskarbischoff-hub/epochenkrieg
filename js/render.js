@@ -55,7 +55,7 @@ function partsStep(vis){
       }else if(e.kind==='unit'||e.kind==='animal'){const d=e.kind==='unit'?UNITS[e.type]:ANIMALS[e.type],mv=T-(e.mvT||-9)<.2;
         if(mv){if((e._d=(e._d||0)-dt)<=0){e._d=.16+R()*.08;if(d.naval)addPart('foam',e.x-Math.cos(e.fa)*e.r,e.y-Math.sin(e.fa)*e.r,0,0,0,0,.9,e.r*.5,'235,250,250');else if(terrAt(e.x,e.y)===2)addPart('dust',e.x+(R()-.5)*4,e.y+1,1,(R()-.5)*8,-2,6,.7,e.type==='knight'||d.siege?4.5:2.6,'176,150,108')}}
         if(e.swing&&e.swing!==e._ps){e._ps=e.swing;if(T-e.swing<.12&&e.state==='attack'&&!d.ranged)for(let i=0;i<5;i++)addPart('spark',e.x+Math.cos(e.fa)*e.r*1.7,e.y+Math.sin(e.fa)*e.r*1.7,10+R()*8,(R()-.5)*60+Math.cos(e.fa)*30,(R()-.5)*30,40+R()*50,.3+R()*.2,1.6,'255,226,140')}
-        if(e.kind==='unit'&&T-(e.gat||-9)<.1&&e._gc!==((T*5)|0)){e._gc=(T*5)|0;const n=e.tid&&G.byId.get(e.tid);if(n&&e.rtype!=='food'){const c=e.rtype==='wood'?'168,122,68':e.rtype==='stone'?'190,186,176':'240,170,80';for(let i=0;i<3;i++)addPart('chip',n.x+(R()-.5)*n.r,n.y+n.r*.3,8+R()*14,(R()-.5)*50,(R()-.5)*20,50+R()*50,.45,1.6,c)}}
+        if(e.kind==='unit'&&!e._wi&&T-(e.gat||-9)<.1&&e._gc!==((T*5)|0)){e._gc=(T*5)|0;const n=e.tid&&G.byId.get(e.tid);if(n&&e.rtype!=='food'){const c=e.rtype==='wood'?'168,122,68':e.rtype==='stone'?'190,186,176':'240,170,80';for(let i=0;i<3;i++)addPart('chip',n.x+(R()-.5)*n.r,n.y+n.r*.3,8+R()*14,(R()-.5)*50,(R()-.5)*20,50+R()*50,.45,1.6,c)}}
       }
     }
     for(let i=PARTS.length-1;i>=0;i--){const p=PARTS[i];p.l-=dt;if(p.l<=0){PARTS.splice(i,1);continue}p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;

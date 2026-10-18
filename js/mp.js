@@ -99,7 +99,7 @@ function startMP(o){
   NET.prev=null;NET.interval=.1;NET.mp=true;NET.host=o.role==='host';NET.client=o.role==='client';NET.send=o.send;NET.acc=0;NET.lastSnap=performance.now();
   const flip=NET.host?o.side==='B':o.side!=='B';
   const cf=o.cfg||{};if(cf.colH&&cf.colG){NET.host?setTeamColors(cf.colH,cf.colG):setTeamColors(cf.colG,cf.colH)}
-  newGame('normal',false,{map:o.map,seed:o.seed,flip,mp:true,size:cf.size,speed:cf.speed});$('speedBtn').textContent=tr('Tempo {0}×',G.speed);
+  newGame('normal',false,{map:o.map,seed:o.seed,flip,mp:true,size:cf.size,speed:cf.speed,water:cf.water===undefined?1:cf.water,mount:cf.mount===undefined?1:cf.mount,season:cf.season||'summer'});$('speedBtn').textContent=tr('Tempo {0}×',G.speed);
   G.running=true;G.started=true;document.body.classList.remove('mm');$('overlay').className='';$('overlay').hidden=true;$('menu').hidden=true;menuOpen=false;
   toast(tr(NET.host?'Mehrspieler: Du bist der Gastgeber.':'Mehrspieler: Du bist der Gast.'));updateUI()}
 function endMP(){NetLog.saverReset();NET.mp=false;NET.host=false;NET.client=false;NET.send=null}

@@ -33,3 +33,10 @@ Laut David von itch.io bzw. poly.pizza heruntergeladen. Eingetragen ist, was im 
 
 - Universal Animation Library (UAL1_Standard) – Quaternius, CC0 (models/neu/UAL1_Standard.glb; Bewegungen werden im Spiel auf unsere Figuren übertragen)
 - Viking boat, Sail ship (models/neu, aus FBX umgewandelt) – Quelle laut Dateiname, Lizenz unbekannt
+
+## Industrie-Kit, Waffen-Paket und Starter-Kit (18.10.2026)
+| Ordner / Dateien | Quelle | Autor/in | Lizenz | Geändert? |
+|---|---|---|---|---|
+| `neu/building-a…t`, `chimney-*`, `detail-tank*`, `shipping-container-*`, `solar-panel-*`, `water-tower`, `windmill*` (City Kit Industrial 2.0) und die Farbtabellen `neu/ind-a.png`, `ind-b.png`, `ind-c.png` | kenney.nl (Lizenztext: `neu/License-Industrial-City-Kit.txt`) | Kenney | CC0 | Farbtabellen umbenannt: Davids Upload hatte die alten `variation-a/b/c.png` (Pirate/Castle-Kit, von Boot, Rammbock, Katapult gebraucht) überschrieben; sie sind wiederhergestellt, die Industrie-Tabellen heissen jetzt `ind-*`. Im Spiel teils umgefärbt (`tint`) |
+| `waffen/` (aus `neu/`: Arrow_1_A/2_A, BattleAxe_1_1_A, Bow_1_1_A_001, DruidStaff_2_1_A, HornB_1_1_A, Shield_1_A/2_A, SpikedClub_1_A, Sword_1_A – Weapons Pack) | von David hochgeladen (Quelle und Lizenz stehen nicht in den Dateien; Stil und Namensschema wie Quaternius, vermutlich CC0 – vor Veröffentlichung prüfen) | unbekannt | unbekannt | verkleinerte Kopien: Textur 1024 → 256 px (`tools/glbtex.py`), sonst unverändert; Bronze-Tönung der Keule, Schildrand in Teamfarbe |
+| `kenney/` (building-small-a…d, `colormap.png`) | github.com/KenneyNL/Starter-Kit-City-Builder | Kenney | MIT (Text: `kenney/LICENSE.txt`, Urheberhinweis muss bleiben) | nur 4 Häuser und die Farbtabelle übernommen |

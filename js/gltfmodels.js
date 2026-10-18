@@ -18,9 +18,11 @@ const EKMODELS=(()=>{
   /* Kennzeichen für die Modell-Signatur im Renderer: ändert sich, wenn ein glTF-Modell zuständig wird (dann wird die Figur neu gebaut) */
   function tag(e){if(!manifest||!files.size)return'';
     if(e.kind==='unit'){const en=entryFor('unit',e.type,e.lvl||0);return en?'|g:'+en.file:''}
-    if(e.kind==='bld'){const en=entryFor('bld',e.type,e.lvl??G.epoch[e.team],e.spec);return en?'|g:'+en.file:''}
+    if(e.kind==='bld'){const en=bldVar(entryFor('bld',e.type,e.lvl??G.epoch[e.team],e.spec),e.id);return en?'|g:'+en.file+(en.cmap||'')+(en.sig||''):''}
     if(e.kind==='animal'){const en=entryFor('animal',e.type,0);return en?'|g:'+en.file:''}
     if(e.kind==='node'&&e.sea&&manifest.sea&&manifest.sea[e.type]&&files.size)return'|gs';return''}
+  /* Gebäude mit mehreren Aussehen (z. B. Wohnhäuser): "variants":[{"file":..,"fit":..},…] – je nach Nummer des Gebäudes eine davon (überschreibt die Felder des Eintrags) */
+  const bldVar=(en,id)=>en&&en.variants&&en.variants.length?Object.assign({},en,en.variants[(id|0)%en.variants.length]):en;
   function has(kind,type,ep){return !!entryFor(kind,type,ep)}
   /* Material mit „Team“ im Namen → Spielerfarbe (je Team ein eigenes Material); alle anderen: schwache Himmelsspiegelung wie im Rest des Spiels */
   function prepare(root,team){
@@ -87,14 +89,16 @@ const EKMODELS=(()=>{
   /* Umbauen eines Modells ohne neue Datei: Material einfärben (tint), Teile verstecken (hide), Waffen/Werkzeuge in die Hände (hand/off), Fell-Hüftrock (pelt).
      So wird aus der nackten Basisfigur ein Steinzeit-Jäger, aus der Mittelalterfigur ein Speerträger usw. Siehe MODELLE.md. */
   function findBone(root,re){let f=null;root.traverse(o=>{if(!f&&o.isBone&&re.test(o.name))f=o});return f}
-  function attach(root,bone,spec,k){
+  function attach(root,bone,spec,k,team){
     const gl=files.get(spec.file);if(!bone||!gl)return null;const p=EKGLTF.SkeletonUtils.clone(gl.scene);prepare(p,0);
-    const holder=new THREE.Group();holder.add(p);bone.add(holder);root.updateMatrixWorld(true);
+    if(spec.tint){const t={};for(const n in spec.tint)t[n]=spec.tint[n]==='team'?(TC[team||0]||'#888888'):spec.tint[n];tintMats(p,t)}/* Waffe umfärben: tint:{"Metalic":"#b08040"} (Bronze) */const holder=new THREE.Group();holder.add(p);bone.add(holder);root.updateMatrixWorld(true);
     const ws=new THREE.Vector3();bone.getWorldScale(ws);const sc=k*(spec.scale||1)/(ws.x||1);holder.scale.setScalar(sc);
     const r=spec.rot||[0,0,0];holder.rotation.set(r[0]*Math.PI/180,r[1]*Math.PI/180,r[2]*Math.PI/180);
     const q=spec.pos||[0,0,0];holder.position.set(q[0]*k/(ws.x||1),q[1]*k/(ws.x||1),q[2]*k/(ws.x||1));return holder}
   /* Eigene Farbtabelle je Eintrag (Kenney-Bausätze haben unterschiedliche colormap-Aufteilungen): cmap:'neu/variation-c.png' */
-  const cmapCache={};function cmapOf(root,f){if(!f)return;const t=cmapCache[f]||(cmapCache[f]=(()=>{const x=new THREE.TextureLoader().load('models/'+f);x.flipY=false;x.colorSpace=THREE.SRGBColorSpace;x.magFilter=THREE.NearestFilter;return x})());
+  const cmapCache={},cmapP={};
+  function cmapLoad(f){return cmapP[f]||(cmapP[f]=new Promise(res=>{const x=new THREE.TextureLoader().load('models/'+f,()=>res(x),undefined,()=>res(x));x.flipY=false;x.colorSpace=THREE.SRGBColorSpace;x.magFilter=THREE.NearestFilter;cmapCache[f]=x}))}
+  function cmapOf(root,f){if(!f)return;if(!cmapCache[f])cmapLoad(f);const t=cmapCache[f];
     root.traverse(o=>{if(!o.isMesh)return;const f2=m=>{if(!m.map)return m;const n=m.clone();n.map=t;n.needsUpdate=true;return n};o.material=Array.isArray(o.material)?o.material.map(f2):f2(o.material)})}
   /* Materialfarbe nach Materialname setzen (bei Texturen = abdunkeln/tönen), je Material+Farbe nur einmal geklont: {"People_texture_map":"#d0c8c0"} */
   const tintCache=new Map(),natCache=new Map();
@@ -108,9 +112,9 @@ const EKMODELS=(()=>{
         /* Haut je Figur verschieden (Material Skin oder Farbe 'skin' = barfuss/nackte Beine), Haare/Augenbrauen aus 'hairs' */
         const f=m=>{let c=en.tint&&en.tint[m.name];if(sk&&(c==='skin'||(/^(M_Main|M_Joints|Skin)$/.test(m.name))))c=sk;if(hr&&/^(Hair|Eyebrows|Moustache)$/.test(m.name))c=hr;if(c==='team')c=TC[team];if(!c)return m;const n=m.clone();n.color.set(c);n.name=m.name;return n};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}})}
     if(en.tintAll){root.traverse(o=>{if(!o.isMesh)return;const f=m=>{const n=m.clone();n.vertexColors=false;n.map=null;n.color.set(en.tintAll);n.needsUpdate=true;return n};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)})}
-    if(en.extras)for(const x of en.extras)attach(root,root,x,k);
-    let hh=null;if(en.hand)hh=attach(root,findBone(root,/hand\.?r|wrist\.?r/i),en.hand,k);wrap.userData.handHolder=hh;
-    if(en.left)attach(root,findBone(root,/hand\.?l|wrist\.?l/i),en.left,k);
+    if(en.extras)for(const x of en.extras)attach(root,root,x,k,team);
+    let hh=null;if(en.hand)hh=attach(root,findBone(root,/hand\.?r|wrist\.?r/i),en.hand,k,team);wrap.userData.handHolder=hh;
+    if(en.left)attach(root,findBone(root,/hand\.?l|wrist\.?l/i),en.left,k,team);
     if(en.wear)for(const w of en.wear)wear(root,w,k,team);
     if(en.pelt||en.cape||en.tooth)cloth(root,en,k,id);}
   /* Ausrüstung aus echten Modellen an einen Knochen hängen (Helm, Brustpanzer): wear:[{file,bone,mesh,scale,rot,pos,tint}]
@@ -220,29 +224,146 @@ const EKMODELS=(()=>{
     if(!H||!B)return null;const a=new THREE.Vector3(),b=new THREE.Vector3();H.getWorldPosition(a);B.getWorldPosition(b);
     const fx=a.x-b.x,fz=a.z-b.z;if(Math.hypot(fx,fz)<1e-5)return null;
     return Math.round(Math.atan2(fz,fx)/(Math.PI/2))*(Math.PI/2)}catch(_){return null}}
-  /* Leistung: alle sichtbaren Hautteile einer Figur (gleiches Skelett, Material ohne Textur) zu EINEM Teil zusammenfassen,
-     Materialfarben werden zu Eckpunkt-Farben; getrennt bleiben nur Gruppen mit anderem Glanz (Metall) – aus ~10 Zeichenaufrufen je Figur werden 1–2 */
-  function mergeSkin(root){
-    root.updateMatrixWorld(true);const groups=new Map();
-    root.traverse(o=>{if(!o.isSkinnedMesh||!o.visible||Array.isArray(o.material)||o.material.transparent||(o.material.map&&!o.geometry.attributes.uv)||o.geometry.morphAttributes&&Object.keys(o.geometry.morphAttributes).length)return;
-      let v=true;for(let q=o;q;q=q.parent)if(!q.visible)v=false;if(!v)return;const m=o.material,key=(o.skeleton.bones[0]&&o.skeleton.bones[0].uuid)+'|'+(m.metalness||0).toFixed(1)+(m.roughness||1).toFixed(1)+m.side+(m.emissive&&m.emissive.getHex()?m.emissive.getHex():'')+(m.map?m.map.uuid:'');
-      (groups.get(key)||groups.set(key,[]).get(key)).push(o)});
-    const eq=(a,b)=>a.elements.every((x,i)=>Math.abs(x-b.elements[i])<1e-5);
-    for(const L0 of groups.values()){const L=L0.filter(o=>eq(o.matrixWorld,L0[0].matrixWorld)&&eq(o.bindMatrix,L0[0].bindMatrix));if(L.length<2)continue;
-      let nv=0,ni=0;for(const o of L){const g=o.geometry;nv+=g.attributes.position.count;ni+=g.index?g.index.count:g.attributes.position.count}
-      const tx=!!L[0].material.map,uv=tx?new Float32Array(nv*2):null,pos=new Float32Array(nv*3),nor=new Float32Array(nv*3),col=new Float32Array(nv*3),si=new Uint16Array(nv*4),sw=new Float32Array(nv*4),idx=nv>65535?new Uint32Array(ni):new Uint16Array(ni);let o0=0,oi=0;
-      const bones=[],inv=[],bi=new Map();/* gemeinsames Skelett: Knochen aller Teile vereinigen, Indizes umrechnen */
-      const remap=o=>o.skeleton.bones.map((b,i)=>{let j=bi.get(b);if(j===undefined){j=bones.length;bi.set(b,j);bones.push(b);inv.push(o.skeleton.boneInverses[i].clone())}return j});
-      for(const o of L){const g=o.geometry,P=g.attributes.position,N=g.attributes.normal,SI=g.attributes.skinIndex,SW=g.attributes.skinWeight,C=g.attributes.color,c=o.material.color,n=P.count,rm=remap(o);
-        for(let i=0;i<n;i++){const j=o0+i;if(uv){uv[j*2]=g.attributes.uv.getX(i);uv[j*2+1]=g.attributes.uv.getY(i)}pos[j*3]=P.getX(i);pos[j*3+1]=P.getY(i);pos[j*3+2]=P.getZ(i);if(N){nor[j*3]=N.getX(i);nor[j*3+1]=N.getY(i);nor[j*3+2]=N.getZ(i)}
-          const vc=o.material.vertexColors&&C;col[j*3]=c.r*(vc?C.getX(i):1);col[j*3+1]=c.g*(vc?C.getY(i):1);col[j*3+2]=c.b*(vc?C.getZ(i):1);
-          for(let q=0;q<4;q++){si[j*4+q]=rm[SI.getComponent(i,q)]||0;sw[j*4+q]=SW.getComponent(i,q)}}
-        if(g.index)for(let i=0;i<g.index.count;i++)idx[oi++]=g.index.getX(i)+o0;else for(let i=0;i<n;i++)idx[oi++]=o0+i;o0+=n}
-      const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('normal',new THREE.BufferAttribute(nor,3));g.setAttribute('color',new THREE.BufferAttribute(col,3));
-      g.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(si,4));if(uv)g.setAttribute('uv',new THREE.BufferAttribute(uv,2));g.setAttribute('skinWeight',new THREE.BufferAttribute(sw,4));g.setIndex(new THREE.BufferAttribute(idx,1));
-      const f=L[0],m=f.material.clone();m.vertexColors=true;m.color.setRGB(1,1,1);m.needsUpdate=true;
-      const sm=new THREE.SkinnedMesh(g,m);sm.name='merged';sm.position.copy(f.position);sm.quaternion.copy(f.quaternion);sm.scale.copy(f.scale);sm.castShadow=f.castShadow;sm.receiveShadow=f.receiveShadow;sm.frustumCulled=f.frustumCulled;
-      f.parent.add(sm);sm.bind(new THREE.Skeleton(bones,inv),f.bindMatrix);for(const o of L)o.parent.remove(o)}}
+  /* Gleiche Bilder (z. B. die Farbtabelle, die jede Waffe des Pakets mitbringt) zu EINER Textur zusammenlegen: weniger Grafikspeicher, und Teile mit gleicher Textur
+     lassen sich zu einem Zeichenaufruf zusammenfassen (mergeSkin). Verglichen wird der Bildinhalt (nur kleine Bilder bis 512 px) samt Textur-Einstellungen. */
+  const texPool=new Map();
+  function dedupTex(gl){
+    const seen=new Set();
+    gl.scene.traverse(o=>{if(!o.isMesh)return;for(const m of[].concat(o.material)){if(!m||!m.map||seen.has(m))continue;seen.add(m);const t=m.map,im=t.image;
+      if(!im||!(im.width>0&&im.width<=512&&im.height>0&&im.height<=512))continue;
+      try{const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0);const d=x.getImageData(0,0,c.width,c.height).data;let h=2166136261>>>0;for(let i=0;i<d.length;i++){h^=d[i];h=Math.imul(h,16777619)>>>0}
+        const k=h+'|'+im.width+'x'+im.height+'|'+t.flipY+t.colorSpace+t.wrapS+t.wrapT+t.magFilter+t.minFilter+'|'+t.offset.x+','+t.offset.y+','+t.repeat.x+','+t.repeat.y+','+t.rotation,p=texPool.get(k);
+        if(p&&p!==t){m.map=p;t.dispose()}else if(!p)texPool.set(k,t)}catch(_){}}})}
+  /* Leistung: alle sichtbaren Teile einer Figur zu möglichst wenigen Zeichenaufrufen zusammenfassen.
+     1) Hautteile (SkinnedMesh) mit gleichem Skelett und gleichem Glanz/gleicher Textur → EIN Teil; Materialfarben werden zu Eckpunkt-Farben.
+     2) Feste Teile an Knochen (Waffen, Schilde, Helme, Rüstung: Kinder eines Knochens) werden mit Gewicht 1 an diesen Knochen gebunden und in die passende Gruppe gelegt:
+        sie bewegen sich genau wie vorher, kosten aber keinen eigenen Zeichenaufruf (aus 6–8 Aufrufen je Soldat werden 2–3).
+     3) Jedes fertige Teil wird je Zusammensetzung nur EINMAL gebaut (mergeCache): gleiche Figuren teilen sich Eckpunkt-Daten und Material (weniger Speicher, schnelleres Erzeugen,
+        kein „Leck“ von Grafikspeicher bei jeder neuen Figur). Dazu eine grobe Fassung (lodTris, nur ein anderer Index) für kleine Darstellung. keep = Objekte, die nicht zusammengefasst werden dürfen (umschaltbare Handwerkzeuge). */
+  const mergeCache=new Map(),MERGE_MAX=120;
+  const m4key=M=>{let s='';for(let i=0;i<16;i++)s+=M.elements[i].toFixed(4)+',';return s};
+  /* Grobe Fassung: Eckpunkte in einem Raster zusammenlegen, je Zelle bleibt EIN vorhandener Eckpunkt (der nahe am Schwerpunkt) mit seinen eigenen Haut-Gewichten.
+     Es entstehen keine neuen Eckpunkte: die grobe Fassung teilt alle Daten mit der feinen und hat nur einen kürzeren Index. Rückgabe null, wenn sich das nicht lohnt. */
+  const LOD_MIN=2600,LOD_TARGET=.36;
+  function lodTris(g,minT,target){
+    const P=g.attributes.position,I=g.index,n=P.count,nt=(I?I.count:n)/3;if(nt<(minT||LOD_MIN))return null;target=target||LOD_TARGET;
+    g.computeBoundingBox();const b=g.boundingBox,mx=Math.max(b.max.x-b.min.x,b.max.y-b.min.y,b.max.z-b.min.z)||1;
+    const X=new Float32Array(n),Y=new Float32Array(n),Z=new Float32Array(n);for(let i=0;i<n;i++){X[i]=P.getX(i);Y[i]=P.getY(i);Z[i]=P.getZ(i)}
+    const tri=new Uint32Array(nt*3);if(I){for(let i=0;i<nt*3;i++)tri[i]=I.getX(i)}else for(let i=0;i<nt*3;i++)tri[i]=i;
+    let out=null,cl=null;
+    for(let div=48;div>=14;div-=4){
+      const cs=mx/div,key=new Map(),cid=new Int32Array(n),sx=[],sy=[],sz=[],cn=[];let nc=0;
+      for(let i=0;i<n;i++){const k=Math.floor((X[i]-b.min.x)/cs)+Math.floor((Y[i]-b.min.y)/cs)*1024+Math.floor((Z[i]-b.min.z)/cs)*1048576;let c=key.get(k);if(c===undefined){c=nc++;key.set(k,c);sx.push(0);sy.push(0);sz.push(0);cn.push(0)}cid[i]=c;sx[c]+=X[i];sy[c]+=Y[i];sz[c]+=Z[i];cn[c]++}
+      const rep=new Int32Array(nc).fill(-1),bd=new Float32Array(nc).fill(1e9);
+      for(let i=0;i<n;i++){const c=cid[i],d=(X[i]-sx[c]/cn[c])**2+(Y[i]-sy[c]/cn[c])**2+(Z[i]-sz[c]/cn[c])**2;if(d<bd[c]){bd[c]=d;rep[c]=i}}
+      const idx=[];for(let t=0;t<nt;t++){const a=rep[cid[tri[t*3]]],bb=rep[cid[tri[t*3+1]]],c=rep[cid[tri[t*3+2]]];if(a===bb||bb===c||a===c)continue;idx.push(a,bb,c)}
+      out=idx;cl={cid,rep,nc};if(idx.length/3<=nt*target)break}
+    if(!out||!out.length)return null;
+    const lo=new THREE.BufferGeometry();for(const k in g.attributes)lo.setAttribute(k,g.attributes[k]);
+    /* Farbe und Normale des behaltenen Eckpunkts = Mittel seiner Zelle (sonst springt die Farbe von Zelle zu Zelle: Haut/Haar/Kleidung); eigene Puffer nur für diese zwei Werte */
+    const mode=window.__lodMode===undefined?2:window.__lodMode;
+    if(mode>=1&&cl&&g.attributes.color&&g.attributes.normal){const C=g.attributes.color,N=g.attributes.normal,nc=cl.nc,sc=new Float32Array(nc*3),sn=new Float32Array(nc*3),cc=new Int32Array(nc);
+      for(let i=0;i<n;i++){const c=cl.cid[i];sc[c*3]+=C.getX(i);sc[c*3+1]+=C.getY(i);sc[c*3+2]+=C.getZ(i);sn[c*3]+=N.getX(i);sn[c*3+1]+=N.getY(i);sn[c*3+2]+=N.getZ(i);cc[c]++}
+      const col2=new Float32Array(C.array.length),nor2=new Float32Array(N.array.length);col2.set(C.array);nor2.set(N.array);
+      for(let c=0;c<nc;c++){const r=cl.rep[c];col2[r*3]=sc[c*3]/cc[c];col2[r*3+1]=sc[c*3+1]/cc[c];col2[r*3+2]=sc[c*3+2]/cc[c];
+        if(mode>=2){const l=Math.hypot(sn[c*3],sn[c*3+1],sn[c*3+2])||1;nor2[r*3]=sn[c*3]/l;nor2[r*3+1]=sn[c*3+1]/l;nor2[r*3+2]=sn[c*3+2]/l}}
+      lo.setAttribute('color',new THREE.BufferAttribute(col2,3));if(mode>=2)lo.setAttribute('normal',new THREE.BufferAttribute(nor2,3))}
+    lo.setIndex(new THREE.BufferAttribute(n>65535?new Uint32Array(out):new Uint16Array(out),1));return lo}
+  function mergeSkin(root,keep){
+    root.updateMatrixWorld(true);
+    const eq=(a,b)=>a.elements.every((x,i)=>Math.abs(x-b.elements[i])<1e-5),gk=m=>(m.metalness||0).toFixed(1)+(m.roughness||1).toFixed(1)+m.side+(m.emissive&&m.emissive.getHex()?m.emissive.getHex():'')+(m.map?m.map.uuid:'');
+    const vis=o=>{for(let q=o;q;q=q.parent)if(!q.visible)return false;return true},sidOf=o=>o.skeleton.bones[0]&&o.skeleton.bones[0].uuid;
+    const skins=[],stat=[],base=new Map(),sk=new Map();/* sk: Skelett (Kennung) → gemeinsame Knochenliste */
+    root.traverse(o=>{if(!o.isMesh||Array.isArray(o.material)||o.material.transparent||!vis(o))return;const g=o.geometry,m=o.material;
+      if((m.map&&!g.attributes.uv)||(g.morphAttributes&&Object.keys(g.morphAttributes).length)||!g.attributes.position)return;
+      if(o.isSkinnedMesh){skins.push(o);const sid=sidOf(o);if(!base.has(sid)){base.set(sid,o);o.userData.mp=o.parent}
+        let S=sk.get(sid);if(!S)sk.set(sid,S={bones:[],inv:[],bi:new Map(),skel:null});
+        o.skeleton.bones.forEach((b,i)=>{if(!S.bi.has(b)){S.bi.set(b,S.bones.length);S.bones.push(b);S.inv.push(o.skeleton.boneInverses[i].clone())}})}
+      else if(g.attributes.normal)stat.push(o)});
+    const groups=new Map(),add=(sid,m,p)=>{const k=sid+'|'+gk(m);(groups.get(k)||groups.set(k,[]).get(k)).push(p)};
+    for(const o of skins)add(sidOf(o),o.material,{o});
+    const inKeep=o=>keep&&keep.some(k=>{for(let q=o;q;q=q.parent)if(q===k)return true;return false});
+    for(const o of stat){if(inKeep(o))continue;
+      let bo=null,sid=null;for(let q=o.parent;q;q=q.parent){if(q.isBone){for(const[s,S]of sk)if(S.bi.has(q)){bo=q;sid=s;break}if(bo)break}}
+      if(bo)add(sid,o.material,{o,bo,sid})}
+    const tmp=new THREE.Matrix4(),tmp2=new THREE.Matrix4(),nm=new THREE.Matrix3(),v3=new THREE.Vector3();
+    for(const[k,L0]of groups){
+      const sid=k.slice(0,k.indexOf('|')),bs=base.get(sid),S=sk.get(sid);if(!bs||!S)continue;
+      const L=L0.filter(p=>p.bo||(eq(p.o.matrixWorld,bs.matrixWorld)&&eq(p.o.bindMatrix,bs.bindMatrix))),ns=L.filter(p=>!p.bo).length,nr=L.length-ns;
+      if(L.length<2||(!ns&&nr<2))continue;
+      const bpI=bs.bindMatrix.clone().invert();
+      for(const p of L)if(p.bo){/* Knochen-Raum → Netz-Raum: bindMatrix⁻¹ · Binv⁻¹ · (Knochen⁻¹ · Teil) */
+        const j=S.bi.get(p.bo);p.j=j;p.M=new THREE.Matrix4().copy(bpI).multiply(tmp.copy(S.inv[j]).invert()).multiply(tmp2.copy(p.bo.matrixWorld).invert().multiply(p.o.matrixWorld))}
+      const col=o=>o.material.color.getHexString()+(o.material.vertexColors?'v':'');
+      const ck=k.slice(k.indexOf('|'))+'#'+S.bones.length+'#'+L.map(p=>p.bo?'r'+p.o.geometry.uuid+'@'+p.bo.name+m4key(p.M)+col(p.o):'s'+p.o.geometry.uuid+col(p.o)).join(';');
+      let ent=mergeCache.get(ck);
+      if(ent){mergeCache.delete(ck);mergeCache.set(ck,ent)}
+      else{
+        let nv=0,ni=0;for(const p of L){const g=p.o.geometry;nv+=g.attributes.position.count;ni+=g.index?g.index.count:g.attributes.position.count}
+        const tx=!!L[0].o.material.map,uv=tx?new Float32Array(nv*2):null,pos=new Float32Array(nv*3),nor=new Float32Array(nv*3),colA=new Float32Array(nv*3),si=new Uint16Array(nv*4),sw=new Float32Array(nv*4),idx=nv>65535?new Uint32Array(ni):new Uint16Array(ni);let o0=0,oi=0;
+        for(const p of L){const o=p.o,g=o.geometry,P=g.attributes.position,N=g.attributes.normal,C=g.attributes.color,c=o.material.color,n=P.count,UV=g.attributes.uv;
+          const vc=o.material.vertexColors&&C,SI=g.attributes.skinIndex,SW=g.attributes.skinWeight;
+          let rm=null,e=null,flip=false;
+          if(p.bo){e=p.M.elements;nm.getNormalMatrix(p.M);flip=p.M.determinant()<0}else rm=o.skeleton.bones.map(b=>S.bi.get(b));
+          for(let i=0;i<n;i++){const j=o0+i;if(uv){uv[j*2]=UV.getX(i);uv[j*2+1]=UV.getY(i)}
+            if(p.bo){const x=P.getX(i),y=P.getY(i),z=P.getZ(i);pos[j*3]=e[0]*x+e[4]*y+e[8]*z+e[12];pos[j*3+1]=e[1]*x+e[5]*y+e[9]*z+e[13];pos[j*3+2]=e[2]*x+e[6]*y+e[10]*z+e[14];
+              if(N){v3.set(N.getX(i),N.getY(i),N.getZ(i)).applyMatrix3(nm).normalize();nor[j*3]=v3.x;nor[j*3+1]=v3.y;nor[j*3+2]=v3.z}
+              si[j*4]=p.j;sw[j*4]=1}
+            else{pos[j*3]=P.getX(i);pos[j*3+1]=P.getY(i);pos[j*3+2]=P.getZ(i);if(N){nor[j*3]=N.getX(i);nor[j*3+1]=N.getY(i);nor[j*3+2]=N.getZ(i)}
+              for(let q=0;q<4;q++){si[j*4+q]=rm[SI.getComponent(i,q)]||0;sw[j*4+q]=SW.getComponent(i,q)}}
+            colA[j*3]=c.r*(vc?C.getX(i):1);colA[j*3+1]=c.g*(vc?C.getY(i):1);colA[j*3+2]=c.b*(vc?C.getZ(i):1)}
+          const nt=(g.index?g.index.count:n)/3;
+          for(let t=0;t<nt;t++){const a=g.index?g.index.getX(t*3):t*3,b2=g.index?g.index.getX(t*3+1):t*3+1,c2=g.index?g.index.getX(t*3+2):t*3+2;idx[oi++]=a+o0;idx[oi++]=(flip?c2:b2)+o0;idx[oi++]=(flip?b2:c2)+o0}
+          o0+=n}
+        const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('normal',new THREE.BufferAttribute(nor,3));g.setAttribute('color',new THREE.BufferAttribute(colA,3));
+        g.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(si,4));if(uv)g.setAttribute('uv',new THREE.BufferAttribute(uv,2));g.setAttribute('skinWeight',new THREE.BufferAttribute(sw,4));g.setIndex(new THREE.BufferAttribute(idx,1));
+        const m=L[0].o.material.clone();m.vertexColors=true;m.color.setRGB(1,1,1);m.needsUpdate=true;
+        ent={g,m,lo:window.__noLod?null:lodTris(g)};mergeCache.set(ck,ent);
+        if(mergeCache.size>MERGE_MAX){const old=mergeCache.keys().next().value,oe=mergeCache.get(old);mergeCache.delete(old);oe.g.dispose();if(oe.lo)oe.lo.dispose()}}
+      if(!S.skel)S.skel=new THREE.Skeleton(S.bones,S.inv);
+      const f=bs,sm=new THREE.SkinnedMesh(ent.g,ent.m);sm.name='merged';sm.position.copy(f.position);sm.quaternion.copy(f.quaternion);sm.scale.copy(f.scale);sm.castShadow=f.castShadow;sm.receiveShadow=f.receiveShadow;sm.frustumCulled=f.frustumCulled;
+      if(ent.lo){sm.userData.hi=ent.g;sm.userData.lo=ent.lo}
+      f.userData.mp.add(sm);sm.bind(S.skel,f.bindMatrix);for(const p of L)p.o.parent.remove(p.o)}}
+  /* Leistung (feste Teile ohne Skelett): Gebäude, Schiffe, Fahrzeuge bestehen oft aus Dutzenden kleinen Meshes (Galeone: 278). Meshes mit gleichem Material (Glanz, Textur, Schatten-Flags;
+     die Materialfarbe wird zur Eckpunkt-Farbe) werden zu EINEM Mesh zusammengefasst, das im Raum von `into` liegt. tops = Objekte, deren Meshes eingesammelt werden,
+     opt.skip = Objekte, die unberührt bleiben (Flaggen, umschaltbare Teile, Figuren), opt.all = auch einzelne Meshes umbauen (Beiwerk-Behälter), opt.cache = gleiche Gebäude teilen sich
+     die fertigen Daten (nur für Modelle aus Dateien: stabile Geometrie-Kennungen). Ohne Cache gehören die Daten dem Objekt (userData.own → r3Drop gibt sie beim Entfernen frei). */
+  const statCache=new Map(),STAT_MAX=100,msMat=new Map(),STONE=/stone|rock/i;
+  function mergeStatic(tops,into,opt){
+    opt=opt||{};const skip=opt.skip||[];into.updateMatrixWorld(true);
+    const inv=new THREE.Matrix4().copy(into.matrixWorld).invert(),groups=new Map(),nm=new THREE.Matrix3(),v3=new THREE.Vector3();
+    const MAPS=['normalMap','bumpMap','roughnessMap','metalnessMap','aoMap','emissiveMap','alphaMap','lightMap','displacementMap','envMap'];
+    const inSkip=o=>{for(let q=o;q;q=q.parent)if(skip.indexOf(q)>=0)return true;return false},vis=o=>{for(let q=o;q;q=q.parent)if(!q.visible)return false;return true};
+    for(const top of tops){top.updateMatrixWorld(true);top.traverse(o=>{
+      if(!o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||Array.isArray(o.material)||o.renderOrder||o.frustumCulled===false||o.userData.noShadow)return;
+      const m=o.material,g=o.geometry;if(!m||!m.isMeshStandardMaterial||m.isMeshPhysicalMaterial||m.transparent||m.alphaTest||m.wireframe||!g.attributes.position||!g.attributes.normal||(g.morphAttributes&&Object.keys(g.morphAttributes).length))return;
+      if(opt.noStone&&STONE.test(m.name||''))return;/* Erz-Färbung der Mine greift auf das Material „stone/rock“ zu */
+      const extra=MAPS.filter(k=>m[k]);if((m.map||extra.length)&&!g.attributes.uv)return;
+      if(m.vertexColors&&!g.attributes.color)return;if(!vis(o)||inSkip(o))return;
+      const k=[m.metalness.toFixed(1),m.roughness.toFixed(1),m.side,m.flatShading?1:0,m.emissive.getHex(),m.emissiveIntensity.toFixed(2),m.envMapIntensity.toFixed(2),m.map?m.map.uuid:'',extra.map(x=>m[x].uuid).join(),STONE.test(m.name||'')?m.name:'',o.castShadow?1:0,o.receiveShadow?1:0,m.depthWrite?1:0].join('|');
+      (groups.get(k)||groups.set(k,[]).get(k)).push(o)})}
+    let removed=0;
+    for(const[k,L]of groups){
+      if(L.length<2&&!opt.all)continue;
+      const rel=L.map(o=>new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld)),colS=o=>o.material.color.getHexString()+(o.material.vertexColors?'v':'');
+      const ck=opt.cache?k+'#'+L.map((o,i)=>o.geometry.uuid+m4key(rel[i])+colS(o)).join(';'):null;
+      let ent=ck&&statCache.get(ck);
+      if(ent){statCache.delete(ck);statCache.set(ck,ent)}
+      else{
+        let nv=0,ni=0;for(const o of L){const g=o.geometry;nv+=g.attributes.position.count;ni+=g.index?g.index.count:g.attributes.position.count}
+        const tx=!!L[0].material.map||MAPS.some(x=>L[0].material[x]),pos=new Float32Array(nv*3),nor=new Float32Array(nv*3),col=new Float32Array(nv*3),uv=tx?new Float32Array(nv*2):null,idx=nv>65535?new Uint32Array(ni):new Uint16Array(ni);let o0=0,oi=0;
+        L.forEach((o,li)=>{const g=o.geometry,P=g.attributes.position,N=g.attributes.normal,C=g.attributes.color,UV=g.attributes.uv,c=o.material.color,vc=o.material.vertexColors&&C,M=rel[li],e=M.elements,n=P.count;nm.getNormalMatrix(M);const flip=M.determinant()<0;
+          for(let i=0;i<n;i++){const j=o0+i,x=P.getX(i),y=P.getY(i),z=P.getZ(i);pos[j*3]=e[0]*x+e[4]*y+e[8]*z+e[12];pos[j*3+1]=e[1]*x+e[5]*y+e[9]*z+e[13];pos[j*3+2]=e[2]*x+e[6]*y+e[10]*z+e[14];
+            v3.set(N.getX(i),N.getY(i),N.getZ(i)).applyMatrix3(nm).normalize();nor[j*3]=v3.x;nor[j*3+1]=v3.y;nor[j*3+2]=v3.z;
+            col[j*3]=c.r*(vc?C.getX(i):1);col[j*3+1]=c.g*(vc?C.getY(i):1);col[j*3+2]=c.b*(vc?C.getZ(i):1);if(uv){uv[j*2]=UV.getX(i);uv[j*2+1]=UV.getY(i)}}
+          const nt=(g.index?g.index.count:n)/3;for(let t=0;t<nt;t++){const a=g.index?g.index.getX(t*3):t*3,b=g.index?g.index.getX(t*3+1):t*3+1,d=g.index?g.index.getX(t*3+2):t*3+2;idx[oi++]=a+o0;idx[oi++]=(flip?d:b)+o0;idx[oi++]=(flip?b:d)+o0}
+          o0+=n});
+        const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('normal',new THREE.BufferAttribute(nor,3));g.setAttribute('color',new THREE.BufferAttribute(col,3));if(uv)g.setAttribute('uv',new THREE.BufferAttribute(uv,2));g.setIndex(new THREE.BufferAttribute(idx,1));
+        let m=msMat.get(k);if(!m){m=L[0].material.clone();m.vertexColors=true;m.color.setRGB(1,1,1);m.needsUpdate=true;msMat.set(k,m)}
+        ent={g,m};if(ck){statCache.set(ck,ent);if(statCache.size>STAT_MAX){const old=statCache.keys().next().value,oe=statCache.get(old);statCache.delete(old);oe.g.dispose()}}else g.userData.own=true}
+      const f=L[0],mesh=new THREE.Mesh(ent.g,ent.m);mesh.name='merged';mesh.castShadow=f.castShadow;mesh.receiveShadow=f.receiveShadow;into.add(mesh);
+      for(const o of L){o.parent.remove(o);removed++}}
+    return removed}
   function makeUnit(u,origMake,kind,enO){
     kind=kind||'unit';const en=enO||entryFor(kind,u.type,u.lvl||0);if(!en)return null;
     /* Abwechslung: vary:[Dateien] – jede Figur bekommt nach ihrer Nummer (u.id) eine davon (z. B. verschiedene Bauern), sonst file */
@@ -253,8 +374,10 @@ const EKMODELS=(()=>{
       let b=box(wrap),sz=b.getSize(new THREE.Vector3());const ref=refSize(kind,u.type,()=>origMake(u).g);
       const k=(en.human?(2.4/1.84):en.len?en.len/(Math.max(sz.x,sz.z)||1):en.height?en.height/(sz.y||1):(en.fit==='length'||(kind==='animal'&&!en.fit))?ref.m/(Math.max(sz.x,sz.y,sz.z)||1):ref.h/(sz.y||1))*(en.scale||1);
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y+(en.lift||0),-c.z);
-      cmapOf(root,en.cmap);dress(root,wrap,en,k,u.team,u);if(!window.__noMerge)try{mergeSkin(root)}catch(err){console.warn('mergeSkin',err)}
+      cmapOf(root,en.cmap);dress(root,wrap,en,k,u.team,u);if(!window.__noMerge)try{mergeSkin(root,en.work&&wrap.userData.handHolder?[wrap.userData.handHolder]:null)}catch(err){console.warn('mergeSkin',err)}
+      if(!window.__noMerge&&!(gl.animations&&gl.animations.length))try{mergeStatic([root],wrap,{cache:true})}catch(err){console.warn('mergeStatic',err)}/* Schiffe, Fahrzeuge: viele kleine Meshes → wenige */
       const rig={g:wrap,gltf:true,bend:en.human?findBone(root,/^(Abdomen|Spine|Spine1|spine|DEF-spine\.?001)$/i):null,bendA:0,human:!!(en.human||(en.rider&&!en.rider.free)),legs:[],arms:[],tools:{},acts:{},cur:null,gl};
+      if(en.human&&typeof WPOSE!=='undefined'&&!window.__noWpose){try{rig.wp=WPOSE.setup(rig,root,wrap,k,u);if(rig.wp)WPOSE.props(rig,root,wrap,k)}catch(err){console.warn('WPOSE',err);rig.wp=null}}
       if(gl.animations&&gl.animations.length){rig.mixer=new THREE.AnimationMixer(root);const A=en.anim||{},cl=gl.animations;
         const map={idle:pickClip(cl,[A.idle],/idle|stand|rest/i),walk:pickClip(cl,[A.walk],/walk|run|move/i),attack:pickClip(cl,[A.attack],/attack|hit|strike|shoot|fire/i),work:pickClip(cl,[A.work],/work|gather|chop|mine|build|dig/i)};
         for(const n in map)if(map[n])rig.acts[n]=rig.mixer.clipAction(map[n]);
@@ -263,8 +386,8 @@ const EKMODELS=(()=>{
         if(en.human){const hc=[];for(const n of A.hit?[].concat(A.hit):['UAL:Hit_Chest','UAL:Hit_Head']){const c=pickClip(cl,[n],/^$/);if(c)hc.push(rig.mixer.clipAction(c))}if(hc.length){hc.forEach(a=>{a.setLoop(THREE.LoopOnce,1);a.clampWhenFinished=true});rig.hits=hc}}
         if(A.ready){const c=pickClip(cl,[A.ready],/^$/);if(c)rig.acts.ready=rig.mixer.clipAction(c)}if(A.run){const c=pickClip(cl,[A.run],/^$/);if(c)rig.acts.run=rig.mixer.clipAction(c)}
         if(en.work){rig.wtools={};const hb=findBone(root,/hand\.?r|wrist\.?r/i);rig.hand=wrap.userData.handHolder||null;
-          for(const kd in en.work){const w=en.work[kd],c=pickClip(cl,[w.clip],/work|interact/i);if(c)rig.acts['w:'+kd]=rig.mixer.clipAction(c);
-            const h=w.net?netRig(rig,root,wrap,w.net,u.id||0,cl):w.tool&&hb?attach(root,hb,w.tool,k):null;if(h){h.visible=false;rig.wtools[kd]=h}}}
+          for(const kd in en.work){const w=en.work[kd],B=rig.wp&&WPOSE.baseOf(kd),c=pickClip(cl,[B?B.clip:w.clip],/work|interact/i);if(c)rig.acts['w:'+kd]=rig.mixer.clipAction(c);if(B&&B.at)(rig.hold||(rig.hold={}))['w:'+kd]=B;
+            const h=w.net?netRig(rig,root,wrap,w.net,u.id||0,cl):w.tool&&rig.wp&&WPOSE.hasTool(kd)?WPOSE.tool(rig,root,wrap,w.tool,kd,k,u.team):w.tool&&hb?attach(root,hb,w.tool,k):null;if(h){h.visible=false;rig.wtools[kd]=h}}}
         if(en.human&&!rig.acts.run){const c=pickClip(cl,['Run','Jog_Fwd_Loop'],/^$/);if(c)rig.acts.jog=rig.mixer.clipAction(c)}
         /* Schrittweite je Lauf-Clip messen (Fuss vor/zurück), daraus die natürliche Geschwindigkeit → Clip-Tempo passt zur echten Bewegung (kein Fussgleiten) */
         if(en.human){rig.nat={};rig.natKey=(en.file||'')+'|'+k.toFixed(4);rig.natRoot=root;for(const n of['walk','run','jog'])natOf(rig,wrap,n)}
@@ -279,10 +402,10 @@ const EKMODELS=(()=>{
       if(en.rider){let rr=null;for(const as of[].concat(en.rider.as)){if(entryFor('unit',as,u.lvl||0)){rr=makeUnit(Object.assign({},u,{type:as}),origMake,'unit');break}}if(rr){
         /* sitzen: Oberschenkel nach vorn und leicht gespreizt (wird nach jeder Animation aufgesetzt); push = Figur geht hinter dem Karren und schiebt */if(en.rider.push){rr.pusher=1;rr.pushA=en.rider.arm;rr.pushAx=en.rider.armAx;rr.pushM=en.rider.armMirror}if(en.rider.push&&en.rider.clip&&rr.mixer){const pc=pickClip([],[en.rider.clip],/^$/);if(pc){rr.acts.walk=rr.mixer.clipAction(pc);rr.pushClip=1;if(rr.nat){delete rr.nat.walk;natOf(rr,rr.g,'walk')}}}if(en.rider.push&&!rr.pushClip)rr.push=['L','R'].map(s=>findBone(rr.g,new RegExp('^(UpperArm|Upperarm|upper_arm|DEF-upper_arm)\\.?'+s+'$','i'))).filter(Boolean);else rr.sit=['L','R'].map(s=>findBone(rr.g,new RegExp('^(UpperLeg|thigh|DEF-thigh)\\.?'+s+'$','i'))).filter(Boolean);rr.shin=['L','R'].map(s=>findBone(rr.g,new RegExp('^(LowerLeg|shin|DEF-shin)\\.?'+s+'$','i'))).filter(Boolean);if(en.rider.scale)rr.g.scale.multiplyScalar(en.rider.scale);if(en.rider.net&&rr.net){rr.net.s=Object.assign({},rr.net.s,en.rider.net);rr.net.side=(u.id||0)%2?1:-1}/* Netz-Haltung im Boot: turn = Drehung zur Bordwand, pitch flacher */const hb=box(wrap);if(en.rider.push)rr.g.position.set(hb.min.x-(en.rider.x||.3),hb.min.y,0);else rr.g.position.set(en.rider.x||0,(hb.max.y-hb.min.y)*(en.rider.seat||.55)-1.05,0);wrap.add(rr.g);rig.rider=rr}}
       return rig}catch(err){console.warn('glTF-Einheit',u.type,err);return null}}
-  function makeBld(type,R_,ep,team,origMake,sp){
-    const en=entryFor('bld',type,ep,sp);if(!en)return null;const gl=files.get(en.file);
+  function makeBld(type,R_,ep,team,origMake,sp,id){
+    const en=bldVar(entryFor('bld',type,ep,sp),id);if(!en||!files.has(en.file))return null;const gl=files.get(en.file);
     try{
-      const root=EKGLTF.SkeletonUtils.clone(gl.scene),wrap=new THREE.Group();wrap.add(root);prepare(root,team);cmapOf(root,en.cmap);if(en.pal)palette(root,en.pal,team);root.rotation.y=(en.yaw||0)*Math.PI/180;
+      const root=EKGLTF.SkeletonUtils.clone(gl.scene),wrap=new THREE.Group();wrap.add(root);prepare(root,team);cmapOf(root,en.cmap);if(en.tint)tintMats(root,en.tint);if(en.pal)palette(root,en.pal,team);root.rotation.y=(en.yaw||0)*Math.PI/180;
       let b=box(wrap),sz=b.getSize(new THREE.Vector3());
       const k=(en.footprint?en.footprint/(Math.max(sz.x,sz.z)||1):(R_*2.5*(en.fit||1))/(Math.max(sz.x,sz.z)||1))*(en.scale||1);
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y,-c.z);
@@ -292,10 +415,14 @@ const EKMODELS=(()=>{
         pole.position.set((F.x||0)*R_,(F.y===undefined?1:F.y)*H+ph/2-.05,(F.z||0)*R_);wrap.add(pole);const fp=new THREE.Group();fp.position.set(pole.position.x,pole.position.y+ph*.32,pole.position.z);fp.userData.flag=true;
         const cl=new THREE.Mesh(new THREE.BoxGeometry(ph*.5,ph*.32,.03),m3Team(team));cl.position.x=ph*.25/* Tuch zeigt zur Kamera */;pole.castShadow=cl.castShadow=true;fp.add(cl);wrap.add(fp);wrap.userData.flags.push(fp)}
       /* Beiwerk neben dem Gebäude (z. B. Pranger, Galgen): props:[{file,h,x,z,ry,y}] – x/z in Gebäude-Radien, h = Höhe in Welteinheiten */
-      for(const pr of en.props||[]){const g2=files.get(pr.file);if(!g2)continue;const o=EKGLTF.SkeletonUtils.clone(g2.scene);prepare(o,team);if(pr.tint)tintMats(o,pr.tint);o.rotation.y=(pr.ry||0)*Math.PI/180;
-        const s2=box(o).getSize(new THREE.Vector3());o.scale.setScalar((pr.h||1.5)/(s2.y||1));const b3=box(o),c3=b3.getCenter(new THREE.Vector3());o.position.set((pr.x||0)*R_-c3.x,-b3.min.y+(pr.y||0)*wrap.userData.h,(pr.z||0)*R_-c3.z);wrap.add(o);(wrap.userData.props||(wrap.userData.props=[])).push(o)
+      for(const pr of en.props||[]){const g2=files.get(pr.file);if(!g2)continue;const o=EKGLTF.SkeletonUtils.clone(g2.scene);prepare(o,team);if(pr.cmap)cmapOf(o,pr.cmap===true?en.cmap:pr.cmap);if(pr.tint)tintMats(o,pr.tint);o.rotation.y=(pr.ry||0)*Math.PI/180;
+        const s2=box(o).getSize(new THREE.Vector3());o.scale.setScalar(pr.w?pr.w/(Math.max(s2.x,s2.z)||1):(pr.h||1.5)/(s2.y||1));/* w = Breite statt Höhe (flache Teile wie Strassenplatten) */const b3=box(o),c3=b3.getCenter(new THREE.Vector3());o.position.set((pr.x||0)*R_-c3.x,-b3.min.y+(pr.y||0)*wrap.userData.h,(pr.z||0)*R_-c3.z);wrap.add(o);(wrap.userData.props||(wrap.userData.props=[])).push(o)
         /* Figuren als Beiwerk (König, Bürger): anim = Clip, der dauernd läuft (z. B. Idle = Atmen), versetzt gestartet; der Renderer ruft userData.mix je Bild auf */
         const ac=pr.anim&&pickClip(g2.animations||[],[pr.anim],/idle/i);if(ac){const mx=new THREE.AnimationMixer(o);mx.clipAction(ac).play();mx.update((pr.x||0)*7%ac.duration+ac.duration);(wrap.userData.mix||(wrap.userData.mix=[])).push(mx)}} /* y = Höhe in Gebäudehöhen (z. B. Ballon über dem Turm) */
+      /* Leistung: feste Meshes zusammenfassen – Hauptmodell direkt im Gebäude, Beiwerk (erscheint erst nach dem Bau) in einem gemeinsamen Behälter; Figuren mit Animation bleiben einzeln */
+      if(!window.__noMerge)try{const pr0=wrap.userData.props||[],mixed=new Set((wrap.userData.mix||[]).map(m=>m.getRoot()));
+        mergeStatic([root],wrap,{cache:true,noStone:type==='mine'});const plain=pr0.filter(o=>!mixed.has(o));
+        if(plain.length){const pg=new THREE.Group();wrap.add(pg);mergeStatic(plain,pg,{cache:true,all:true,noStone:type==='mine'});wrap.userData.props=pr0.concat([pg])}}catch(err){console.warn('mergeStatic Gebäude',err)}
       return wrap}catch(err){console.warn('glTF-Gebäude',type,err);return null}}
   /* Bäume, Felsen, Büsche als Instanzen: liefert die Einzelteile (Geometrie+Material) eines glTF-Modells. Grösse: k = fester Massstab (Modell-Einheiten → Spiel,
      behält die Grössenunterschiede innerhalb eines Pakets), sonst height, sonst Höhe des Code-Modells (refGeo); scale wirkt zusätzlich.
@@ -355,7 +482,7 @@ const EKMODELS=(()=>{
       /* Fischerboot: der Ruderer dreht sich zur Bordwand (net.turn, Seite je Boot) und hält das Netz ins Wasser */const rf=r.net&&want==='work'&&kind==='fish';
       if(r.net){const tn=rf?(r.net.s.turn||0)*Math.PI/180*(r.net.side||1):0,sp=typeof G!=='undefined'&&(G.paused||G.netPause)?0:1;r.g.rotation.y+=(tn-r.g.rotation.y)*Math.min(1,dt*sp*3)}
       animate(r,r.pusher?(want==='walk'?'walk':'idle'):rf?'work':want==='walk'||want==='work'?'idle':want,dt,1,rf?'fish':'',r.pusher&&opt?{v:opt.v,push:1}:null);pose(1);r.posed=1}
-    if(!rig.mixer)return;if(typeof G!=='undefined')dt*=G.paused||G.netPause?0:(G.speed||1);
+    if(!rig.mixer)return;if(typeof G!=='undefined')dt*=G.paused||G.netPause?0:Math.min(G.speed||1,3)/* schnelles Spiel: Bewegungen höchstens 3× so schnell, sonst zappeln die Figuren */;if(rig.wp&&rig.wp.saved)WPOSE.restore(rig.wp);
     if(rig.wtools){for(const kd in rig.wtools)rig.wtools[kd].visible=(want==='work'&&kind===kd);if(rig.hand)rig.hand.visible=!(want==='work'&&rig.wtools[kind])}
     const wkey=want==='work'&&kind&&rig.acts['w:'+kind]?'w:'+kind:null;
     if(want==='idle'&&!rig.acts.idle&&rig.cur){rig.acts[rig.cur].fadeOut(.2);rig.cur=null}if(want==='idle'&&!rig.acts.idle){rig.mixer.update(dt*(speedScale||1));return}
@@ -364,14 +491,19 @@ const EKMODELS=(()=>{
     if(rig.hitCd>0)rig.hitCd-=dt;if(rig.hitT>0){rig.hitT-=dt;if(rig.hitT>0)w='hit'}
     else if(opt&&opt.hit&&rig.hits&&!(rig.hitCd>0)){const a=rig.hits[(rig.hitN=(rig.hitN||0)+1)%rig.hits.length];rig.acts.hit=a;a.timeScale=1.3;rig.hitT=Math.min(.7,a.getClip().duration/1.3*.85);rig.hitCd=rig.hitT+1.5;const p=rig.cur&&rig.acts[rig.cur];a.reset().fadeIn(.08).play();if(p&&p!==a)p.fadeOut(.08);rig.cur='hit';w='hit'}
     /* gleicher Clip unter zwei Namen (z. B. Fischen = Idle) ist dieselbe Aktion: nicht ein- und zugleich ausblenden (sonst Gewicht 0 = Grundhaltung) */
-    if(w&&rig.cur!==w){const a=rig.acts[w],p=rig.cur&&rig.acts[rig.cur];if(a!==p){a.reset().fadeIn(.2).play();if(p)p.fadeOut(.2)}rig.cur=w}
+    if(w&&rig.cur!==w){const a=rig.acts[w],p=rig.cur&&rig.acts[rig.cur];if(a!==p){const hd=rig.hold&&rig.hold[w],ph=rig.hold&&rig.hold[rig.cur];
+      /* Knien (Beeren): hinknien ab hd.from, danach halten; beim Aufstehen den Rest des Clips (Aufrichten) überblenden */
+      a.reset().fadeIn(hd?hd.fade:.2).play();if(hd){a.time=hd.from;a.timeScale=hd.rate}
+      if(p){if(ph){p.timeScale=ph.outRate;p.time=ph.out;p.fadeOut(ph.outFade)}else p.fadeOut(.2)}}rig.cur=w}
+    {const hd=rig.hold&&rig.hold[rig.cur],a=hd&&rig.acts[rig.cur];if(a&&a.timeScale>0&&a.time>=hd.at&&a.time<hd.out-.2){a.time=hd.at;a.timeScale=0}}
     if(rig.bend&&rig.bendP){rig.bend.rotation.x-=rig.bendP;rig.bendP=0}if(rig.net&&rig.net.on){rig.net.sv.forEach(([b,q])=>b.quaternion.copy(q));rig.net.on=0}
     /* Lauf-Tempo an die echte Geschwindigkeit koppeln (opt.v = Welteinheiten je Spielsekunde), weich nachgeführt */
     let ss=speedScale||1;if(opt&&opt.v&&rig.nat&&rig.nat[w]){const tsc=Math.max(.6,Math.min(1.9,opt.v/rig.nat[w]));rig.tsc=rig.tsc?rig.tsc+(tsc-rig.tsc)*Math.min(1,dt*6):tsc;ss=rig.tsc}
     rig.mixer.update(dt*ss);
+    if(rig.wp&&opt)WPOSE.run(rig,want,kind,dt,opt);
     /* Beeren pflücken / Fischen: Oberkörper nach vorn beugen (nach der Animation aufgesetzt), beim Fischen danach Netz-Pose */
     const fish=rig.net&&want==='work'&&kind==='fish';
-    if(rig.bend){const t=want==='work'&&kind==='pick'?.75:fish?rig.net.bend:0;rig.bendA+=(t-rig.bendA)*Math.min(1,dt*5);if(rig.bendA>.01){rig.bend.rotation.x+=rig.bendA;rig.bendP=rig.bendA}}
+    if(rig.bend){const t=want==='work'&&kind==='pick'&&!rig.wp?.75:fish?rig.net.bend:0;rig.bendA+=(t-rig.bendA)*Math.min(1,dt*5);if(rig.bendA>.01){rig.bend.rotation.x+=rig.bendA;rig.bendP=rig.bendA}}
     if(fish)netPose(rig,dt)}
   async function init(url){
     if(typeof EKGLTF==='undefined'){return}
@@ -379,17 +511,28 @@ const EKMODELS=(()=>{
     /* Kenney-Bausätze verweisen auf Textures/colormap.png: stattdessen die Farbtabelle aus dem Manifest (cmap) nehmen */
     const mgr=new THREE.LoadingManager();if(manifest.cmap)mgr.setURLModifier(u=>/colormap\.png$/.test(u)?'models/'+manifest.cmap:u);
     loader=new EKGLTF.GLTFLoader(mgr);try{loader.setMeshoptDecoder(EKGLTF.MeshoptDecoder)}catch(_){}
-    const want=new Set();if(manifest.ual)want.add(manifest.ual);for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off){want.add(x.file);for(const f of x.vary||[])want.add(f);if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work)){if(w.tool&&w.tool.file)want.add(w.tool.file);if(w.net&&w.net.file)want.add(w.net.file)}if(x.extra&&x.extra.file)want.add(x.extra.file);for(const l of Object.values(x.load||{}))if(l&&l.file)want.add(l.file);for(const pr of(x.props||[]).concat(x.extras||[],x.wear||[]))if(pr&&pr.file)want.add(pr.file)}
+    const want=new Set();if(manifest.ual)want.add(manifest.ual);for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const x of Object.values(manifest.wprops||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off&&!x.when){want.add(x.file);for(const f of x.vary||[])want.add(f);for(const v of x.variants||[]){if(v.file)want.add(v.file);for(const pr of v.props||[])if(pr&&pr.file)want.add(pr.file)}if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work)){if(w.tool&&w.tool.file)want.add(w.tool.file);if(w.net&&w.net.file)want.add(w.net.file)}if(x.extra&&x.extra.file)want.add(x.extra.file);for(const l of Object.values(x.load||{}))if(l&&l.file)want.add(l.file);for(const pr of(x.props||[]).concat(x.extras||[],x.wear||[]))if(pr&&pr.file)want.add(pr.file)}
+    const cm=new Set();for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x){if(x.cmap)cm.add(x.cmap);for(const pr of x.props||[])if(pr&&typeof pr.cmap==='string')cm.add(pr.cmap)}
+    await Promise.all([...cm].map(cmapLoad));
     await Promise.all([...want].map(async f=>{try{files.set(f,await loader.loadAsync('models/'+f))}catch(err){failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}}));
+    try{for(const gl of files.values())dedupTex(gl)}catch(err){console.warn('dedupTex',err)}
     pCache.clear();R.ready=true;R.ver++;/* Einheiten/Gebäude/Tiere: Signaturen ändern sich über tag() von selbst; Bäume/Felsen: Instanzen neu aufbauen */try{if(typeof r3!=='undefined'&&r3.scene&&typeof G!=='undefined'&&G&&G.ents&&G.ents.length)r3NodesInit()}catch(_){}
     try{if(typeof ICON3!=='undefined'){ICON3.clear();document.querySelectorAll('[data-ic]').forEach(el=>{el.innerHTML=ART.icon(el.dataset.ic)})}}catch(_){}}
+  /* Nachladen nach Bedarf: Natur-Modelle mit "when" im Manifest (z. B. "autumn", "winter", "pal:desert" oder eine Liste davon) werden erst geladen, wenn die Karte
+     diese Jahreszeit/Farbwelt hat. tags = ['autumn','pal:desert']; Rückgabe: Zahl neu geladener Dateien (dann Instanzen neu aufbauen). */
+  const loadingF=new Map();
+  async function loadWhen(tags){
+    if(!manifest||!loader)return 0;const need=new Set();
+    for(const en of Object.values(manifest.nodes||{}))for(const x of Array.isArray(en)?en:[en]){if(!x||!x.file||x.off||!x.when)continue;const w=Array.isArray(x.when)?x.when:[x.when];if(w.some(t=>tags.includes(t))&&!files.has(x.file))need.add(x.file)}
+    let n=0;await Promise.all([...need].map(async f=>{if(!loadingF.has(f))loadingF.set(f,loader.loadAsync('models/'+f).then(g=>{files.set(f,g);n++}).catch(err=>{failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}));await loadingF.get(f)}));
+    if(n)pCache.clear();return n}
   /* für Tests/Vorschau: Modell von Hand eintragen */
   function register(kind,type,entry,gltf){if(!manifest)manifest={units:{},buildings:{}};const s=secOf(kind);(manifest[s]||(manifest[s]={}))[type]=entry;files.set(entry.file,gltf);R.ver++}
-  return Object.assign(R,{init,tag,has,makeUnit,makeBld,makeSea,iconModel,nodeParts,nodeN,nodeMeta,nodeL:nodeList,animate,register,files,ualFor,failed,refSize,dbg:()=>({refCache})})
+  return Object.assign(R,{mergeStatic,init,cmapLoad,loadWhen,tag,has,makeUnit,makeBld,makeSea,iconModel,nodeParts,nodeN,nodeMeta,nodeL:nodeList,animate,register,files,ualFor,failed,refSize,dbg:()=>({refCache}),util:{findBone,ik2,turnW,aimBone,box,prepare,pickClip,V,Q,man:()=>manifest}})
 })();
 /* Modelle in die Bau-Funktionen einhängen (Rückfall auf die Code-Modelle, wenn nichts passt) */
 (()=>{const origU=buildUnit,origB=buildBld;window.origBuildUnit=origU;
   buildUnit=function(u){const r=EKMODELS.makeUnit(u,origU);if(r){M3.curId=u.id;return r}return origU(u)};
   const origA=buildAnimal;buildAnimal=function(e){const r=EKMODELS.makeUnit(e,origA,'animal');return r||origA(e)};
-  buildBld=function(type,R,ep,team,sp){const g=EKMODELS.makeBld(type,R,ep,team,origB,sp);return g||origB(type,R,ep,team)};
+  buildBld=function(type,R,ep,team,sp){const g=EKMODELS.makeBld(type,R,ep,team,origB,sp,M3.curId);if(g)return g;const c=origB(type,R,ep,team);if(!window.__noMerge)try{EKMODELS.mergeStatic([c],c,{skip:c.userData.flags||[]})}catch(err){console.warn('mergeStatic Code-Gebäude',err)}return c};
 })();

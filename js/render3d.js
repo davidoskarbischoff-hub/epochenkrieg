@@ -23,11 +23,16 @@ function r3Init(){
     for(let i=0;i<pa.count;i++){const y=pa.getY(i)/50;if(y>0)c.setRGB(.55-.25*y,.7-.2*y,.95-.1*y).multiplyScalar(1.6);else c.setRGB(.34,.3,.22).multiplyScalar(.6+y*.3);ec.push(c.r,c.g,c.b)}
     eg.setAttribute('color',new THREE.Float32BufferAttribute(ec,3));es.add(new THREE.Mesh(eg,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide})));
     const sd=new THREE.Mesh(new THREE.SphereGeometry(6,12,8),new THREE.MeshBasicMaterial({color:0xfff3d6}));sd.material.color.multiplyScalar(14);sd.position.set(-25,32,-20);es.add(sd);
-    const pm=new THREE.PMREMGenerator(rd);M3.env=pm.fromScene(es,.04).texture;pm.dispose();scene.environment=M3.env}catch(err){console.warn('env',err)}
+    R3.es=es;const pm=new THREE.PMREMGenerator(rd);M3.env=pm.fromScene(es,.04).texture;pm.dispose();scene.environment=M3.env}catch(err){console.warn('env',err)}
   const gEnt=new THREE.Group();scene.add(gEnt);
-  r3={rd,scene,camera,sun,hemi,sea,gEnt,vec:_v(),ray:new THREE.Raycaster(),maxTex:rd.capabilities.maxTextureSize};
+  r3={rd,scene,camera,sun,hemi,fill,sea,gEnt,vec:_v(),ray:new THREE.Raycaster(),maxTex:rd.capabilities.maxTextureSize};
   R3.ok=true;R3.t0=performance.now();setGfx(gfxQ);if(typeof optApply==='function')optApply();
+  rd.domElement.addEventListener('webglcontextrestored',()=>setTimeout(()=>r3Revive(true),50));
 }
+/* Nach Fensterwechsel oder Grafikkarten-Reset: Zeichenfläche neu anlegen; nach Kontextverlust zusätzlich die einmal berechnete Umgebungsspiegelung (PMREM) neu malen, sonst bleibt die Welt dunkel oder weiß */
+function r3Revive(full){if(!R3.ok)return;try{
+  if(full&&R3.es){const old=M3.env,pm=new THREE.PMREMGenerator(r3.rd),t=pm.fromScene(R3.es,.04).texture;pm.dispose();M3.env=t;r3.scene.environment=t;r3.scene.traverse(o=>{if(!o.isMesh)return;for(const m of[].concat(o.material))if(m&&m.envMap===old){m.envMap=t;m.needsUpdate=true}})}
+  r3.rd.setSize(Math.max(1,VW)+1,Math.max(1,VH),false);r3Resize();R3.bloomOff=0}catch(e){console.warn('revive',e)}}
 /* Grafikqualität (Menü): 0 Niedrig, 1 Mittel, 2 Hoch (Standard), 3 Ultra – unterscheiden sich sichtbar in Schärfe, Schatten, Gras, Leuchten und Rauch */
 const GQ=[{n:'Niedrig',pr:.7,sh:1024,grass:.25,bloom:0,smoke:0,rad:1},{n:'Mittel',pr:1,sh:1024,grass:.6,bloom:0,smoke:1,rad:1.5},{n:'Hoch',pr:1.5,sh:2048,grass:1,bloom:1,smoke:1,rad:2.5},{n:'Ultra',pr:2.2,sh:4096,grass:1.7,bloom:1,smoke:1,rad:4}];
 let gfxQ=2;try{const q=localStorage.getItem('ek-gfx2');if(q!==null)gfxQ=Math.max(0,Math.min(3,+q||0));else{const o=localStorage.getItem('ek-gfx');if(o!==null)gfxQ=Math.max(0,Math.min(3,(+o||0)+1))}}catch(_){}
@@ -53,9 +58,49 @@ function r3Chunks(g,NX,NZ,mat,C){C=C||32;const grp=new THREE.Group(),pos=g.attri
   (R3.chunkGrps||(R3.chunkGrps=new Set())).add(grp);
   Object.defineProperty(grp,'renderOrder',{set(v){grp.children.forEach(c=>c.renderOrder=v)},get(){return grp.children[0]?grp.children[0].renderOrder:0}});
   return grp}
+/* ---------- Jahreszeiten (nur Aussehen): Licht, Himmel, Nebel, Meer, Belichtung; dazu Wetter (fallende Blätter, Blütenblätter, Schnee) ---------- */
+const ATMO={ /* Sonne [Farbe,Stärke], Himmelslicht [oben,unten,Stärke], Gegenlicht [Farbe,Stärke], Himmel, Nebel, Meer, Belichtung */
+  spring:{sun:[0xfff1d4,3],hemi:[0xc9e2f8,0x5a6c3a,1.05],fill:[0xa8c4ff,.4],sky:0x1c4a60,fog:0xb2cdd2,sea:0x1b4b68,exp:1.14},
+  summer:{sun:[0xffe2b8,3.1],hemi:[0xbcd2ee,0x4a5230,1],fill:[0x9db8ff,.38],sky:0x16384f,fog:0x9db8c4,sea:0x17405c,exp:1.12},
+  autumn:{sun:[0xffc78a,3],hemi:[0xc8b9a6,0x5a4426,1],fill:[0xb0a8c8,.34],sky:0x28363f,fog:0xb7a995,sea:0x1b3a4a,exp:1.1},
+  winter:{sun:[0xe6eeff,2.45],hemi:[0xd6e4f6,0x8d98aa,1.3],fill:[0xb8ccff,.42],sky:0x2a4258,fog:0xc2d0de,sea:0x1c3850,exp:1.2}};
+const lerpHex=(a,b,t)=>new THREE.Color(a).lerp(new THREE.Color(b),t).getHex();
+function r3Season(){
+  if(!R3.ok||typeof MOPT==='undefined')return;
+  const se=MOPT.season||'summer',pal=(MAPS[curMap]||{}).pal||'green',A=Object.assign({},ATMO[se]||ATMO.summer),P=mapPal(curMap,se);
+  /* die Farbwelt der Karte färbt das Licht mit */
+  if(pal==='desert'||pal==='canyon'){A.sun=[lerpHex(A.sun[0],0xffd49a,.7),A.sun[1]*1.03];A.fog=lerpHex(A.fog,0xd8c19c,.55);A.hemi=[A.hemi[0],lerpHex(A.hemi[1],0x86643c,.6),A.hemi[2]]}
+  else if(pal==='swamp'){A.fog=lerpHex(A.fog,0xa6b8a0,.5);A.sun=[lerpHex(A.sun[0],0xf4e8c0,.4),A.sun[1]*.94];A.sea=lerpHex(A.sea,0x1c4a48,.5)}
+  else if(pal==='crater'||pal==='fjord'){A.fog=lerpHex(A.fog,0xb0c0cc,.4)}
+  R3.atmo=A;R3.se=se;R3.dry=pal==='desert'||pal==='canyon';R3.ice=P.ice||0;R3.pk=P.peak;
+  const{scene,sun,hemi,fill}=r3,room=typeof ROOM!=='undefined'&&ROOM.on;
+  sun.color.setHex(A.sun[0]);sun.intensity=A.sun[1];hemi.color.setHex(A.hemi[0]);hemi.groundColor.setHex(A.hemi[1]);hemi.intensity=A.hemi[2];fill.color.setHex(A.fill[0]);fill.intensity=A.fill[1];
+  r3.rd.toneMappingExposure=A.exp;if(r3.sea)r3.sea.material.color.setHex(A.sea);
+  if(room){scene.fog.color.setHex(0x8f877a).lerp(new THREE.Color(A.fog),.4)}else{scene.background=new THREE.Color(A.sky);scene.fog.color.setHex(A.fog)}
+  /* Modelle der Jahreszeit/Farbwelt nachladen (erst jetzt nötig); danach Bäume neu aufbauen */
+  if(typeof EKMODELS!=='undefined'&&EKMODELS.loadWhen)EKMODELS.loadWhen([se,'pal:'+pal]).then(n=>{if(n&&r3.ns&&R3.gRef===G)r3NodesInit()}).catch(()=>{})}
+/* Wetter: Instanzen aus kleinen Vierecken, die zur Kamera zeigen; wandern mit dem Bildausschnitt, im Sparmodus und bei Grafik „Niedrig“ aus */
+const WX={autumn:{n:130,col:[0xd9731c,0xc23c18,0xe8b82c,0xcf8a22],sz:.62,fall:2.2,sway:1.8,spin:3},winter:{n:380,col:[0xffffff,0xeef4ff],sz:.34,fall:3,sway:.8,spin:0},spring:{n:90,col:[0xf6b8d0,0xffffff,0xf8d0dc],sz:.46,fall:1.5,sway:1.8,spin:2}};
+function r3Weather(dt,t){
+  const c=WX[R3.se],on=c&&OPT.weather&&GQ[gfxQ].smoke&&!R3.saverOn&&!R3.slow&&(R3.dyn||1)>=1&&cam.z>=.5&&typeof ROOM!=='undefined'&&!(ROOM.on&&document.body.classList.contains('mm'));
+  if(!on){if(r3.wx)r3.wx.visible=false;return}
+  const S=R3.S;
+  if(!r3.wx||r3.wx.userData.se!==R3.se||r3.wx.userData.gq!==gfxQ){
+    if(r3.wx){r3.scene.remove(r3.wx);r3.wx.dispose()}
+    const n=Math.round(c.n*(gfxQ>=3?1.4:1)),m=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({transparent:true,opacity:.92,depthWrite:false,side:THREE.DoubleSide,fog:false}),n),col=new THREE.Color(),R=mulberry(777);
+    const st=new Float32Array(n*6);for(let i=0;i<n;i++){st[i*6]=R()*W/S;st[i*6+1]=R()*H/S;st[i*6+2]=R();st[i*6+3]=R()*6.283;st[i*6+4]=.6+R()*.8;st[i*6+5]=R()*6.283;col.setHex(c.col[i%c.col.length]);m.setColorAt(i,col)}
+    m.frustumCulled=false;m.renderOrder=5;m.userData={se:R3.se,gq:gfxQ,st,n};m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);r3.scene.add(m);r3.wx=m}
+  const m=r3.wx,st=m.userData.st,n=m.userData.n,d=R3.D0/cam.z,hw=d*.95,hd=d*.8,top=d*.42+6,tx=cam.x/S,tz=cam.y/S,o=r3.wxO||(r3.wxO=new THREE.Object3D()),q=r3.camera.quaternion,qz=new THREE.Quaternion(),ax=new THREE.Vector3(0,0,1);
+  m.visible=true;
+  for(let i=0;i<n;i++){const j=i*6;
+    /* st: x,z (Weltkoordinaten, wandern beim Verschieben des Bildes im Kasten um die Kamera), Fallhöhe 0..1, Phase, Tempofaktor, Drehphase */
+    st[j+2]-=dt*c.fall*st[j+4]/top;if(st[j+2]<0)st[j+2]+=1;
+    const px=tx-hw+((st[j]+Math.sin(t*.7+st[j+3])*c.sway-(tx-hw))%(2*hw)+2*hw)%(2*hw),pz=tz-hd+((st[j+1]-(tz-hd))%(2*hd)+2*hd)%(2*hd),gy=hAt(px*S,pz*S),y=gy+st[j+2]*top;
+    o.position.set(px,y,pz);o.quaternion.copy(q);if(c.spin){qz.setFromAxisAngle(ax,t*c.spin*st[j+4]+st[j+5]);o.quaternion.multiply(qz)}o.scale.setScalar(c.sz*(.7+.5*st[j+4]));o.updateMatrix();m.setMatrixAt(i,o.matrix)}
+  m.instanceMatrix.needsUpdate=true;m.count=n}
 function r3Map(){
-  const S=R3.S,{scene}=r3;
-  for(const o of R3.reg.values())r3.gEnt.remove(o.obj);R3.reg.clear();
+  const S=R3.S,{scene}=r3;r3Season();
+  for(const o of R3.reg.values()){r3.gEnt.remove(o.obj);r3Drop(o.obj)}R3.reg.clear();
   if(r3.terrain){scene.remove(r3.terrain);r3.terrain.geometry.dispose();r3.terrain.material.map.dispose();scene.remove(r3.terrOv);scene.remove(r3.fogOv)}
   const GW=TW,GH=TH,lg=new Float32Array(GW*GH),sg=new Float32Array(GW*GH);
   const cell=(a,x,y)=>a[Math.max(0,Math.min(GH-1,y))*GW+Math.max(0,Math.min(GW-1,x))];
@@ -70,7 +115,7 @@ function r3Map(){
     let sea=-.5+.16*smooth3(.3,.8,sh),land=bil(HLs,i,j)+nz(i*2.3,j*2.3)*.05;if(land>1.2)land+=(land-1.2)*.05*(Math.sin(i*.9+j*.3)*Math.cos(j*1.1)+Math.sin(i*2.3+j*1.7)*.6);hgrid.a[j*NX+i]=sea*(1-m)+land*m-(1-smooth3(0,7,Math.min(i,j,NX-1-i,NZ-1-j)))*2.4;pos.setY(j*NX+i,hgrid.a[j*NX+i])}
   g.computeVertexNormals();
   {const nm=g.attributes.normal,col=new Float32Array(pos.count*3);let my=0;for(let i=0;i<TERR.length;i++)if(TERR[i]===3&&HL[i]>my)my=HL[i];
-    for(let i=0;i<pos.count;i++){const slope=1-nm.getY(i),sn=my>2.2?smooth3(my*.46,my*.56,hlAt(pos.getX(i)*10,pos.getZ(i)*10)):0,s=smooth3(.1,.4,slope)*(1-sn*.92);const br=1+2.2*sn;col[i*3]=(1-s*.42)*br;col[i*3+1]=(1-s*.5)*br;col[i*3+2]=(1-s*.56)*br*(1+.06*sn)}g.setAttribute('color',new THREE.BufferAttribute(col,3))}
+    for(let i=0;i<pos.count;i++){const slope=1-nm.getY(i),sn=my>2.2&&R3.pk>0?smooth3(my*.46/R3.pk,my*.56/R3.pk,hlAt(pos.getX(i)*10,pos.getZ(i)*10)):0,s=smooth3(.1,.4,slope)*(1-sn*.92);const br=1+2.2*sn;col[i*3]=(1-s*.42)*br;col[i*3+1]=(1-s*.5)*br;col[i*3+2]=(1-s*.56)*br*(1+.06*sn)}g.setAttribute('color',new THREE.BufferAttribute(col,3))}
   // Boden-Textur: das fertig gemalte Bild der Karte (renderBg), bei Bedarf verkleinert
   let src=bg;if(Math.max(bg.width,bg.height)>r3.maxTex){const k=r3.maxTex/Math.max(bg.width,bg.height);src=document.createElement('canvas');src.width=Math.floor(bg.width*k);src.height=Math.floor(bg.height*k);src.getContext('2d').drawImage(bg,0,0,src.width,src.height)}
   const tex=new THREE.CanvasTexture(src);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=Math.min(8,r3.rd.capabilities.getMaxAnisotropy());
@@ -87,7 +132,7 @@ function r3Map(){
       .replace('#include <map_fragment>','#include <map_fragment>\n{float n=vn(vWp.xz*0.035)*0.55+vn(vWp.xz*0.11)*0.3+vn(vWp.xz*0.4)*0.15;float k=0.86+0.3*n;diffuseColor.rgb*=vec3(k*1.02,k,k*0.97);}')};
   const mesh=r3Chunks(g,NX,NZ,tm);mesh.children.forEach(c=>c.receiveShadow=true);scene.add(mesh);r3.terrain=mesh;
   if(r3.waves)for(const w of r3.waves)scene.remove(w);r3.waves=[];
-  for(const[sp,rep,op]of[[1,SX/9,.32],[-1,SX/5.3,.22]]){const wt=new THREE.CanvasTexture(r3.waveTex);wt.wrapS=wt.wrapT=THREE.RepeatWrapping;wt.repeat.set(rep,rep*SZ/SX);const wm=new THREE.Mesh(new THREE.PlaneGeometry(SX,SZ).rotateX(-Math.PI/2).translate(SX/2,0,SZ/2),new THREE.MeshBasicMaterial({map:wt,transparent:true,opacity:op,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));wm.position.y=-.34;wm.renderOrder=1;wm.userData.sp=sp;scene.add(wm);r3.waves.push(wm)}
+  for(const[sp,rep,op]of[[1,SX/9,.32],[-1,SX/5.3,.22]]){const wt=new THREE.CanvasTexture(r3.waveTex);wt.wrapS=wt.wrapT=THREE.RepeatWrapping;wt.repeat.set(rep,rep*SZ/SX);const wm=new THREE.Mesh(new THREE.PlaneGeometry(SX,SZ).rotateX(-Math.PI/2).translate(SX/2,0,SZ/2),new THREE.MeshBasicMaterial({map:wt,transparent:true,opacity:op,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));wm.position.y=-.34;wm.renderOrder=1;wm.userData.sp=sp;wm.userData.op0=op;scene.add(wm);r3.waves.push(wm)}
   const ovMat=(cv,order,op)=>{const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;const m=r3Chunks(g,NX,NZ,new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,fog:false}));m.renderOrder=order;m.material.opacity=op;scene.add(m);return m};
   /* Küstenschaum: helle, weich verlaufende Linie im flachen Wasser am Ufer; pulsiert wie anlaufende Wellen */
   if(r3.foam){scene.remove(r3.foam);r3.foam.material.map.dispose()}
@@ -142,7 +187,13 @@ function lodGeo(g,div){if(!g.attributes.color||g.attributes.uv&&g.attributes.uv.
 const LOD_Z=.95; /* unterhalb dieses Zooms (weiter weg) zeichnen Bäume ihre vereinfachte Fassung */
 /* Fernsicht: Figuren werfen keinen Schatten (halbiert ihre Zeichenaufrufe/Dreiecke; aus der Ferne unsichtbar) */
 function r3UnitSh(obj,on){obj.traverse(x=>{if(!x.isMesh)return;if(x.userData.csh===undefined)x.userData.csh=x.castShadow;x.castShadow=on?false:x.userData.csh})}
-function r3Lod(){const on=cam.z<LOD_Z;if(on===R3.lodOn||!r3.ns)return;R3.lodOn=on;for(const e of G.ents)if(e.kind==='unit'||e.kind==='animal'){const o=R3.reg.get(entKey(e));if(o)r3UnitSh(o.obj,on)}for(const gp of R3.chunkGrps||[]){if(!gp.parent){R3.chunkGrps.delete(gp);continue}for(const c of gp.children)if(c.userData.lo)c.geometry=on?c.userData.lo:c.userData.hi}for(const k in r3.ns)for(const m of r3.ns[k].L)if(m.isMulti)for(const q of m.parts)if(q.userData.lo)q.geometry=on?q.userData.lo:q.userData.hi}
+/* Figuren: auf dem Bildschirm kleiner als FIG_LOD_PX Pixel (R3.k = Bildschirm-Pixel je Spielpixel, ein Mensch ist ~25 Spielpixel hoch) nehmen sie ihre grobe Fassung (~1/3 der Dreiecke, nur anderer Index) */
+const FIG_LOD_PX=60;
+/* Entfernte Objekte: Eckpunkt-Daten, die nur dem Objekt gehören (zusammengefasste Gebäude ohne Zwischenspeicher), und die Knochen-Textur der Figuren im Grafikspeicher freigeben */
+function r3Drop(obj){obj.traverse(x=>{if(x.isMesh&&x.geometry.userData.own)x.geometry.dispose();if(x.isSkinnedMesh&&x.skeleton)x.skeleton.dispose()/* Knochen-Textur der Figur */})}
+function r3UnitLod(obj,on){obj.traverse(x=>{if(x.isSkinnedMesh&&x.userData.lo)x.geometry=on?x.userData.lo:x.userData.hi})}
+function r3FigLod(){const on=R3.k*25<FIG_LOD_PX&&!window.__noLod;if(on===R3.figLod)return;R3.figLod=on;for(const e of G.ents)if(e.kind==='unit'||e.kind==='animal'){const o=R3.reg.get(entKey(e));if(o)r3UnitLod(o.obj,on)}}
+function r3Lod(){r3FigLod();const on=cam.z<LOD_Z;if(on===R3.lodOn||!r3.ns)return;R3.lodOn=on;for(const e of G.ents)if(e.kind==='unit'||e.kind==='animal'){const o=R3.reg.get(entKey(e));if(o)r3UnitSh(o.obj,on)}for(const gp of R3.chunkGrps||[]){if(!gp.parent){R3.chunkGrps.delete(gp);continue}for(const c of gp.children)if(c.userData.lo)c.geometry=on?c.userData.lo:c.userData.hi}for(const k in r3.ns)for(const m of r3.ns[k].L)if(m.isMulti)for(const q of m.parts)if(q.userData.lo)q.geometry=on?q.userData.lo:q.userData.hi}
 function r3Multi(parts,n,wind){
   const ms=parts.map(p=>{const mt=p.mat;if(wind)windify(mt,wind);const m=new THREE.InstancedMesh(p.geo,mt,Math.max(1,n));/* keine vereinfachten Bäume mehr: die Raster-Vereinfachung liess Nadelbäume beim Rauszoomen verschwinden */if(wind&&window.__treeLod){if(p.lo===undefined)p.lo=lodGeo(p.geo,9);if(p.lo){m.userData.hi=p.geo;m.userData.lo=p.lo;if(R3.lodOn)m.geometry=p.lo}}m.userData.veg=true;m.castShadow=gfxQ>=2;/* Schatten der vielen Bäume nur ab Grafik „Hoch“ (spart die Hälfte der Zeichenarbeit) */m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);return m});
   return{isMulti:true,parts:ms,setMatrixAt(i,mx){ms.forEach(m=>m.setMatrixAt(i,mx))},setColorAt(i,c){ms.forEach(m=>m.setColorAt(i,c))},dispose(){ms.forEach(m=>m.dispose())}}}
@@ -150,7 +201,10 @@ function r3DropInst(m){if(!m)return;if(m.isMulti)m.parts.forEach(p=>r3.scene.rem
 /* Natur-Sätze: je Schlüssel eine Instanz-Gruppe pro Modell-Variante (Liste in manifest.nodes). geo = Code-Modell (Rückfall und Grössenmassstab),
    alt = Ersatz-Schlüssel ohne eigene Modelle, rock = 3 feste Varianten (Felsen/Erze), low = flach am Boden (kein Schatten). Puffer wachsen bei Bedarf (nsBuild). */
 const NSET={pine:{geo:()=>treeGeo(true),wind:.022},broad:{geo:()=>treeGeo(false),wind:.03},birch:{wind:.03,alt:'broad'},willow:{wind:.03,alt:'broad'},autumn:{wind:.03,alt:'broad'},
-  bush:{geo:()=>bushGeoC(),wind:.05},bushE:{wind:.05,alt:'bush'},stump:{},wheat:{wind:.12,low:1},alpine:{wind:.015},snowy:{wind:.012},stone:{rock:1},iron:{rock:1},gold:{rock:1},oil:{rock:1}};
+  bush:{geo:()=>bushGeoC(),wind:.05},bushE:{wind:.05,alt:'bush'},stump:{},wheat:{wind:.12,low:1},alpine:{wind:.015},snowy:{wind:.012},
+  /* Jahreszeiten (Manifest: when) – fehlen die Modelle noch, springt der Schlüssel auf alt */
+  broadA:{wind:.03,alt:'broad'},birchA:{wind:.03,alt:'birch'},willowA:{wind:.03,alt:'willow'},broadW:{wind:.02,alt:'broad'},birchW:{wind:.02,alt:'birch'},willowW:{wind:.02,alt:'willow'},bloom:{wind:.03,alt:'broad'},bloomW:{wind:.03,alt:'broad'},broadD:{wind:.025,alt:'broad'},cactus:{wind:.008},
+  stone:{rock:1},iron:{rock:1},gold:{rock:1},oil:{rock:1}};
 function nsBuild(key,cap){const d=NSET[key],old=r3.ns[key];if(old)old.L.forEach(r3DropInst);const L=[];
   const mk=geo=>{const mt=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.92,flatShading:!!d.rock});if(d.wind)windify(mt,d.wind);const m=new THREE.InstancedMesh(geo,mt,cap);m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);r3.scene.add(m);return m};
   const n=d.rock?3:EKMODELS.nodeN(key);
@@ -169,25 +223,35 @@ function r3Deco(){const R=mulberry(9173),L=[],rock=(x,y)=>x>=0&&y>=0&&x<TW&&y<TH
   const pick=(key,r)=>{const L=EKMODELS.nodeL(key);let t=0;for(const x of L)t+=x.w||1;let a=r*t;for(let i=0;i<L.length;i++){a-=L[i].w||1;if(a<=0)return i}return 0}; /* Variante nach Gewicht w im Manifest */
   const cl=(x,y)=>.2+1.6*smooth3(.45,.8,.5+.25*Math.sin(x*.011+1.3)*Math.cos(y*.013-.4)+.25*Math.sin((x+y)*.023)); /* Dichte in Gruppen statt gleichmässig gestreut */
   if(EKMODELS.nodeN('alpine')||EKMODELS.nodeN('snowy'))for(let ty=2;ty<TH-2;ty++)for(let tx=2;tx<TW-2;tx++){if(!rock(tx,ty)||R()>.075*cl(tx*TG,ty*TG))continue;let ok=true;for(let dy=-2;dy<=2&&ok;dy++)for(let dx=-2;dx<=2;dx++)if(!rock(tx+dx,ty+dy)){ok=false;break}if(!ok)continue;
-    const x=(tx+.15+R()*.7)*TG,y=(ty+.15+R()*.7)*TG,sn=my>2.2?smooth3(my*.46,my*.56,hlAt(x,y)):0;let h=hAt(x,y);for(let k=0;k<4;k++)h=Math.min(h,hAt(x+Math.cos(k*1.57)*8,y+Math.sin(k*1.57)*8));
+    const x=(tx+.15+R()*.7)*TG,y=(ty+.15+R()*.7)*TG,sn=my>2.2&&R3.pk>0?smooth3(my*.46/R3.pk,my*.56/R3.pk,hlAt(x,y)):0;let h=hAt(x,y);for(let k=0;k<4;k++)h=Math.min(h,hAt(x+Math.cos(k*1.57)*8,y+Math.sin(k*1.57)*8));
     const key=sn>.5?'snowy':'alpine';L.push({x,y,h:h-.05,key,v:pick(key,R()),ry:R()*6.283,s:.75+R()*.5})}
+  /* Wüste/Canyon: Kakteen als Deko, in Gruppen, nicht auf Vorkommen und nicht nahe der Startplätze */
+  if(R3.dry&&EKMODELS.nodeN('cactus')){const grid=new Map(),gk=(x,y)=>((x/60)|0)*1000+((y/60)|0),hq=G.ents.filter(e=>e.type==='hq');
+    for(const e of G.ents)if(e.kind==='node'&&!e.sea){const k=gk(e.x,e.y);(grid.get(k)||grid.set(k,[]).get(k)).push(e)}
+    const near=(x,y)=>{for(let gx=-1;gx<=1;gx++)for(let gy=-1;gy<=1;gy++){const l=grid.get(gk(x+gx*60,y+gy*60));if(l)for(const e of l)if(Math.hypot(e.x-x,e.y-y)<e.r+16)return true}return false};
+    const want=Math.round(420*AREA);let n=0;
+    for(let i=0;i<want*8&&n<want;i++){const x=40+R()*(W-80),y=40+R()*(H-80);if(terrAt(x,y)!==2||terrAt(x+14,y)!==2||terrAt(x-14,y)!==2||terrAt(x,y+14)!==2||terrAt(x,y-14)!==2)continue;
+      if(R()>cl(x,y)*.7||slopeNear(x,y,12)>.5||hq.some(h=>Math.hypot(h.x-x,h.y-y)<230)||near(x,y))continue;
+      L.push({x,y,h:hAt(x,y)-.04,key:'cactus',v:pick('cactus',R()),ry:R()*6.283,s:.7+R()*.7,fx:1});n++}}
   R3.deco=L}
+/* Grasfarben je Jahreszeit (vier Halmfarben) */
+const GRASSC={summer:[0x5f8a3a,0x6f9a44,0x4f7a32,0x7aa24b],spring:[0x7ab04a,0x8cc255,0x66a03c,0x9ad060],autumn:[0xa28a38,0xb89a44,0x8a6c2c,0xc8a850],winter:[0xaebfd0,0xc8d6e4,0x93a8bc,0xdbe6f0],dry:[0xb49a58,0xc8ae68,0xa08648,0xd2bc78]};
 /* Grasbüschel und Blumen: viele winzige Instanzen auf dem Land, damit der Boden aus der Nähe lebendig wirkt */
 function r3Grass(){
   const{scene}=r3;for(const k of['i_tuft','i_flower'])if(r3[k]){scene.remove(r3[k]);r3[k].dispose();r3[k]=null}
-  const R=mulberry(4242),S=R3.S,pts=[],fl=[];
-  for(let i=0;i<Math.round(52000*AREA*GQ[gfxQ].grass)&&pts.length<Math.round(15000*AREA*GQ[gfxQ].grass);i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;let ok=true;for(let k=0;k<4;k++)if(terrAt(x+Math.cos(k*1.57)*14,y+Math.sin(k*1.57)*14)!==2){ok=false;break}if(!ok)continue;
+  const R=mulberry(4242),S=R3.S,pts=[],fl=[],GP=mapPal(curMap,R3.se||'summer'),gk=(({spring:1.1,autumn:.9,winter:.32})[R3.se]||1)*(R3.dry?.32:1),gcol=GRASSC[R3.dry?'dry':R3.se]||GRASSC.summer;
+  for(let i=0;i<Math.round(52000*AREA*GQ[gfxQ].grass*gk)&&pts.length<Math.round(15000*AREA*GQ[gfxQ].grass*gk);i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;let ok=true;for(let k=0;k<4;k++)if(terrAt(x+Math.cos(k*1.57)*14,y+Math.sin(k*1.57)*14)!==2){ok=false;break}if(!ok)continue;
     const dens=.5+.5*Math.sin(x*.013+Math.cos(y*.011)*2);if(R()>dens*1.1)continue;pts.push({x,y,r:R()*6.28,s:.6+R()*.8,c:.8+R()*.5,j:R()})}
-  for(let i=0;i<Math.round(9000*AREA*Math.min(1.5,GQ[gfxQ].grass))&&fl.length<Math.round(1800*AREA*Math.min(1.5,GQ[gfxQ].grass));i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;const cx=Math.cos(x*.02)*Math.sin(y*.017);if(cx<.35)continue;fl.push({x,y,r:R()*6.28,s:.7+R()*.6,k:(R()*5)|0})}
+  for(let i=0;i<Math.round(9000*AREA*Math.min(1.5,GQ[gfxQ].grass)*GP.flowerN)&&fl.length<Math.round(1800*AREA*Math.min(1.5,GQ[gfxQ].grass)*GP.flowerN);i++){const x=R()*W,y=R()*H;if(terrAt(x,y)!==2)continue;const cx=Math.cos(x*.02)*Math.sin(y*.017);if(cx<.35)continue;fl.push({x,y,r:R()*6.28,s:.7+R()*.6,k:(R()*5)|0})}
   const blade=(r,h,ax,az,col)=>{const g=new THREE.ConeGeometry(r,h,3,1,true);/* ohne Boden: spart ein Drittel der Dreiecke */g.translate(0,h/2,0);g.rotateZ(az);g.rotateX(ax);return[g,col]};
-  const tg=mergeColored([blade(.05,.5,.18,.2,0x5f8a3a),blade(.05,.62,-.15,-.1,0x6f9a44),blade(.045,.42,.1,-.3,0x4f7a32),blade(.045,.55,-.2,.25,0x7aa24b)]);
+  const tg=mergeColored([blade(.05,.5,.18,.2,gcol[0]),blade(.05,.62,-.15,-.1,gcol[1]),blade(.045,.42,.1,-.3,gcol[2]),blade(.045,.55,-.2,.25,gcol[3])]);
   r3.i_tuft=new THREE.InstancedMesh(tg,windify(new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide}),.55),pts.length);
   const fg=mergeColored([[tr3(cyl(.012,.012,.38,4),0,.19,0),0x4f7a32],[tr3(new THREE.IcosahedronGeometry(.085,0),0,.4,0),0xffffff]]);
   r3.i_flower=new THREE.InstancedMesh(fg,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.8}),fl.length);
   for(const m of[r3.i_tuft,r3.i_flower]){m.frustumCulled=false;m.castShadow=false;m.receiveShadow=true;m.count=0;scene.add(m)}
   /* Nur die Büschel im sichtbaren Ausschnitt kommen in die Instanzen (r3GrassView); dafür Punkte in 200-px-Zellen einsortieren */
-  const pal=[0xf4e66a,0xf7f3ea,0xe07a8a,0x9f7ad6,0xf0a24a],GC=200,gw=Math.ceil(W/GC),cells=(L)=>{const c=Array.from({length:gw*Math.ceil(H/GC)},()=>[]);L.forEach(p=>c[((p.y/GC)|0)*gw+((p.x/GC)|0)].push(p));return c};
-  for(const p of pts){p.h=hAt(p.x,p.y);p.hid=0}for(const p of fl){p.h=hAt(p.x,p.y);p.col=new THREE.Color(pal[p.k]);p.hid=0}
+  const pal=GP.flowers.map(c=>parseInt(c.slice(1),16)),GC=200,gw=Math.ceil(W/GC),cells=(L)=>{const c=Array.from({length:gw*Math.ceil(H/GC)},()=>[]);L.forEach(p=>c[((p.y/GC)|0)*gw+((p.x/GC)|0)].push(p));return c};
+  for(const p of pts){p.h=hAt(p.x,p.y);p.hid=0}for(const p of fl){p.h=hAt(p.x,p.y);p.col=new THREE.Color(pal[p.k%pal.length]);p.hid=0}
   r3.grassPts=pts;r3.flowerPts=fl;r3.gCells={GC,gw,t:cells(pts),f:cells(fl)};r3.gKey='';r3.blk=new Uint8Array(FW*FH);
 }
 /* Gras im sichtbaren Ausschnitt in die Instanzen schreiben (nur wenn sich der Ausschnitt merklich ändert oder der Nebel neu schattiert wurde) */
@@ -209,6 +273,13 @@ function r3GrassShade(){
 let _o=null,_c=null;
 function fogShade(x,y){const i=fogIdx(x,y),a=(1-visF[i])*(165-95*exF[i])/255;return 1-a*.82}
 /* Baum-Art (einmal je Baum bestimmt): Nadelbaum, Laubbaum, Birken in Hainen, Weiden am Wasser, Herbstfarben als Flecken in der Landschaft */
+/* Jahreszeit: welcher Satz (Herbstlaub, Schnee, Blüten, dürre Bäume) und welche Tönung (r,g,b) für einen Baum; h = fester Zufall je Baum */
+function treeSea(k,sd){const se=R3.se,h=(sd*131.7)%1;
+  if(se==='autumn'){if(k==='pine')return[k,.86,.92,.8];return h<.12?[k,1.05,.95,.8]:[k+'A',1,1,1]}
+  if(se==='winter'){if(k==='pine')return[k,1.5,1.7,1.9];return[k+'W',1,1,1]}
+  if(se==='spring'){if(k==='broad'&&h<.3)return[h<.16?'bloom':'bloomW',1,1,1];if(k==='birch'&&h<.2)return['bloom',1,1,1];if(k==='pine')return[k,1.1,1.16,1];return[k,1.12,1.22,.92]}
+  if(R3.dry){if(k==='pine')return[k,1.2,1.05,.75];return[k==='willow'?'willow':'broadD',1,1,1]}
+  return[k,1,1,1]}
 function treeKind(e){let c=R3.tk.get(e.id);if(c)return c;const sd=e.seed,x=e.x,y=e.y,h1=(sd*7919.3)%1,h2=(sd*104.729)%1;
   if(sd<.5)c={k:'pine',v:(h1*997)|0};
   else{let wet=false;for(let k=0;k<8&&!wet;k++){const a=k*.785;for(const d of[36,66])if(terrAt(x+Math.cos(a)*d,y+Math.sin(a)*d)<2){wet=true;break}}
@@ -221,7 +292,7 @@ function r3Nodes(){
   if(R3.natG!==G){R3.natG=G;R3.tk=new Map();R3.tl=new Map();R3.stumps=[]} /* neue Partie: Baum-Arten und Stümpfe vergessen */
   const S=R3.S,B={},V=R3.view,M=260,fr=R3.fr=(R3.fr||0)+1,tl=R3.tl;
   /* Instanz vormerken: Schlüssel ohne eigene Modelle → Ersatz (alt) */
-  const add=(key,v,x,y,z,ry,sx,sy,r,g,b)=>{let d;while((!r3.ns[key]||!r3.ns[key].L.length)&&(d=NSET[key])&&d.alt)key=d.alt;const s=r3.ns[key];if(!s||!s.L.length)return;const bb=B[key]||(B[key]=[]),i=v%s.L.length;(bb[i]||(bb[i]=[])).push(x,y,z,ry,sx,sy,r,g,b)};
+  const add=(key,v,x,y,z,ry,sx,sy,r,g,b)=>{let d;while((!r3.ns[key]||!r3.ns[key].L.length)&&(d=NSET[key])&&d.alt)key=d.alt;const s=r3.ns[key];if(!s||!s.L.length)return;const bb=B[key]||(B[key]=[]),i=v%s.L.length;(bb[i]||(bb[i]=[])).push(x,y,z,ry,sx,sy,r,g,b);return{key,v:i,i:bb[i].length/9-1,p:[x,y,z,ry,sx,sy]}};
   const inV0=(x,y,m)=>!V||(x>=V.x0-m&&x<=V.x1+m&&y>=V.y0-m&&y<=V.y1+m);
   /* genauer: Fusspunkt auf dem Bildschirm (Rand links/rechts 170 px, oben 120 px, unten 300 px für hohe Bäume, deren Krone ins Bild ragt) */
   const sv=r3.vec,pm=new THREE.Matrix4().multiplyMatrices(r3.camera.projectionMatrix,r3.camera.matrixWorldInverse),mx=1+340/Math.max(1,VW),myT=1+240/Math.max(1,VH),myB=1+600/Math.max(1,VH);
@@ -236,7 +307,7 @@ function r3Nodes(){
     if(e.type==='field'){fields.set(e.farm,e.amount/e.maxAmt);continue}
     if(!inV(e.x,e.y,M))continue;
     const k=Math.max(.5,Math.sqrt(e.amount/e.maxAmt)),sh=fogShade(e.x,e.y),h=hAt(e.x,e.y),x=e.x/S,z=e.y/S,sd=e.seed;
-    if(e.type==='tree'){const s=e.r/11*.62*(.85+sd*.35)*(.55+.45*k),tk=treeKind(e),v=.9+((sd*97)%1)*.2;add(tk.k,tk.v,x,h-.05,z,sd*6.28,s,s*(.9+((sd*31)%1)*.3),v*sh,(.95+((sd*53)%1)*.12)*v*sh,v*sh)}
+    if(e.type==='tree'){const s=e.r/11*.62*(.85+sd*.35)*(.55+.45*k),tk=treeKind(e),v=.9+((sd*97)%1)*.2;{const ts=treeSea(tk.k,sd),ix=add(ts[0],tk.v,x,h-.05,z,sd*6.28,s,s*(.9+((sd*31)%1)*.3),v*sh*ts[1],(.95+((sd*53)%1)*.12)*v*sh*ts[2],v*sh*ts[3]);if(ix&&SHK.size){const sk=SHK.get(e.id);if(sk)sk.ix=ix}}}
     else if(e.type==='bush'){const s=e.r/10*(.55+.45*k);add(e.amount<e.maxAmt*.25?'bushE':'bush',(sd*97)|0,x,h-.03,z,sd*6.28,s,s,sh,sh,sh)} /* fast leer gepflückt: Busch ohne Beeren */
     else{if(HIDDEN_NODES.has(e.type)&&!nodeKnown(e))continue;if(!NSET[e.type])continue;const kv=Math.floor(sd*3)%3,base=e.r/10*(.6+.4*k)*.78;
       const nn=e.type==='oil'?1:5;for(let j=0;j<nn;j++){const a=sd*20+j*1.9,dd=j?e.r/S*.62:0,sz=base*(j?.55+((j*37+sd*50)%7)/14:1.05),xx=x+Math.cos(a)*dd,zz=z+Math.sin(a)*dd,cc=sh*(.92+(j%3)*.05);add(e.type,kv,xx,hAt(xx*S,zz*S)-.1,zz,a,sz,sz*(j?1:1.15),cc,cc,sh*(.95+(j%2)*.05))}}}
@@ -248,7 +319,7 @@ function r3Nodes(){
   if(wm&&wm.rows)for(const e of farms){if(wm.for&&!EKMODELS.tag(e).includes(wm.for))continue;const W=e.r/S*1.05*2.5*(wm.fit||1),gr=fields.has(e.id)?fields.get(e.id):1,gy=.3+.7*gr,sh=fogShade(e.x,e.y),y0=hAt(e.x,e.y)+(wm.y||0)*W,st=(wm.step||.08)*(gfxQ?1:1.6);let i=0;
     for(const[rz,a,b]of wm.rows)for(let nx=a;nx<=b+1e-6;nx+=st){i++;const j1=hsh(i,e.id),j2=hsh(e.id,i),sc=.85+.3*j1;add('wheat',i,e.x/S+(nx+(j2-.5)*st*.5)*W,y0,e.y/S+(rz+(j1-.5)*.03)*W,j2*6.283,sc*1.6,sc*gy,sh*(.95+.1*j2),sh,sh)}}
   /* Berg-Deko (r3Deco), nicht bei Grafik „Niedrig“/Sparmodus */
-  if(gfxQ>0)for(const d of R3.deco||[]){if(!inV(d.x,d.y,140))continue;const sh=fogShade(d.x,d.y);add(d.key,d.v,d.x/S,d.h,d.y/S,d.ry,d.s,d.s,sh,sh,sh)}
+  if(gfxQ>0)for(const d of R3.deco||[]){if(!inV(d.x,d.y,140)||(d.fx&&r3.blk&&r3.blk[fogIdx(d.x,d.y)]))continue;const sh=fogShade(d.x,d.y);add(d.key,d.v,d.x/S,d.h,d.y/S,d.ry,d.s,d.s,sh,sh,sh)}
   /* in die Instanz-Puffer schreiben (nur den benutzten Teil hochladen); reicht ein Puffer nicht, wird der Satz grösser neu gebaut */
   for(const key in r3.ns){let s=r3.ns[key];const bb=B[key]||[];let need=0;for(const a of bb)if(a&&a.length/9>need)need=a.length/9;if(need>s.cap)s=nsBuild(key,Math.ceil(need*1.4)+16);
     s.L.forEach((m,v)=>{const a=bb[v],n=a?a.length/9:0;for(let i=0;i<n;i++){const j=i*9;_o.position.set(a[j],a[j+1],a[j+2]);_o.rotation.set(0,a[j+3],0);_o.scale.set(a[j+4],a[j+5],a[j+4]);_o.updateMatrix();m.setMatrixAt(i,_o.matrix);_c.setRGB(a[j+6],a[j+7],a[j+8]);m.setColorAt(i,_c)}
@@ -279,7 +350,7 @@ function r3Sync(list,dt,t){
     let sig;const ep=e.kind==='bld'?(e.lvl??G.epoch[e.team]):0;sig=e.kind==='unit'?e.type+e.team+':'+(e.lvl||0)+(e.type==='worker'?':'+wkTier(e)+(G.tech[e.team].has('baskets')?'b':'')+(G.tech[e.team].has('carts')?'c':'')+(G.tech[e.team].has('shoes')?'s':''):''):e.kind==='bld'?e.type+':'+ep+':'+e.team+(e.spec||'')+(e.pc||''):e.kind==='animal'?e.type:e.type;
     sig+=EKMODELS.tag(e)+(e.empty?'x':'')+(e.ore||'');
     let o=R3.reg.get(key);
-    if(!o||o.sig!==sig){if(o)r3.gEnt.remove(o.obj);o=r3Make(e,sig);if(R3.lodOn&&(e.kind==='unit'||e.kind==='animal'))r3UnitSh(o.obj,true);R3.reg.set(key,o);r3.gEnt.add(o.obj)}
+    if(!o||o.sig!==sig){if(o){r3.gEnt.remove(o.obj);r3Drop(o.obj)}o=r3Make(e,sig);if(R3.lodOn&&(e.kind==='unit'||e.kind==='animal'))r3UnitSh(o.obj,true);if(R3.figLod&&(e.kind==='unit'||e.kind==='animal'))r3UnitLod(o.obj,true);R3.reg.set(key,o);r3.gEnt.add(o.obj)}
     const h=hAt(e.x,e.y),obj=o.obj;if(o.off){o.off=0;obj.visible=true}
     if(e.kind==='unit')r3Unit(o,e,h,dt,t);
     else if(e.kind==='bld'){obj.position.set(e.x/S,h,e.y/S);const pr=e.built?1:.12+.88*e.prog;obj.scale.set(1,pr,1);if(obj.userData.props)for(const q of obj.userData.props)q.visible=pr>=1 /* Beiwerk (Figuren, Ballon) erst nach dem Bau */;
@@ -293,12 +364,12 @@ function r3Sync(list,dt,t){
   for(const[k,o]of R3.reg)if(!seen.has(k)){
     if(o.e&&o.e.dead&&o.rig&&!o.rig.ship&&(o.e.kind==='animal'||o.rig.up||(o.rig.acts&&o.rig.acts.die))&&R3.corpses.length<40){R3.corpses.push({obj:o.obj,rig:o.rig,t:0,animal:o.e.kind==='animal',big:o.e.kind==='animal'&&(ANIMALS[o.e.type].r>10)})}
     else if(o.e&&!o.e.dead&&(o.off||0)<20&&R3.reg.size<1500){if(!o.off)o.obj.visible=false;o.off=(o.off||0)+Math.max(dt,.001);continue} /* nur aus dem Bild: versteckt aufheben statt löschen (Neubau beim Zurückschwenken ruckelt) */
-    else r3.gEnt.remove(o.obj);R3.reg.delete(k)}
+    else{r3.gEnt.remove(o.obj);r3Drop(o.obj)}R3.reg.delete(k)}
   for(let i=R3.corpses.length-1;i>=0;i--){const c=R3.corpses[i];c.t+=dt;const f=Math.min(1,c.t/.4);
     const dA=c.rig.acts&&c.rig.acts.die;if(dA){if(!c.dp){c.dp=1;c.rig.mixer.stopAllAction();dA.reset();dA.setLoop(THREE.LoopOnce,1);dA.clampWhenFinished=true;dA.play()}c.rig.mixer.update(dt)} /* echte Sterbe-Bewegung (UAL) */
     else if(c.animal)c.rig.g.rotation.x=f*1.45;else{c.rig.g.rotation.z=-f*1.5;if(c.rig.up){c.rig.up.rotation.z=0;for(const l of c.rig.legs)l.rotation.z=0;for(const a of c.rig.arms)a.rotation.z=1.6*f}}
     c.obj.position.y=c.t>2.4?-(c.t-2.4)*.9:c.obj.position.y;
-    if(c.t>3.2){r3.gEnt.remove(c.obj);R3.corpses.splice(i,1)}}
+    if(c.t>3.2){r3.gEnt.remove(c.obj);r3Drop(c.obj);R3.corpses.splice(i,1)}}
   r3Bones()
 }
 /* Kontaktschatten: weicher dunkler Fleck unter Gebäuden – die Bauten sitzen dadurch „im“ Boden statt darauf zu schweben */
@@ -310,9 +381,9 @@ function aoDecal(radius,op){
 function r3Make(e,sig){
   const S=R3.S;
   if(e.kind==='unit'){const rig=buildUnit(e);let sc=(UNITS[e.type].vr||e.r)/7*1.25*(UNITS[e.type].naval?.46:e.type==='tank'||e.type==='mark1'?.72:UNITS[e.type].siege?.7:UNITS[e.type].cls==='cav'?.74:e.type==='worker'?.8:1);if(rig.human)sc=UNITS.worker.vr/7*1.25*.8/* alle Menschen so groß wie der Arbeiter */;rig.g.scale.setScalar(sc*(.94+((e.id*37)%13)/13*.12));const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
-  if(e.kind==='bld'){const g=buildBld(e.type,e.r/S*1.05,e.lvl??G.epoch[e.team]/* Aussehen erst nach dem Upgrade */,e.team,e.spec);if(e.empty)g.traverse(o=>{if(o.isMesh){const f=m=>{const c=m.clone();if(c.color)c.color.multiplyScalar(.45);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}}) /* erschöpfte Mine: dunkel/grau */;if(e.ore&&e.ore!=='stone'&&!e.empty){const tc=new THREE.Color(e.ore==='gold'?0xffd166:0xd08a6a);g.traverse(o=>{if(o.isMesh){const f=m=>{if(!/stone|rock/i.test(m.name||''))return m;const c=m.clone();if(c.color)c.color.lerp(tc,.45);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}})} /* Eisen-/Goldmine: rötlich bzw. golden getönt */;if(e.type!=='wall'&&e.type!=='gate'&&e.type!=='trench'&&e.type!=='farm')g.add(aoDecal(e.r/S*1.55));if(e.pc&&typeof wallPostModel==='function')wallPostModel(g,e.pc,e.r/S*1.05,G.epoch[e.team],e.team);if(e.spec&&!g.userData.spec&&typeof specModel==='function')specModel(g,e.type,e.spec,e.r/S*1.05,e.team,G.epoch[e.team]);return{obj:g,sig,flags:g.userData.flags||[]}}
+  if(e.kind==='bld'){M3.curId=e.id;const g=buildBld(e.type,e.r/S*1.05,e.lvl??G.epoch[e.team]/* Aussehen erst nach dem Upgrade */,e.team,e.spec);if(e.empty)g.traverse(o=>{if(o.isMesh){const f=m=>{const c=m.clone();if(c.color)c.color.multiplyScalar(.45);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}}) /* erschöpfte Mine: dunkel/grau */;if(e.ore&&e.ore!=='stone'&&!e.empty){const tc=new THREE.Color(e.ore==='gold'?0xffd166:0xd08a6a);g.traverse(o=>{if(o.isMesh){const f=m=>{if(!/stone|rock/i.test(m.name||''))return m;const c=m.clone();if(c.color)c.color.lerp(tc,.45);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}})} /* Eisen-/Goldmine: rötlich bzw. golden getönt */;if(e.type!=='wall'&&e.type!=='gate'&&e.type!=='trench'&&e.type!=='farm')g.add(aoDecal(e.r/S*1.55));if(e.pc&&typeof wallPostModel==='function')wallPostModel(g,e.pc,e.r/S*1.05,G.epoch[e.team],e.team);if(e.spec&&!g.userData.spec&&typeof specModel==='function')specModel(g,e.type,e.spec,e.r/S*1.05,e.team,G.epoch[e.team]);return{obj:g,sig,flags:g.userData.flags||[]}}
   if(e.kind==='animal'){const rig=buildAnimal(e);const wrap=new THREE.Group();wrap.add(rig.g);return{obj:wrap,rig,ph:Math.random()*6,yaw:-(e.fa||0),sig,flags:[]}}
-  const g=EKMODELS.makeSea(e)||seaModel(e);return{obj:g,sig,flags:[]}}
+  const g=EKMODELS.makeSea(e)||seaModel(e);g.traverse(o=>{if(o.isMesh)o.castShadow=false})/* Fische unter Wasser: Schatten nicht sichtbar, spart Zeichenaufrufe in der Schattenkarte */;return{obj:g,sig,flags:[]}}
 /* Gliederbewegung der Menschen: Gehen (Gegenschwung, Neigen, Wippen), Atmen im Stand, Arbeiten je Werkzeug, Kampf mit Ausholen/Schlag/Rückstoß, Zucken bei Treffern */
 function r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t){
   const up=rig.up,L=rig.legs,K=rig.knees,A=rig.arms,E=rig.elbows,id=e.id,since=G.t-(e.swing||-9),k=Math.max(0,Math.min(1,since/.5)),fresh=since<.5;
@@ -355,6 +426,32 @@ function r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t){
 }
 /* Welche Arbeit macht die Einheit gerade? (bestimmt Werkzeug und Bewegung) */
 function wkKind(e){if(e.state==='build')return'build';const n=e.tid!=null&&e.tid!==undefined?G.byId.get(e.tid):null;if(!n)return'';if(n.kind==='animal')return'hunt';const t=n.type;return t==='tree'?'chop':(t==='stone'||t==='iron'||t==='gold'||t==='oil')?'mine':t==='field'?'farm':t==='bush'?'pick':n.sea?'fish':''}
+/* Takt der Arbeit für die Arbeits-Haltungen: ph 0..1, ph = 0 ist der Aufprall. Aus der Spielrechnung (u.gt/u.gl Sammeln, u.bt/u.bl Bauen, u.cd Jagd),
+   sonst (Mehrspieler-Gast, dort fehlt gt) ein eigener Takt. imp = in diesem Bild hat ein neuer Hieb begonnen (Geräusch kam vom Spiel). */
+const WCYC={chop:1.2,mine:1.1,pick:2.1,farm:1.5,build:.6,hunt:1.2};
+function wkPhase(o,e,kd,dt,want,hunt,d){
+  if(want!=='work')return null;let ph,imp=false;const tm=hunt?(d.cd||1.2):kd==='build'?(e.bl||.6):(e.gl||0),cur=hunt?e.cd:kd==='build'?e.bt:e.gt;
+  if(tm&&cur!==undefined&&!NET.client){ph=1-Math.max(0,Math.min(1,cur/tm));if(o.pg!==undefined&&cur>o.pg+.12){imp=true;o.wn=(o.wn||0)+1}o.pg=cur}
+  else{o.fph=((o.fph||0)+(G.paused||G.netPause?0:dt*Math.min(G.speed||1,2)/(WCYC[kd]||1.2)))%1;if(o.fph<(o.pf||0)){imp=true;o.wn=(o.wn||0)+1}o.pf=o.fph;ph=o.fph}
+  /* sehr schnelles Spiel (3×, 5×): ein Hieb dehnt sich über mehrere Takte, damit die Figur nicht zappelt */
+  const N=Math.max(1,Math.round((G.speed||1)/2));if(N>1)ph=(((o.wn||0)%N)+ph)/N;
+  return{ph,imp}}
+/* Aufprall: Späne am Werkzeugkopf (nur Optik), Baum wackelt kurz */
+const SHK=new Map();
+function r3Impact(o,e,kd,rig){
+  const n=e.tid!=null?G.byId.get(e.tid):null;if(!n||(kd!=='chop'&&kd!=='mine'))return;
+  /* Aufprallpunkt: am Stamm bzw. Fels auf der Seite der Figur, in Brusthöhe (unabhängig vom Spieltempo, die Axt trifft dort) */
+  const c=kd==='chop'?'168,122,68':'196,192,182',R=Math.random,bx=Math.cos(e.fa),by=Math.sin(e.fa),rr=kd==='chop'?3.5:n.r*.9,x=n.x-bx*rr,y=n.y-by*rr,z=kd==='chop'?14:10;
+  for(let i=0;i<(kd==='chop'?5:4);i++)addPart('chip',x,y,z+R()*4,-bx*(10+R()*30)+(R()-.5)*40,-by*(10+R()*30)+(R()-.5)*40,40+R()*50,.45+R()*.2,1.5+R(),c);
+  if(kd==='chop'&&n.type==='tree')SHK.set(n.id,{t:0,ax:bx,az:by,ix:null})}
+/* Baumwackeln: die Instanz des getroffenen Baums kurz neigen (Matrix wird je Bild überschrieben, danach stellt r3Nodes sie wieder gerade) */
+const _so=new THREE.Object3D(),_sq=new THREE.Quaternion(),_sa=new THREE.Vector3(),_sb=new THREE.Euler();
+function r3Shake(dt){
+  for(const[id,s]of SHK){s.t+=dt;const done=s.t>.9;if(!s.ix){if(done)SHK.delete(id);continue}
+    const ix=s.ix,m=r3.ns&&r3.ns[ix.key]&&r3.ns[ix.key].L[ix.v];if(!m){SHK.delete(id);continue}
+    const a=done?0:.05*Math.exp(-s.t*4.2)*Math.sin(s.t*24);_sa.set(-s.az,0,s.ax);_sq.setFromAxisAngle(_sa,a);_so.position.set(ix.p[0],ix.p[1],ix.p[2]);_so.quaternion.setFromEuler(_sb.set(0,ix.p[3],0)).premultiply(_sq);_so.scale.set(ix.p[4],ix.p[5],ix.p[4]);_so.updateMatrix();m.setMatrixAt(ix.i,_so.matrix);
+    for(const q of m.isMulti?m.parts:[m]){const im=q.instanceMatrix;im.clearUpdateRanges();im.addUpdateRange(ix.i*16,16);im.needsUpdate=true}
+    if(done)SHK.delete(id)}}
 function r3Unit(o,e,h,dt,t){
   const S=R3.S,d=UNITS[e.type],rig=o.rig,moving=G.t-(e.mvT||-9)<.2,obj=o.obj;
   let want=-e.fa,dy=want-o.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));o.yaw+=dy*Math.min(1,dt*14);
@@ -367,7 +464,20 @@ function r3Unit(o,e,h,dt,t){
     if(rig.props){y=h+5+Math.sin(t*1.5+e.id)*.25;rig.props.forEach(pr=>pr.rotation.x+=dt*40);obj.rotation.z=moving?-.12:0}
     else if(moving&&!rig.gltf)y+=Math.abs(s)*.07*(rig.horse?1.6:1);
     if(rig.loads)for(const k in rig.loads)rig.loads[k].visible=e.carry>0&&e.ctype===k;
-    if(rig.gltf)EKMODELS.animate(rig,(e.state==='attack'&&G.t-(e.swing||-9)<1)||(!moving&&G.t-(e.healT||-9)<.6)?'attack':(work||build)?'work':moving?'walk':'idle',dt,moving?Math.max(.6,d.spd/60):1,wkKind(e),{v:moving?d.spd*(e.spk||1)*(e.rage>G.t?RAGE.spd:1)/10/(obj.scale.x||1):0,hit:o.fl>.2,fight:(e.state==='attack'||e.state==='amove')&&!d.gather&&e.type!=='worker'});
+    if(rig.gltf){
+      const kd=wkKind(e),near=cam.z>=.8,hunt=!!rig.wp&&near&&kd==='hunt'&&e.state==='attack'&&!moving&&d.gather&&G.t-(e.swing||-9)<2.6;/* Arbeiter jagt mit dem Speer */
+      const wantW=!hunt&&((e.state==='attack'&&G.t-(e.swing||-9)<1)||(!moving&&G.t-(e.healT||-9)<.6))?'attack':(work||build||hunt)?'work':moving?'walk':'idle';
+      const wp=rig.wp&&near?wkPhase(o,e,kd,dt,wantW,hunt,d):null;if(wantW!=='work')o.pg=undefined;
+      /* Fernsicht: kleine Figuren (unter ~30 Pixel Höhe, weit herausgezoomt) rechnen ihr Skelett nur jedes 2. (unter ~18 Pixel jedes 3.) Bild, versetzt nach Nummer, mit der angesammelten Zeit; bei Wechsel der Tätigkeit sofort */
+      const thr=R3.k*25<18?3:R3.k*25<30?2:1;o.ad=(o.ad||0)+dt;
+      if(thr<2||o.lw!==wantW||(R3.fn+e.id)%thr===0||o.ad>.12){const adt=o.ad;o.ad=0;o.lw=wantW;
+      EKMODELS.animate(rig,wantW,adt,moving?Math.max(.6,d.spd/60):1,kd,{v:moving?d.spd*(e.spk||1)*(e.rage>G.t?RAGE.spd:1)/10/(obj.scale.x||1):0,hit:o.fl>.2,fight:(e.state==='attack'||e.state==='amove')&&!d.gather&&e.type!=='worker',
+        near,ph:wp?wp.ph:undefined,n:o.wn||0,cv:e.carry>0&&e.state==='return',ct:e.ctype})}
+      e._wi=!!(wp&&rig.wp.cur&&(kd==='chop'||kd==='mine'));/* Späne kommen dann vom Aufprall (r3Impact), nicht vom Takt in render.js */
+      if(wp&&wp.imp)r3Impact(o,e,kd,rig);
+      /* Figur tritt beim Arbeiten bis auf Griffweite an Baum/Strauch heran (nur Darstellung, die Spielposition bleibt) */
+      let sh=0;if(wp&&rig.wp.cur&&(kd==='chop'||kd==='pick'||kd==='mine')){const nd=G.byId.get(e.tid);if(nd){const dd=Math.hypot(nd.x-e.x,nd.y-e.y)/S,gap=kd==='chop'?1.35:kd==='pick'?1.15:nd.r/S*.9+1;sh=Math.max(-.3,Math.min(1.1,dd-gap))}}
+      o.sh=(o.sh||0)+(sh-(o.sh||0))*Math.min(1,dt*3)}
     else if(rig.horse){rig.legs.forEach((l,i)=>l.rotation.z=(i%2?s:-s)*.7);const rd=rig.rider;rd.arms[1].rotation.z=.2+sw*.6}
     else if(rig.wheels){if(rig.load){rig.load.visible=(e.carry||0)>0;if(rig.loadMat&&rig.lc!==e.ctype){rig.lc=e.ctype;rig.loadMat.color.set({stone:0x8a8278,iron:0x8a4e3a,gold:0xe8c048}[e.ctype]||0x8a8278);if(rig.loadMat.metalness!==undefined)rig.loadMat.metalness=e.ctype==='gold'?.7:e.ctype==='iron'?.3:0}}if(rig.pusher&&moving){const p=rig.pusher,s=Math.sin(G.t*9);(p.legs||[]).forEach((l,i)=>l.rotation.z=(i?s:-s)*.5)}if(moving)rig.wheels.forEach(w=>w.rotation[w.userData.axis||'y']+=dt*3.2*(d.spd/40));if(rig.log)rig.log.position.x=sw*.9;if(rig.arm)rig.arm.rotation.z=-sw*1.8;if(rig.barrel)rig.barrel.position.x=.1-sw*.35}
     else if(rig.up){r3Human(o,e,rig,d,s,sw,work,build,moving,dt,t)}
@@ -383,7 +493,7 @@ function r3Unit(o,e,h,dt,t){
       if(rig.tool){const k=build?'build':(e.state==='gather'||e.state==='return'||work)?e.rtype:null;rig.tool(k==='food'&&e.carry>0&&e.state==='return'?null:k);if(rig.sack){rig.sack.visible=e.carry>0&&e.state!=='gather'||e.carry>4;rig.sack.scale.setScalar(.6+Math.min(1,e.carry/CARRY)*.6)}}
     }
   }
-  obj.position.set(e.x/S,y,e.y/S);obj.rotation.y=o.yaw;
+  obj.position.set(e.x/S+(o.sh?Math.cos(e.fa)*o.sh:0),y,e.y/S+(o.sh?Math.sin(e.fa)*o.sh:0));obj.rotation.y=o.yaw;
 }
 function r3Animal(o,e,h,dt,t){const S=R3.S,rig=o.rig,moving=G.t-(e.mvT||-9)<.2;let dy=-e.fa-o.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));o.yaw+=dy*Math.min(1,dt*10);if(moving)o.ph+=dt*(6+UNITS_A(e).spd*.05);const s=Math.sin(o.ph);
   if(rig.gltf){EKMODELS.animate(rig,e.state==='graze'?'work':(e.swing&&G.t-e.swing<.8)?'attack':moving?'walk':'idle',dt,moving?1.4:1);if(!rig.mixer)rig.g.rotation.z=moving?Math.sin(o.ph)*.06:0}
@@ -397,7 +507,7 @@ function r3Ring(x,y,r,col,op){
   if(!m){m=new THREE.Mesh(new THREE.RingGeometry(.9,1,40).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,depthWrite:false,fog:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));m.renderOrder=4;R3.rings.push(m);r3.scene.add(m)}
   R3.ringN++;m.visible=true;m.material.color.set(col);m.material.opacity=op===undefined?.95:op;const rr=r/S;m.scale.set(rr,1,rr);m.position.set(x/S,hAt(x,y)+.1,y/S)}
 function r3Ghost(type,x,y,ok){
-  if(!r3.ghost||r3.ghostKey!==type+':'+G.epoch[0]){if(r3.ghost)r3.scene.remove(r3.ghost);const g=buildBld(type,BLDS[type].r/R3.S*1.05,G.epoch[0],0);g.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;o.material.opacity=.55;o.castShadow=false}});r3.ghost=g;r3.ghostKey=type+':'+G.epoch[0];r3.scene.add(g)}
+  if(!r3.ghost||r3.ghostKey!==type+':'+G.epoch[0]){if(r3.ghost){r3.scene.remove(r3.ghost);r3Drop(r3.ghost)}const g=buildBld(type,BLDS[type].r/R3.S*1.05,G.epoch[0],0);g.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;o.material.opacity=.55;o.castShadow=false}});r3.ghost=g;r3.ghostKey=type+':'+G.epoch[0];r3.scene.add(g)}
   r3.ghost.visible=true;r3.ghost.position.set(x/R3.S,hAt(x,y),y/R3.S);r3.ghost.traverse(o=>{if(o.isMesh&&o.material.emissive)o.material.emissive.setHex(ok?0x1c3a10:0x4a1208)})}
 
 /* ---------- Ein Bild zeichnen ---------- */
@@ -408,12 +518,12 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   const t=(performance.now()-R3.t0)/1000;WIND.value=t;
   if(R3.bgRef!==bg||R3.gRef!==G)r3Map();
   camUpdate();
-  if(r3.foam)r3.foam.material.opacity=.42+.3*Math.sin(t*1.4)+.1*Math.sin(t*3.1);
-  for(const w of r3.waves){const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
+  if(r3.foam)r3.foam.material.opacity=(.42+.3*Math.sin(t*1.4)+.1*Math.sin(t*3.1))*(1-(R3.ice||0)*.8);
+  for(const w of r3.waves){w.material.opacity=w.userData.op0*(1-(R3.ice||0)*.72);const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   {const V=R3.view,N=R3.nodeV;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
-  r3Lod();R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}else r3GrassView()
-  r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);
+  r3Lod();R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}else r3GrassView();if(SHK.size)r3Shake(dt)
+  if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;
   /* Schattenkarte nur jedes 2. Bild neu (bewegt sich die Kamera, sofort) – halbiert die Schatten-Zeichenarbeit, Unterschied ist nicht zu sehen */

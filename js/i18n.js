@@ -250,7 +250,24 @@ const EN={
 ,'Tempo {0}':'Speed {0}'
 ,'Stark gegen: {0}':'Strong against: {0}'
 ,'Fischt auf dem Wasser und bringt Nahrung zum Hafen.':'Fishes on the water and brings food to the harbor.'
-,'Dafür braucht es ein größeres Boot (Stufe {0}) für {1}.':'You need a bigger boat (level {0}) for {1}.'
+,'Dafür braucht es ein größeres Boot (Stufe {0}) für {1}.':'You need a bigger boat (level {0}) for {1}.',
+'Seenplatte':'Lake District','Viele Seen und Teiche mit Inseln, Fische im Binnenland':'Many lakes and ponds with islands, fish inland'
+,'Ein Fluss mit Schleifen trennt die Basen, nur wenige Furten führen hinüber':'A winding river separates the bases, only a few fords lead across'
+,'Viel Wasser, breite Landbrücke, Inselchen':'Lots of water, a broad land bridge, little islets'
+,'Inselreich':'Archipelago','Große und kleine Inseln, verbunden durch Landbrücken und flache Furten':'Large and small islands joined by land bridges and shallow fords'
+,'Fjordland':'Fjordland','Lange Meeresarme zwischen steilen Ufern, Halbinseln, viele Häfen':'Long sea inlets between steep shores, peninsulas, many harbors'
+,'Wüste':'Desert','Dünen, rote Felsen und wenige Oasen mit Wasser und Palmenhainen':'Dunes, red rocks and a few oases with water and palm groves'
+,'Canyon':'Canyon','Rote Hochplateaus mit Terrassen, Schluchten und ein Fluss':'Red plateaus with terraces, gorges and a river'
+,'Sumpfdelta':'Swamp Delta','Verzweigte Wasserarme, flache Furten und Inseln aus Schlamm':'Branching waterways, shallow fords and islands of mud'
+,'Kraterrand':'Crater Rim','Ringgebirge um einen See in der Mitte, vier Pässe, dunkle Nadelwälder':'A ring of mountains around a central lake, four passes, dark conifer forests'
+,'Wasser':'Water','Gebirge':'Mountains','Wenig':'Little','Mittel':'Medium','Viel':'Lots','Keine':'None','Wenige':'Some','Viele':'Many'
+,'Jahreszeit':'Season','Frühling':'Spring','Sommer':'Summer','Herbst':'Autumn','Winter':'Winter','Zufall':'Random'
+,'Zufällige Karte':'Random map','Neu würfeln':'Roll again','Würfelt Kartenart, Wasser, Gebirge, Jahreszeit und Kartennummer':'Rolls map type, water, mountains, season and map number','Gleiche Einstellungen, neue Kartennummer':'Same settings, new map number'
+,'Karte Nr.':'Map no.','Dein Lager':'Your camp','Gegner':'Enemy','Gold':'Gold','Eisen':'Iron','Stein':'Stone','Öl':'Oil','Wald':'Forest','Fisch':'Fish'
+,'Wasser wirkt hier auf: {0}. Gebirge: {1}.':'Here water affects: {0}. Mountains: {1}.'
+,'Meer und Seen':'sea and lakes','Berge und Klippen':'mountains and cliffs','Seen':'lakes','Berge':'mountains','Flussbreite und Seen':'river width and lakes','Bergmassiv':'mountain massif','Meer, Inselchen und Seen':'sea, islets and lakes'
+,'Größe und Zahl der Inseln':'size and number of islands','Berge auf den Inseln':'mountains on the islands','Zahl der Meeresarme':'number of sea inlets','Zahl der Oasen':'number of oases','Felsen und Mesas':'rocks and mesas','Flussbreite':'river width','Plateaus und Felsen':'plateaus and rocks'
+,'Breite der Wasserarme':'width of the waterways','Felsen (nur bei „Viele“)':'rocks (only with "Many")','Größe des Kratersees':'size of the crater lake','Ringgebirge (ohne: sanfter Wall)':'ring of mountains (none: gentle ridge)','Wetter (Laub, Schnee)':'Weather (leaves, snow)','Fallende Blätter im Herbst, Blütenblätter im Frühling, Schnee im Winter – nur Optik':'Falling leaves in autumn, petals in spring, snow in winter – looks only'
 };
 let LANG='de';try{LANG=localStorage.getItem('ek-lang')==='en'?'en':'de'}catch(_){}
 function tr(de,...a){let s=LANG==='en'&&EN[de]!==undefined?EN[de]:de;a.forEach((v,i)=>{s=s.split('{'+i+'}').join(v)});return s}
