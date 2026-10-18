@@ -437,9 +437,8 @@ const WCYC={chop:1.2,mine:1.1,pick:2.1,farm:1.5,build:.6,hunt:1.2};
 function wkPhase(o,e,kd,dt,want,hunt,d){
   if(want!=='work')return null;let ph,imp=false;const tm=hunt?(d.cd||1.2):kd==='build'?(e.bl||.6):(e.gl||0),cur=hunt?e.cd:kd==='build'?e.bt:e.gt;
   if(tm&&cur!==undefined&&!NET.client){ph=1-Math.max(0,Math.min(1,cur/tm));if(o.pg!==undefined&&cur>o.pg+.12){imp=true;o.wn=(o.wn||0)+1}o.pg=cur}
-  else{o.fph=((o.fph||0)+(G.paused||G.netPause?0:dt*Math.min(G.speed||1,2)/(WCYC[kd]||1.2)))%1;if(o.fph<(o.pf||0)){imp=true;o.wn=(o.wn||0)+1}o.pf=o.fph;ph=o.fph}
-  /* sehr schnelles Spiel (3×, 5×): ein Hieb dehnt sich über mehrere Takte, damit die Figur nicht zappelt */
-  const N=Math.max(1,Math.round((G.speed||1)/2));if(N>1)ph=(((o.wn||0)%N)+ph)/N;
+  else{o.fph=((o.fph||0)+(G.paused||G.netPause?0:dt*Math.min(G.speed||1,5)/(WCYC[kd]||1.2)))%1;if(o.fph<(o.pf||0)){imp=true;o.wn=(o.wn||0)+1}o.pf=o.fph;ph=o.fph}
+  /* Takt = Spieltakt: ph kommt direkt aus u.gt/u.bt/u.cd (laufen mit dem Spieltempo), bei 5× also 5× so viele Hiebe je Sekunde wie bei 1×; Pause = Stillstand (Takt steht). */
   return{ph,imp}}
 /* Aufprall: Späne am Werkzeugkopf (nur Optik), Baum wackelt kurz */
 const SHK=new Map();
