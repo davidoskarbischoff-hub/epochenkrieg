@@ -308,3 +308,13 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Kraterrand: kleinen Teich nah am Start ergänzen (Fische, Hafen)
 - [ ] Jahreszeit im Mehrspieler-Spiel vom Gast frei wählbar (nur Vorschlag)
 - [ ] Karten-Seed per Eingabefeld teilen/merken („Lieblingskarten“)
+
+## Industrie- und Waffen-Modelle (18.10.)
+- [x] Farbtabellen repariert (Davids Upload hatte `variation-a/b/c.png` überschrieben); Industrie-Tabellen heissen `ind-a/b/c.png`
+- [x] Raffinerie (Zeitalter 5/6), Flugplatz (Zeitalter 6), Lager (Zeitalter 5/6) und Wohnhäuser (Zeitalter 6, vier Varianten) aus Kenney-Kits; Lücken-Skript: nur noch `trench`, `derrick`, `cannon`
+- [x] Waffen-Paket: Stachelkeule, Schilde (Schildrand in Teamfarbe), Schwert, Bogen mit Pfeilen, Druidenstab (Heiler), Horn (Späher), Streitaxt (Ingenieur); verkleinert in `models/waffen`
+- [ ] Bohrturm, Schützengraben, Feldkanone, Armbrust: weiter kein passendes Modell (David um Pakete bitten)
+- [ ] Wohnhäuser Zeitalter 5 sind noch Fachwerk (Industrie-Kit hat nur Fabriken/Lager; ein Backstein-Wohnhaus fehlt)
+- [ ] Hafen Zeitalter 5/6: Container auf dem Steg würden gut passen, ragen aber über die schmalen Stege (Beiwerk-Höhe/Platz nötig)
+- [ ] Waffen-Pack: Äxte, Stäbe, Schwert-/Schildfarben (A/B/C/E), Pfeile B ungenutzt (Variation je Einheit möglich)
+
