@@ -63,7 +63,7 @@ function advBuild(type,at){
   sfx('click');return true}
 function advIdle(){
   const R=G.res[0],ep=G.epoch[0];let i=0;
-  const goal={food:300,wood:300,stone:ep>=1?160:0,iron:ep>=2?100:0,gold:ep>=3?150:0,oil:ep>=5&&has('refinery').some(b=>b.built)?100:0},need=RES.filter(rt=>goal[rt]).sort((a,b)=>R[a]/goal[a]-R[b]/goal[b])[0];
+  const goal={food:300,wood:300,stone:ep>=1?160:0,iron:ep>=2?100:0,gold:ep>=3?150:0,oil:ep>=5&&G.ents.some(b=>!b.dead&&b.team===0&&b.type==='refinery'&&b.built)?100:0},need=RES.filter(rt=>goal[rt]).sort((a,b)=>R[a]/goal[a]-R[b]/goal[b])[0];
   for(const u of G.ents){if(u.dead||u.team!==0||u.kind!=='unit'||!UNITS[u.type].gather||u.state!=='idle'||u.upj)continue;
     const order=UNITS[u.type].naval?['food']:[need,'food','wood','food'];
     const rt0=order[i++%order.length];
