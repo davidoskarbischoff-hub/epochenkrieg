@@ -164,3 +164,8 @@ Bitte selbst herunterladen und hochladen (nur CC0/CC-BY). Lizenz auf der Seite v
 - KI: `AI_MINT` angepasst, Normal wk 1,35 / army 0,8, Schwer wk 1,6 / army 1,35. 4 Karten (Seeds 5/11/23/31, 62 min): Berater gewinnt Min. 26 und 49, KI gewinnt Min. 49, einmal offen bis Min. 62. Leicht (Seed 11): Berater gewinnt Min. 40, KI kaum entwickelt; Schwer: KI gewinnt Min. 42.
 - Gefundener Fehler: `advIdle` rief `has()` auf (nur in `advRules` bekannt), ab Epoche 5 brach der Berater-Tick ab. Behoben.
 - Offen: Streuung der ersten KI-Angriffswelle (kann früh sterben); KI trainiert in der Sparphase vor einem Aufstieg wenig. Messskripte liegen im Scratchpad (bal/bal.js, `EPS` überschreibt die Aufstiegskosten).
+
+## Davids Rückmeldungen – Paket C (Arbeiter-Animationen)
+- [x] C1 Last schwebt: Rucksack (aus Adventurer) am Rücken + echte Ladung obenauf (Holz, Erz, Gold, Nahrung), alle Körper/Zeitalter geprüft.
+- [x] C2 Lore-Schieber: Füsse nach innen = Schienbein-Beugung der Reiter wurde auch auf Schieber angewandt; behoben.
+- [x] C3 Tempo 5×: Hiebe/Geräusche je Echtzeitsekunde 0,8 / 2,4 / 4,0 bei 1× / 3× / 5× (vorher Dehnung ×N, Clips max. 3×).

@@ -42,8 +42,8 @@ const WPOSE=(()=>{
   /* Umschauen im Stand: ab und zu dreht die Figur den Kopf (und ein wenig den Oberkörper) zur Seite */
   PROF.idle=(W,c,P)=>{const G=W.gl;G.t-=c.dt;if(G.t<=0){const r=hs(W.id,G.n++);G.t=2.5+r*4.5;G.to=r<.35?0:(hs(G.n,W.id)-.5)*1.5;G.t2=1.2+hs(G.n,3)*1.4}
     else if(G.t2>0){G.t2-=c.dt}else G.to=0;G.y+=(G.to-G.y)*Math.min(1,c.dt*3);P.head=[Math.abs(G.y)*.08,G.y];P.twist=G.y*.2};
-  /* Last tragen: leicht vorgebeugt, Kopf gesenkt, Hände an den Trageriemen */
-  PROF.carry=(W,c,P)=>{P.lean=.15;P.head=[.12,0];P.hr=[[.10,-.30,-.07],[.10,-.30,.07]];P.el=[[0,-.6,-.8],[0,-.6,.8]]};
+  /* Last tragen (Rucksack mit Ladung): leicht vorgebeugt, Kopf gesenkt, die Hände fassen die Schultergurte vor der Brust, Ellbogen nach aussen */
+  PROF.carry=(W,c,P)=>{const w=c.ct==='wood';P.lean=w?.17:.14;P.head=[.1,0];P.hr=[[.06,-.075,.02],[.06,-.075,-.02]];P.el=[[-.3,-.9,-.4],[-.3,-.9,.4]]};
   for(const k in SWING)PROF[k]=(W,c,P)=>{const S=SWING[k],v=[0,0,0,0,0,0,0,0,0,0];kf(c.ph,S.keys,v);const j=(hs(c.n,5)-.5)*.05,x=v[3]*D,y=v[4]*D;
     P.tool=[v[0],v[1],v[2]+j,x,y,0];P.two=S.two;P.lean=v[5];P.hip=[v[6],v[7],0];P.twist=v[8];P.head=[v[9],0];P.el=S.el;P.fa=S.fa;if(S.lh)P.h=[S.lh,null]};
   function newP(){return{hip:null,lean:0,side:0,twist:0,head:null,fa:null,h:null,hr:null,el:null,tool:null,two:0,ft:null}}
@@ -59,6 +59,10 @@ const WPOSE=(()=>{
     const all=[pel,W.hips,W.abd,W.tor,W.che,W.nek,W.hd,...ua,...la,...wr,...ul,...ll];if(W.ind)all.push(...ft);
     W.sv=[...new Set(all)].map(b=>({b,q:new THREE.Quaternion(),p:new THREE.Vector3()}));
     W.F0=[new THREE.Vector3(),new THREE.Vector3()];W.FQ=[new THREE.Quaternion(),new THREE.Quaternion()];
+    /* Ruhelage (Bindepose) des Brustbeins merken: Last und Rucksack hängen später in einem Rahmen, der an der Figur ausgerichtet ist, egal in welcher Haltung sie gerade steht */
+    {const qc=new THREE.Quaternion(),qw=new THREE.Quaternion(),ws=new THREE.Vector3(),ww=new THREE.Vector3(),c0=new THREE.Vector3();bn.chest.getWorldQuaternion(qc);wrap.getWorldQuaternion(qw);bn.chest.getWorldScale(ws);wrap.getWorldScale(ww);
+      bn.chest.getWorldPosition(c0);wrap.worldToLocal(c0);W.hq=qc.invert().multiply(qw);W.hs=ww.x/(ws.x||1);W.c0=c0;W.key=rig.gl&&rig.gl.scene?rig.gl.scene.uuid:'?'}
+    try{const gat=u&&typeof UNITS!=='undefined'&&UNITS[u.type]&&UNITS[u.type].gather;if(gat)backOf(W,root);if(!PCK&&!PCK_BAD&&root.getObjectByName('Backpack_3')){PCK_BAD=true;bakePack(W,root);PCK_BAD=!PCK}}catch(err){console.warn('Rucksack',err)}
     return W}
   const baseOf=kd=>BASE[kd]||null,hasTool=kd=>kd==='chop'||kd==='mine'||kd==='build'||kd==='farm'||kd==='hunt';
   /* Werkzeug als Kind der Figur (nicht der Hand): Modell-Ursprung = Griff, +Y = Kopf; Grösse wie bisher k·scale (aus dem Manifest) */
@@ -72,15 +76,47 @@ const WPOSE=(()=>{
     const W=rig.wp,F=EKMODELS.files,man=EKMODELS.util.man(),en=man&&man.wprops&&man.wprops.bag,gl=en&&F.get(en.file);if(!W||!gl)return W;
     const o=EKGLTF.SkeletonUtils.clone(gl.scene);EU.prepare(o,0);const gr=new THREE.Group();gr.add(o);const s=EU.box(o).getSize(new THREE.Vector3());o.scale.setScalar(W.H*.2/(Math.max(s.x,s.z)||1));
     const b2=EU.box(o),c=b2.getCenter(new THREE.Vector3());o.position.set(-c.x,-b2.min.y,-c.z);gr.position.set(.24*W.H,0,-.26*W.H);gr.visible=false;wrap.add(gr);W.props.bag=gr;return W}
-  /* Last am Rücken (Holz = Stämme, sonst Sack): als Kind des Brustbeins, in der Ruhelage an der Figur ausgerichtet; wird beim ersten Tragen angelegt */
+  /* ---------- Rucksack und Ladung ----------
+     Der Rucksack kommt aus dem Modell „Adventurer“ (dort versteckt: Backpack_3 = Sack, Backpack_4 = Schnallen). Beim Aufbau einer solchen Figur (Ruhelage) werden die Teile
+     einmal in Figurenmasse (Höhen H, vom Brustbein aus, an der Figur ausgerichtet) eingebacken und dann für alle Figuren benutzt; die Rückenfläche jeder Figur wird einmal
+     gemessen, damit der Rucksack genau am Rücken anliegt. Beides hängt am Brustbein (bewegt sich mit Oberkörper, Atmen, Beugen). Obenauf liegt die Ladung je Rohstoff (wprops.cargo_*). */
+  let PCK=null,PCK_TRIED=false,PCK_BAD=false;const BK=new Map(),vtx=(m,i,v,wrap)=>{m.getVertexPosition(i,v);v.applyMatrix4(m.matrixWorld);return wrap.worldToLocal(v)};
+  /* Rückenfläche: kleinster x-Wert der Figur hinter dem Brustbein (Höhen H vom Brustbein aus), nur in Ruhelage messen (beim Aufbau), je Modelldatei einmal */
+  function backOf(W,root){
+    let r=BK.get(W.key);if(r!==undefined)return r;const H=W.H,C=W.c0,v=new THREE.Vector3();let mn=1e9;
+    root.traverse(m=>{if(!m.isSkinnedMesh||/^Backpack/i.test(m.name))return;m.skeleton.update();const n=m.geometry.attributes.position.count;
+      for(let i=0;i<n;i+=2){vtx(m,i,v,W.wrap);const x=(v.x-C.x)/H,y=(v.y-C.y)/H,z=(v.z-C.z)/H;if(y>-.17&&y<-.02&&Math.abs(z)<.06&&x<mn)mn=x}});
+    r=mn<0&&mn>-.5?mn:-.06;BK.set(W.key,r);return r}
+  function bakePack(W,root){
+    const man=EKMODELS.util.man(),en=man&&man.wprops&&man.wprops.pack,re=new RegExp(en&&en.mesh||'^Backpack_[34]$'),H=W.H,C=W.c0,v=new THREE.Vector3(),parts=[];
+    root.traverse(m=>{if(!m.isSkinnedMesh||!re.test(m.name))return;m.skeleton.update();const g0=m.geometry,n=g0.attributes.position.count,P=new Float32Array(n*3);
+      for(let i=0;i<n;i++){vtx(m,i,v,W.wrap);P[i*3]=(v.x-C.x)/H;P[i*3+1]=(v.y-C.y)/H;P[i*3+2]=(v.z-C.z)/H}
+      let g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));if(g0.index)g.setIndex(g0.index);g=g.index?g.toNonIndexed():g;g.computeVertexNormals();g.computeBoundingBox();
+      const mt=Array.isArray(m.material)?m.material[0]:m.material;parts.push({g,mat:mt,name:mt.name})});
+    if(!parts.length)return;const bb=new THREE.Box3();parts.forEach(p=>bb.union(p.g.boundingBox));PCK={parts,bb,back:backOf(W,root),mats:new Map()}}
+  /* Ladung: je Rohstoff ein echtes Modell obenauf (wprops.cargo_wood|stone|iron|gold|food|oil, sonst cargo_other): w = Länge in H, sc = Streckung x/y/z, rot in Grad, tint, dy = Höhe */
+  function cargo(W,ct,top){
+    const man=EKMODELS.util.man(),wp=man&&man.wprops,en=wp&&(wp['cargo_'+ct]||wp.cargo_other),gl=en&&EKMODELS.files.get(en.file);if(!gl)return null;
+    const o=EKGLTF.SkeletonUtils.clone(gl.scene);EU.prepare(o,0);
+    if(en.tint)o.traverse(x=>{if(!x.isMesh)return;const f=m=>{const c=m.clone();c.color.set(en.tint);if(en.metal!==undefined)c.metalness=en.metal;return c};x.material=Array.isArray(x.material)?x.material.map(f):f(x.material)});
+    const r=en.rot||[0,0,0];o.rotation.set(r[0]*D,r[1]*D,r[2]*D);const gr=new THREE.Group();gr.add(o);
+    const s=EU.box(o).getSize(new THREE.Vector3());o.scale.setScalar((en.w||.3)*W.H/(Math.max(s.x,s.z)||1));
+    if(en.sc)gr.scale.set(en.sc[0],en.sc[1],en.sc[2]);const b2=EU.box(gr),c=b2.getCenter(new THREE.Vector3());o.position.set(-c.x/gr.scale.x,-b2.min.y/gr.scale.y,-c.z/gr.scale.z);
+    gr.position.set(top.x*W.H,(top.y+(en.dy||0))*W.H,top.z*W.H);return gr}
+  /* Rucksack + Ladung als Kind des Brustbeins (Rahmen: an der Figur ausgerichtet, Einheit = Figurenraum); wird beim ersten Tragen angelegt und zu wenigen Meshes verschmolzen */
   function load(W,ct){
-    const man=EKMODELS.util.man(),wp=man&&man.wprops,name=ct==='wood'?'logs':'sack',en=wp&&wp[name],gl=en&&EKMODELS.files.get(en.file);if(!gl)return null;
-    const tint={stone:'#8d8d86',iron:'#8a4e3a',gold:'#e8c048',oil:'#2a2a2a'}[ct],o=EKGLTF.SkeletonUtils.clone(gl.scene);EU.prepare(o,0);
-    if(tint)o.traverse(x=>{if(!x.isMesh)return;const f=m=>{const c=m.clone();c.color.set(tint);return c};x.material=Array.isArray(x.material)?x.material.map(f):f(x.material)});
-    const gr=new THREE.Group();gr.add(o);o.rotation.y=(en.ry||0)*D;const s=EU.box(o).getSize(new THREE.Vector3());o.scale.setScalar((en.w||.4)*W.H/(Math.max(s.x,s.z)||1));
-    const b2=EU.box(o),c=b2.getCenter(new THREE.Vector3());o.position.set(-c.x,-c.y,-c.z);
-    const ch=W.che,wrap=W.wrap;wrap.updateMatrixWorld(true);const qc=new THREE.Quaternion(),qw=new THREE.Quaternion(),ws=new THREE.Vector3(),ww=new THREE.Vector3();ch.getWorldQuaternion(qc);wrap.getWorldQuaternion(qw);ch.getWorldScale(ws);wrap.getWorldScale(ww);
-    const hold=new THREE.Group();hold.quaternion.copy(qc.invert().multiply(qw));hold.scale.setScalar(ww.x/(ws.x||1));hold.position.copy(ch.worldToLocal(wrap.localToWorld(new THREE.Vector3(-.2*W.H,.77*W.H,0))));hold.add(gr);ch.add(hold);gr.visible=false;return gr}
+    if(!W.hq)return null;const man=EKMODELS.util.man(),wp=man&&man.wprops,pk=wp&&wp.pack,gr=new THREE.Group();let top={x:BK.get(W.key)||-.06,y:-.06,z:0};
+    if(!PCK&&!PCK_TRIED){/* noch keine Adventurer-Figur gebaut (z. B. Spielstart in einem späten Zeitalter): kurz eine Ersatzfigur aufbauen, nur zum Einbacken */
+      PCK_TRIED=true;try{EKMODELS.makeUnit({id:1,type:'worker',team:0,lvl:0,r:4},()=>({g:new THREE.Group()}),'unit')}catch(err){console.warn('Rucksack-Quelle',err)}}
+    if(!W.hold){const h=new THREE.Group();h.quaternion.copy(W.hq);h.scale.setScalar(W.hs);W.che.add(h);W.hold=h}
+    const K=PCK;
+    if(K){const dx=(BK.get(W.key)!==undefined?BK.get(W.key):K.back)-K.back,tn=pk&&pk.tint||{};
+      for(const p of K.parts){let m=K.mats.get(p.name);if(!m){m=p.mat.clone();if(tn[p.name])m.color.set(tn[p.name]);K.mats.set(p.name,m)}
+        const mesh=new THREE.Mesh(p.g,m);mesh.scale.setScalar(W.H);mesh.position.set(dx*W.H,0,0);mesh.castShadow=true;mesh.receiveShadow=true;gr.add(mesh)}
+      const bb=K.bb;top={x:(bb.min.x+bb.max.x)/2+dx,y:bb.max.y-.015,z:0}}
+    const cg=cargo(W,ct,top);if(cg)gr.add(cg);
+    W.hold.add(gr);try{EKMODELS.mergeStatic([gr],gr,{cache:true})}catch(err){console.warn('Last verschmelzen',err)}
+    gr.visible=false;return gr}
   /* ---------- Anwenden ---------- */
   const fw=(W,x,y,z,o)=>o.set(x*W.H,y*W.H,z*W.H).applyMatrix3(m3),loc=(W,x,y,z,o)=>o.set(x*W.H,y*W.H,z*W.H);
   /* Weltmatrizen der Knochen ohne Dauer-Neuberechnung: getWorldPosition & Co. rechnen bei jeder Abfrage die ganze Eltern-Kette neu (bei 80 Haltungen je Bild der größte Posten).
@@ -146,7 +182,7 @@ const WPOSE=(()=>{
     if(W.props.bag)W.props.bag.visible=W.cur==='pick'&&W.k0>.5;
     {const ct=opt.cv&&want!=='work'&&want!=='attack'?opt.ct:null,L=W.props.load||(W.props.load={});if(ct&&!L[ct]&&L[ct]!==null)L[ct]=load(W,ct);for(const k in L)if(L[k])L[k].visible=k===ct}
     if(!W.cur||W.k0<=0)return;
-    const c=W.c;if(opt.ph!==undefined&&want==='work'){c.ph=opt.ph;c.n=opt.n||0}c.dt=dt;
+    const c=W.c;if(opt.ph!==undefined&&want==='work'){c.ph=opt.ph;c.n=opt.n||0}c.dt=dt;c.ct=opt.ct;
     R.n++;const P=newP();PROF[W.cur](W,c,P);apply(W,P,sm(W.k0),dt)}
   return Object.assign(R,{setup,tool,props,run,restore,baseOf,hasTool})
 })();
