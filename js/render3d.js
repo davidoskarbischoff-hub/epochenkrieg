@@ -468,8 +468,11 @@ function r3Unit(o,e,h,dt,t){
       const kd=wkKind(e),near=cam.z>=.8,hunt=!!rig.wp&&near&&kd==='hunt'&&e.state==='attack'&&!moving&&d.gather&&G.t-(e.swing||-9)<2.6;/* Arbeiter jagt mit dem Speer */
       const wantW=!hunt&&((e.state==='attack'&&G.t-(e.swing||-9)<1)||(!moving&&G.t-(e.healT||-9)<.6))?'attack':(work||build||hunt)?'work':moving?'walk':'idle';
       const wp=rig.wp&&near?wkPhase(o,e,kd,dt,wantW,hunt,d):null;if(wantW!=='work')o.pg=undefined;
-      EKMODELS.animate(rig,wantW,dt,moving?Math.max(.6,d.spd/60):1,kd,{v:moving?d.spd*(e.spk||1)*(e.rage>G.t?RAGE.spd:1)/10/(obj.scale.x||1):0,hit:o.fl>.2,fight:(e.state==='attack'||e.state==='amove')&&!d.gather&&e.type!=='worker',
-        near,ph:wp?wp.ph:undefined,n:o.wn||0,cv:e.carry>0&&e.state==='return',ct:e.ctype});
+      /* Fernsicht: kleine Figuren (unter ~30 Pixel Höhe, weit herausgezoomt) rechnen ihr Skelett nur jedes 2. (unter ~18 Pixel jedes 3.) Bild, versetzt nach Nummer, mit der angesammelten Zeit; bei Wechsel der Tätigkeit sofort */
+      const thr=R3.k*25<18?3:R3.k*25<30?2:1;o.ad=(o.ad||0)+dt;
+      if(thr<2||o.lw!==wantW||(R3.fn+e.id)%thr===0||o.ad>.12){const adt=o.ad;o.ad=0;o.lw=wantW;
+      EKMODELS.animate(rig,wantW,adt,moving?Math.max(.6,d.spd/60):1,kd,{v:moving?d.spd*(e.spk||1)*(e.rage>G.t?RAGE.spd:1)/10/(obj.scale.x||1):0,hit:o.fl>.2,fight:(e.state==='attack'||e.state==='amove')&&!d.gather&&e.type!=='worker',
+        near,ph:wp?wp.ph:undefined,n:o.wn||0,cv:e.carry>0&&e.state==='return',ct:e.ctype})}
       e._wi=!!(wp&&rig.wp.cur&&(kd==='chop'||kd==='mine'));/* Späne kommen dann vom Aufprall (r3Impact), nicht vom Takt in render.js */
       if(wp&&wp.imp)r3Impact(o,e,kd,rig);
       /* Figur tritt beim Arbeiten bis auf Griffweite an Baum/Strauch heran (nur Darstellung, die Spielposition bleibt) */
@@ -520,7 +523,7 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   {const V=R3.view,N=R3.nodeV;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
   r3Lod();R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}else r3GrassView();if(SHK.size)r3Shake(dt)
-  if(typeof WPOSE!=='undefined')WPOSE.n=0;r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
+  if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;
   /* Schattenkarte nur jedes 2. Bild neu (bewegt sich die Kamera, sofort) – halbiert die Schatten-Zeichenarbeit, Unterschied ist nicht zu sehen */

@@ -245,8 +245,8 @@ const EKMODELS=(()=>{
   /* Grobe Fassung: Eckpunkte in einem Raster zusammenlegen, je Zelle bleibt EIN vorhandener Eckpunkt (der nahe am Schwerpunkt) mit seinen eigenen Haut-Gewichten.
      Es entstehen keine neuen Eckpunkte: die grobe Fassung teilt alle Daten mit der feinen und hat nur einen kürzeren Index. Rückgabe null, wenn sich das nicht lohnt. */
   const LOD_MIN=2600,LOD_TARGET=.36;
-  function lodTris(g){
-    const P=g.attributes.position,I=g.index,n=P.count,nt=(I?I.count:n)/3;if(nt<LOD_MIN)return null;
+  function lodTris(g,minT,target){
+    const P=g.attributes.position,I=g.index,n=P.count,nt=(I?I.count:n)/3;if(nt<(minT||LOD_MIN))return null;target=target||LOD_TARGET;
     g.computeBoundingBox();const b=g.boundingBox,mx=Math.max(b.max.x-b.min.x,b.max.y-b.min.y,b.max.z-b.min.z)||1;
     const X=new Float32Array(n),Y=new Float32Array(n),Z=new Float32Array(n);for(let i=0;i<n;i++){X[i]=P.getX(i);Y[i]=P.getY(i);Z[i]=P.getZ(i)}
     const tri=new Uint32Array(nt*3);if(I){for(let i=0;i<nt*3;i++)tri[i]=I.getX(i)}else for(let i=0;i<nt*3;i++)tri[i]=i;
@@ -257,12 +257,12 @@ const EKMODELS=(()=>{
       const rep=new Int32Array(nc).fill(-1),bd=new Float32Array(nc).fill(1e9);
       for(let i=0;i<n;i++){const c=cid[i],d=(X[i]-sx[c]/cn[c])**2+(Y[i]-sy[c]/cn[c])**2+(Z[i]-sz[c]/cn[c])**2;if(d<bd[c]){bd[c]=d;rep[c]=i}}
       const idx=[];for(let t=0;t<nt;t++){const a=rep[cid[tri[t*3]]],bb=rep[cid[tri[t*3+1]]],c=rep[cid[tri[t*3+2]]];if(a===bb||bb===c||a===c)continue;idx.push(a,bb,c)}
-      out=idx;cl={cid,rep,nc};if(idx.length/3<=nt*LOD_TARGET)break}
+      out=idx;cl={cid,rep,nc};if(idx.length/3<=nt*target)break}
     if(!out||!out.length)return null;
     const lo=new THREE.BufferGeometry();for(const k in g.attributes)lo.setAttribute(k,g.attributes[k]);
     /* Farbe und Normale des behaltenen Eckpunkts = Mittel seiner Zelle (sonst springt die Farbe von Zelle zu Zelle: Haut/Haar/Kleidung); eigene Puffer nur für diese zwei Werte */
     const mode=window.__lodMode===undefined?2:window.__lodMode;
-    if(mode>=1&&cl){const C=g.attributes.color,N=g.attributes.normal,nc=cl.nc,sc=new Float32Array(nc*3),sn=new Float32Array(nc*3),cc=new Int32Array(nc);
+    if(mode>=1&&cl&&g.attributes.color&&g.attributes.normal){const C=g.attributes.color,N=g.attributes.normal,nc=cl.nc,sc=new Float32Array(nc*3),sn=new Float32Array(nc*3),cc=new Int32Array(nc);
       for(let i=0;i<n;i++){const c=cl.cid[i];sc[c*3]+=C.getX(i);sc[c*3+1]+=C.getY(i);sc[c*3+2]+=C.getZ(i);sn[c*3]+=N.getX(i);sn[c*3+1]+=N.getY(i);sn[c*3+2]+=N.getZ(i);cc[c]++}
       const col2=new Float32Array(C.array.length),nor2=new Float32Array(N.array.length);col2.set(C.array);nor2.set(N.array);
       for(let c=0;c<nc;c++){const r=cl.rep[c];col2[r*3]=sc[c*3]/cc[c];col2[r*3+1]=sc[c*3+1]/cc[c];col2[r*3+2]=sc[c*3+2]/cc[c];
