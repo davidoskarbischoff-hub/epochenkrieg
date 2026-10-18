@@ -318,3 +318,13 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Hafen Zeitalter 5/6: Container auf dem Steg würden gut passen, ragen aber über die schmalen Stege (Beiwerk-Höhe/Platz nötig)
 - [ ] Waffen-Pack: Äxte, Stäbe, Schwert-/Schildfarben (A/B/C/E), Pfeile B ungenutzt (Variation je Einheit möglich)
 
+## Arbeiter-Animationen (18.10.)
+- [x] Beeren pflücken: Arbeiter kniet sich hin, greift in den Strauch, führt die Beeren zum Beutel, steht beim Abliefern auf (Zyklus 2,1 s)
+- [x] Holzfäller: breiter Stand, Axt über den Kopf, kräftiger Hieb mit Rumpf, Aufprall im Takt von Geräusch, Späne am Stamm, Baum wackelt
+- [x] Bauen (Hammer, 3 Schläge + Pause), Feldarbeit (Sense), Jagd (Speerstoß), Tragen (Stämme/Sack auf dem Rücken), Umschauen im Stand
+- [x] Animationsgeschwindigkeit höchstens 3×, Hiebe bei 3×/5× über mehrere Takte gedehnt
+- [ ] Finger um den Werkzeugstiel schliessen (Faust), Schulterblatt mitbewegen bei hohen Armen
+- [ ] Fischen: Haltung im Stand am Ufer prüfen, Fang aus dem Wasser ziehen
+- [ ] Mehr Abwechslung (Müdigkeit, Wischen der Stirn, Wasser trinken), Aufstehen/Hinknien auch bei Beerenwechsel
+- [ ] Soldaten: Ausholen/Treffer mit demselben Haltungs-System (Schwert-Hieb mit Rumpf, Schuss-Anschlag)
+
