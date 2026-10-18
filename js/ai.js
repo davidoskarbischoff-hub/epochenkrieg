@@ -53,6 +53,10 @@ function aiTick(){
   for(const w of workers){if(w.state!=='idle')continue;
     const n=workers.length;const order=RES.filter(rt=>canGather(w,rt)).sort((a,b)=>(w8[b]*n-cnt[b])-(w8[a]*n-cnt[a]));
     for(const rt of order){const node=nearestNode(rt,hq.x,hq.y,900,w,true)||nearestNode(rt,hq.x,hq.y,900,w)||nearestNode(rt,w.x,w.y,1800,w);if(node){w.state='gather';w.tid=node.id;w.rtype=rt;cnt[rt]++;break}}}
+  // Umverteilen: Sammler wechseln nie von selbst; bei Überfluss an einem Rohstoff und Mangel an einem anderen gehen zwei in den Leerlauf und werden neu verteilt
+  if(diff!=='leicht'&&G.t>(ai.balT||0)){ai.balT=G.t+12;
+    const rich=RES.filter(k=>w8[k]&&r[k]>1800),poor=RES.filter(k=>w8[k]&&r[k]<450&&k!=='oil');
+    if(rich.length&&poor.length){let n=0;for(const w of workers)if(n<2&&w.state==='gather'&&rich.includes(w.rtype)&&!(w.carry>1)&&!w.upj){w.state='idle';w.tid=null;w.rtype=null;n++}}}
   // Bauarbeiter
   for(const b of unbuilt){const busy=workers.some(w=>w.state==='build'&&w.tid===b.id);if(!busy){let bw=null,bd=1e9;for(const w of workers){if(w.state==='build')continue;const d=dist(w,b);if(d<bd){bd=d;bw=w}}if(bw){bw.state='build';bw.tid=b.id}}}
   // Lager neben weit entfernten Vorkommen, damit die Wege kurz bleiben
@@ -78,7 +82,7 @@ function aiTick(){
   if(blds.some(b=>b.type==='market'&&b.built)&&r.gold<260)for(const rt of['food','wood','stone']){if(r[rt]>(rt==='stone'?500:850)&&trade(1,rt,'sell'))break}
   // Gebäude
   if(G.cap[1]-G.pop[1]<=3&&G.cap[1]<POPMAX&&!unbuilt.some(b=>b.type==='house'))(aiPlace('house',hq,90,200)||aiPlace('house',hq,150,330));
-  const nBar=blds.filter(b=>b.type==='barracks').length,wantBar=(ep>=2&&diff!=='leicht'?2:1)+ST.bar;
+  const nBar=blds.filter(b=>b.type==='barracks').length,wantBar=(ep>=2&&diff!=='leicht'?2:1)+ST.bar+(diff!=='leicht'&&ep>=2&&workers.length>=12&&Math.min(r.food,r.wood)>1400?1:0);
   if(nBar<wantBar&&workers.length>=6&&!unbuilt.some(b=>b.type==='barracks')){const b=aiPlace('barracks',hq,110,210);if(b){const a=Math.atan2(H/2-hq.y,W/2-hq.x);b.rally={x:hq.x+Math.cos(a)*170,y:hq.y+Math.sin(a)*170}}}
   if(diff!=='leicht'&&!saving&&!blds.some(b=>b.type==='tower')&&(ep>=1||(G.t>170&&workers.length>=10))&&ST.tow>=0&&G.t>(ai.tow0T||0)&&afford(1,BLDS.tower.cost)){ai.tow0T=G.t+20;aiPlaceTower(hq,0)} /* Bauplatzsuche ist teuer: nur alle 20 s versuchen */
   // Expansion: weitere Türme Richtung Kartenmitte erobern Land
@@ -104,7 +108,9 @@ function aiTick(){
   const MIX={balanced:{front:.38,rng:.3,shock:.1,siege:.12,med:.1},turtle:{front:.5,rng:.3,siege:.1,med:.1},rush:{front:.42,shock:.22,rng:.22,siege:.09,med:.05},eco:{front:.4,rng:.35,siege:.1,med:.15},boom:{front:.35,rng:.3,siege:.2,med:.15}}[ai.style]||{front:.4,rng:.3,siege:.1,med:.1,shock:.1};
   const have=u=>uOk(u,ep)&&(!UNITS[u].tech||G.tech[1].has(UNITS[u].tech))&&u!=='scout'&&UNITS[u].from==='barracks'&&(!UNITS[u].nation||UNITS[u].nation===G.nation[1]);
   const pool=Object.keys(UNITS).filter(have),healers=mine.filter(e=>e.type==='healer'),all=army.concat(healers),tot=Math.max(1,all.length);
-  const armyCap=Math.round([8,13,20,28,36,44,52][ep]*DIFF[diff].army*ST.army),queued=blds.reduce((n,b)=>n+(b.type==='barracks'?b.queue.length:0),0);
+  const armyBase=Math.round([8,13,20,28,36,44,52][ep]*DIFF[diff].army*ST.army);
+  /* Überschuss: liegt viel ungenutzt im Lager (die KI wartet auf den Aufstieg), wächst die Heeresgrenze um die Zahl der bezahlbaren Einheiten mit (Grenze je Schwierigkeit `DIFF.spare`); Aufstiegskosten bleiben zurückgelegt */
+  const spare=Math.min((r.food-(saving?adv.food:0)-300)/70,(r.wood-(saving?(adv.wood||0):0)-100)/40),armyCap=armyBase+Math.max(0,Math.min(Math.ceil(armyBase*(DIFF[diff].spare||0)),Math.floor(spare))),queued=blds.reduce((n,b)=>n+(b.type==='barracks'?b.queue.length:0),0);
   for(const b of blds){if(b.type!=='barracks'||!b.built||b.queue.length>=2||army.length+queued>=armyCap)continue;
     if(saving&&!(r.food>adv.food+90&&r.wood>(adv.wood||0)+90))continue;
     const share={};for(const u of all)share[ROLE(u.type)]=(share[ROLE(u.type)]||0)+1;for(const q of blds.flatMap(x=>x.queue||[]))if(UNITS[q.type])share[ROLE(q.type)]=(share[ROLE(q.type)]||0)+1;

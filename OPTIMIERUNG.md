@@ -66,6 +66,7 @@ Hilfsmittel:
   - Duell-Test der Einheiten (kostengleiche Gruppen)
   - [x] Dino-Gefährlichkeit (Rechnung: 6 Steinzeit-Kämpfer ~30 Schaden/s; T-Rex vorher 950 Leben/58 Schaden unschaffbar, jetzt 480/40 = mit ~8 Kämpfern knapp schaffbar; Pflanzenfresser nur wehrhaft, Raptor ok)
   - [x] Aufstiegstempo (Berater-Auto, Normal: 1. Aufstieg 7,6 min, 2. Aufstieg nicht in 15 min, braucht 10 Arbeiter; keine Änderung)
+- [x] **R6b:** KI nach Karten-/Tempo-/Animationsänderungen neu gemessen (18.10.): Die KI häufte Rohstoffe an (bis 12 000 Nahrung, nur 3–16 Soldaten) und verlor, der Berater-Autopilot gewann auf Normal 6 von 6 Läufen nach 28–39 min. Behoben in `aiTick` (Heeresgrenze wächst mit Überschuss, dritte Kaserne, Sammler-Umverteilung, `DIFF.spare`). Normal jetzt 3 Siege/2 Niederlagen/1 offen in 6 Läufen (Küste, Flusstal, Wüste × 2 Seeds). Offen: Wüste ist für den Autopilot am schwersten (beide Läufe verloren), prüfen, ob dort etwas Karten-Bedingtes (Wege, Hafen) die Berater-Armee bremst; Mensch gegen Normal von David testen lassen und `DIFF.normal.spare` (.5) bei Bedarf senken/erhöhen.
 - [~] **R7:** Leistung mit allen neuen Modellen (Runde 12.10., Messung große Karte, `qa/perf.js`, `qa/army.js`):
   - Gras nur im sichtbaren Ausschnitt (`r3GrassView`), Halme ohne Boden: normale Ansicht 1,42 Mio. → 0,41 Mio. Dreiecke
   - Fernsicht (Zoom < 0,95, `LOD_Z`): vereinfachte Bäume (`lodGeo`) und Gelände (jeder 2. Eckpunkt): 1,8 Mio. → 0,37–0,42 Mio.
