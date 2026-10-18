@@ -133,3 +133,12 @@ Bitte selbst herunterladen und hochladen (nur CC0/CC-BY). Lizenz auf der Seite v
 - Ursache: Berater-Arbeiterziel (45) lag unter dem Aufstiegsbedarf `wkNeed` (46) -> Aufstieg Epoche 3->4 wartete. Ausserdem: Hütten zu spät (Bevölkerungsgrenze bremste), wenig Truppen. Nahrung "ungenutzt" ist grossenteils Sparen für die Aufstiegskosten (6600 Nahrung ab Epoche 1) – Kosten bleiben unverändert.
 - Änderung (`advisor.js`): Arbeiterziel mindestens `wkNeed(ep)`, Taktik "Ausgewogen": mehr Arbeiter (18/28/38/48/54), `hs:5` (Hütten früher), Truppenziel 10+8*Ep, zweite Kaserne ab 20 Arbeitern, Angriff erst ab Epoche 4.
 - Ergebnis: vorher Epoche 4 nach 60 min, 26 Truppen, 15700 Nahrung; nachher Epoche 4 nach ~55–60 min bzw. Sieg über die KI (KI Epoche 2–3) nach 42–50 min mit 36 Truppen. Epoche 5 ohne Kostenänderung nicht erreichbar (~13 min je Aufstieg, Einkommen ist die Grenze).
+
+
+## Tempo-Abstimmung (18.10.)
+- Auslöser: David (spielt mit Tempo 5x) fand das Spiel zu langsam: die Aufstiegskosten waren um das 11- bis 14-Fache gestiegen (Steinzeit 3800 Essen/2500 Holz statt 350/200), nicht um das Dreifache.
+- Messung (Berater-Auto, Küste M, Seed 5, Aufstieg 1/2/3 in Minuten): Kostenfaktor 1,0 → 15/28/40; 0,6 → 13/25/33; 0,45 → 13/25/35; 0,3 → 10/21/29; 0,2 → 10/17/23; 0,12 → 9/15/23. Unter ca. 0,3 ändert sich der erste Aufstieg kaum (Arbeiter-Bedarf 14 + Aufstiegsdauer begrenzen).
+- Gewählt: ansteigende Kurve (ca. 28 % bis 45 % der alten Kosten, später Zeitalter etwas günstiger), Aufstiegsdauer 90/110/130/150/170/190 s. Ergebnis: Berater steigt bei ca. Minute 9–10 / 17–23 / 25–29 / 36–43 auf.
+- KI: `AI_MINT` angepasst, Normal wk 1,35 / army 0,8, Schwer wk 1,6 / army 1,35. 4 Karten (Seeds 5/11/23/31, 62 min): Berater gewinnt Min. 26 und 49, KI gewinnt Min. 49, einmal offen bis Min. 62. Leicht (Seed 11): Berater gewinnt Min. 40, KI kaum entwickelt; Schwer: KI gewinnt Min. 42.
+- Gefundener Fehler: `advIdle` rief `has()` auf (nur in `advRules` bekannt), ab Epoche 5 brach der Berater-Tick ab. Behoben.
+- Offen: Streuung der ersten KI-Angriffswelle (kann früh sterben); KI trainiert in der Sparphase vor einem Aufstieg wenig. Messskripte liegen im Scratchpad (bal/bal.js, `EPS` überschreibt die Aufstiegskosten).
