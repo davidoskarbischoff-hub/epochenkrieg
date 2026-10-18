@@ -87,7 +87,7 @@ const NODES={tree:{cap:3,rt:'wood',amt:420,r:11,name:'Baum'},bush:{cap:3,rt:'foo
   fish:{cap:2,sea:true,rt:'food',amt:160,r:8,name:'Fischschwarm',gm:1,regen:.55},
   dolphin:{cap:3,sea:true,rt:'food',amt:700,r:11,name:'Delfine',gm:1.8,lvl:3,regen:.45},
   whale:{cap:4,sea:true,rt:'food',amt:2400,r:16,name:'Wal',gm:2.6,lvl:5,regen:.5,side:{oil:.25}}};
-const EPOCHS=[{name:'Steinzeit',cost:{food:3800,wood:2500},time:120},{name:'Bronzezeit',cost:{food:6600,wood:4200,stone:600},time:150},{name:'Eisenzeit',cost:{food:9500,wood:6000,stone:800,iron:550},time:180},{name:'Mittelalter',cost:{food:12500,wood:7500,stone:1000,iron:800,gold:450},time:220},{name:'Renaissance',cost:{food:1100,wood:600,stone:500,iron:450,gold:350},time:70},{name:'Industriezeit',cost:{food:1300,wood:700,stone:600,iron:550,gold:450,oil:150},time:80},{name:'Weltkriegszeit'}];
+const EPOCHS=[{name:'Steinzeit',cost:{food:1050,wood:700},time:90},{name:'Bronzezeit',cost:{food:2000,wood:1250,stone:200},time:110},{name:'Eisenzeit',cost:{food:3150,wood:2000,stone:250,iron:200},time:130},{name:'Mittelalter',cost:{food:4500,wood:2700,stone:350,iron:300,gold:150},time:150},{name:'Renaissance',cost:{food:6200,wood:3600,stone:500,iron:400,gold:250},time:170},{name:'Industriezeit',cost:{food:8300,wood:4700,stone:700,iron:600,gold:350,oil:200},time:190},{name:'Weltkriegszeit'}];
 /* Wilde Tiere: agg = Aggro-Reichweite (greift an, wenn jemand näher kommt), leash = so weit folgt es seinem Revier-Mittelpunkt, roam = Streifgebiet,
    flee = friedliche Tiere fliehen ab dieser Nähe, food = Nahrung für den, der es erlegt, h = Höhe fürs Anzeigen */
 const ANIMALS={
@@ -141,7 +141,7 @@ const RES=['food','wood','stone','iron','gold','oil'],RN={food:'Nahrung',wood:'H
 const RES_EP={stone:1,iron:2,gold:3,oil:5},MINE_RT={stone:'mine',iron:'mine',gold:'mine',oil:'derrick'}; /* ab welcher Epoche eine Ressource erscheint; Erz und Gold brauchen eine Mine in der Nähe */
 const MINE_RNG=150,TRADE={sell:.5,buy:1,lot:100}; /* Markt: 100 Rohstoff -> 50 Gold, 100 Gold -> 100 Rohstoff */
 /* army = Faktor für die Heeresgrösse der KI; pace = Tempo-Faktor für die frühesten Aufstiegszeiten der KI (kleiner = schneller) */
-const DIFF={leicht:{gather:.5,first:780,wave:3,pace:1.9,army:.35,wk:.7},normal:{gather:.85,first:480,wave:7,pace:1.3,army:.55},schwer:{gather:1.35,first:240,wave:6,pace:.8,army:1.1}};
+const DIFF={leicht:{gather:.5,first:780,wave:3,pace:1.9,army:.35,wk:.7},normal:{gather:.85,first:480,wave:7,pace:1.3,army:.75,wk:1.25},schwer:{gather:1.35,first:240,wave:6,pace:.8,army:1.35,wk:1.6}};
 /* Gegner-Typen (unabhängig von der Schwierigkeit): wk = Arbeiter-Faktor, pace = Aufstiegstempo (kleiner = früher), army = Heeresgrösse, first = Zeit bis zum ersten Angriff, wave = Truppen für den Angriff,
    tow = Zusatz-Türme, bar = Zusatz-Kasernen, def = Verteidigungsradius */
 const AI_STYLES={
@@ -152,7 +152,7 @@ const AI_STYLES={
   boom:{name:'Aufstieg',desc:'Steigt so schnell wie möglich auf',wk:1.1,pace:.7,army:.6,first:1.4,wave:1.2,tow:0,bar:0,def:260}
 };
 const AI_ADV_COST=.4; /* die KI zahlt nur diesen Anteil der Aufstiegskosten (ihre Wirtschaft ist schwächer als die des Spielers) */
-const AI_MINT=[620,1290,2030,2770,3500,4200]; /* früheste Zeit (s), zu der die KI in die nächste Epoche steigen darf (normal) */
+const AI_MINT=[600,1260,1900,2540,3180,3800]; /* früheste Zeit (s), zu der die KI in die nächste Epoche steigen darf (normal) */
 const TC=['#3d72b8','#b9442f'],TCD=['#1f3f6b','#6e2215'],TCL=['#8fb4e6','#ef9b86'];
 /* Teamfarben zur Auswahl (Mehrspieler) */
 const PALETTE=[['Blau','#3d72b8'],['Rot','#b9442f'],['Grün','#4a8a3a'],['Gelb','#d1a82c'],['Violett','#7a4aa8'],['Orange','#d27a2a'],['Türkis','#2a9a9a'],['Weiss','#d8d8d0']];
