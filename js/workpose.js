@@ -6,7 +6,7 @@
    Takt: ph (0..1) kommt aus der Spielrechnung (u.gt/u.gl bzw. u.bt/u.cd, siehe wkPhase in render3d.js); ph = 0 ist der Aufprall (Geräusch, Späne).
    Zeichnen ohne Spielwirkung: ändert keine Sammelraten. Skelette ohne die erwarteten Knochen bekommen kein rig.wp (dann bleibt der Clip). */
 const WPOSE=(()=>{
-  const EU=EKMODELS.util,{ik2,turnW}=EU;
+  const EU=EKMODELS.util;
   const cl=(v,a,b)=>Math.max(a,Math.min(b,v)),sm=x=>{x=cl(x,0,1);return x*x*(3-2*x)},D=Math.PI/180;
   const nrm=n=>n.replace(/[.\s_]/g,'').toLowerCase(),m3=new THREE.Matrix3();
   const A=[...Array(10)].map(()=>new THREE.Vector3()),QA=new THREE.Quaternion(),QB=new THREE.Quaternion(),MB=new THREE.Matrix4();
@@ -83,17 +83,30 @@ const WPOSE=(()=>{
     const hold=new THREE.Group();hold.quaternion.copy(qc.invert().multiply(qw));hold.scale.setScalar(ww.x/(ws.x||1));hold.position.copy(ch.worldToLocal(wrap.localToWorld(new THREE.Vector3(-.2*W.H,.77*W.H,0))));hold.add(gr);ch.add(hold);gr.visible=false;return gr}
   /* ---------- Anwenden ---------- */
   const fw=(W,x,y,z,o)=>o.set(x*W.H,y*W.H,z*W.H).applyMatrix3(m3),loc=(W,x,y,z,o)=>o.set(x*W.H,y*W.H,z*W.H);
-  const rotB=(b,ax,ang)=>{if(Math.abs(ang)>1e-4)turnW(b,QA.setFromAxisAngle(ax,ang))};
+  /* Weltmatrizen der Knochen ohne Dauer-Neuberechnung: getWorldPosition & Co. rechnen bei jeder Abfrage die ganze Eltern-Kette neu (bei 80 Haltungen je Bild der größte Posten).
+     Hier trägt jeder veränderte Knochen eine Änderungsmarke (_mod); eine Matrix gilt als aktuell, wenn sie nach der letzten Änderung von Knochen und Vorfahren berechnet wurde (_wv).
+     Anker = Eltern des Beckens (wird nie verändert, je Bild einmal aufgefrischt). Ergebnis ist mit der alten Rechnung identisch (geprüft an allen Tätigkeiten). */
+  let CLK=1,T0=0,ANC=null;const _p=new THREE.Vector3(),_s=new THREE.Vector3(),QF=[0,1,2].map(()=>new THREE.Quaternion()),VF=[...Array(10)].map(()=>new THREE.Vector3());
+  const mod=b=>{b._mod=++CLK},ver=b=>b===ANC?0:Math.max(b._mod||0,ver(b.parent));
+  function fresh(b){if(b===ANC)return;if((b._wv||0)>T0&&b._wv>=ver(b))return;const p=b.parent;fresh(p);if(b.matrixAutoUpdate)b.updateMatrix();b.matrixWorld.multiplyMatrices(p.matrixWorld,b.matrix);b._wv=CLK}
+  const wpos=(b,o)=>{fresh(b);return o.setFromMatrixPosition(b.matrixWorld)},wquat=(b,o)=>{fresh(b);b.matrixWorld.decompose(_p,o,_s);return o};
+  function turnF(b,q){wquat(b.parent,QF[1]);QF[2].copy(QF[1]).invert();b.quaternion.premultiply(q.premultiply(QF[2]).multiply(QF[1]));mod(b)}/* Drehung q (Welt) auf Knochen b */
+  function aimF(b,child,to){const P=wpos(b,VF[0]),C=wpos(child,VF[1]);turnF(b,QF[0].setFromUnitVectors(C.sub(P).normalize(),VF[2].copy(to).sub(P).normalize()))}
+  function ik2(U,L,H,T,pole,off){const S=wpos(U,VF[3]),a=S.distanceTo(wpos(L,VF[4])),b=VF[4].distanceTo(wpos(H,VF[5])),n=VF[6].copy(T).sub(S);
+    let d=n.length();n.divideScalar(d||1);d=Math.min(Math.max(d-off,Math.abs(a-b)+1e-3),(a+b)*.999);const x=(a*a-b*b+d*d)/(2*d),hh=Math.sqrt(Math.max(0,a*a-x*x));
+    const m=VF[7].copy(pole).addScaledVector(n,-pole.dot(n)).normalize(),E=VF[8].copy(S).addScaledVector(n,x).addScaledVector(m,hh),Tc=VF[9].copy(S).addScaledVector(n,d);
+    aimF(U,L,E);aimF(L,H,Tc)}
+  const rotB=(b,ax,ang)=>{if(Math.abs(ang)>1e-4)turnF(b,QA.setFromAxisAngle(ax,ang))};
   function restore(W){for(const s of W.sv){s.b.quaternion.copy(s.q);s.b.position.copy(s.p)}W.saved=false}
   const VX=new THREE.Vector3(),VY=new THREE.Vector3(),VZ=new THREE.Vector3(),TG=[new THREE.Vector3(),new THREE.Vector3()],VG=new THREE.Vector3(),VD=new THREE.Vector3(),VE=new THREE.Vector3(),VT=new THREE.Vector3(),VW=new THREE.Vector3();
   function apply(W,P,kk,dt){
-    const wrap=W.wrap,H=W.H;wrap.updateWorldMatrix(true,false);m3.setFromMatrix4(wrap.matrixWorld);
+    const wrap=W.wrap,H=W.H;T0=CLK;CLK++;ANC=W.pel.parent;ANC.updateWorldMatrix(true,false);m3.setFromMatrix4(wrap.matrixWorld);
     for(const s of W.sv){s.q.copy(s.b.quaternion);s.p.copy(s.b.position)}W.saved=true;
     const X=fw(W,1,0,0,VX).normalize(),Y=fw(W,0,1,0,VY).normalize(),Z=fw(W,0,0,1,VZ).normalize(),legs=P.fa||P.hip;
     /* Füsse aus dem Clip merken, bevor etwas verändert wird */
-    if(legs)for(let i=0;i<2;i++){W.ft[i].getWorldPosition(W.F0[i]);W.ft[i].getWorldQuaternion(W.FQ[i])}
+    if(legs)for(let i=0;i<2;i++){wpos(W.ft[i],W.F0[i]);wquat(W.ft[i],W.FQ[i])}
     /* Hüfte */
-    if(P.hip){const d=fw(W,P.hip[0]*kk,P.hip[1]*kk,P.hip[2]*kk,A[0]);W.pel.parent.updateWorldMatrix(true,false);const p=W.pel.getWorldPosition(A[1]).add(d);W.pel.position.copy(W.pel.parent.worldToLocal(p))}
+    if(P.hip){const d=fw(W,P.hip[0]*kk,P.hip[1]*kk,P.hip[2]*kk,A[0]);const p=wpos(W.pel,A[1]).add(d);W.pel.position.copy(W.pel.parent.worldToLocal(p));mod(W.pel)}
     /* Wirbelsäule: Neigen (vor = positiv), Drehen, Seitneigen; Kopf */
     const ln=P.lean*kk,tw=P.twist*kk,sd=P.side*kk;
     if(ln||tw||sd)for(const[b,f,t]of[[W.abd,.3,0],[W.tor,.35,.5],[W.che,.35,.5]]){rotB(b,Z,-ln*f);rotB(b,Y,-tw*t);rotB(b,X,sd*f)}
@@ -101,22 +114,22 @@ const WPOSE=(()=>{
     /* Beine: Füsse bleiben fest am Boden (Zielpunkt aus Clip oder P.fa), Knie nach vorn */
     if(legs){for(let i=0;i<2;i++){const T=A[2].copy(W.F0[i]);if(P.fa&&P.fa[i]){wrap.worldToLocal(T);const f=P.fa[i];T.x+=(f[0]*H-T.x)*kk;T.z+=(f[1]*H-T.z)*kk;wrap.localToWorld(T)}
         ik2(W.ul[i],W.ll[i],W.end[i],T,fw(W,1,0,i?.25:-.25,A[3]),0);
-        if(W.ind){W.ft[i].parent.updateWorldMatrix(true,false);W.ft[i].position.copy(W.ft[i].parent.worldToLocal(A[4].copy(T)))}
-        else{W.ft[i].parent.getWorldQuaternion(QB).invert();W.ft[i].quaternion.copy(QB.multiply(W.FQ[i]))}}}
+        if(W.ind){fresh(W.ft[i].parent);W.ft[i].position.copy(W.ft[i].parent.worldToLocal(A[4].copy(T)));mod(W.ft[i])}
+        else{wquat(W.ft[i].parent,QB).invert();W.ft[i].quaternion.copy(QB.multiply(W.FQ[i]));mod(W.ft[i])}}}
     /* Handziele: P.hr = relativ zur Schulter, P.h = im Figurenraum, Werkzeug: rechter Griff + linker Griff am Stiel */
     const palm=.08*H/2.1,has=[false,false],TL=P.tool&&W.tl[W.cur];
     for(let i=0;i<2;i++){
-      if(P.hr&&P.hr[i]){W.ua[i].getWorldPosition(TG[i]).add(fw(W,P.hr[i][0],P.hr[i][1],P.hr[i][2],A[7]));has[i]=true}
+      if(P.hr&&P.hr[i]){wpos(W.ua[i],TG[i]).add(fw(W,P.hr[i][0],P.hr[i][1],P.hr[i][2],A[7]));has[i]=true}
       else if(P.h&&P.h[i]){loc(W,P.h[i][0],P.h[i][1],P.h[i][2],TG[i]);wrap.localToWorld(TG[i]);has[i]=true}}
     let d=null,e=null;
     if(TL){const t=P.tool,a=t[3],b=t[4];d=VD.set(Math.cos(a)*Math.cos(b),Math.sin(a),Math.cos(a)*Math.sin(b));e=VE.set(Math.sin(a)*Math.cos(b),-Math.cos(a),Math.sin(a)*Math.sin(b));
       if(t[5])e.applyAxisAngle(d,t[5]);
       loc(W,t[0],t[1],t[2],VG);TG[1].copy(VG);wrap.localToWorld(TG[1]);has[1]=true;
       if(P.two){VT.copy(VG).addScaledVector(d,(TL.cfg.l-TL.cfg.r)*TL.sc);TG[0].copy(VT);wrap.localToWorld(TG[0]);has[0]=true}}
-    for(let i=0;i<2;i++){if(!has[i])continue;const c=W.wr[i].getWorldPosition(A[8]);const q=A[9].copy(c).lerp(TG[i],kk);
+    for(let i=0;i<2;i++){if(!has[i])continue;const c=wpos(W.wr[i],A[8]);const q=A[9].copy(c).lerp(TG[i],kk);
       const el=P.el&&P.el[i]||(i?EL_R:EL_L);ik2(W.ua[i],W.la[i],W.wr[i],q,fw(W,el[0],el[1],el[2],A[3]),palm)}
     /* Werkzeug an die tatsächliche rechte Hand setzen */
-    if(TL){const wp=W.wr[1].getWorldPosition(A[0]),fd=A[1].copy(wp).sub(W.la[1].getWorldPosition(A[2])).normalize();VW.copy(wp).addScaledVector(fd,palm);wrap.worldToLocal(VW);
+    if(TL){const wp=wpos(W.wr[1],A[0]),fd=A[1].copy(wp).sub(wpos(W.la[1],A[2])).normalize();VW.copy(wp).addScaledVector(fd,palm);wrap.worldToLocal(VW);
       A[4].crossVectors(e,d);MB.makeBasis(e,d,A[4]);TL.holder.quaternion.setFromRotationMatrix(MB);
       TL.holder.position.copy(VW).addScaledVector(d,-TL.cfg.r*TL.sc);
       W.tip.copy(TL.holder.position).addScaledVector(d,TL.hi*TL.sc*.85);wrap.localToWorld(W.tip)}
