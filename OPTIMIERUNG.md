@@ -132,6 +132,21 @@ Regeln: immer nur EIN Agent gleichzeitig, danach prüft Claude Ergebnis und Bild
   - [ ] B1 Delfin hat ein falsches Modell (Tuna/Schwertfisch): echtes Delfin-Aussehen (vorhandenes Modell suchen, sonst David um Modell bitten)
   - [ ] B2 Wale zu klein im Vergleich zu Delfinen → Wal deutlich grösser als Delfin
   - [ ] B3 Wasser an den Ufern zu kantig → weichere Küstenlinien (Gelände/`renderBg`/`r3Map`)
+- [ ] **Paket E – Truppen, Tiere, Bauregeln** (Agent, nach B und D)
+  - [ ] E1 Mauern müssen auch im seichten Wasser baubar sein (`placeBlock`/`wallSnap`, TERR 1)
+  - [ ] E2 Krokodile greifen zu oft und zu viele Arbeiter an (`updAnimal`, Aggro `agg`, Revier `leash`, Wasser-Tiere)
+  - [ ] E3 Truppen reagieren nicht automatisch: im Leerlauf Gefahren in der Nähe angreifen; dazu Wildtiere (gefährliche, nicht alle) rund um Arbeiter/Basis säubern, Truppen schauen im eigenen Gebiet nach (nicht gegen friedliche Tiere/Rehe als Beute verwechseln)
+  - [ ] E4 Heiler/Priester zu stark, zu viel Heilung: abschwächen (`healAura`, `CTR`)
+- [ ] **Paket F – Wirtschaft, Berater, Karten-Vorkommen** (Agent, nach E)
+  - [ ] F1 Davids Partie: viel zu viel Nahrung und Holz (z. B. 16 000 Holz), die KI/der Berater baut kaum Stein und Eisen ab. Berater/Arbeiter-Verteilung (`advRules`, Auto-Verteilung) und KI (`w8`) prüfen; Farmen vs. Fischen vs. Jagd abgleichen (Farm soll weniger lohnen als Fischen/Jagd)
+  - [ ] F2 Karten prüfen: Anzahl Bäume pro Karte (zu wenige), Stein/Eisen-Vorkommen und Spawns (`near(...)`, `feats` in `map.js`), Bäume sollen nicht zu schnell leer sein
+  - [ ] F3 Berater reißt erschöpfte Minen automatisch ab und zeigt vorher den Hinweis „Mine erschöpft" (kleiner roter Pfeil/Marker, Meldung)
+  - [ ] F4 Arbeiter an Bäumen kleben aneinander: besser auf Bäume/Büsche verteilen (`cap`, Zielwahl `nearestNode`, Abstand)
+- [ ] **Paket G – Optik-Feinschliff** (Agent, nach F)
+  - [ ] G1 Beeren sammeln: Arbeiter stehen mit dem Kopf im Busch → mehr Abstand (`o.sh`, Griffweite)
+  - [ ] G2 Holzrand des Bretts mit Details (z. B. Schriftzug „Epochenkrieg", Verzierung)
+  - [ ] G3 Mehr Vielfalt bei Arbeitern in allen Zeitaltern (so divers wie die Mittelalter-Bauern: verschiedene Kleidung/Farben)
+- Erledigt/Klärung: Delfine und Wale erscheinen erst im passenden Zeitalter (so gewollt); „Normal"-Schwierigkeit gefällt David; kein weisser Bildschirm mehr.
 - Davids Lob (nicht kaputt machen): Karten, Jahreszeiten, Arbeiter-Animationen.
 
 ## Erledigt
