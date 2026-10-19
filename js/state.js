@@ -42,9 +42,10 @@ function harborNearFish(hq,fish,ok,dmin,dmax){
    Nur fast deckungsgleiche Mauerstücke sind verboten; Einheiten und Tiere stören nicht (sie gehen zur Seite). */
 function wallSpot(x,y,r){
   if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)return false;
-  if(!onLand(x,y)||!onLand(x+r,y)||!onLand(x-r,y)||!onLand(x,y+r)||!onLand(x,y-r))return false;
-  if(slopeNear(x,y,r)>.9)return false;
-  for(const e of G.ents){if(e.dead||e.kind==='unit'||e.kind==='animal')continue;const d=Math.hypot(e.x-x,e.y-y);
+  const wd=(a,b)=>{const t=terrAt(a,b);return t===1||t===2};/* Land oder seichtes Wasser (flach = begehbar), tiefes Wasser und Fels nicht */
+  if(!wd(x,y)||!wd(x+r,y)||!wd(x-r,y)||!wd(x,y+r)||!wd(x,y-r))return false;
+  if(terrAt(x,y)===2&&slopeNear(x,y,r)>.9)return false;/* im Wasser steht die Mauer auf dem Grund, Steilheit egal */
+  for(const e of G.ents){if(e.dead||e.kind==='unit'||e.kind==='animal'||e.sea)continue;const d=Math.hypot(e.x-x,e.y-y);
     if(e.kind==='bld'&&(e.type==='wall'||e.type==='gate')){if(d<(e.r+r)*.62)return false}
     else if(d<e.r+r+(e.kind==='node'?-3:1))return false}
   return true}
