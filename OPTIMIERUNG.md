@@ -216,3 +216,10 @@ Bitte selbst herunterladen und hochladen (nur CC0/CC-BY). Lizenz auf der Seite v
 - [x] C1 Last schwebt: Rucksack (aus Adventurer) am Rücken + echte Ladung obenauf (Holz, Erz, Gold, Nahrung), alle Körper/Zeitalter geprüft.
 - [x] C2 Lore-Schieber: Füsse nach innen = Schienbein-Beugung der Reiter wurde auch auf Schieber angewandt; behoben.
 - [x] C3 Tempo 5×: Hiebe/Geräusche je Echtzeitsekunde 0,8 / 2,4 / 4,0 bei 1× / 3× / 5× (vorher Dehnung ×N, Clips max. 3×).
+
+## Paket D (19.10.): Startbild, Raum ohne Verzerrung, Tischlayout
+- [x] D1 Ladebild = Spielkarton (CSS/SVG): Deckel mit Titelbild-Platz (`images/titel.jpg|png|webp`, sonst gemalte Platzhalter-Grafik), Fortschritt mit Aufbau-Meldungen, wartet auf Modelle UND Raum samt Foto (kein halb geladenes Bild), Klick hebt den Deckel ab. Hauptmenü zeigt das Titelbild klein (ab 760 px Höhe) und verschiebt den Raum nach rechts. Austausch: `images/LIESMICH.md`.
+- [x] D2 Rundum-Foto unverzerrt: Kugelkappe um Augenhöhe (Foto 1:1, leicht weichgezeichnet, 2048 px) bis 14° unter dem Horizont, darunter ein echter Boden (Parkett aus Canvas, weicher Rand). Die Kappe braucht eigene UV (`v` wie bei voller Kugel), sonst wird das Foto gestreckt. `OPT.room`/`OPT.roomStudio` funktionieren weiter (Studio-Bild nicht neu geprüft).
+- [x] D3 Layout: Stifte raus, Sofa links schräg zum Tisch, Stuhl zum Tisch gerückt, Teppich unter Tisch/Stuhl (nur Farben), Kontaktschatten unter allen Möbeln/Gegenständen (`blob`), Öllampen-Glas durchsichtig (war schwarzer Stab), Menü-Kamera pendelt ±35° vor dem Tisch (statt Vollkreis durchs Sofa). Brettrahmen 14 breit mit Schriftzug „EPOCHENKRIEG“ und Rauten.
+- Ladezeit: Foto 4096→2048 px als Canvas (weniger Grafikspeicher), Parkett/Teppich aus Code (keine neuen Bilddateien).
+
