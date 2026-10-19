@@ -96,7 +96,7 @@ const ANIMALS={
   bear:{name:'Bär',from:1,hp:280,spd:60,atk:24,rng:7,cd:1.3,r:11,sight:150,agg:120,leash:300,roam:80,food:220,h:34,info:'Sehr stark – verteidigt sein Revier'},
   mammoth:{name:'Mammut',hp:520,spd:46,atk:30,rng:10,cd:1.6,r:16,sight:150,agg:75,leash:260,roam:70,food:700,h:46,ext:1,info:'Riesig und friedlich, wehrt sich aber – viel Nahrung. Stirbt nach der Steinzeit aus'},
   sabertooth:{name:'Säbelzahntiger',hp:240,spd:100,atk:26,rng:7,cd:1,r:10,sight:200,agg:190,leash:450,roam:150,food:200,h:28,ext:1,info:'Schnell und tödlich. Stirbt nach der Steinzeit aus'},
-  croc:{name:'Krokodil',from:1,hp:210,spd:75,atk:24,rng:9,cd:1.2,r:10,sight:170,agg:105,leash:210,roam:60,food:160,h:10,water:true,info:'Lauert im seichten Wasser – gefährlich für alles am Ufer'},
+  croc:{name:'Krokodil',from:1,hp:210,spd:75,atk:15,rng:9,cd:1.6,r:10,sight:170,agg:70,leash:150,roam:60,food:160,h:10,water:true,ambush:{bites:2,rest:55,grp:3},info:'Lauert im seichten Wasser – gefährlich für alles am Ufer'},
   /* Dinosaurier der Steinzeit (sterben beim ersten Aufstieg aus): Pflanzenfresser fliehen oder wehren sich, Fleischfresser jagen alles in ihrer Nähe */
   para:{name:'Parasaurolophus',hp:160,spd:80,r:11,sight:180,flee:150,roam:130,food:280,h:34,ext:1,info:'Pflanzenfresser – scheu, flieht im Rudel. Viel Nahrung'},
   trike:{name:'Triceratops',hp:620,spd:50,atk:34,rng:12,cd:1.5,r:17,sight:150,agg:65,leash:240,roam:70,food:700,h:36,ext:1,info:'Pflanzenfresser – friedlich, wehrt sich aber mit den Hörnern. Viel Nahrung'},

@@ -236,7 +236,7 @@ function damage(t,amt,src){
   if(!(t.hp>=0))t.hp=t.maxHp||1;
   if(t.gar)amt*=.5;
   t.hp-=amt;
-  if(t.kind==='animal'&&src&&src.team>=0&&t.hp>0){const d=ANIMALS[t.type];if(d.agg){if(t.state!=='chase'){t.tid=src.id;t.state='chase'}}else{t.state='flee';t.thr={x:src.x,y:src.y};t.until=G.t+4}}
+  if(t.kind==='animal'&&src&&src.team>=0&&t.hp>0){const d=ANIMALS[t.type];if(d.ambush&&(G.t<(t.rest||0)||t.hp<t.maxHp*.4)){t.state='return';t.tid=null;t.rest=Math.max(t.rest||0,G.t+d.ambush.rest*.5)}else if(d.agg){if(t.state!=='chase'){t.tid=src.id;t.state='chase'}}else{t.state='flee';t.thr={x:src.x,y:src.y};t.until=G.t+4}}
   if(src&&t.kind==='unit'&&!UNITS[t.type].passive&&t.state==='idle'){t.tid=src.id;t.state='attack'}
   if(src&&src.kind==='animal'&&t.kind==='unit'&&UNITS[t.type].passive&&t.hp>0&&!UNITS[t.type].naval){ // Arbeiter fliehen zum nächsten Lager
     let b=null,bd=1e9;for(const o of G.ents)if(!o.dead&&o.kind==='bld'&&o.team===t.team&&o.built&&BLDS[o.type].drop){const dd=Math.hypot(o.x-t.x,o.y-t.y);if(dd<bd){bd=dd;b=o}}
@@ -380,6 +380,8 @@ function animalMove(a,tx,ty,dt,spd){
   /* festgeklemmt (z. B. in/neben einem Vorkommen): nach 0,7 s zum nächsten freien Feld im Umkreis springen */
   if(!moved&&a.stk>.7){const okc=ANIMALS[a.type].water?1:2;outer:for(let r=10;r<=90;r+=10)for(let k=0;k<12;k++){const an=k/12*6.283,nx=a.x+Math.cos(an)*r,ny=a.y+Math.sin(an)*r;if(terrAt(nx,ny)===okc&&navDyn[navCell(nx,ny)]===0){a.x=nx;a.y=ny;a.stk=0;break outer}}}
   return false}
+/* Krokodil: überfällt nur Einzelne am Ufer (keine Gruppe ab d.ambush.grp Einheiten), beisst höchstens d.ambush.bites mal, taucht dann ab und ruht d.ambush.rest Sekunden */
+function crocGroup(a,t,d){let n=0;for(const e of G.ents)if(!e.dead&&e.kind==='unit'&&e.team>=0&&Math.abs(e.x-t.x)<55&&Math.abs(e.y-t.y)<55&&++n>=d.ambush.grp)return true;return false}
 function updAnimal(a,dt){
   const d=ANIMALS[a.type];a.cd=Math.max(0,a.cd-dt);
   if(a.hp<a.maxHp&&a.state==='idle')a.hp=Math.min(a.maxHp,a.hp+dt*2);
@@ -388,16 +390,16 @@ function updAnimal(a,dt){
   if(a.th<=0){a.th=.3+Math.random()*.1;let best=null,bd=1e9;
     for(const e of G.ents){if(e.dead||e.team<0||(e.kind!=='unit'&&e.kind!=='bld')||(e.kind==='unit'&&(UNITS[e.type].naval||e.type==='scout')))continue;const dd=Math.hypot(e.x-a.x,e.y-a.y)-e.r;if(dd<bd){bd=dd;best=e}}
     if(best){
-      if(d.agg){if(a.state!=='chase'&&a.state!=='return'&&best.kind==='unit'&&bd<d.agg&&Math.hypot(a.home.x-best.x,a.home.y-best.y)<d.leash){a.tid=best.id;a.state='chase';sfx('growl',a);
+      if(d.agg){if(a.state!=='chase'&&a.state!=='return'&&best.kind==='unit'&&bd<d.agg&&!(d.ambush&&(G.t<(a.rest||0)||crocGroup(a,best,d)))&&Math.hypot(a.home.x-best.x,a.home.y-best.y)<d.leash){a.tid=best.id;a.state='chase';sfx('growl',a);
         if(d.pack)for(const o of G.ents)if(o.kind==='animal'&&o.type===a.type&&!o.dead&&o!==a&&o.state!=='chase'&&Math.hypot(o.x-a.x,o.y-a.y)<240){o.tid=best.id;o.state='chase'}}}
       else if(bd<d.flee){if(a.state!=='flee')sfx('deer',a);a.state='flee';a.thr={x:best.x,y:best.y};a.until=G.t+2.5}}}
   switch(a.state){
   case'idle':a.wt-=dt;if(a.wt<=0){const okc=d.water?1:2;let wp=null;for(let k=0;k<10&&!wp;k++){const ang=Math.random()*6.283,r=(.3+Math.random()*.7)*d.roam*(d.agg?1:1.8),x=a.home.x+Math.cos(ang)*r,y=a.home.y+Math.sin(ang)*r;if(terrAt(x,y)===okc&&navDyn[navCell(x,y)]===0&&terrAt((x+a.x)/2,(y+a.y)/2)===okc&&navDyn[navCell((x+a.x)/2,(y+a.y)/2)]===0)wp={x,y}}if(wp){a.wp=wp;a.state='wander';a.stk=0}else a.wt=1+Math.random()*2}break;
   case'wander':if(animalMove(a,a.wp.x,a.wp.y,dt,d.spd*.35)||a.stk>.6){a.state='idle';a.wt=2+Math.random()*5;a.stk=0}break;
   case'flee':{const t=a.thr||{x:a.x,y:a.y};if(G.t>a.until){a.state='idle';a.wt=1;a.home={x:a.x,y:a.y};break}const dx=a.x-t.x,dy=a.y-t.y,l=Math.hypot(dx,dy)||1;animalMove(a,a.x+dx/l*80,a.y+dy/l*80,dt,d.spd);if(a.stk>.5){a.stk=0;a.thr={x:a.x+(Math.random()-.5)*120,y:a.y+(Math.random()-.5)*120}}break}
-  case'chase':{const t=get(a.tid);if(!t||Math.hypot(a.home.x-a.x,a.home.y-a.y)>d.leash||Math.hypot(t.x-a.x,t.y-a.y)>d.agg*2.4){a.state='return';a.tid=null;a.stk=0;break}
+  case'chase':{if(a.bt===undefined)a.bt=0;const t=get(a.tid);if(!t||Math.hypot(a.home.x-a.x,a.home.y-a.y)>d.leash||Math.hypot(t.x-a.x,t.y-a.y)>d.agg*2.4){a.state='return';a.tid=null;a.stk=0;break}
     const gap=Math.hypot(t.x-a.x,t.y-a.y)-a.r-t.r;
-    if(gap<=d.rng){a.fa=Math.atan2(t.y-a.y,t.x-a.x);if(a.cd<=0){a.cd=d.cd;a.swing=G.t;sfx('hit',a);damage(t,d.atk,a)}}
+    if(gap<=d.rng){a.fa=Math.atan2(t.y-a.y,t.x-a.x);if(a.cd<=0){a.cd=d.cd;a.swing=G.t;sfx('hit',a);damage(t,d.atk,a);if(d.ambush&&(++a.bt>=d.ambush.bites||a.hp<a.maxHp*.4)){a.state='return';a.tid=null;a.stk=0;a.bt=0;a.rest=G.t+d.ambush.rest}}}
     else{animalMove(a,t.x,t.y,dt,d.spd);if(a.stk>1.2){a.state='return';a.stk=0}}break}
   case'return':if(animalMove(a,a.home.x,a.home.y,dt,d.spd*.7)||Math.hypot(a.home.x-a.x,a.home.y-a.y)<24||a.stk>1.5){a.state='idle';a.wt=2;a.stk=0}break;
   }
