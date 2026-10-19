@@ -151,22 +151,22 @@ function r3Map(){
 /* ---------- Kamera und Umrechnung ---------- */
 function camUpdate(){
   if(!R3.ok||!VW)return;const{camera,sun}=r3,S=R3.S,d=R3.D0/cam.z,tx=cam.x/S,tz=cam.y/S,ty=hAt(cam.x,cam.y);
-  camera.aspect=VW/VH;camera.fov=R3.FOV;camera.updateProjectionMatrix();
+  camera.aspect=VW/VH;camera.fov=R3.FOV;camera.near=Math.max(.8,Math.min(2,d*.06));/* ganz nah ran: nichts schneidet in die Kamera */camera.updateProjectionMatrix();
   camera.position.set(tx,ty+Math.sin(R3.PITCH)*d,tz+Math.cos(R3.PITCH)*d);camera.lookAt(tx,ty,tz);camera.updateMatrixWorld();
   R3.k=(VH/(2*Math.tan(R3.FOV*Math.PI/360)*d))/S; // Bildschirm-Pixel pro Spiel-Pixel in der Bildmitte
-  const b=Math.min(150,d*.85);sun.position.set(tx-.95*b,ty+.85*b,tz-.5*b);sun.target.position.set(tx,ty,tz);sun.target.updateMatrixWorld();
+  const b=Math.min(260,d*.85);/* weiter Zoom: Schattenbild deckt die Bildmitte weiträumig ab */sun.position.set(tx-.95*b,ty+.85*b,tz-.5*b);sun.target.position.set(tx,ty,tz);sun.target.updateMatrixWorld();
   const sc=sun.shadow.camera;sc.left=sc.bottom=-b;sc.right=sc.top=b;sc.near=1;sc.far=b*3.2;sc.updateProjectionMatrix();
   r3.scene.fog.near=d*2.4;r3.scene.fog.far=d*6;
 }
 /* Spielpunkt (x,y in Pixeln, Höhe z in Pixeln) → Bildschirm */
 function scr(x,y,z){const v=r3.vec,S=R3.S;v.set(x/S,hAt(x,y)+(z||0)/S,y/S).project(r3.camera);return{x:(v.x+1)/2*VW,y:(1-v.y)/2*VH,front:v.z<1}}
 /* Bildschirm → Spielpunkt (Strahl auf das Gelände) */
-function toWorld(sx,sy){
+function toWorld(sx,sy,raw){/* raw: auch ausserhalb der Karte (Kamera, Tisch), sonst auf die Karte begrenzt */
   if(!R3.ok)return{x:cam.x,y:cam.y};
   const{camera,ray}=r3,S=R3.S;ray.setFromCamera({x:sx/VW*2-1,y:-(sy/VH)*2+1},camera);const o=ray.ray.origin,d=ray.ray.direction;
   let h=0,x=cam.x/S,z=cam.y/S;
   for(let i=0;i<4;i++){const t=(h-o.y)/(d.y<-1e-4?d.y:-1e-4);x=o.x+d.x*t;z=o.z+d.z*t;h=hAt(x*S,z*S)}
-  return{x:Math.max(0,Math.min(W,x*S)),y:Math.max(0,Math.min(H,z*S))}}
+  return raw?{x:x*S,y:z*S}:{x:Math.max(0,Math.min(W,x*S)),y:Math.max(0,Math.min(H,z*S))}}
 
 /* Wind: Bäume, Büsche und Gras wiegen sich (Vertex-Shader-Zusatz; Ausschlag wächst mit der Höhe, jede Instanz hat eine andere Phase) */
 const WIND={value:0};
@@ -205,11 +205,11 @@ const NSET={pine:{geo:()=>treeGeo(true),wind:.022},broad:{geo:()=>treeGeo(false)
   bush:{geo:()=>bushGeoC(),wind:.05},bushE:{wind:.05,alt:'bush'},stump:{},wheat:{wind:.12,low:1},alpine:{wind:.015},snowy:{wind:.012},
   /* Jahreszeiten (Manifest: when) – fehlen die Modelle noch, springt der Schlüssel auf alt */
   broadA:{wind:.03,alt:'broad'},birchA:{wind:.03,alt:'birch'},willowA:{wind:.03,alt:'willow'},broadW:{wind:.02,alt:'broad'},birchW:{wind:.02,alt:'birch'},willowW:{wind:.02,alt:'willow'},bloom:{wind:.03,alt:'broad'},bloomW:{wind:.03,alt:'broad'},broadD:{wind:.025,alt:'broad'},cactus:{wind:.008},
-  stone:{rock:1},iron:{rock:1},gold:{rock:1},oil:{rock:1}};
+  stone:{rock:1},iron:{rock:1,like:'stone'},gold:{rock:1,like:'stone'},oil:{rock:1}}; /* like: Grössenmassstab der echten Felsmodelle = Stein (das Code-Modell von Eisen/Gold ist mit Erzbrocken/Kristallen viel höher → die Felsen wurden 1,2–1,6× zu gross) */
 function nsBuild(key,cap){const d=NSET[key],old=r3.ns[key];if(old)old.L.forEach(r3DropInst);const L=[];
   const mk=geo=>{const mt=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.92,flatShading:!!d.rock});if(d.wind)windify(mt,d.wind);const m=new THREE.InstancedMesh(geo,mt,cap);m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);r3.scene.add(m);return m};
   const n=d.rock?3:EKMODELS.nodeN(key);
-  for(let v=0;v<n;v++){const ref=d.rock?rockGeoC(key,v):d.geo?d.geo():null,ps=EKMODELS.nodeParts(key,v,ref);
+  for(let v=0;v<n;v++){const ref=d.rock?rockGeoC(key,v):d.geo?d.geo():null,ps=EKMODELS.nodeParts(key,v,d.like?rockGeoC(d.like,v):ref);
     if(ps){const m=r3Multi(ps,cap,d.wind);m.parts.forEach(p=>{if(d.low){p.castShadow=false;p.userData.veg=false}r3.scene.add(p)});L.push(m)}else if(ref)L.push(mk(ref))}
   if(!L.length&&d.geo)L.push(mk(d.geo()));
   return r3.ns[key]={L,cap}}
@@ -257,9 +257,9 @@ function r3Grass(){
 }
 /* Gras im sichtbaren Ausschnitt in die Instanzen schreiben (nur wenn sich der Ausschnitt merklich ändert oder der Nebel neu schattiert wurde) */
 function r3GrassView(force){
-  const v=R3.view,gc=r3.gCells;if(!r3.i_tuft||!v||!gc)return;const key=[v.x0,v.x1,v.y0,v.y1].map(a=>Math.round(a/80)).join();if(!force&&key===r3.gKey)return;r3.gKey=key;
+  const v=R3.view,gc=r3.gCells;if(!r3.i_tuft||!v||!gc)return;const st=cam.z<.4?4:cam.z<.55?2:1/* weit weg: nur jedes 2./4. Büschel, dafür grösser (spart Dreiecke, Gras ist dort ohnehin nur Farbfleck) */,key=st+':'+[v.x0,v.x1,v.y0,v.y1].map(a=>Math.round(a/80)).join();if(!force&&key===r3.gKey)return;r3.gKey=key;
   const S=R3.S,o=_gO||(_gO=new THREE.Object3D()),c=_gC||(_gC=new THREE.Color()),cx0=Math.max(0,(v.x0/gc.GC)|0),cx1=Math.min(gc.gw-1,(v.x1/gc.GC)|0),cy0=Math.max(0,(v.y0/gc.GC)|0),cy1=Math.min(((H-1)/gc.GC)|0,(v.y1/gc.GC)|0);
-  const fill=(m,cells,col)=>{let k=0;for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++)for(const p of cells[cy*gc.gw+cx]){if(p.hid)continue;o.position.set(p.x/S,p.h,p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(p.s);o.updateMatrix();m.setMatrixAt(k,o.matrix);m.setColorAt(k,col(p));k++}
+  const sk=st===1?1:st===2?1.35:1.7,fill=(m,cells,col)=>{let k=0;for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++){const ls=cells[cy*gc.gw+cx];for(let q=0;q<ls.length;q+=st){const p=ls[q];if(p.hid)continue;o.position.set(p.x/S,p.h,p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(p.s*sk);o.updateMatrix();m.setMatrixAt(k,o.matrix);m.setColorAt(k,col(p));k++}}
     m.count=k;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true};
   fill(r3.i_tuft,gc.t,p=>{const sh=fogShade(p.x,p.y)*p.c;return c.setRGB(sh,sh*(.96+p.j*.08),sh*.95)});fill(r3.i_flower,gc.f,p=>p.col)}
 let _gO=null,_gC=null;
@@ -290,8 +290,12 @@ function treeKind(e){let c=R3.tk.get(e.id);if(c)return c;const sd=e.seed,x=e.x,y
 const hsh=(a,b)=>{const t=Math.sin(a*12.9898+b*78.233)*43758.5453;return t-Math.floor(t)};
 function r3Nodes(){
   if(!_o){_o=new THREE.Object3D();_c=new THREE.Color()}
-  if(R3.natG!==G){R3.natG=G;R3.tk=new Map();R3.tl=new Map();R3.stumps=[]} /* neue Partie: Baum-Arten und Stümpfe vergessen */
+  if(R3.natG!==G){R3.natG=G;R3.tk=new Map();R3.tl=new Map();R3.stumps=[];R3.ap={};R3.hidT={}} /* neue Partie: Baum-Arten und Stümpfe vergessen */
   const S=R3.S,B={},V=R3.view,M=260,fr=R3.fr=(R3.fr||0)+1,tl=R3.tl;
+  const thin=cam.z<.38?3:cam.z<.5?2:1;
+  /* Neu freigeschaltete Vorkommen (Zeitalter-Aufstieg) wachsen in ~1,8 s sanft aus dem Boden: ap[Typ] = Spielzeit der Freischaltung, hidT[Typ] = war wegen des Zeitalters versteckt */
+  const ap=R3.ap,hidT=R3.hidT;let apBusy=false;
+  const grow=ty=>{const t0=ap[ty];if(t0===undefined)return 1;const k=Math.min(1,(G.t-t0)/1.8);if(k<1)apBusy=true;const g=k*k*(3-2*k);return Math.max(.03,g)};
   /* Instanz vormerken: Schlüssel ohne eigene Modelle → Ersatz (alt) */
   const add=(key,v,x,y,z,ry,sx,sy,r,g,b)=>{let d;while((!r3.ns[key]||!r3.ns[key].L.length)&&(d=NSET[key])&&d.alt)key=d.alt;const s=r3.ns[key];if(!s||!s.L.length)return;const bb=B[key]||(B[key]=[]),i=v%s.L.length;(bb[i]||(bb[i]=[])).push(x,y,z,ry,sx,sy,r,g,b);return{key,v:i,i:bb[i].length/9-1,p:[x,y,z,ry,sx,sy]}};
   const inV0=(x,y,m)=>!V||(x>=V.x0-m&&x<=V.x1+m&&y>=V.y0-m&&y<=V.y1+m);
@@ -307,10 +311,11 @@ function r3Nodes(){
     if(e.type==='tree'){const t=tl.get(e.id);if(t)t.f=fr;else tl.set(e.id,{x:e.x,y:e.y,r:e.r,sd:e.seed,f:fr})}
     if(e.type==='field'){fields.set(e.farm,e.amount/e.maxAmt);continue}
     if(!inV(e.x,e.y,M))continue;
+    if(e.type==='tree'&&thin>1&&e.id%thin)continue; /* weit weg: nur jeder 2./3. Baum, die übrigen etwas grösser (Wald bleibt dicht, halb so viele Dreiecke) */
     const k=Math.max(.5,Math.sqrt(e.amount/e.maxAmt)),sh=fogShade(e.x,e.y),h=hAt(e.x,e.y),x=e.x/S,z=e.y/S,sd=e.seed;
-    if(e.type==='tree'){const s=e.r/11*.62*(.85+sd*.35)*(.55+.45*k),tk=treeKind(e),v=.9+((sd*97)%1)*.2;{const ts=treeSea(tk.k,sd),ix=add(ts[0],tk.v,x,h-.05,z,sd*6.28,s,s*(.9+((sd*31)%1)*.3),v*sh*ts[1],(.95+((sd*53)%1)*.12)*v*sh*ts[2],v*sh*ts[3]);if(ix&&SHK.size){const sk=SHK.get(e.id);if(sk)sk.ix=ix}}}
+    if(e.type==='tree'){const s=e.r/11*.62*(.85+sd*.35)*(.55+.45*k)*(thin>1?1+.28*(thin-1):1),tk=treeKind(e),v=.9+((sd*97)%1)*.2;{const ts=treeSea(tk.k,sd),ix=add(ts[0],tk.v,x,h-.05,z,sd*6.28,s,s*(.9+((sd*31)%1)*.3),v*sh*ts[1],(.95+((sd*53)%1)*.12)*v*sh*ts[2],v*sh*ts[3]);if(ix&&SHK.size){const sk=SHK.get(e.id);if(sk)sk.ix=ix}}}
     else if(e.type==='bush'){const s=e.r/10*(.55+.45*k);add(e.amount<e.maxAmt*.25?'bushE':'bush',(sd*97)|0,x,h-.03,z,sd*6.28,s,s,sh,sh,sh)} /* fast leer gepflückt: Busch ohne Beeren */
-    else{if(HIDDEN_NODES.has(e.type)&&!nodeKnown(e))continue;if(!NSET[e.type])continue;const kv=Math.floor(sd*3)%3,base=e.r/10*(.6+.4*k)*.78;
+    else{if(HIDDEN_NODES.has(e.type)){if(!nodeKnown(e)){if(!nodeEpochOk(e,0))hidT[e.type]=1;continue}if(hidT[e.type]&&ap[e.type]===undefined)ap[e.type]=G.t}if(!NSET[e.type])continue;const gk=grow(e.type),kv=Math.floor(sd*3)%3,base=e.r/10*(.6+.4*k)*.78*gk;
       const nn=e.type==='oil'?1:5;for(let j=0;j<nn;j++){const a=sd*20+j*1.9,dd=j?e.r/S*.62:0,sz=base*(j?.55+((j*37+sd*50)%7)/14:1.05),xx=x+Math.cos(a)*dd,zz=z+Math.sin(a)*dd,cc=sh*(.92+(j%3)*.05);add(e.type,kv,xx,hAt(xx*S,zz*S)-.1,zz,a,sz,sz*(j?1:1.15),cc,cc,sh*(.95+(j%2)*.05))}}}
   /* Baumstümpfe: wo ein Baum gefällt wurde (verschwindet aus der Liste), bleibt ein Stumpf stehen – nur Deko, unter Gebäuden ausgeblendet */
   for(const[id,t]of tl)if(t.f!==fr){tl.delete(id);R3.stumps.push({x:t.x,y:t.y,s:t.r/11*(1+t.sd*.35),ry:t.sd*40,v:id});if(R3.stumps.length>1500)R3.stumps.shift()}
@@ -324,7 +329,7 @@ function r3Nodes(){
   /* in die Instanz-Puffer schreiben (nur den benutzten Teil hochladen); reicht ein Puffer nicht, wird der Satz grösser neu gebaut */
   for(const key in r3.ns){let s=r3.ns[key];const bb=B[key]||[];let need=0;for(const a of bb)if(a&&a.length/9>need)need=a.length/9;if(need>s.cap)s=nsBuild(key,Math.ceil(need*1.4)+16);
     s.L.forEach((m,v)=>{const a=bb[v],n=a?a.length/9:0;for(let i=0;i<n;i++){const j=i*9;_o.position.set(a[j],a[j+1],a[j+2]);_o.rotation.set(0,a[j+3],0);_o.scale.set(a[j+4],a[j+5],a[j+4]);_o.updateMatrix();m.setMatrixAt(i,_o.matrix);_c.setRGB(a[j+6],a[j+7],a[j+8]);m.setColorAt(i,_c)}
-      for(const p of m.isMulti?m.parts:[m]){p.count=n;p.visible=n>0;if(!n)continue;const im=p.instanceMatrix,ic=p.instanceColor;im.clearUpdateRanges();im.addUpdateRange(0,n*16);im.needsUpdate=true;if(ic){ic.clearUpdateRanges();ic.addUpdateRange(0,n*3);ic.needsUpdate=true}}})}
+      for(const p of m.isMulti?m.parts:[m]){p.count=n;p.visible=n>0;if(!n)continue;const im=p.instanceMatrix,ic=p.instanceColor;im.clearUpdateRanges();im.addUpdateRange(0,n*16);im.needsUpdate=true;if(ic){ic.clearUpdateRanges();ic.addUpdateRange(0,n*3);ic.needsUpdate=true}}})}  R3.apBusy=apBusy;
 }
 
 /* ---------- Meeresbewohner ---------- */
@@ -357,7 +362,7 @@ function r3Sync(list,dt,t){
     else if(e.kind==='bld'){obj.position.set(e.x/S,h,e.y/S);const pr=e.built?1:.12+.88*e.prog;obj.scale.set(1,pr,1);if(obj.userData.props)for(const q of obj.userData.props)q.visible=pr>=1 /* Beiwerk (Figuren, Ballon) erst nach dem Bau */;
       if(e.type==='harbor'||e.type==='wall'||e.type==='gate')obj.rotation.y=-(e.ang||0);for(const f of o.flags)f.rotation.y=Math.sin(t*3+f.position.x)*.3;
       if(obj.userData.mix&&e.built&&!(G.paused||G.netPause))for(const mx of obj.userData.mix)mx.update(dt*(G.speed||1))/* Figuren am Gebäude (König, Bürger) atmen */}
-    else if(e.kind==='node'){if(obj.userData.mix)for(const mx of obj.userData.mix)mx.update(dt);if(obj.userData.school)for(const it of obj.userData.school){it.a+=it.sp*dt;it.w.position.x=Math.cos(it.a)*it.r;it.w.position.z=Math.sin(it.a)*it.r;it.w.rotation.y=-(it.a+1.5708)}obj.position.set(e.x/S,-.38+Math.sin(t*1.6+e.seed*20)*.05,e.y/S);obj.rotation.y=e.seed*6.28+Math.sin(t*.5+e.seed*9)*.15;
+    else if(e.kind==='node'){const far=cam.z<.5,lim=cam.z<.4?1:cam.z<.5?2:99/* weit weg: nur 1–2 Fische je Schwarm zeichnen, Animation halb so oft (spart hunderte Zeichenaufrufe) */;if(obj.userData.mix&&(!far||(R3.fn+e.id)%2===0))for(const mx of obj.userData.mix)mx.update(far?dt*2:dt);if(obj.userData.school){let si=0;for(const it of obj.userData.school){const vis=si++<lim;if(it.w.visible!==vis)it.w.visible=vis;if(!vis)continue;it.a+=it.sp*dt;it.w.position.x=Math.cos(it.a)*it.r;it.w.position.z=Math.sin(it.a)*it.r;it.w.rotation.y=-(it.a+1.5708)}}obj.position.set(e.x/S,-.38+Math.sin(t*1.6+e.seed*20)*.05,e.y/S);obj.rotation.y=e.seed*6.28+Math.sin(t*.5+e.seed*9)*.15;
       obj.children.forEach(f=>{if(f.userData.ring){const k=(t*.45+e.seed*3)%1;f.scale.setScalar(1.2+k*2.8);f.material.opacity=(1-k)*.55;f.position.y=.05;return}const p=f.userData.ph||0;f.position.y=-.1+Math.sin(t*2+p*2+e.seed*9)*.06;if(e.type==='fish')f.rotation.y=Math.sin(t*1.5+p)*.4})}
     else if(e.kind==='animal')r3Animal(o,e,h,dt,t);
     o.seen=true;o.e=e}
@@ -433,9 +438,8 @@ const WCYC={chop:1.2,mine:1.1,pick:2.1,farm:1.5,build:.6,hunt:1.2};
 function wkPhase(o,e,kd,dt,want,hunt,d){
   if(want!=='work')return null;let ph,imp=false;const tm=hunt?(d.cd||1.2):kd==='build'?(e.bl||.6):(e.gl||0),cur=hunt?e.cd:kd==='build'?e.bt:e.gt;
   if(tm&&cur!==undefined&&!NET.client){ph=1-Math.max(0,Math.min(1,cur/tm));if(o.pg!==undefined&&cur>o.pg+.12){imp=true;o.wn=(o.wn||0)+1}o.pg=cur}
-  else{o.fph=((o.fph||0)+(G.paused||G.netPause?0:dt*Math.min(G.speed||1,2)/(WCYC[kd]||1.2)))%1;if(o.fph<(o.pf||0)){imp=true;o.wn=(o.wn||0)+1}o.pf=o.fph;ph=o.fph}
-  /* sehr schnelles Spiel (3×, 5×): ein Hieb dehnt sich über mehrere Takte, damit die Figur nicht zappelt */
-  const N=Math.max(1,Math.round((G.speed||1)/2));if(N>1)ph=(((o.wn||0)%N)+ph)/N;
+  else{o.fph=((o.fph||0)+(G.paused||G.netPause?0:dt*Math.min(G.speed||1,5)/(WCYC[kd]||1.2)))%1;if(o.fph<(o.pf||0)){imp=true;o.wn=(o.wn||0)+1}o.pf=o.fph;ph=o.fph}
+  /* Takt = Spieltakt: ph kommt direkt aus u.gt/u.bt/u.cd (laufen mit dem Spieltempo), bei 5× also 5× so viele Hiebe je Sekunde wie bei 1×; Pause = Stillstand (Takt steht). */
   return{ph,imp}}
 /* Aufprall: Späne am Werkzeugkopf (nur Optik), Baum wackelt kurz */
 const SHK=new Map();
@@ -523,7 +527,7 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   for(const w of r3.waves){w.material.opacity=w.userData.op0*(1-(R3.ice||0)*.72);const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   {const V=R3.view,N=R3.nodeV;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
-  r3Lod();R3.nodeT-=dt;if(R3.nodeT<=0){R3.nodeT=.4;r3Nodes();r3GrassShade()}else r3GrassView();if(SHK.size)r3Shake(dt)
+  r3Lod();R3.nodeT-=dt;R3.gsT=(R3.gsT||0)-dt;if(R3.nodeT<=0){R3.nodeT=R3.apBusy?.06:.4;r3Nodes();if(R3.gsT<=0){R3.gsT=.4;r3GrassShade()}else r3GrassView()}else r3GrassView();if(SHK.size)r3Shake(dt)
   if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;

@@ -5,22 +5,45 @@
 addEventListener('pointerup',()=>{wallDrag=null;wallAng=null});addEventListener('pointercancel',()=>{wallDrag=null});
 /* ---------- camera & input ---------- */
 function resize(){const r=view.getBoundingClientRect();dpr=Math.min(2,window.devicePixelRatio||1);VW=r.width;VH=r.height;cv.width=Math.round(VW*dpr);cv.height=Math.round(VH*dpr);
-  const mr=mm.getBoundingClientRect();MW=mr.width;MH=mr.height;mm.width=Math.round(MW*dpr);mm.height=Math.round(MH*dpr);if(typeof r3Resize==='function')r3Resize();clampCam()}
+  const mr=mm.getBoundingClientRect();MW=mr.width;MH=mr.height;mm.width=Math.round(MW*dpr);mm.height=Math.round(MH*dpr);if(typeof r3Resize==='function')r3Resize();uiInsets(true);clampCam()}
 /* Kamera: cam.x/cam.y = Punkt in der Bildmitte (Spielpixel), cam.z = Zoom. Umrechnung Bildschirm ↔ Spiel: toWorld/scr in render3d.js */
-function clampCam(){const f=typeof playF==='number'?playF:1;
-  if(f<.999&&!(typeof ROOM!=='undefined'&&ROOM.wide())){/* Raumkamera (Menü/Anflug) liefert keine Spielansicht → nicht begrenzen; kleinere Karten: Bildrand bleibt nahe am Spielfeld, vom Randgebirge nur ein schmaler Streifen (m) sichtbar */
-    const c=typeof toWorld==='function'&&typeof VW==='number'?[toWorld(0,VH/2),toWorld(VW/2,0),toWorld(VW/2,VH),toWorld(VW/2,VH/2)]:null,hw=c?Math.min(W*.45,Math.abs(c[3].x-c[0].x)):0,hh=c?Math.min(H*.45,Math.abs(c[2].y-c[1].y)/2):0,m=120,
-      lx=W*(1-f)/2-m+hw,ux=W-W*(1-f)/2+m-hw,ly=H*(1-f)/2-m+hh,uy=H-H*(1-f)/2+m-hh;
-    cam.x=lx>ux?W/2:Math.max(lx,Math.min(ux,cam.x));cam.y=ly>uy?H/2:Math.max(ly,Math.min(uy,cam.y))}
-  cam.x=Math.max(0,Math.min(W,cam.x));cam.y=Math.max(0,Math.min(H,cam.y));camUpdate()}
-function centerOn(x,y){cam.x=x;cam.y=y;clampCam()}
+/* Zoom-Grenzen (cam.z): 0,3 = weit weg (Übersicht), 3,2 = ganz nah (Figur ~70 Bildpunkte hoch bei 720p) */
+const ZOOM={min:.3,max:3.2};
+/* Verdeckte Höhen: obere Leiste und Befehlskonsole liegen über der Karte. Werte kommen aus dem DOM (nie festverdrahtet), werden alle 0,4 s und bei Grössenänderung neu gelesen. */
+const UIINS={t:0,b:0,at:-1e9};
+function uiInsets(force){const now=performance.now();if(!force&&now-UIINS.at<400)return UIINS;UIINS.at=now;
+  const tp=document.getElementById('top'),pn=document.getElementById('panel'),hid=el=>!el||getComputedStyle(el).display==='none'||getComputedStyle(el).visibility==='hidden';
+  let t=hid(tp)?0:tp.offsetHeight,b=hid(pn)?0:pn.offsetHeight;if(document.body.classList.contains('mm')){t=0;b=0}
+  if(VH){t=Math.min(t,VH*.3);b=Math.min(b,VH*.5)}UIINS.t=t;UIINS.b=b;return UIINS}
+/* Mittelpunkt der freien Fläche (zwischen Leiste und Konsole) in Bildschirmpunkten */
+function freeCenter(){const u=uiInsets();return{x:VW/2,y:(u.t+VH-u.b)/2}}
+/* Begrenzung = die ganze Brettfläche (auch bei kleinen Karten mit Randgebirge: so ist der echte Brettrand immer erreichbar) */
+function playRect(){return{x0:0,x1:W,y0:0,y1:H}}
+/* Der Mittelpunkt der freien Fläche darf über jede Kartenkante hinaus, bis zum Überlauf (wächst mit dem Zoom: halbe sichtbare Breite/Höhe × 0,4).
+   So liegt jeder Kartenrand (auch der untere) immer vollständig über der Konsole, und man sieht ein Stück Tisch dahinter. */
+function clampCam(){
+  const wide=typeof ROOM!=='undefined'&&ROOM.wide();
+  if(wide||!R3.ok||!VW){cam.x=Math.max(0,Math.min(W,cam.x));cam.y=Math.max(0,Math.min(H,cam.y));camUpdate();return}
+  const F=freeCenter(),u=UIINS,B=playRect();camUpdate();
+  for(let i=0;i<3;i++){
+    const c=toWorld(F.x,F.y,true),hx=Math.abs(toWorld(VW,F.y,true).x-toWorld(0,F.y,true).x)/2,hy=Math.abs(toWorld(F.x,VH-u.b,true).y-toWorld(F.x,u.t,true).y)/2,
+      ok=typeof ROOM!=='undefined'&&ROOM.on?.4:.2/* ohne Spielzimmer nur ein schmaler Rand (dahinter ist nur Meer) */,ox=hx*ok,oy=hy*ok,nx=Math.max(B.x0-ox,Math.min(B.x1+ox,c.x)),ny=Math.max(B.y0-oy,Math.min(B.y1+oy,c.y));
+    if(Math.abs(nx-c.x)<.5&&Math.abs(ny-c.y)<.5)break;
+    cam.x+=nx-c.x;cam.y+=ny-c.y;camUpdate()}
+}
+if(window.ResizeObserver){const ro=new ResizeObserver(()=>{uiInsets(true);if(G&&G.running)clampCam()});for(const id of['top','panel']){const el=document.getElementById(id);if(el)ro.observe(el)}}
+/* Ziel in die Mitte der freien Fläche bringen (nicht in die Fenstermitte, die teils unter der Konsole liegt) */
+function centerOn(x,y){cam.x=x;cam.y=y;if(R3.ok&&VW&&!(typeof ROOM!=='undefined'&&ROOM.wide())){camUpdate();const F=freeCenter(),c=toWorld(F.x,F.y,true);cam.x+=x-c.x;cam.y+=y-c.y}clampCam()}
 function evPos(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
 
+const tpts=new Map();let pinch=null; /* Touch: aktive Finger und Pinch-Zoom */
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('pointerdown',e=>{
   if(!G||!G.running)return;const p=evPos(e);mouse.type=e.pointerType;
   try{cv.setPointerCapture(e.pointerId)}catch(_){}
-  if(e.pointerType!=='mouse'){if(!e.isPrimary)return;drag={sx:p.x,sy:p.y,lx:p.x,ly:p.y,touch:true,moved:false};return}
+  if(e.pointerType!=='mouse'){tpts.set(e.pointerId,{x:p.x,y:p.y});
+    if(tpts.size===2){/* zwei Finger: Pinch-Zoom */const[a,b]=[...tpts.values()];pinch={d:Math.max(20,Math.hypot(a.x-b.x,a.y-b.y)),z:cam.z};drag=null;return}
+    if(!e.isPrimary)return;drag={sx:p.x,sy:p.y,lx:p.x,ly:p.y,touch:true,moved:false};return}
   const w=toWorld(p.x,p.y);
   if(e.button===2){if(wallDrag){wallDrag=null;return}if(placing||armed){placing=null;armed=false;return}command(w.x,w.y,e.shiftKey,{x:p.x,y:p.y});if(ownSel().length)sfx('order');return}
   if(e.button===1){drag={pan:true,lx:p.x,ly:p.y};e.preventDefault();return}
@@ -32,15 +55,19 @@ cv.addEventListener('pointerdown',e=>{
 });
 cv.addEventListener('pointermove',e=>{
   const p=evPos(e);mouse.x=p.x;mouse.y=p.y;mouse.in=true;mouse.type=e.pointerType;
+  if(tpts.has(e.pointerId)){tpts.set(e.pointerId,{x:p.x,y:p.y});
+    if(pinch&&tpts.size>=2){const[a,b]=[...tpts.values()],mx=(a.x+b.x)/2,my=(a.y+b.y)/2,before=toWorld(mx,my,true);
+      cam.z=Math.max(ZOOM.min,Math.min(ZOOM.max,pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d));camUpdate();const after=toWorld(mx,my,true);cam.x+=before.x-after.x;cam.y+=before.y-after.y;clampCam();return}}
   if(wallDrag){
     /* Rechte Maustaste während des Ziehens (kommt als pointermove) bricht ab; Maustaste nicht mehr gedrückt (z. B. nach Fensterwechsel) ebenso */
     if(placing!=='wall'||(e.pointerType==='mouse'&&(e.buttons&2||!(e.buttons&1)))){wallDrag=null;return}
     if(!wallDrag.line&&Math.hypot(p.x-wallDrag.sx,p.y-wallDrag.sy)>8)wallDrag.line=true;return}
   if(!drag)return;
-  if(drag.pan||drag.touch){if(drag.touch&&!drag.moved&&Math.hypot(p.x-drag.sx,p.y-drag.sy)<9)return;if(drag.touch)drag.moved=true;{const a=toWorld(drag.lx,drag.ly),b=toWorld(p.x,p.y);cam.x+=a.x-b.x;cam.y+=a.y-b.y}drag.lx=p.x;drag.ly=p.y;clampCam();return}
+  if(drag.pan||drag.touch){if(drag.touch&&!drag.moved&&Math.hypot(p.x-drag.sx,p.y-drag.sy)<9)return;if(drag.touch)drag.moved=true;{const a=toWorld(drag.lx,drag.ly,true),b=toWorld(p.x,p.y,true);cam.x+=a.x-b.x;cam.y+=a.y-b.y}drag.lx=p.x;drag.ly=p.y;clampCam();return}
   if(Math.hypot(p.x-drag.sx,p.y-drag.sy)>5)drag.box=true;
 });
 cv.addEventListener('pointerleave',()=>{mouse.in=false});
+const endTouch=e=>{if(tpts.delete(e.pointerId)&&tpts.size<2&&pinch){pinch=null;drag=null}};cv.addEventListener('pointerup',endTouch);cv.addEventListener('pointercancel',endTouch);
 cv.addEventListener('pointerup',e=>{
   if(wallDrag){const wd=wallDrag;wallDrag=null;if(placing!=='wall'||e.button!==0)return;
     if(wd.line){const w=toWorld(evPos(e).x,evPos(e).y);placeWallLine(wd.x,wd.y,w.x,w.y,false,wd.shift||e.shiftKey)}
@@ -73,8 +100,8 @@ function tap(p){
     if(cmd){command(w.x,w.y,false,p);return}}
   clickSelect(p,false);
 }
-cv.addEventListener('wheel',e=>{e.preventDefault();if(!G)return;const p=evPos(e);const before=toWorld(p.x,p.y);
-  cam.z=Math.max(.55,Math.min(1.8,cam.z*Math.exp(-e.deltaY*.0015*OPT.zoomSpeed)));camUpdate();const after=toWorld(p.x,p.y);cam.x+=before.x-after.x;cam.y+=before.y-after.y;clampCam()},{passive:false});
+cv.addEventListener('wheel',e=>{e.preventDefault();if(!G)return;const p=evPos(e);const before=toWorld(p.x,p.y,true);
+  cam.z=Math.max(ZOOM.min,Math.min(ZOOM.max,cam.z*Math.exp(-e.deltaY*.0015*OPT.zoomSpeed)));camUpdate();const after=toWorld(p.x,p.y,true);cam.x+=before.x-after.x;cam.y+=before.y-after.y;clampCam()},{passive:false});
 let mmDrag=false;
 function mmGo(e){const r=mm.getBoundingClientRect();centerOn((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H)}
 mm.addEventListener('pointerdown',e=>{if(!G)return;if(e.button===2&&G.running){const r=mm.getBoundingClientRect();command((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H,e.shiftKey);return}mmDrag=true;try{mm.setPointerCapture(e.pointerId)}catch(_){}mmGo(e)});

@@ -5900,42 +5900,42 @@
   "iron": [
    {
     "file": "neu/Rock Medium.glb",
-    "scale": 0.8,
+    "scale": 0.76,
     "tint": "#d6b4a4",
     "extra": {
      "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
      "mesh": "crystal_basalt_green.018",
      "tint": "#b4482a",
-     "scale": 0.7,
-     "y": 0.5,
+     "scale": 0.6,
+     "y": 0.55,
      "n": 3,
      "metal": 0.6
     }
    },
    {
     "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
-    "scale": 0.8,
+    "scale": 0.76,
     "tint": "#d6b4a4",
     "extra": {
      "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
      "mesh": "crystal_basalt_green.018",
      "tint": "#b4482a",
-     "scale": 0.7,
-     "y": 0.5,
+     "scale": 0.6,
+     "y": 0.55,
      "n": 3,
      "metal": 0.6
     }
    },
    {
     "file": "neu/Rock Medium-JQxF95498B.glb",
-    "scale": 0.8,
+    "scale": 0.76,
     "tint": "#d6b4a4",
     "extra": {
      "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
      "mesh": "crystal_basalt_green.018",
      "tint": "#b4482a",
-     "scale": 0.7,
-     "y": 0.5,
+     "scale": 0.6,
+     "y": 0.55,
      "n": 3,
      "metal": 0.6
     }
@@ -5944,14 +5944,14 @@
   "gold": [
    {
     "file": "neu/Rock Medium.glb",
-    "scale": 0.72,
+    "scale": 0.74,
     "tint": "#e8dcc0",
     "extra": {
      "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
      "mesh": "crystal_basalt_green.010",
      "tint": "#ffc93a",
-     "scale": 0.65,
-     "y": 0.5,
+     "scale": 0.56,
+     "y": 0.55,
      "n": 4,
      "metal": 0.8,
      "glow": 0.25
@@ -5959,14 +5959,14 @@
    },
    {
     "file": "neu/Rock Medium-s1OJ3bBzqc.glb",
-    "scale": 0.72,
+    "scale": 0.74,
     "tint": "#e8dcc0",
     "extra": {
      "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
      "mesh": "crystal_basalt_green.010",
      "tint": "#ffc93a",
-     "scale": 0.65,
-     "y": 0.5,
+     "scale": 0.56,
+     "y": 0.55,
      "n": 4,
      "metal": 0.8,
      "glow": 0.25
@@ -5974,14 +5974,14 @@
    },
    {
     "file": "neu/Rock Medium-JQxF95498B.glb",
-    "scale": 0.72,
+    "scale": 0.74,
     "tint": "#e8dcc0",
     "extra": {
      "file": "neu/Cave Minerals by SimplePolygon - l51xGk3wbv.glb",
      "mesh": "crystal_basalt_green.010",
      "tint": "#ffc93a",
-     "scale": 0.65,
-     "y": 0.5,
+     "scale": 0.56,
+     "y": 0.55,
      "n": 4,
      "metal": 0.8,
      "glow": 0.25
@@ -6616,18 +6616,73 @@
   }
  },
  "wprops": {
-  "_info": "Beiwerk für die Arbeits-Haltungen (js/workpose.js): bag = Beutel für die Beeren.",
+  "_info": "Beiwerk für die Arbeits-Haltungen (js/workpose.js): bag = Beutel für die Beeren; pack = Rucksack (Teile aus neu/Adventurer.glb, Tönung nach Materialname); cargo_<rohstoff> = Ladung obenauf (w = Länge in Körperhöhen, sc = Streckung x/y/z, rot in Grad, dy = Höhe, tint/metal).",
   "bag": {
    "file": "archiv/Bag Open.glb"
   },
-  "logs": {
-   "file": "neu/Logs.glb",
-   "w": 0.5,
-   "ry": 90
+  "pack": {
+   "file": "neu/Adventurer.glb",
+   "mesh": "^Backpack_[34]$",
+   "tint": {
+    "LightGreen": "#8a6c46",
+    "Gold": "#c9a24a"
+   }
   },
-  "sack": {
+  "cargo_wood": {
+   "file": "neu/Logs.glb",
+   "w": 0.4,
+   "rot": [
+    0,
+    90,
+    0
+   ],
+   "sc": [
+    0.5,
+    1,
+    1
+   ],
+   "dy": -0.035
+  },
+  "cargo_stone": {
+   "file": "archiv/Rocks.glb",
+   "w": 0.34,
+   "tint": "#8d8d86",
+   "sc": [
+    0.9,
+    1.3,
+    0.9
+   ],
+   "dy": -0.03
+  },
+  "cargo_iron": {
+   "file": "archiv/Rocks.glb",
+   "w": 0.34,
+   "tint": "#8a4e3a",
+   "sc": [
+    0.9,
+    1.3,
+    0.9
+   ],
+   "dy": -0.03
+  },
+  "cargo_gold": {
+   "file": "neu/Gold Ingots.glb",
+   "w": 0.26,
+   "dy": -0.02
+  },
+  "cargo_food": {
+   "file": "archiv/Bag Open.glb",
+   "w": 0.24,
+   "dy": -0.02
+  },
+  "cargo_oil": {
+   "file": "neu/Barrel.glb",
+   "w": 0.18,
+   "tint": "#2a2a2a"
+  },
+  "cargo_other": {
    "file": "archiv/Bags.glb",
-   "w": 0.34
+   "w": 0.28
   }
  },
  "_neue_kits": {

@@ -107,6 +107,48 @@ Hilfsmittel:
   - Hauptmenü-Hintergrund mit Szene
 - [x] **R10 (technisch, ohne Bilder):** 60 Spielminuten Selbstspiel (Berater Auto, Normal, Küste M, 1 Spieler gegen KI): 0 JS-Fehler, 0 NaN in Leben/Position, keine negativen Vorräte, keine dauerhaft festhängenden Einheiten, Gebäude werden fertig. Nur Warnungen von Three.js/SwiftShader. Offen: Berater-Auto kam nur bis Epoche 4 (KI Epoche 3); Bevölkerung 73/100, Nahrung stieg auf ~24000 ungenutzt, Berater gibt Überschuss nicht aus (Truppen/Aufstieg zu zögerlich). Visueller Teil von R10 (Agent `epochen-qa`) bleibt offen.
 
+## Davids Rückmeldungen (18.10., nach dem Testspiel) – Arbeitspakete
+Regeln: immer nur EIN Agent gleichzeitig, danach prüft Claude Ergebnis und Bilder kritisch, erst dann commit/push. Sparsam arbeiten (kleine Fenster, gezielte Dateiausschnitte). Keine selbst gebauten Code-Modelle. Vor Commit `node tools/modell-luecken.js` und `node --check`.
+- [x] **Paket A – Regeln & KI** (Agent 1)
+  - [x] A1 Zoom: näher ran UND weiter weg zoomen (Mausrad `input.js` bisher .55–1.8, Pinch, Tasten; Gras/Schatten/LOD/Nebel/Leistung bei den neuen Grenzen prüfen)
+    - Ergebnis: `ZOOM` .3–3.2 (Mausrad und Pinch, `OPT.zoomSpeed` bleibt). Nahebene und Schattenbereich folgen dem Kameraabstand (`camUpdate`), Gras gröber bei Fernsicht (`r3GrassView`), Bäume und Fischschwärme dünnen sich aus. Messung HQ-Mitte, Software-GL: Zoom .3 vorher 986 Aufrufe / 2,26 Mio. Dreiecke → 526 / 0,99 Mio.; Zoom .55 (alte Grenze) unverändert 291 / 1,04 Mio.; Zoom 1: 133 / 0,47 Mio.; Zoom 3,2: 49 / 0,17 Mio.
+  - [x] A1b Kamera sieht den ganzen Kartenrand (David): `clampCam` liest Leiste `#top` und Konsole `#panel` aus dem DOM (`uiInsets`, ResizeObserver) und klemmt den Mittelpunkt der freien Fläche; jeder Kartenrand (auch unten über der Konsole) ist bei jedem Zoom ganz sichtbar, geprüft bei 800×500 und 1280×720; der Überstand über den Rand wächst mit dem Zoom (Spielzimmer an: 40 % der halben Bildgrösse, aus: 20 %). Brettkante: Holzrahmen mit Schatten (`ROOM.makeBoard`), Tisch/Lampe/Tasse dahinter sichtbar, ohne Raum dunkler sauberer Rand. Minikarte, `toWorld(..,raw)`, Auswahl, Randscrollen, Mehrspieler-Randgebirge (`playF`) laufen mit. Für Paket D bleibt: Tisch/Sofa/Stifte neu anordnen, Rundum-Foto, Startbild.
+  - [x] A2 Vorkommen erst im passenden Zeitalter sichtbar: Öl erst viel später, Eisen erst wenn man es abbauen kann, Stein/Gold ebenso (`RES_EP`, `HIDDEN_NODES`, Anzeige, Minikarte, Auswahl, Befehle)
+    - Ergebnis: eine zentrale Prüfung `nodeEpochOk`/`nodeKnown` (state.js) für Anzeige, Auswahl, Minikarte, Befehle, `nearestNode` (Arbeiter laufen nicht zu verborgenen Vorkommen) und Mauer-Einrasten; die Simulation/KI kennt sie weiter. Beim Aufstieg wachsen die neuen Vorkommen weich ein (`R3.ap`). Mehrspieler-Gast gleich. Fisch/Wal/Delfin folgen weiter ihren Stufen (`NODES.lvl`).
+  - [x] A3 Eisen und Gold viel kleiner, wie Stein (Grösse `sz`, Modell-Massstab, Vergleich mit Stein/Hütte/Baum)
+    - Ergebnis: Ursache war die Skalierung auf das Bezugsmodell (Eisen/Gold wurden auf die Höhe des Steins hochgerechnet, aber mit eigenem Modell + Kristallen). Jetzt `NSET.iron/gold` mit `like:'stone'` (`rockGeoC`), Manifest-Massstab Fels .76/.74, Kristalle .6/.56; Mengen und Treffer unverändert, Mine passt.
+  - [x] A4 KI baut den Hafen beim Fisch (nicht ans nächste Wasser): `aiPlaceHarbor` wie `advFindSpot('harbor')` beim Berater
+    - Ergebnis: gemeinsame Funktion `harborNearFish` (state.js) für Berater und KI; die KI sucht Schwärme im Umkreis von 900 px ums Hauptlager, Ring 80–520 px, dann 540–720 px, sonst wie früher irgendein Uferplatz; nach Fehlschlag 25 s Pause (`hbT`). Messung (15 Karten: Küste, Bucht, Archipel, Seenplatte, Fjord je 3 Seeds, KI-Seite, Mittel): Abstand Hafen–nächster Fischschwarm vorher 436 px → jetzt 88 px; Schwärme im Umkreis 300 px 0,4 → 7,3; Karten ohne Hafenplatz 6 → 2 (Küste 2: gar kein Fisch in 900 px, Fjord 1: kein Uferplatz). Archipel jetzt 124/280/275 px statt 311/kein/kein Platz.
+  - [x] A5 KI baut Verteidigungstürme sinnvoll (`aiPlaceTower`): Lage, Abstände, Richtung zum Gegner, nicht komisch verstreut
+    - Ergebnis: Ursache war `AI_GAP.tower` 460 (Platzsuche scheiterte fast immer; Küste Seed 1 nach 14 Min: 5 von 6 Türmen ohne Platz, der eine 664 px vom Lager). Neue Regel (`aiTowerSpot`, siehe CLAUDE.md): zuerst Paar vor dem Hauptlager, dann gestaffelt auf der Zugangslinie zum Gegner, dazwischen Deckung für schlecht geschützte Gebäude, Abstand ≥ 220 px, nur erreichbares eigenes Land, nicht am Ufer; 0,3–9 ms je Versuch. Gleiche Küste: 6 Türme kompakt (130–635 px, 4 davon decken je 2 Gebäude). Balance: Heer, Arbeiter und Aufstieg der KI gleich (16 Läufe, Kontrolle ohne Belagerungsregel des Beraters), Türme jetzt 2–3 statt 0. Achtung: Berater-Auto bildet bei ≥ 2 bekannten Türmen Rammen aus und gewinnt dadurch gegen die KI jetzt schon nach 23–25 Min. (vorher 1 von 8 bis Minute 32): das ist der Berater, nicht eine schwächere KI. Offen: KI-Nahkämpfer könnten Rammen gezielt zuerst angreifen.
+- [ ] **Paket C – Figuren-Animation** (Agent 2)
+  - [ ] C1 Getragene Last (Holz/Erz/Beeren…) schwebt auf dem Rücken → sieht richtig getragen aus (`wprops` in `workpose.js`/Manifest: Sack/Bündel/Korb am Körper, nicht in der Luft)
+  - [ ] C2 Lore-Schieber (Steinmine): Füsse zeigen nach innen → Beine/Füsse beim Schieben richtig (`rider.push` in `gltfmodels.js`)
+- [ ] **Paket D – Startbildschirm & Spielzimmer** (Agent 3, nur dafür)
+  - [ ] D1 Ladebild/Anfang schöner, mit Geschichte: das Spiel ist ein Brettspiel (z. B. Spielkarton/Titelbild, später Davids Titelbild einsetzbar), Vorschau soll beim Laden passen
+  - [ ] D2 Rundum-Foto nicht mehr verzerrt (`groundSky` in `room.js`): als normales Bild/Hintergrund, Boden sauber gefüllt
+  - [ ] D3 Modelle am Tisch neu anordnen: Sofa ergibt so keinen Sinn, Stifte weg bzw. nur einzelne Teile, nichts schwebt, Gesamtlayout viel besser
+- [ ] **Paket B – Meer & Wasser** (Agent 4)
+  - [ ] B1 Delfin hat ein falsches Modell (Tuna/Schwertfisch): echtes Delfin-Aussehen (vorhandenes Modell suchen, sonst David um Modell bitten)
+  - [ ] B2 Wale zu klein im Vergleich zu Delfinen → Wal deutlich grösser als Delfin
+  - [ ] B3 Wasser an den Ufern zu kantig → weichere Küstenlinien (Gelände/`renderBg`/`r3Map`)
+- [ ] **Paket E – Truppen, Tiere, Bauregeln** (Agent, nach B und D)
+  - [ ] E1 Mauern müssen auch im seichten Wasser baubar sein (`placeBlock`/`wallSnap`, TERR 1)
+  - [ ] E2 Krokodile greifen zu oft und zu viele Arbeiter an (`updAnimal`, Aggro `agg`, Revier `leash`, Wasser-Tiere)
+  - [ ] E3 Truppen reagieren nicht automatisch: im Leerlauf Gefahren in der Nähe angreifen; dazu Wildtiere (gefährliche, nicht alle) rund um Arbeiter/Basis säubern, Truppen schauen im eigenen Gebiet nach (nicht gegen friedliche Tiere/Rehe als Beute verwechseln)
+  - [ ] E4 Heiler/Priester zu stark, zu viel Heilung: abschwächen (`healAura`, `CTR`)
+- [ ] **Paket F – Wirtschaft, Berater, Karten-Vorkommen** (Agent, nach E)
+  - [ ] F1 Davids Partie: viel zu viel Nahrung und Holz (z. B. 16 000 Holz), die KI/der Berater baut kaum Stein und Eisen ab. Berater/Arbeiter-Verteilung (`advRules`, Auto-Verteilung) und KI (`w8`) prüfen; Farmen vs. Fischen vs. Jagd abgleichen (Farm soll weniger lohnen als Fischen/Jagd)
+  - [ ] F2 Karten prüfen: Anzahl Bäume pro Karte (zu wenige), Stein/Eisen-Vorkommen und Spawns (`near(...)`, `feats` in `map.js`), Bäume sollen nicht zu schnell leer sein
+  - [ ] F3 Berater reißt erschöpfte Minen automatisch ab und zeigt vorher den Hinweis „Mine erschöpft" (kleiner roter Pfeil/Marker, Meldung)
+  - [ ] F4 Arbeiter an Bäumen kleben aneinander: besser auf Bäume/Büsche verteilen (`cap`, Zielwahl `nearestNode`, Abstand)
+- [ ] **Paket G – Optik-Feinschliff** (Agent, nach F)
+  - [ ] G1 Beeren sammeln: Arbeiter stehen mit dem Kopf im Busch → mehr Abstand (`o.sh`, Griffweite)
+  - [ ] G2 Holzrand des Bretts mit Details (z. B. Schriftzug „Epochenkrieg", Verzierung)
+  - [ ] G3 Mehr Vielfalt bei Arbeitern in allen Zeitaltern (so divers wie die Mittelalter-Bauern: verschiedene Kleidung/Farben)
+- Erledigt/Klärung: Delfine und Wale erscheinen erst im passenden Zeitalter (so gewollt); „Normal"-Schwierigkeit gefällt David; kein weisser Bildschirm mehr.
+- Davids Lob (nicht kaputt machen): Karten, Jahreszeiten, Arbeiter-Animationen.
+
 ## Erledigt
 - (wird je Runde ergänzt)
 
@@ -170,3 +212,7 @@ Bitte selbst herunterladen und hochladen (nur CC0/CC-BY). Lizenz auf der Seite v
 - [x] B2 Wal 12 statt 6,5 Einheiten (ca. 5x Delfin, ca. 2,5x Fischerboot), Delfin 2,3; Vorkommen `whale` r 24 (vorher 16), Abstand `GAP.whale` 30. Wale pro Karte (S/L Küste): 6/14 statt 6/16; Fjord L und Seen L 0 statt 2 (tiefes Wasser fehlt).
 - [x] B3 Ufer: Ursache = Land/Wasser-Anteil nur einmal 3x3 geglättet und bilinear abgetastet (eckige Facetten), Schaum aus 20-px-Quadraten. Jetzt `shoreField` (2 Glättungen) + `shoreAt` (bikubisch) in nav.js, benutzt von `r3Map` (Gelände, Übergang .40–.60), Schaum (`r3.foam`) und `renderBg`-Maske. Nur Darstellung, TERR unverändert. Kosten: ca. 75 ms je Maske (L), `r3Map` 0,6 s einmalig.
 - [x] B4 Rehe/Tiere: Ursache 1: Wanderziele lagen in der Scheuchzone von Gebäuden/Einheiten -> Flucht, Wandern, Flucht. Ursache 2: Flucht wählte bei Blockade zufällige Richtung (Eckenpendeln). Ursache 3: Krokodil/Wolf jagten ein unerreichbares Ziel am Ufer endlos (bis 171 Richtungswechsel in 3 min). Fix in `updAnimal`: Ziele ausserhalb Scheuchzone (`a.nb`), Flucht-Hysterese 1,35x, Fluchtrichtung nur alle 1,2 s über begehbares Land, Jagd gibt nach 3 s ohne Annäherung auf (`noChase` 10 s). Test (3 Karten, 3 min, Arbeiter neben 6 Rehen): Rehe-Richtungswechsel 11/5/7 -> 1/3/0, Krokodil 171 -> 0, Wolf 21 -> 10 (Küste).
+## Davids Rückmeldungen – Paket C (Arbeiter-Animationen)
+- [x] C1 Last schwebt: Rucksack (aus Adventurer) am Rücken + echte Ladung obenauf (Holz, Erz, Gold, Nahrung), alle Körper/Zeitalter geprüft.
+- [x] C2 Lore-Schieber: Füsse nach innen = Schienbein-Beugung der Reiter wurde auch auf Schieber angewandt; behoben.
+- [x] C3 Tempo 5×: Hiebe/Geräusche je Echtzeitsekunde 0,8 / 2,4 / 4,0 bei 1× / 3× / 5× (vorher Dehnung ×N, Clips max. 3×).

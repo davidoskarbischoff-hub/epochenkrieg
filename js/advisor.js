@@ -38,11 +38,8 @@ function advFindSpot(type,need){
     return best}
   if(type==='harbor'){/* Hafen dort, wo Fisch ist: Uferplätze nach Schwärmen im Umkreis bewerten, kleiner Abzug für den Weg zum Hauptlager (Ergebnis kurz gemerkt) */
     if(advH.spot&&G.t>=advH.t&&G.t-advH.t<4&&!placeBlock(type,advH.spot.x,advH.spot.y))return advH.spot;
-    const fish=advFish();if(fish.length){let best=null,bs=-1e9;
-      for(let d=80;d<=520;d+=20)for(let k=0;k<48;k++){const a=base+(k%2?1:-1)*Math.ceil(k/2)*.131,x=hq.x+Math.cos(a)*d,y=hq.y+Math.sin(a)*d;if(placeBlock(type,x,y))continue;
-        let c=0,nd=1e9;for(const n of fish){const dd=Math.hypot(n.x-x,n.y-y);if(dd<nd)nd=dd;if(dd<300)c+=1-dd/300}
-        if(!c)continue;const sc=c*100-nd*.5-d*.12;if(sc>bs){bs=sc;best={x,y}}}
-      if(best){advH={spot:best,t:G.t};return best}if(need)return null}}
+    const best=harborNearFish(hq,advFish(),(x,y)=>!placeBlock(type,x,y),80,520);
+    if(best){advH={spot:best,t:G.t};return best}if(need)return null}
   /* andere Gebäude: mit Abstand zu eigenen Gebäuden (Kante zu Kante), damit Wege frei bleiben und es nicht gedrängt aussieht */
   const gap={house:26,farm:22,barracks:46,store:40,market:44,refinery:40,harbor:30,airfield:50,castle:60}[type]||30,own=G.ents.filter(e=>!e.dead&&e.team===0&&e.kind==='bld');
   const free=(x,y)=>{for(const e of own){if(e.type==='wall'||e.type==='gate'||e.type==='trench')continue;if(Math.hypot(e.x-x,e.y-y)-e.r-d0.r<gap)return false}return true};

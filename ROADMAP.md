@@ -330,3 +330,14 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Mehr Abwechslung (Müdigkeit, Wischen der Stirn, Wasser trinken), Aufstehen/Hinknien auch bei Beerenwechsel
 - [ ] Soldaten: Ausholen/Treffer mit demselben Haltungs-System (Schwert-Hieb mit Rumpf, Schuss-Anschlag)
 
+
+## Idee von David: Ego-Sicht und Einheit selbst spielen (18.10., langfristig)
+Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der Blick „ins Brett hinein" gut zum Thema.
+- [ ] **Stufe 1 – Ansicht aus Sicht der Einheit (nur schauen):** Ein Klick auf eine Einheit, ein Gebäude oder ein Wildtier öffnet eine Ego-Kamera (Kopfhöhe, Blick in Laufrichtung, Taste zum Zurückkehren). Kopf der Figur ausblenden, Nah-Ebene der Kamera klein genug, Gelände/Gras/Nebel/LOD/Chunks (`r3GrassView`, `r3Lod`, `r3Chunks`) müssen mit der tiefen Kamera arbeiten (sie gehen heute von der Draufsicht aus). Gebäude: Blick vom Dach/Eingang oder Wachposten. Tiere: Kopfhöhe des Tieres. Schatten und Leistung prüfen, im Mehrspieler nur lokal.
+- [ ] **Stufe 2 – Eine Einheit selbst steuern (Einzelspieler):** Laufen (WASD + Maus), Angriff/Schuss/Werkzeug auf Tastendruck, Zielen aus Ego-Sicht; Kollision über `navDyn`/Gelände, der Rest des Heeres läuft per KI/Befehl weiter. Auswahl der Fähigkeiten pro Einheit (Nahkampf, Fernkampf, Heilen, Bauen/Sammeln).
+- [ ] **Stufe 3 – Mehrspieler und Feinschliff:** Befehle der selbst gespielten Einheit im Mehrspieler übertragen (`NET.send`, `execRemote`), Spielerfigur im Spielstand kennzeichnen, Balance (nicht stärker als normal gesteuert), Sicht/Nebel des Krieges aus der Ego-Sicht.
+- Schätzung: Stufe 1 mittel (Kamera, Sichtbarkeits-Anpassungen), Stufe 2 gross (Eingabe, Kampf, Kollision), Stufe 3 gross. Erst nach den Arbeitspaketen A–D.
+
+## Idee von David: Reichweite und Einheiten-Info (18.10., später)
+- [ ] **Reichweiten-Anzeige:** Beim Anklicken von Truppen erscheint ein Ring mit ihrer Trefferreichweite (`rng` in `UNITS`): Bogenschützen, Kanonen, Katapulte usw.; bei mehreren Einheiten die jeweiligen Ringe oder der Ring der gewählten Gruppe. Ring in Teamfarbe, dezent, nur für die eigene Auswahl (auch für Gebäude mit `shoot`, z. B. Türme). Einen Mindestabstand für Belagerungswaffen (Kanone, Haubitze, Katapult) gibt es im Spiel noch nicht: erst als Spielregel in `data.js`/`sim.js` einführen (`minRng`), dann inneren Ring zeichnen; Mehrspieler: nur Anzeige, die Regel wirkt im Gastgeber.
+- [ ] **Info-Knopf („i") an Einheiten und Gebäuden:** Kleines i im Info-Feld öffnet ein Fenster mit Geschwindigkeit, Leben, Angriff, Reichweite, Angriffstempo, Rüstung/Klasse (`cls`, Gegenstücke `CTR`), Kosten, Ausbildungszeit, Stufe (`lvl`). Die Hinweise `unitTip` (ui.js) liefern schon einen Teil; Werte stufenabhängig über `LVL`/Technologien (`G.tfx`) berechnen, nicht nur Grundwerte.
