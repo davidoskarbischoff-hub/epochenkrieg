@@ -102,17 +102,17 @@ function r3Map(){
   const S=R3.S,{scene}=r3;r3Season();
   for(const o of R3.reg.values()){r3.gEnt.remove(o.obj);r3Drop(o.obj)}R3.reg.clear();
   if(r3.terrain){scene.remove(r3.terrain);r3.terrain.geometry.dispose();r3.terrain.material.map.dispose();scene.remove(r3.terrOv);scene.remove(r3.fogOv)}
-  const GW=TW,GH=TH,lg=new Float32Array(GW*GH),sg=new Float32Array(GW*GH);
+  const GW=TW,GH=TH;
   const cell=(a,x,y)=>a[Math.max(0,Math.min(GH-1,y))*GW+Math.max(0,Math.min(GW-1,x))];
-  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){let sl=0,ss=0,n=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const nx=Math.max(0,Math.min(GW-1,x+dx)),ny=Math.max(0,Math.min(GH-1,y+dy)),t=TERR[ny*GW+nx],wt=dx||dy?1:3;sl+=wt*(t>=2?1:0);ss+=wt*(t>=1?1:0);n+=wt}lg[y*GW+x]=sl/n;sg[y*GW+x]=ss/n}
-  const bil=(a,xu,zu)=>{const fx=Math.max(0,Math.min(GW-1.001,xu*S/TG-.5)),fz=Math.max(0,Math.min(GH-1.001,zu*S/TG-.5)),ix=fx|0,iz=fz|0,tx=fx-ix,tz=fz-iz;return(a[iz*GW+ix]*(1-tx)+a[iz*GW+ix+1]*tx)*(1-tz)+(a[(iz+1)*GW+ix]*(1-tx)+a[(iz+1)*GW+ix+1]*tx)*tz};
+  const lg=shoreField(t=>t>=2),sg=shoreField(t=>t>=1);
+  const bil=(a,xu,zu)=>shoreAt(a,xu*S/TG-.5,zu*S/TG-.5),bilH=(a,xu,zu)=>{const fx=Math.max(0,Math.min(GW-1.001,xu*S/TG-.5)),fz=Math.max(0,Math.min(GH-1.001,zu*S/TG-.5)),ix=fx|0,iz=fz|0,tx=fx-ix,tz=fz-iz;return(a[iz*GW+ix]*(1-tx)+a[iz*GW+ix+1]*tx)*(1-tz)+(a[(iz+1)*GW+ix]*(1-tx)+a[(iz+1)*GW+ix+1]*tx)*tz};
   // Höhenfeld für die Darstellung glätten (sonst sieht man die 20-px-Stufen der Felder)
   const HLs=new Float32Array(GW*GH);for(let pass=0;pass<2;pass++){const src=pass?HLs.slice():HL;for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){let sm=0,n=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const nx=Math.max(0,Math.min(GW-1,x+dx)),ny=Math.max(0,Math.min(GH-1,y+dy)),wt=dx||dy?1:3;sm+=wt*src[ny*GW+nx];n+=wt}HLs[y*GW+x]=sm/n}}
   const nz=(x,z)=>Math.sin(x*.11)*Math.cos(z*.09)*.5+Math.sin(x*.23+z*.17)*.25+Math.sin(x*.05-z*.07)*.6;
   const SX=W/S,SZ=H/S,NX=SX+1,NZ=SZ+1;hgrid.w=NX;hgrid.h=NZ;hgrid.a=new Float32Array(NX*NZ);
   const g=new THREE.PlaneGeometry(SX,SZ,SX,SZ);g.rotateX(-Math.PI/2);g.translate(SX/2,0,SZ/2);const pos=g.attributes.position;
-  for(let j=0;j<NZ;j++)for(let i=0;i<NX;i++){const l=bil(lg,i,j),sh=bil(sg,i,j),m=smooth3(.44,.56,l);
-    let sea=-.5+.16*smooth3(.3,.8,sh),land=bil(HLs,i,j)+nz(i*2.3,j*2.3)*.05;if(land>1.2)land+=(land-1.2)*.05*(Math.sin(i*.9+j*.3)*Math.cos(j*1.1)+Math.sin(i*2.3+j*1.7)*.6);hgrid.a[j*NX+i]=sea*(1-m)+land*m-(1-smooth3(0,7,Math.min(i,j,NX-1-i,NZ-1-j)))*2.4;pos.setY(j*NX+i,hgrid.a[j*NX+i])}
+  for(let j=0;j<NZ;j++)for(let i=0;i<NX;i++){const l=bil(lg,i,j),sh=bil(sg,i,j),m=smooth3(.40,.60,l);
+    let sea=-.5+.16*smooth3(.3,.8,sh),land=bilH(HLs,i,j)+nz(i*2.3,j*2.3)*.05;if(land>1.2)land+=(land-1.2)*.05*(Math.sin(i*.9+j*.3)*Math.cos(j*1.1)+Math.sin(i*2.3+j*1.7)*.6);hgrid.a[j*NX+i]=sea*(1-m)+land*m-(1-smooth3(0,7,Math.min(i,j,NX-1-i,NZ-1-j)))*2.4;pos.setY(j*NX+i,hgrid.a[j*NX+i])}
   g.computeVertexNormals();
   {const nm=g.attributes.normal,col=new Float32Array(pos.count*3);let my=0;for(let i=0;i<TERR.length;i++)if(TERR[i]===3&&HL[i]>my)my=HL[i];
     for(let i=0;i<pos.count;i++){const slope=1-nm.getY(i),sn=my>2.2&&R3.pk>0?smooth3(my*.46/R3.pk,my*.56/R3.pk,hlAt(pos.getX(i)*10,pos.getZ(i)*10)):0,s=smooth3(.1,.4,slope)*(1-sn*.92);const br=1+2.2*sn;col[i*3]=(1-s*.42)*br;col[i*3+1]=(1-s*.5)*br;col[i*3+2]=(1-s*.56)*br*(1+.06*sn)}g.setAttribute('color',new THREE.BufferAttribute(col,3))}
@@ -137,10 +137,11 @@ function r3Map(){
   /* Küstenschaum: helle, weich verlaufende Linie im flachen Wasser am Ufer; pulsiert wie anlaufende Wellen */
   if(r3.foam){scene.remove(r3.foam);r3.foam.material.map.dispose()}
   {const K=4,fc=document.createElement('canvas');fc.width=TW*K;fc.height=TH*K;const fx=fc.getContext('2d');
-    const land=(x,y)=>x>=0&&y>=0&&x<TW&&y<TH&&TERR[y*TW+x]>=2;
-    for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){if(TERR[y*TW+x]!==1)continue;let n1=0,n2=0;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){if(!land(x+dx,y+dy))continue;if(Math.abs(dx)<=1&&Math.abs(dy)<=1)n1++;else n2++}
-      const a=n1?.95:n2?.4:0;if(a){fx.fillStyle='rgba(255,255,255,'+a+')';fx.fillRect(x*K,y*K,K,K)}}
-    const f2=document.createElement('canvas');f2.width=fc.width;f2.height=fc.height;const x2=f2.getContext('2d');x2.filter='blur(5px)';x2.drawImage(fc,0,0);
+    /* aus dem weichen Land-/Flachwasser-Feld (shoreField), nicht aus den eckigen Feldern: Schaum folgt der runden Küstenlinie */
+    {const w=fc.width,h=fc.height,im=fx.createImageData(w,h);
+      for(let Y=0;Y<h;Y++)for(let X=0;X<w;X++){const gx=(X+.5)/K-.5,gy=(Y+.5)/K-.5,v=shoreAt(lg,gx,gy);if(v<.04||v>=.54)continue;const sv=shoreAt(sg,gx,gy),a=smooth3(.04,.32,v)*.95*(1-smooth3(.44,.54,v))*smooth3(.45,.6,sv),o=(Y*w+X)*4;im.data[o]=im.data[o+1]=im.data[o+2]=255;im.data[o+3]=a*255}
+      fx.putImageData(im,0,0)}
+    const f2=document.createElement('canvas');f2.width=fc.width;f2.height=fc.height;const x2=f2.getContext('2d');x2.filter='blur(3px)';x2.drawImage(fc,0,0);
     const t=new THREE.CanvasTexture(f2);t.colorSpace=THREE.SRGBColorSpace;
     const m=r3Chunks(g,NX,NZ,new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,opacity:.5,fog:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));m.renderOrder=1;scene.add(m);r3.foam=m}
   r3.terrOv=ovMat(terrCv,2,.75);r3.fogOv=ovMat(fogCv,3,1);
@@ -480,7 +481,7 @@ function r3Unit(o,e,h,dt,t){
       e._wi=!!(wp&&rig.wp.cur&&(kd==='chop'||kd==='mine'));/* Späne kommen dann vom Aufprall (r3Impact), nicht vom Takt in render.js */
       if(wp&&wp.imp)r3Impact(o,e,kd,rig);
       /* Figur tritt beim Arbeiten bis auf Griffweite an Baum/Strauch heran (nur Darstellung, die Spielposition bleibt) */
-      let sh=0;if(wp&&rig.wp.cur&&(kd==='chop'||kd==='pick'||kd==='mine')){const nd=G.byId.get(e.tid);if(nd){const dd=Math.hypot(nd.x-e.x,nd.y-e.y)/S,gap=kd==='chop'?1.35:kd==='pick'?1.15:nd.r/S*.9+1;sh=Math.max(-.3,Math.min(1.1,dd-gap))}}
+      let sh=0;if(wp&&rig.wp.cur&&(kd==='chop'||kd==='pick'||kd==='mine')){const nd=G.byId.get(e.tid);if(nd){const dd=Math.hypot(nd.x-e.x,nd.y-e.y)/S,gap=kd==='chop'?1.35:kd==='pick'?1.9:nd.r/S*.9+1;sh=Math.max(kd==='pick'?-1.3:-.3,Math.min(1.1,dd-gap))}}
       o.sh=(o.sh||0)+(sh-(o.sh||0))*Math.min(1,dt*3)}
     else if(rig.horse){rig.legs.forEach((l,i)=>l.rotation.z=(i%2?s:-s)*.7);const rd=rig.rider;rd.arms[1].rotation.z=.2+sw*.6}
     else if(rig.wheels){if(rig.load){rig.load.visible=(e.carry||0)>0;if(rig.loadMat&&rig.lc!==e.ctype){rig.lc=e.ctype;rig.loadMat.color.set({stone:0x8a8278,iron:0x8a4e3a,gold:0xe8c048}[e.ctype]||0x8a8278);if(rig.loadMat.metalness!==undefined)rig.loadMat.metalness=e.ctype==='gold'?.7:e.ctype==='iron'?.3:0}}if(rig.pusher&&moving){const p=rig.pusher,s=Math.sin(G.t*9);(p.legs||[]).forEach((l,i)=>l.rotation.z=(i?s:-s)*.5)}if(moving)rig.wheels.forEach(w=>w.rotation[w.userData.axis||'y']+=dt*3.2*(d.spd/40));if(rig.log)rig.log.position.x=sw*.9;if(rig.arm)rig.arm.rotation.z=-sw*1.8;if(rig.barrel)rig.barrel.position.x=.1-sw*.35}

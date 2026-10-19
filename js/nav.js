@@ -18,6 +18,14 @@ function vnoise(R,gw,gh){const g=[];for(let i=0;i<(gw+1)*(gh+1);i++)g.push(R());
 function walkNear(x,y){const cx=Math.max(0,Math.min(TW-1,(x/TG)|0)),cy=Math.max(0,Math.min(TH-1,(y/TG)|0));
   for(let r=0;r<60;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0||nx>=TW||ny>=TH)continue;if(TERR[ny*TW+nx]===2)return ny*TW+nx}
   return cy*TW+cx}
+/* Weiche Ufer (nur Darstellung, Spielregeln/TERR bleiben): Anteil Land/Wasser je Feld zweimal geglättet und bikubisch abgetastet – die 50-%-Linie ist eine runde Küstenlinie statt eckiger 20-px-Stufen */
+function shoreField(pred){const g=new Float32Array(TW*TH),h=new Float32Array(TW*TH);for(let i=0;i<g.length;i++)g[i]=pred(TERR[i])?1:0;
+  for(const cw of[3,4]){h.set(g);for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){let sm=0,n=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const nx=Math.max(0,Math.min(TW-1,x+dx)),ny=Math.max(0,Math.min(TH-1,y+dy)),wt=dx||dy?1:cw;sm+=wt*h[ny*TW+nx];n+=wt}g[y*TW+x]=sm/n}}
+  return g}
+function shoreAt(g,fx,fy){/* fx,fy in Feldkoordinaten (Mitte des Feldes = ganze Zahl), Catmull-Rom */
+  fx=Math.max(0,Math.min(TW-1.001,fx));fy=Math.max(0,Math.min(TH-1.001,fy));const ix=fx|0,iy=fy|0,tx=fx-ix,ty=fy-iy,cr=(a,b,c,d,t)=>b+.5*t*(c-a+t*(2*a-5*b+4*c-d+t*(3*(b-c)+d-a)));
+  const row=y=>{const o=Math.max(0,Math.min(TH-1,y))*TW,X=x=>g[o+Math.max(0,Math.min(TW-1,x))];return cr(X(ix-1),X(ix),X(ix+1),X(ix+2),tx)};
+  const v=cr(row(iy-1),row(iy),row(iy+1),row(iy+2),ty);return v<0?0:v>1?1:v}
 /* Höhe an einem Spielpunkt (bilinear aus dem Höhenfeld) */
 function hlAt(x,y){if(!HL)return 0;const fx=Math.max(0,Math.min(TW-1.001,x/TG-.5)),fy=Math.max(0,Math.min(TH-1.001,y/TG-.5)),ix=fx|0,iy=fy|0,tx=fx-ix,ty=fy-iy;
   return(HL[iy*TW+ix]*(1-tx)+HL[iy*TW+ix+1]*tx)*(1-ty)+(HL[(iy+1)*TW+ix]*(1-tx)+HL[(iy+1)*TW+ix+1]*tx)*ty}

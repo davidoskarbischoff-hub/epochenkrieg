@@ -132,6 +132,21 @@ Regeln: immer nur EIN Agent gleichzeitig, danach prüft Claude Ergebnis und Bild
   - [ ] B1 Delfin hat ein falsches Modell (Tuna/Schwertfisch): echtes Delfin-Aussehen (vorhandenes Modell suchen, sonst David um Modell bitten)
   - [ ] B2 Wale zu klein im Vergleich zu Delfinen → Wal deutlich grösser als Delfin
   - [ ] B3 Wasser an den Ufern zu kantig → weichere Küstenlinien (Gelände/`renderBg`/`r3Map`)
+- [ ] **Paket E – Truppen, Tiere, Bauregeln** (Agent, nach B und D)
+  - [ ] E1 Mauern müssen auch im seichten Wasser baubar sein (`placeBlock`/`wallSnap`, TERR 1)
+  - [ ] E2 Krokodile greifen zu oft und zu viele Arbeiter an (`updAnimal`, Aggro `agg`, Revier `leash`, Wasser-Tiere)
+  - [ ] E3 Truppen reagieren nicht automatisch: im Leerlauf Gefahren in der Nähe angreifen; dazu Wildtiere (gefährliche, nicht alle) rund um Arbeiter/Basis säubern, Truppen schauen im eigenen Gebiet nach (nicht gegen friedliche Tiere/Rehe als Beute verwechseln)
+  - [ ] E4 Heiler/Priester zu stark, zu viel Heilung: abschwächen (`healAura`, `CTR`)
+- [ ] **Paket F – Wirtschaft, Berater, Karten-Vorkommen** (Agent, nach E)
+  - [x] F1 Davids Partie: viel zu viel Nahrung und Holz (z. B. 16 000 Holz), die KI/der Berater baut kaum Stein und Eisen ab. Berater/Arbeiter-Verteilung (`advRules`, Auto-Verteilung) und KI (`w8`) prüfen; Farmen vs. Fischen vs. Jagd abgleichen (Farm soll weniger lohnen als Fischen/Jagd)
+  - [x] F2 Karten prüfen: Anzahl Bäume pro Karte (zu wenige), Stein/Eisen-Vorkommen und Spawns (`near(...)`, `feats` in `map.js`), Bäume sollen nicht zu schnell leer sein
+  - [x] F3 Berater reißt erschöpfte Minen automatisch ab und zeigt vorher den Hinweis „Mine erschöpft" (kleiner roter Pfeil/Marker, Meldung)
+  - [x] F4 Arbeiter an Bäumen kleben aneinander: besser auf Bäume/Büsche verteilen (`cap`, Zielwahl `nearestNode`, Abstand)
+- [ ] **Paket G – Optik-Feinschliff** (Agent, nach F)
+  - [x] G1 Beeren sammeln: Griffweite für Sträucher 1,15 → 1,9 (render3d.js `o.sh`, Figur darf bis 1,3 zurück); Kopf nicht mehr im Laub, Hände noch am Busch. Winter-Variante nicht einzeln geprüft
+  - [x] G2 (durch Paket D erledigt) Holzrand des Bretts mit Details (z. B. Schriftzug „Epochenkrieg", Verzierung)
+  - [x] G3 Mehr Vielfalt bei Arbeitern: `vary`-Einträge im Manifest dürfen Objekte sein `{file,tint,skin,hair}`. Steinzeit/Bronze/Eisen je 8 Typen (Adventurer, andere Kleidungsfarben/Haut/Haar), Mittelalter 7 Bauern (wie vorher), Renaissance 7 (Bürger/Reiche + 2 Bauern, eigener Eintrag), Industrie/Weltkrieg 9 (Bauarbeiter mit Helm/Weste in 6 Farbtypen, Overall-Farmer x3). Bewusst nicht: Bürger-Modelle in Industrie/Weltkrieg (Renaissance-Kleidung passt nicht)
+- Erledigt/Klärung: Delfine und Wale erscheinen erst im passenden Zeitalter (so gewollt); „Normal"-Schwierigkeit gefällt David; kein weisser Bildschirm mehr.
 - Davids Lob (nicht kaputt machen): Karten, Jahreszeiten, Arbeiter-Animationen.
 
 ## Erledigt
@@ -192,7 +207,24 @@ Bitte selbst herunterladen und hochladen (nur CC0/CC-BY). Lizenz auf der Seite v
 - Gefundener Fehler: `advIdle` rief `has()` auf (nur in `advRules` bekannt), ab Epoche 5 brach der Berater-Tick ab. Behoben.
 - Offen: Streuung der ersten KI-Angriffswelle (kann früh sterben); KI trainiert in der Sparphase vor einem Aufstieg wenig. Messskripte liegen im Scratchpad (bal/bal.js, `EPS` überschreibt die Aufstiegskosten).
 
+## Paket B (19.10.): Delfin, Wal, weiche Ufer, pendelnde Rehe
+- [x] B1 Delfin: im ganzen Repo (`models/`, `models/archiv/`, CREDITS.md) gibt es kein Delfin- oder Wal-Modell (nur Fische, Hai). Kein Selbstbau; Delfin bleibt Tuna/Schwertfisch (Grösse 2,3), Wal bleibt getönter Hai. Bitte David um ein Paket mit Delfin/Wal (z. B. Quaternius „Ultimate Animals“ Meer).
+- [x] B2 Wal 12 statt 6,5 Einheiten (ca. 5x Delfin, ca. 2,5x Fischerboot), Delfin 2,3; Vorkommen `whale` r 24 (vorher 16), Abstand `GAP.whale` 30. Wale pro Karte (S/L Küste): 6/14 statt 6/16; Fjord L und Seen L 0 statt 2 (tiefes Wasser fehlt).
+- [x] B3 Ufer: Ursache = Land/Wasser-Anteil nur einmal 3x3 geglättet und bilinear abgetastet (eckige Facetten), Schaum aus 20-px-Quadraten. Jetzt `shoreField` (2 Glättungen) + `shoreAt` (bikubisch) in nav.js, benutzt von `r3Map` (Gelände, Übergang .40–.60), Schaum (`r3.foam`) und `renderBg`-Maske. Nur Darstellung, TERR unverändert. Kosten: ca. 75 ms je Maske (L), `r3Map` 0,6 s einmalig.
+- [x] B4 Rehe/Tiere: Ursache 1: Wanderziele lagen in der Scheuchzone von Gebäuden/Einheiten -> Flucht, Wandern, Flucht. Ursache 2: Flucht wählte bei Blockade zufällige Richtung (Eckenpendeln). Ursache 3: Krokodil/Wolf jagten ein unerreichbares Ziel am Ufer endlos (bis 171 Richtungswechsel in 3 min). Fix in `updAnimal`: Ziele ausserhalb Scheuchzone (`a.nb`), Flucht-Hysterese 1,35x, Fluchtrichtung nur alle 1,2 s über begehbares Land, Jagd gibt nach 3 s ohne Annäherung auf (`noChase` 10 s). Test (3 Karten, 3 min, Arbeiter neben 6 Rehen): Rehe-Richtungswechsel 11/5/7 -> 1/3/0, Krokodil 171 -> 0, Wolf 21 -> 10 (Küste).
 ## Davids Rückmeldungen – Paket C (Arbeiter-Animationen)
 - [x] C1 Last schwebt: Rucksack (aus Adventurer) am Rücken + echte Ladung obenauf (Holz, Erz, Gold, Nahrung), alle Körper/Zeitalter geprüft.
 - [x] C2 Lore-Schieber: Füsse nach innen = Schienbein-Beugung der Reiter wurde auch auf Schieber angewandt; behoben.
 - [x] C3 Tempo 5×: Hiebe/Geräusche je Echtzeitsekunde 0,8 / 2,4 / 4,0 bei 1× / 3× / 5× (vorher Dehnung ×N, Clips max. 3×).
+
+## Paket D (19.10.): Startbild, Raum ohne Verzerrung, Tischlayout
+- [x] D1 Ladebild = Spielkarton (CSS/SVG): Deckel mit Titelbild-Platz (`images/titel.jpg|png|webp`, sonst gemalte Platzhalter-Grafik), Fortschritt mit Aufbau-Meldungen, wartet auf Modelle UND Raum samt Foto (kein halb geladenes Bild), Klick hebt den Deckel ab. Hauptmenü zeigt das Titelbild klein (ab 760 px Höhe) und verschiebt den Raum nach rechts. Austausch: `images/LIESMICH.md`.
+- [x] D2 Rundum-Foto unverzerrt: Kugelkappe um Augenhöhe (Foto 1:1, leicht weichgezeichnet, 2048 px) bis 14° unter dem Horizont, darunter ein echter Boden (Parkett aus Canvas, weicher Rand). Die Kappe braucht eigene UV (`v` wie bei voller Kugel), sonst wird das Foto gestreckt. `OPT.room`/`OPT.roomStudio` funktionieren weiter (Studio-Bild nicht neu geprüft).
+- [x] D3 Layout: Stifte raus, Sofa links schräg zum Tisch, Stuhl zum Tisch gerückt, Teppich unter Tisch/Stuhl (nur Farben), Kontaktschatten unter allen Möbeln/Gegenständen (`blob`), Öllampen-Glas durchsichtig (war schwarzer Stab), Menü-Kamera pendelt ±35° vor dem Tisch (statt Vollkreis durchs Sofa). Brettrahmen 14 breit mit Schriftzug „EPOCHENKRIEG“ und Rauten.
+- Ladezeit: Foto 4096→2048 px als Canvas (weniger Grafikspeicher), Parkett/Teppich aus Code (keine neuen Bilddateien).
+
+## Paket E (19.10.): Davids Rückmeldungen
+- [x] E1 Mauern/Tore auch im seichten Wasser (`wallSpot` in state.js: Land oder TERR 1; tiefes Wasser/Fels weiter gesperrt; im Wasser keine Steilheits-Prüfung, Fischschwärme stören nicht). Getestet: Mauerlinie über Ufer ins Flache, blockiert `navDyn`, Weg drumherum gefunden, Hafenregel unverändert.
+- [x] E2 Krokodile: `ANIMALS.croc` agg 105→70, leash 210→150, Schaden 24→15, Abklingzeit 1,2→1,6 s, `ambush:{bites:2,rest:55,grp:3}` (greift keine Gruppe ab 3 Einheiten an, höchstens 2 Bisse, dann `a.rest` 55 s Rückzug; verletzt <40 % taucht es ab). Test (12 Krokodile × 4 Arbeiter am Ufer, 15 min, 3 Karten): getötete Arbeiter 127 → 5 von 144.
+- [x] E3 „Truppen denken mit“ (`guardTick` in sim.js, Schalter `guardOn`/`ek-guard`, Standard an, nur Einzelspieler wie `frontLine`): freie Truppen (Leerlauf, kein `manual`) bekämpfen gefährliche Wildtiere (agg ≥ 110 oder jagend; keine Rehe, Krokodile, friedliche Dinos) im Umkreis 300 px um Arbeiter/Wirtschaftsgebäude, höchstens 8 Einheiten, nur bei klarer Überlegenheit (Leben×Schaden ≥ 1,3×), Leine 520 px/60 s (`u.gd`); Rundgänge: höchstens 2 Truppen gleichzeitig (`u.pat`), danach holt sie `frontLine` zurück. Kosten ca. 0 ms (0,91 vs 0,96 ms je Schritt).
+- [x] E4 Heiler: `healAura` neu: höchstens `HEAL_N`=3 Ziele je Heiler (die Verletztesten), im Kampf (Treffer < 4 s, `u.lh`) nur 40 %, mehrere Heiler = stärkster Wert + 25 % der übrigen, Heilrate 2,2 → 1,8, Faktor (1+maxHp/400). Gesamtheilung bei 10 Verwundeten: 1 Heiler 37,8 → 7,3 hp/s (Kampf 2,9), 4 Heiler 151 → 12,9 hp/s.

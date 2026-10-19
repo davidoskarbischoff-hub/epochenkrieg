@@ -100,7 +100,7 @@ function aiTick(){
   // Umverteilen: Sammler wechseln nie von selbst; bei Überfluss an einem Rohstoff und Mangel an einem anderen gehen zwei in den Leerlauf und werden neu verteilt
   if(diff!=='leicht'&&G.t>(ai.balT||0)){ai.balT=G.t+12;
     const rich=RES.filter(k=>w8[k]&&r[k]>1800),poor=RES.filter(k=>w8[k]&&r[k]<450&&k!=='oil');
-    if(rich.length&&poor.length){let n=0;for(const w of workers)if(n<2&&w.state==='gather'&&rich.includes(w.rtype)&&!(w.carry>1)&&!w.upj){w.state='idle';w.tid=null;w.rtype=null;n++}}}
+    if(rich.length&&(poor.length||RES.some(k=>w8[k]&&k!=='oil'&&!rich.includes(k)&&r[k]<1100))){let n=0;for(const w of workers)if(n<2&&w.state==='gather'&&rich.includes(w.rtype)&&!(w.carry>1)&&!w.upj){w.state='idle';w.tid=null;w.rtype=null;n++}}}
   // Bauarbeiter
   for(const b of unbuilt){const busy=workers.some(w=>w.state==='build'&&w.tid===b.id);if(!busy){let bw=null,bd=1e9;for(const w of workers){if(w.state==='build')continue;const d=dist(w,b);if(d<bd){bd=d;bw=w}}if(bw){bw.state='build';bw.tid=b.id}}}
   // Lager neben weit entfernten Vorkommen, damit die Wege kurz bleiben

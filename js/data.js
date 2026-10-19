@@ -25,7 +25,7 @@ const UNITS={
   tank:{cls:'siege',tech:'armor',name:'Panzer',sight:230,hp:900,spd:48,atk:120,rng:210,cd:2.0,r:17,cost:{wood:200,iron:320,gold:140,oil:60},time:38,ep:5,from:'barracks',splash:26,ranged:true,siege:true},
   howitzer:{cls:'siege',tech:'artillery',name:'Haubitze',sight:230,hp:200,spd:34,atk:90,rng:300,cd:4.8,r:12,cost:{gold:110,wood:260,iron:260},time:34,ep:5,from:'barracks',splash:45,ranged:true,siege:true},
   ironclad:{cls:'ship',tech:'ironclads',name:'Panzerschiff',naval:true,ranged:true,sight:280,hp:620,spd:58,atk:44,rng:240,cd:2.4,r:17,cost:{gold:90,wood:260,iron:240},time:40,ep:5,from:'harbor'},
-  healer:{cls:'med',passive:true,heal:2.2,name:'Heiler',sight:150,hp:80,spd:56,atk:0,rng:4,cd:1.2,r:7,cost:{food:60,wood:20},time:14,ep:0,from:'barracks'},
+  healer:{cls:'med',passive:true,heal:1.8,name:'Heiler',sight:150,hp:80,spd:56,atk:0,rng:4,cd:1.2,r:7,cost:{food:60,wood:20},time:14,ep:0,from:'barracks'},
   engineer:{cls:'inf',builds:true,name:'Ingenieur',sight:160,hp:95,spd:54,atk:7,rng:5,cd:1.2,r:7,cost:{food:70,wood:50,iron:20},time:16,ep:3,from:'barracks'},
   /* ---- Weltkriegszeit (Zeitalter VII): gemeinsame Truppen für alle Nationen ---- */
   assault:{cls:'inf',name:'Sturmsoldat',sight:170,hp:200,spd:62,atk:32,rng:6,cd:1.0,r:8,cost:{food:110,iron:50,gold:30},time:16,ep:6,from:'barracks'},
@@ -86,7 +86,7 @@ const NODES={tree:{cap:3,rt:'wood',amt:420,r:11,name:'Baum'},bush:{cap:3,rt:'foo
   // Wasser: nur Boote können hier sammeln (Delfine ab Stufe II, Wale ab Stufe III)
   fish:{cap:2,sea:true,rt:'food',amt:160,r:8,name:'Fischschwarm',gm:1,regen:.55},
   dolphin:{cap:3,sea:true,rt:'food',amt:700,r:11,name:'Delfine',gm:1.8,lvl:3,regen:.45},
-  whale:{cap:4,sea:true,rt:'food',amt:2400,r:16,name:'Wal',gm:2.6,lvl:5,regen:.5,side:{oil:.25}}};
+  whale:{cap:4,sea:true,rt:'food',amt:2400,r:24,name:'Wal',gm:2.6,lvl:5,regen:.5,side:{oil:.25}}};
 const EPOCHS=[{name:'Steinzeit',cost:{food:1050,wood:700},time:90},{name:'Bronzezeit',cost:{food:2000,wood:1250,stone:200},time:110},{name:'Eisenzeit',cost:{food:3150,wood:2000,stone:250,iron:200},time:130},{name:'Mittelalter',cost:{food:4500,wood:2700,stone:350,iron:300,gold:150},time:150},{name:'Renaissance',cost:{food:5200,wood:3000,stone:400,iron:350,gold:200},time:170},{name:'Industriezeit',cost:{food:6800,wood:3800,stone:550,iron:500,gold:300,oil:150},time:190},{name:'Weltkriegszeit'}];
 /* Wilde Tiere: agg = Aggro-Reichweite (greift an, wenn jemand näher kommt), leash = so weit folgt es seinem Revier-Mittelpunkt, roam = Streifgebiet,
    flee = friedliche Tiere fliehen ab dieser Nähe, food = Nahrung für den, der es erlegt, h = Höhe fürs Anzeigen */
@@ -96,7 +96,7 @@ const ANIMALS={
   bear:{name:'Bär',from:1,hp:280,spd:60,atk:24,rng:7,cd:1.3,r:11,sight:150,agg:120,leash:300,roam:80,food:220,h:34,info:'Sehr stark – verteidigt sein Revier'},
   mammoth:{name:'Mammut',hp:520,spd:46,atk:30,rng:10,cd:1.6,r:16,sight:150,agg:75,leash:260,roam:70,food:700,h:46,ext:1,info:'Riesig und friedlich, wehrt sich aber – viel Nahrung. Stirbt nach der Steinzeit aus'},
   sabertooth:{name:'Säbelzahntiger',hp:240,spd:100,atk:26,rng:7,cd:1,r:10,sight:200,agg:190,leash:450,roam:150,food:200,h:28,ext:1,info:'Schnell und tödlich. Stirbt nach der Steinzeit aus'},
-  croc:{name:'Krokodil',from:1,hp:210,spd:75,atk:24,rng:9,cd:1.2,r:10,sight:170,agg:105,leash:210,roam:60,food:160,h:10,water:true,info:'Lauert im seichten Wasser – gefährlich für alles am Ufer'},
+  croc:{name:'Krokodil',from:1,hp:210,spd:75,atk:15,rng:9,cd:1.6,r:10,sight:170,agg:70,leash:150,roam:60,food:160,h:10,water:true,ambush:{bites:2,rest:55,grp:3},info:'Lauert im seichten Wasser – gefährlich für alles am Ufer'},
   /* Dinosaurier der Steinzeit (sterben beim ersten Aufstieg aus): Pflanzenfresser fliehen oder wehren sich, Fleischfresser jagen alles in ihrer Nähe */
   para:{name:'Parasaurolophus',hp:160,spd:80,r:11,sight:180,flee:150,roam:130,food:280,h:34,ext:1,info:'Pflanzenfresser – scheu, flieht im Rudel. Viel Nahrung'},
   trike:{name:'Triceratops',hp:620,spd:50,atk:34,rng:12,cd:1.5,r:17,sight:150,agg:65,leash:240,roam:70,food:700,h:36,ext:1,info:'Pflanzenfresser – friedlich, wehrt sich aber mit den Hörnern. Viel Nahrung'},

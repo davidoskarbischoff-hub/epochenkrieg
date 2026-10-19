@@ -69,7 +69,7 @@ function advIdle(){
 function shiftWorkers(from,to,n){let k=0;for(const w of G.ents){if(k>=n)break;if(w.dead||w.team!==0||w.type!=='worker'||w.rtype!==from||(w.state!=='gather'&&w.state!=='mine')||w.upj||!canGather(w,to))continue;const nd=nearestNode(to,w.x,w.y,900,w,true)||nearestNode(to,w.x,w.y,900,w);if(nd){if(w.inm)mineOut(w);w.state='gather';w.tid=nd.id;w.rtype=to;w.pf=null;w.carry=0;k++}}sfx('order')}
 function sendArmy(tx,ty){const us=G.ents.filter(u=>!u.dead&&u.team===0&&u.kind==='unit'&&!UNITS[u.type].passive&&!UNITS[u.type].naval&&!u.upj);const cols=Math.ceil(Math.sqrt(us.length)||1);us.forEach((u,i)=>giveOrder(u,{t:'amove',x:tx+(i%cols-(cols-1)/2)*20,y:ty+(Math.floor(i/cols)-(cols-1)/2)*20},false));fxMark(tx,ty,'attack');sfx('order')}
 /* Reihenfolge der Vorschläge: kleiner = wichtiger (Verteidigung 0, Mangel/Untätige 1, ...) */
-function advKey(r){const S=STRATS[advisor.strat]||STRATS.balanced,bw=S.w||{},base={defend:0,low:0.5,idle:1,adv:1.5,balance:2,explore:3,in:4},k=r.id.split(':')[0];return bw[k]!==undefined?bw[k]:base[k]!==undefined?base[k]:5}
+function advKey(r){const S=STRATS[advisor.strat]||STRATS.balanced,bw=S.w||{},base={defend:0,low:0.5,idle:1,adv:1.5,demo:1.8,surplus:2.1,balance:2,explore:3,in:4},k=r.id.split(':')[0];return bw[k]!==undefined?bw[k]:base[k]!==undefined?base[k]:5}
 function advRules(){
   const ep=G.epoch[0],R=G.res[0],hq=G.ents.find(e=>e.type==='hq'&&e.team===0&&!e.dead);if(!hq||!hq.built)return[];
   const mine=G.ents.filter(e=>!e.dead&&e.team===0),has=t=>mine.filter(e=>e.type===t);
@@ -97,6 +97,8 @@ function advRules(){
   if(ep>=(advisor.strat==='turtle'?0:1)&&has('tower').length<S.tow(ep)&&workers.length>=8&&afford(0,BLDS.tower.cost)&&advFindSpot('tower'))push({id:'tower',txt:'einen Wachturm bauen, um Land zu erobern und zu überblicken',cost:BLDS.tower.cost,go:()=>advBuild('tower')});
   if(!has('harbor').length&&workers.length>=9&&afford(0,BLDS.harbor.cost)&&advFish().length&&advFindSpot('harbor',1))push({id:'harbor',txt:'einen Hafen bauen, um Fische zu fangen',cost:BLDS.harbor.cost,go:()=>advBuild('harbor',advFindSpot('harbor',1))});
   if(ep>=1&&workers.length>=8&&has('farm').length<Math.min(2+ep,5)&&R.food<420&&afford(0,BLDS.farm.cost)&&advFindSpot('farm')&&!mine.some(e=>e.type==='farm'&&!e.built))push({id:'farm',txt:'ein Feld anlegen (Nahrung, die nie ausgeht)',cost:BLDS.farm.cost,go:()=>advBuild('farm')});
+  // erschöpfte Minen abreißen (Rest im Lager wird erstattet; nicht, solange noch eine Lore unterwegs ist)
+  {const em=has('mine').find(b=>b.built&&b.empty&&!G.ents.some(c=>c.type==='cart'&&c.home===b.id&&!c.dead));if(em)push({id:'demo:'+em.id,txt:'die erschöpfte Mine abreißen (es gibt dort nichts mehr zu holen)',go:()=>{demolish(0,em.id);sfx('click')}})}
   // Minen: Eisen ab der Eisenzeit, Gold ab dem Mittelalter; Markt zum Tauschen
   if(ep>=1&&workers.length>=6&&!mine.some(e=>(e.type==='mine'||e.type==='derrick')&&!e.built))for(const rt of['stone','iron','gold','oil']){if(ep<RES_EP[rt])continue;const bt=MINE_RT[rt],sp=advMineSpot(rt,hq);if(!afford(0,BLDS[bt].cost))continue;
     if(sp){push({id:'mine:'+rt,txt:bt==='mine'?'eine Mine für {0} bauen (ohne Mine kann man {0} nicht abbauen)':'einen Bohrturm für {0} bauen (ohne Bohrturm gibt es kein {0})',args:[rn(rt)],cost:BLDS[bt].cost,go:()=>advBuild(bt,sp)});break}}
@@ -126,6 +128,11 @@ function advRules(){
   if(workers.length>=8){const can=RES.filter(rt=>workers.some(w=>canGather(w,rt))),on=rt=>workers.filter(w=>w.rtype===rt&&(w.state==='gather'||w.state==='mine')).length;
     const lo=can.filter(rt=>R[rt]<100).sort((x,y)=>R[x]-R[y])[0],hi=can.filter(rt=>R[rt]>420&&on(rt)>=4).sort((x,y)=>R[y]-R[x])[0];
     if(lo&&hi&&lo!==hi)push({id:'balance:'+lo,txt:'3 Arbeiter von {0} auf {1} umstellen (hier fehlt es, dort liegt genug)',args:[rn(hi),rn(lo)],go:()=>shiftWorkers(hi,lo,3)})}
+  // Überschuss: ein Rohstoff liegt weit über dem Bedarf (> 1800), ein anderer ist knapp -> 4 Arbeiter umstellen (auch Stein/Eisen/Gold, sobald eine Mine mit freiem Platz da ist)
+  if(workers.length>=10){const goal=ep<EPOCHS.length-1?EPOCHS[ep].cost:{},can=RES.filter(rt=>ep>=(RES_EP[rt]||0)&&workers.some(w=>canGather(w,rt))),on=rt=>workers.filter(w=>w.rtype===rt&&(w.state==='gather'||w.state==='mine')).length;
+    const big=rt=>Math.max(1800,(goal[rt]||0)*1.25+500),low=rt=>Math.max(450,Math.min(900,(goal[rt]||0)*.6)),hi=can.filter(rt=>R[rt]>big(rt)&&on(rt)>=5).sort((x,y)=>R[y]/big(y)-R[x]/big(x))[0];
+    if(hi){const lo=can.filter(rt=>rt!==hi&&rt!=='oil'&&R[rt]<low(rt)&&on(rt)<14&&nearestNode(rt,hq.x,hq.y,900,workers[0],true)).sort((x,y)=>R[x]/low(x)-R[y]/low(y))[0];
+      if(lo)push({id:'surplus:'+lo,txt:'4 Arbeiter von {0} ({1} im Lager) auf {2} umstellen (zu viel {0}, zu wenig {2})',args:[rn(hi),Math.floor(R[hi]),rn(lo)],go:()=>shiftWorkers(hi,lo,4)})}}
   // Lager am Wald: wenn viele Holzfäller weit vom nächsten Abgabegebäude arbeiten
   {const drops=mine.filter(e=>e.kind==='bld'&&e.built&&BLDS[e.type].drop),cutters=workers.filter(w=>w.rtype==='wood'&&(w.state==='gather'||w.state==='return')&&w.tid&&G.byId.get(w.tid));
     if(cutters.length>=3&&drops.length&&workers.length>=6&&afford(0,BLDS.store.cost)&&!mine.some(e=>e.type==='store'&&!e.built)){

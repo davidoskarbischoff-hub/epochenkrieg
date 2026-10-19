@@ -30,6 +30,8 @@ function ovUnit(u){
 }
 function ovBld(b){
   const r=b.r,hh=entH(b);
+  if(b.team===0&&b.empty&&b.built){const bob=Math.sin(performance.now()/260)*3;atGround(b.x,b.y,hh+22,()=>{ctx.translate(0,bob);ctx.fillStyle='#d0432c';ctx.strokeStyle='#fff3ea';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-8,-14);ctx.lineTo(8,-14);ctx.lineTo(8,-5);ctx.lineTo(0,5);ctx.lineTo(-8,-5);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.lineWidth=3;ctx.strokeStyle='rgba(20,15,10,.9)';const lb=tr('Mine erschöpft');ctx.strokeText(lb,0,-17);ctx.fillStyle='#ffd9cf';ctx.fillText(lb,0,-17)})} /* roter Pfeil über erschöpfter Mine, bis sie abgerissen ist */
   if(b.type!=='wall')atGround(b.x,b.y,hh+6,()=>{const bx=0,by=0;ctx.fillStyle='rgba(20,15,10,.85)';ctx.strokeStyle=LVLC[b.lvl];ctx.lineWidth=1.5;ctx.beginPath();ctx.rect(bx-9,by-6,18,12);ctx.fill();ctx.stroke();ctx.fillStyle=LVLC[b.lvl];ctx.font='bold 9px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(LVLN[b.lvl],bx,by+.5)});
   if(!b.built)atGround(b.x,b.y+r,0,()=>{
     const bw=Math.max(46,r*2+10),bx=-bw/2,by=8,busy=busyIds().has(b.id),warn=b.team===0&&!busy;
