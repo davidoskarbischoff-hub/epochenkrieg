@@ -95,8 +95,15 @@ function autoExpand(){
       if(sp){let w=null,bd=1e9;for(const u of mine)if(u.type==='worker'&&!u.upj&&u.state!=='build'){const d=Math.hypot(u.x-b.x,u.y-b.y);if(d<bd){bd=d;w=u}}
         if(w&&put('tower',sp,[w]))toast(tr('Ein Arbeiter baut einen Wachturm zur Sicherung des vorgeschobenen Lagers.'),'good')}}}}
 /* Heiler heilen verbündete Truppen in der Nähe */
-function healAura(){for(const h of G.ents){if(h.dead||h.kind!=='unit'||h.type!=='healer'||h.upj)continue;const hv=UNITS.healer.heal*.5*(h.rage>G.t?RAGE.dmg:1);
-  for(const u of G.ents){if(u.dead||u.team!==h.team||u.kind!=='unit'||u.hp>=u.maxHp||Math.hypot(u.x-h.x,u.y-h.y)>95)continue;h.healT=G.t;u.hp=Math.min(u.maxHp,u.hp+hv*(u.type==='healer'?.5:1)*(1+u.maxHp/200))}}}
+/* Heiler (E4 abgeschwächt): jeder Heiler versorgt höchstens HEAL_N der am schwersten Verletzten in 95 px (nicht mehr alle), im Kampf (Treffer in den letzten 4 s) nur zu 40 %,
+   mehrere Heiler addieren sich nicht voll: stärkster Wert plus 25 % der übrigen. Heiler heilen sich nicht selbst, andere Heiler zur Hälfte. */
+const HEAL_N=3,HEAL_COMBAT=.4,HEAL_STACK=.25;
+function healAura(){const got=new Map();
+  for(const h of G.ents){if(h.dead||h.kind!=='unit'||h.type!=='healer'||h.upj)continue;const hv=UNITS.healer.heal*.5*(h.rage>G.t?RAGE.dmg:1);
+    const c=[];for(const u of G.ents){if(u.dead||u===h||u.team!==h.team||u.kind!=='unit'||u.hp>=u.maxHp||Math.hypot(u.x-h.x,u.y-h.y)>95)continue;c.push(u)}
+    c.sort((a,b)=>a.hp/a.maxHp-b.hp/b.maxHp);
+    for(const u of c.slice(0,HEAL_N)){h.healT=G.t;const v=hv*(u.type==='healer'?.5:1)*(1+u.maxHp/400)*(G.t-(u.lh||-99)<4?HEAL_COMBAT:1);(got.get(u)||got.set(u,[]).get(u)).push(v)}}
+  for(const [u,l] of got){l.sort((a,b)=>b-a);let v=l[0];for(let k=1;k<l.length;k++)v+=l[k]*HEAL_STACK;u.hp=Math.min(u.maxHp,u.hp+v)}}
 /* Kampfrausch: kurzzeitig mehr Schaden und Tempo für alle gewählten Truppen */
 function useRage(team,ids){let n=0;for(const id of ids){const u=G.byId.get(id);if(!u||u.dead||u.team!==team||u.kind!=='unit'||UNITS[u.type].passive||UNITS[u.type].naval||u.upj)continue;if((u.rageCd||0)>G.t)continue;u.rage=G.t+RAGE.dur;u.rageCd=G.t+RAGE.cd;n++}if(n&&team===0)sfx('yell');return n}
 /* Angefangene Gebäude ohne Bauarbeiter bekommen einen: Arbeiter, der gerade nichts Wichtiges trägt, hilft beim Fertigbauen */
@@ -266,7 +273,7 @@ function damage(t,amt,src){
   if(t.kind==='unit'&&G.ents.some(b=>b.kind==='bld'&&b.type==='trench'&&b.built&&!b.dead&&b.team===t.team&&Math.hypot(b.x-t.x,b.y-t.y)<30))amt*=.65;
   if(!(t.hp>=0))t.hp=t.maxHp||1;
   if(t.gar)amt*=.5;
-  t.hp-=amt;
+  t.hp-=amt;if(t.kind==='unit'&&amt>0)t.lh=G.t;
   if(t.kind==='animal'&&src&&src.team>=0&&t.hp>0){const d=ANIMALS[t.type];if(d.ambush&&(G.t<(t.rest||0)||t.hp<t.maxHp*.4)){t.state='return';t.tid=null;t.rest=Math.max(t.rest||0,G.t+d.ambush.rest*.5)}else if(d.agg){if(t.state!=='chase'){t.tid=src.id;t.state='chase'}}else{t.state='flee';t.thr={x:src.x,y:src.y};t.until=G.t+4}}
   if(src&&t.kind==='unit'&&!UNITS[t.type].passive&&t.state==='idle'){t.tid=src.id;t.state='attack'}
   if(src&&src.kind==='animal'&&t.kind==='unit'&&UNITS[t.type].passive&&t.hp>0&&!UNITS[t.type].naval){ // Arbeiter fliehen zum nächsten Lager

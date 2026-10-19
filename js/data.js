@@ -25,7 +25,7 @@ const UNITS={
   tank:{cls:'siege',tech:'armor',name:'Panzer',sight:230,hp:900,spd:48,atk:120,rng:210,cd:2.0,r:17,cost:{wood:200,iron:320,gold:140,oil:60},time:38,ep:5,from:'barracks',splash:26,ranged:true,siege:true},
   howitzer:{cls:'siege',tech:'artillery',name:'Haubitze',sight:230,hp:200,spd:34,atk:90,rng:300,cd:4.8,r:12,cost:{gold:110,wood:260,iron:260},time:34,ep:5,from:'barracks',splash:45,ranged:true,siege:true},
   ironclad:{cls:'ship',tech:'ironclads',name:'Panzerschiff',naval:true,ranged:true,sight:280,hp:620,spd:58,atk:44,rng:240,cd:2.4,r:17,cost:{gold:90,wood:260,iron:240},time:40,ep:5,from:'harbor'},
-  healer:{cls:'med',passive:true,heal:2.2,name:'Heiler',sight:150,hp:80,spd:56,atk:0,rng:4,cd:1.2,r:7,cost:{food:60,wood:20},time:14,ep:0,from:'barracks'},
+  healer:{cls:'med',passive:true,heal:1.8,name:'Heiler',sight:150,hp:80,spd:56,atk:0,rng:4,cd:1.2,r:7,cost:{food:60,wood:20},time:14,ep:0,from:'barracks'},
   engineer:{cls:'inf',builds:true,name:'Ingenieur',sight:160,hp:95,spd:54,atk:7,rng:5,cd:1.2,r:7,cost:{food:70,wood:50,iron:20},time:16,ep:3,from:'barracks'},
   /* ---- Weltkriegszeit (Zeitalter VII): gemeinsame Truppen für alle Nationen ---- */
   assault:{cls:'inf',name:'Sturmsoldat',sight:170,hp:200,spd:62,atk:32,rng:6,cd:1.0,r:8,cost:{food:110,iron:50,gold:30},time:16,ep:6,from:'barracks'},
