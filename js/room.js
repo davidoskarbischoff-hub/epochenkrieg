@@ -23,20 +23,41 @@ const ROOM={BGS:{werkstatt:'artist_workshop.jpg',studio:'ferndale_studio.jpg'},o
   /* nur Tasse + Untertasse behalten (Teeservice hat Kanne, Zuckerdose, mehrere Tassen) */
   function keep(o,p){const hit=[];o.traverse(m=>{if(m.isMesh)hit.push(m)});const cup=hit.find(m=>/_cup_small/i.test(m.name)),sau=hit.find(m=>/saucer/i.test(m.name));
     if(!cup||!sau)return;hit.forEach(m=>{if(m!==cup&&m!==sau)m.parent.remove(m)});if(cup.parent===sau.parent){cup.position.x=sau.position.x;cup.position.z=sau.position.z}}
-  /* Foto-Raum: Kugel, deren untere Hälfte auf eine Bodenebene gedrückt ist (wie three.js GroundedSkybox) → Tisch steht auf dem Fotoboden */
-  function groundSky(tex,height,radius){const g=new THREE.SphereGeometry(radius,96,48);g.scale(1,1,-1);const pos=g.attributes.position,v=new THREE.Vector3(),y1=-height*1.5;
-    for(let i=0;i<pos.count;i++){v.fromBufferAttribute(pos,i);if(v.y<0){const f=v.y<y1?-height/v.y:1-v.y*v.y/(3*y1*y1);v.multiplyScalar(f);v.toArray(pos.array,3*i)}}pos.needsUpdate=true;
-    const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:tex,depthWrite:false,fog:false}));m.renderOrder=-1;return m}
+  /* Foto-Raum ohne Verzerrung: Das Rundum-Foto liegt unverändert (wie durch ein Fenster fotografiert) auf einer Kugelkappe um den Tisch.
+     Die Kappe endet dort, wo im Foto Wand und Boden zusammenstossen (Höhenwinkel E0); darunter liegt ein echter Boden (Parkett), der genau am Rand anschliesst. */
+  const E0=33*Math.PI/180;
+  function dome(tex,Rs){const th=Math.PI/2+E0,g=new THREE.SphereGeometry(Rs,128,56,0,Math.PI*2,0,th);g.scale(-1,1,1);
+    const pos=g.attributes.position,col=new Float32Array(pos.count*3);
+    for(let i=0;i<pos.count;i++){const el=Math.asin(pos.getY(i)/Rs),t=Math.min(1,Math.max(0,(el+E0)/.38)),k=.16+.84*(t*t*(3-2*t));col[3*i]=col[3*i+1]=col[3*i+2]=k} /* unten weich ins Dunkle (Fussleiste/Boden) */
+    g.setAttribute('color',new THREE.BufferAttribute(col,3));
+    const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({map:tex,vertexColors:true,depthWrite:false,fog:false}));m.renderOrder=-1;m.frustumCulled=false;return m}
+  /* Foto leicht weichzeichnen und verkleinern (Hintergrund soll nicht schärfer sein als das Spiel davor) */
+  function softPhoto(img,w){const c=document.createElement('canvas');c.width=w;c.height=w/2;const x=c.getContext('2d');try{x.filter='blur(1.6px)'}catch(_){}x.drawImage(img,0,0,c.width,c.height);return c}
+  /* Parkett: Dielen im Verband, nahtlos wiederholbar (Tafel = 800 Welt-Einheiten) */
+  ROOM.TILE=800;
+  function parquetTex(){const N=1024,rows=16,rh=N/rows,c=document.createElement('canvas');c.width=c.height=N;const x=c.getContext('2d');let r=11;const rnd=()=>(r=(r*16807)%2147483647)/2147483647;
+    x.fillStyle='#3a2c20';x.fillRect(0,0,N,N);
+    for(let j=0;j<rows;j++){let px=-rnd()*400;const y=j*rh;
+      while(px<N){const L=260+rnd()*340,x0=px,x1=Math.min(N,px+L),w=x1-Math.max(0,x0);px+=L;if(w<=0)continue;const a=Math.max(0,x0);
+        const l=30+rnd()*10,h=24+rnd()*6,s=18+rnd()*14;x.fillStyle='hsl('+h+','+s+'%,'+l+'%)';x.fillRect(a,y,w,rh);
+        for(let i=0;i<9;i++){const gy=y+rnd()*rh;x.strokeStyle=rnd()<.5?'rgba(30,18,8,'+(.10+rnd()*.16)+')':'rgba(220,190,150,'+(.05+rnd()*.08)+')';x.lineWidth=.6+rnd()*1.2;x.beginPath();x.moveTo(a,gy);x.bezierCurveTo(a+w*.3,gy+(rnd()-.5)*4,a+w*.7,gy+(rnd()-.5)*4,a+w,gy+(rnd()-.5)*3);x.stroke()}
+        x.fillStyle='rgba(15,8,3,.55)';x.fillRect(a,y,1.6,rh);x.fillRect(a,y,w,1.4);x.fillStyle='rgba(235,205,160,.10)';x.fillRect(a,y+rh-1.2,w,1.2)}}
+    for(let i=0;i<60;i++){x.fillStyle='rgba(20,10,4,'+(.05+rnd()*.07)+')';x.beginPath();x.ellipse(rnd()*N,rnd()*N,4+rnd()*14,2+rnd()*5,rnd()*3,0,6.283);x.fill()}
+    const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;return t}
+  /* weicher Schattenfleck (Kontakt zum Boden bzw. zur Tischplatte), Grösse aus der Boxgrösse des Gegenstands */
+  let blobTex=null;
+  function blob(w,d,y,op){if(!blobTex){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),gr=x.createRadialGradient(64,64,6,64,64,64);gr.addColorStop(0,'rgba(0,0,0,.9)');gr.addColorStop(.55,'rgba(0,0,0,.45)');gr.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gr;x.fillRect(0,0,128,128);blobTex=new THREE.CanvasTexture(c)}
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({map:blobTex,transparent:true,opacity:op,depthWrite:false,fog:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));m.rotation.x=-Math.PI/2;m.position.y=y;m.renderOrder=1;return m}
   ROOM.init=async function(){
     if(ROOM.g||typeof EKGLTF==='undefined'||!R3.ok)return;if(typeof OPT!=='undefined'&&OPT.room===false)return;
     const L=new EKGLTF.GLTFLoader(),g=new THREE.Group();g.name='room';ROOM.g=g;g.visible=false;r3.scene.add(g);
     /* Schreibtisch: Platte so gross, dass das Brett (480×320) mit Rand Platz hat */
     const desk=await load(L,'metal_office_desk');let deskTop=ROOM.DESK,floor=ROOM.DESK-.75*K;
-    if(desk){prep(desk);ROOM.deskMats=[];desk.traverse(m=>{if(m.isMesh&&m.material&&!ROOM.deskMats.includes(m.material))ROOM.deskMats.push(m.material)});desk.updateMatrixWorld(true);let b=box(desk),sz=b.getSize(new THREE.Vector3());
+    if(desk){desk.name='desk';prep(desk);ROOM.deskMats=[];desk.traverse(m=>{if(m.isMesh&&m.material&&!ROOM.deskMats.includes(m.material))ROOM.deskMats.push(m.material)});desk.updateMatrixWorld(true);let b=box(desk),sz=b.getSize(new THREE.Vector3());
       desk.scale.set(980/sz.x,(.75*K)/sz.y,640/sz.z);desk.updateMatrixWorld(true);b=box(desk);
       desk.position.set(240-(b.min.x+b.max.x)/2,deskTop-b.max.y,160-(b.min.z+b.max.z)/2);g.add(desk);floor=deskTop-(b.max.y-b.min.y)}
     ROOM.floor=floor;
-    const place=async(p,y0)=>{const o=await load(L,p.f);if(!o)return;if(p.only)keep(o,p);prep(o);o.scale.setScalar(K*(p.s||1));o.rotation.y=p.ry||0;o.updateMatrixWorld(true);const b=box(o);
+    const place=async(p,y0)=>{const o=await load(L,p.f);if(!o)return;o.name=p.f;if(p.only)keep(o,p);prep(o);o.scale.setScalar(K*(p.s||1));o.rotation.y=p.ry||0;o.updateMatrixWorld(true);const b=box(o);
       o.position.set(p.x-(p.only?(b.min.x+b.max.x)/2:0),p.ceil?floor+2.7*K-b.max.y:y0-b.min.y,p.z-(p.only?(b.min.z+b.max.z)/2:0));g.add(o);
       if(p.top){o.updateMatrixWorld(true);const tb=box(o);await Promise.all(p.top.map(q=>place({f:q.f,x:p.x+q.dx,z:p.z,ry:q.ry},tb.max.y)))}};
     await Promise.all(DESK_PROPS.map(p=>place(p,deskTop)).concat(FLOOR_PROPS.map(p=>place(p,floor))));
