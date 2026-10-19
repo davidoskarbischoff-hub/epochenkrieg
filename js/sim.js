@@ -45,6 +45,37 @@ function frontLine(){
   D=Math.min(D,760);const us=G.ents.filter(u=>!u.dead&&u.team===0&&u.kind==='unit'&&u.state==='idle'&&!u.manual&&!u.upj&&!(u.q&&u.q.length)&&!UNITS[u.type].gather&&!UNITS[u.type].passive&&!UNITS[u.type].naval&&u.type!=='scout');
   us.forEach((u,i)=>{const row=Math.floor(i/8),col=i%8-3.5,sx=hq.x+dx*(D-row*26)-dy*col*30,sy=hq.y+dy*(D-row*26)+dx*col*30;
     if(Math.hypot(u.x-sx,u.y-sy)>70&&validSpot(sx,sy,u.r)){u.state='move';u.dest={x:sx,y:sy};u.amove=null;u.pf=null}})}
+/* Truppen denken mit (E3): Truppen im Leerlauf (kein Spielerbefehl) schützen die Arbeiter vor gefährlichen Wildtieren in der Nähe von Arbeitern und Wirtschaftsgebäuden
+   (kleine Gruppe, nur wenn sie klar stärker ist, kurze Leine) und machen ab und zu einen Rundgang. Nur Einzelspieler, abschaltbar im Menü. */
+let guardOn=true;try{guardOn=localStorage.getItem('ek-guard')!=='0'}catch(_){}
+const GUARD_R=300,GUARD_LEASH=520,GUARD_MAX=8;
+const isFighter=u=>{const d=UNITS[u.type];return !d.passive&&!d.gather&&!d.naval&&!d.air&&!d.siege&&u.type!=='scout'&&d.atk>0};
+function guardTick(){
+  if(G.mp||!guardOn||G.t<30)return;
+  const mine=G.ents.filter(e=>!e.dead&&e.team===0);
+  for(const u of mine)if(u.gd&&u.state!=='attack')u.gd=null;
+  let free=mine.filter(u=>u.kind==='unit'&&u.state==='idle'&&!u.manual&&!u.upj&&!u.gd&&!(u.q&&u.q.length)&&u.hp>=u.maxHp*.5&&isFighter(u));
+  const zone=mine.filter(e=>(e.kind==='unit'&&e.type==='worker'&&!e.inm)||(e.kind==='bld'&&e.built&&(BLDS[e.type].drop||e.type==='mine'||e.type==='farm')));
+  if(free.length&&zone.length){
+    const engaged=new Set(mine.filter(u=>u.gd).map(u=>u.gd.tid));
+    for(const a of G.ents){if(!free.length)break;
+      if(a.dead||a.kind!=='animal'||a.type==='croc'||engaged.has(a.id)||!shown(a))continue;
+      const ad=ANIMALS[a.type];if(!ad.atk)continue;
+      if(!(ad.agg>=110||(a.state==='chase'&&get(a.tid)&&get(a.tid).team===0)))continue;/* friedliche Tiere und Dinos nur, wenn sie wirklich jagen */
+      if(!zone.some(z=>Math.hypot(z.x-a.x,z.y-a.y)<(z.kind==='unit'?GUARD_R:GUARD_R-40)))continue;
+      let hp=a.hp,dps=ad.atk/ad.cd;if(ad.pack)for(const o of G.ents)if(o!==a&&!o.dead&&o.kind==='animal'&&o.type===a.type&&Math.hypot(o.x-a.x,o.y-a.y)<240){hp+=o.hp;dps+=ad.atk/ad.cd}
+      const near=free.filter(u=>Math.hypot(u.x-a.x,u.y-a.y)<700).sort((p,q)=>Math.hypot(p.x-a.x,p.y-a.y)-Math.hypot(q.x-a.x,q.y-a.y));
+      const pick=[];let uh=0,ud=0;
+      for(const u of near){if(pick.length>=GUARD_MAX)break;pick.push(u);uh+=u.hp;ud+=UNITS[u.type].atk/UNITS[u.type].cd;if(uh*ud>=hp*dps*1.6)break}
+      if(!pick.length||uh*ud<hp*dps*1.3)continue;/* klar unterlegen: nicht blind angreifen */
+      for(const u of pick){u.tid=a.id;u.state='attack';u.pf=null;u.gd={x:u.x,y:u.y,until:G.t+60,tid:a.id}}
+      free=free.filter(u=>!pick.includes(u));engaged.add(a.id)}}
+  /* Rundgang: höchstens zwei Truppen gleichzeitig schlendern zu einem Ort bei Arbeitern/Wirtschaftsgebäuden, danach holt sie die Frontlinie zurück */
+  if(G.t<60||!zone.length)return;let walking=mine.filter(u=>u.pat&&u.state==='move').length;
+  for(const u of free){if(walking>=2)break;if(u.pt===undefined)u.pt=G.t+15+Math.random()*50;if(G.t<u.pt)continue;
+    u.pt=G.t+45+Math.random()*60;const z=zone[Math.floor(Math.random()*zone.length)];
+    for(let k=0;k<6;k++){const an=Math.random()*6.283,d=40+Math.random()*110,x=z.x+Math.cos(an)*d,y=z.y+Math.sin(an)*d;
+      if(validSpot(x,y,u.r)&&navDyn[navCell(x,y)]===0&&Math.hypot(x-u.x,y-u.y)<420){u.state='move';u.dest={x,y};u.amove=null;u.pf=null;u.pat=true;walking++;break}}}}
 /* Arbeiter denken mit: bauen selbst ein Lager, wenn Sammler weit vom nächsten Abgabegebäude arbeiten, und einen Wachturm neben weit vorgeschobene Lager/Minen (nur mit Vorrat in der Kasse, abschaltbar im Menü) */
 let autoBuildOn=false;try{autoBuildOn=localStorage.getItem('ek-autobuild2')==='1'}catch(_){}
 function autoExpand(){
@@ -80,7 +111,7 @@ function eraAnimals(){const me=Math.max(G.epoch[0],G.epoch[1]);
   if(G.late.length)G.late=G.late.filter(p=>{if(me<ANIMALS[p.type].from)return true;addAnimal(p.type,p.x,p.y);return false})}
 function step(dt){
   if(!G.mp||!NET.client){G.healT=(G.healT||0)-dt;if(G.healT<=0){G.healT=.5;healAura()}}
-  if(!G.mp||!NET.client){G.eraT=(G.eraT||0)-dt;if(G.eraT<=0){G.eraT=2;eraAnimals();wallPosts();mineCarts();specFx();autoRepair();frontLine();autoExpand();autoFinish()}}
+  if(!G.mp||!NET.client){G.eraT=(G.eraT||0)-dt;if(G.eraT<=0){G.eraT=2;eraAnimals();wallPosts();mineCarts();specFx();autoRepair();frontLine();guardTick();autoExpand();autoFinish()}}
   G.t+=dt;G.pfBudget=12;G.load={};if(!G.mp||!NET.client){for(const t of[0,1]){const gg=SF(t).gold;if(gg)G.res[t].gold=(G.res[t].gold||0)+gg*dt}}
   for(const e of G.ents)if(e.kind==='unit'&&!e.dead&&e.state==='gather'&&e.tid)G.load[e.tid]=(G.load[e.tid]||0)+1;
   for(const e of G.ents)if(e.regen&&e.amount<e.maxAmt&&!e.dead)e.amount=Math.min(e.maxAmt,e.amount+e.regen*dt);
@@ -195,7 +226,7 @@ function updUnit(u,dt){
     const done=moveToward(u,u.ex.x,u.ex.y,dt);if(u.pf&&u.pf.fail){(u.badEx||(u.badEx={}))[u.ex.i]=G.t;u.ex=null;u.pf=null}else if(done)u.ex=null;break}
   case 'move':if(moveToward(u,u.dest.x,u.dest.y,dt))u.state='idle';break;
   case 'amove':{const t=((u.ft=(u.ft||0)-dt)<=0)?(u.ft=.2+Math.random()*.1,findEnemy(u,140)):null;if(t){u.tid=t.id;u.state='attack';break}if(moveToward(u,u.amove.x,u.amove.y,dt)){u.state='idle';u.amove=null}break}
-  case 'attack':{const t=get(u.tid);if(!t||t.team===u.team||(t.team<0&&t.kind!=='animal')){u.state=u.amove?'amove':'idle';break}
+  case 'attack':{if(u.gd&&(G.t>u.gd.until||Math.hypot(u.x-u.gd.x,u.y-u.gd.y)>GUARD_LEASH)){u.state='idle';u.gd=null;u.tid=null;break}const t=get(u.tid);if(!t||t.team===u.team||(t.team<0&&t.kind!=='animal')){u.state=u.amove?'amove':'idle';break}
     const gap=dist(u,t)-u.r-t.r;
     if(gap<=d.rng){u.fa=Math.atan2(t.y-u.y,t.x-u.x);if(u.cd<=0){u.cd=d.cd;u.swing=G.t;hit(u,t)}}
     else moveToward(u,t.x,t.y,dt,t.id);break}

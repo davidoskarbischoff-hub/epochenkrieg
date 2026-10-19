@@ -61,6 +61,7 @@ function renderOptions(){
     +row('Berater im Auto-Modus',tog('oAuto',advisor.auto),'Der Berater führt seine Vorschläge selbst aus')
     +row('Taktik des Beraters',seg('oStrat',Object.entries(STRATS).map(([k,v])=>[k,v.name]),advisor.strat),'Ändert, was er zuerst vorschlägt')
     +row('Arbeiter denken mit',tog('abChk',autoBuildOn),'Arbeiter reparieren, bauen Lager und Türme und machen Gebäude fertig')
+    +row('Truppen denken mit',tog('gdChk',guardOn),'Truppen im Leerlauf schützen Arbeiter vor gefährlichen Wildtieren und gehen Streife (nur Einzelspieler)')
     +row('Gegner-Typ (nächstes Spiel)',seg('oAiS',Object.entries(AI_STYLES).map(([k,v])=>[k,v.name]),aiStyle),'Wirkt beim nächsten „Neues Spiel“')
     +row('Schwierigkeit (nächstes Spiel)',seg('oDiff',[['leicht','leicht'],['normal','normal'],['schwer','schwer']],diff),'Wirkt beim nächsten „Neues Spiel“');
   m.innerHTML=`<div class="gm"><div class="gm-frame wide"><h1 class="gm-title sm">${tr('Optionen')}</h1><div class="gm-rule"></div>
@@ -87,6 +88,7 @@ function renderOptions(){
   bind('advChk',e=>e.onchange=()=>{advOn=e.checked;try{localStorage.setItem('ek-advisor',advOn?'1':'0')}catch(_){}if(!advOn)advisor.cur=null});
   bind('oAuto',e=>e.onchange=()=>{advisor.auto=e.checked;advisor.autoAt=(G?G.t:0)+2});
   segB('oStrat',v=>{advisor.strat=v;advisor.ignore={};advisor.cur=null;advisor.next=0;advisor.reacted=null});
+  bind('gdChk',e=>e.onchange=()=>{guardOn=e.checked;try{localStorage.setItem('ek-guard',guardOn?'1':'0')}catch(_){}});
   bind('abChk',e=>e.onchange=()=>{autoBuildOn=e.checked;try{localStorage.setItem('ek-autobuild2',autoBuildOn?'1':'0')}catch(_){}});
   segB('oAiS',v=>{aiStyle=v});segB('oDiff',v=>{diff=v});
   q('oReset').onclick=()=>{optReset();setGfx(1);renderOptions()};q('oBack').onclick=renderMenu;
