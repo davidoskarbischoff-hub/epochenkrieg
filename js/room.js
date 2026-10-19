@@ -90,7 +90,7 @@ const ROOM={BGS:{werkstatt:'artist_workshop.jpg',studio:'ferndale_studio.jpg'},o
     for(let i=0;i<4;i++){const kx=rnd()*512,ky=10+rnd()*44;x.fillStyle='rgba(50,30,14,.35)';x.beginPath();x.ellipse(kx,ky,6+rnd()*5,3+rnd()*2,0,0,6.283);x.fill()}
     const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=THREE.RepeatWrapping;t.anisotropy=4;return t}
   /* Rahmenbreite, Oberkante (y) des Rahmens: knapp über dem Meeresspiegel, der Kartenrand fällt nach aussen ab */
-  ROOM.FRAME={w:3.4,top:-1.1};
+  ROOM.FRAME={w:14,top:-1.1};
   ROOM.makeBoard=function(){if(ROOM.board)return;const W3=W/R3.S,H3=H/R3.S,fw=ROOM.FRAME.w,y1=ROOM.FRAME.top,y0=ROOM.DESK,hh=y1-y0,g=new THREE.Group();g.name='board';g.visible=false;
     const tex=woodTex(),mk=(L)=>{const t=tex.clone();t.needsUpdate=true;t.repeat.set(L/150,1);return new THREE.MeshStandardMaterial({map:t,color:0x8a7768,emissive:0x2a1a0e,roughness:.72,metalness:0,envMapIntensity:.35})};
     /* vorn/hinten über die Ecken, links/rechts dazwischen: so überlappen sich keine Flächen (kein Flackern) */
@@ -102,6 +102,20 @@ const ROOM={BGS:{werkstatt:'artist_workshop.jpg',studio:'ferndale_studio.jpg'},o
       const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;
       const m=new THREE.Mesh(new THREE.PlaneGeometry(pw,ph),new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:.62,depthWrite:false,fog:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
       m.rotation.x=-Math.PI/2;m.position.set(W3/2,ROOM.DESK+.12,H3/2);m.renderOrder=0;g.add(m)}
+    /* Verzierung auf dem Rahmen (nur Bemalung): vorn der Schriftzug in Gold mit dunkler Kontur, überall Doppellinie und Rauten */
+    {const sc=7,mkTex=(L,txt)=>{const w=Math.round(L*sc),h=Math.round(fw*sc),c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+        const ln=(y,a)=>{x.fillStyle='rgba(30,16,6,'+a+')';x.fillRect(h*.4,y,w-h*.8,Math.max(1,h*.035));x.fillStyle='rgba(255,225,170,'+a*.35+')';x.fillRect(h*.4,y+h*.035,w-h*.8,Math.max(1,h*.02))};
+        ln(h*.12,.75);ln(h*.84,.75);
+        const dia=(cx,r)=>{x.beginPath();x.moveTo(cx,h/2-r);x.lineTo(cx+r,h/2);x.lineTo(cx,h/2+r);x.lineTo(cx-r,h/2);x.closePath();x.fillStyle='#c9a24f';x.fill();x.lineWidth=h*.03;x.strokeStyle='rgba(40,22,8,.9)';x.stroke()};
+        let tw=0;if(txt){x.font='700 '+Math.round(h*.56)+'px Georgia,"Times New Roman",serif';if('letterSpacing' in x)x.letterSpacing=Math.round(h*.16)+'px';tw=x.measureText(txt).width;x.textBaseline='middle';x.textAlign='center';
+          x.lineJoin='round';x.lineWidth=h*.07;x.strokeStyle='rgba(40,22,8,.95)';x.strokeText(txt,w/2,h*.53);x.fillStyle='#e2bd63';x.fillText(txt,w/2,h*.53)}
+        const gap=tw/2+h*.9;for(const sd of[-1,1]){const x0=w/2+sd*gap,x1=w/2+sd*(w/2-h*1.4);const n=Math.max(2,Math.floor(Math.abs(x1-x0)/(h*1.3)));
+          for(let i=0;i<=n;i++){dia(x0+(x1-x0)*i/n,h*.12)}
+          x.strokeStyle='rgba(40,22,8,.7)';x.lineWidth=h*.03;x.beginPath();x.moveTo(x0,h/2);x.lineTo(x1,h/2);x.stroke();x.strokeStyle='rgba(226,189,99,.9)';x.lineWidth=h*.012;x.stroke()}
+        const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t},
+      ov=(L,x,z,ry,txt)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(L,fw),new THREE.MeshBasicMaterial({map:mkTex(L,txt),transparent:true,depthWrite:false,fog:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));
+        m.rotation.order='YXZ';m.rotation.set(-Math.PI/2,ry,0);m.position.set(x,y1+.06,z);m.renderOrder=2;g.add(m)};
+      ov(W3+2*fw,W3/2,H3+fw/2,0,'EPOCHENKRIEG');ov(W3+2*fw,W3/2,-fw/2,Math.PI,'');ov(H3,-fw/2,H3/2,Math.PI/2,'');ov(H3,W3+fw/2,H3/2,-Math.PI/2,'')}
     r3.scene.add(g);ROOM.board=g};
   /* Tischplatte im Spiel: die Schreibtisch-Textur ist ein helles Metall und wirkt unter der kräftigen Spielsonne weiss überstrahlt → im Spiel matter und dunkler (k: 0 = Menü-Look, 1 = Spiel-Look, weicher Übergang) */
   ROOM.tone=function(k){if(!ROOM.deskMats)return;if(Math.abs(k-(ROOM.tk||0))<.002&&ROOM.tk!==undefined)return;ROOM.tk=k;
