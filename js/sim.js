@@ -385,20 +385,25 @@ function updAnimal(a,dt){
   if(a.hp<a.maxHp&&a.state==='idle')a.hp=Math.min(a.maxHp,a.hp+dt*2);
   // Umgebung beobachten (nicht in jedem Schritt)
   a.th=(a.th||0)-dt;
-  if(a.th<=0){a.th=.3+Math.random()*.1;let best=null,bd=1e9;
-    for(const e of G.ents){if(e.dead||e.team<0||(e.kind!=='unit'&&e.kind!=='bld')||(e.kind==='unit'&&(UNITS[e.type].naval||e.type==='scout')))continue;const dd=Math.hypot(e.x-a.x,e.y-a.y)-e.r;if(dd<bd){bd=dd;best=e}}
+  if(a.th<=0){a.th=.3+Math.random()*.1;let best=null,bd=1e9;const nb=[];
+    for(const e of G.ents){if(e.dead||e.team<0||(e.kind!=='unit'&&e.kind!=='bld')||(e.kind==='unit'&&(UNITS[e.type].naval||e.type==='scout')))continue;const dd=Math.hypot(e.x-a.x,e.y-a.y)-e.r;if(dd<bd){bd=dd;best=e}if(!d.agg&&dd<d.flee+220&&nb.length<10)nb.push(e)}a.nb=nb;
     if(best){
-      if(d.agg){if(a.state!=='chase'&&a.state!=='return'&&best.kind==='unit'&&bd<d.agg&&Math.hypot(a.home.x-best.x,a.home.y-best.y)<d.leash){a.tid=best.id;a.state='chase';sfx('growl',a);
+      if(d.agg){if(a.state!=='chase'&&a.state!=='return'&&!(G.t<(a.noChase||0))&&best.kind==='unit'&&bd<d.agg&&Math.hypot(a.home.x-best.x,a.home.y-best.y)<d.leash){a.tid=best.id;a.state='chase';a.cgt=0;sfx('growl',a);
         if(d.pack)for(const o of G.ents)if(o.kind==='animal'&&o.type===a.type&&!o.dead&&o!==a&&o.state!=='chase'&&Math.hypot(o.x-a.x,o.y-a.y)<240){o.tid=best.id;o.state='chase'}}}
-      else if(bd<d.flee){if(a.state!=='flee')sfx('deer',a);a.state='flee';a.thr={x:best.x,y:best.y};a.until=G.t+2.5}}}
+      else if(bd<d.flee*(a.state==='flee'?1.35:1)/* Flucht endet erst etwas weiter weg: kein Hin und Her am Rand */){if(a.state!=='flee')sfx('deer',a);a.state='flee';a.thr={x:best.x,y:best.y};a.until=G.t+2.5}}}
   switch(a.state){
-  case'idle':a.wt-=dt;if(a.wt<=0){const okc=d.water?1:2;let wp=null;for(let k=0;k<10&&!wp;k++){const ang=Math.random()*6.283,r=(.3+Math.random()*.7)*d.roam*(d.agg?1:1.8),x=a.home.x+Math.cos(ang)*r,y=a.home.y+Math.sin(ang)*r;if(terrAt(x,y)===okc&&navDyn[navCell(x,y)]===0&&terrAt((x+a.x)/2,(y+a.y)/2)===okc&&navDyn[navCell((x+a.x)/2,(y+a.y)/2)]===0)wp={x,y}}if(wp){a.wp=wp;a.state='wander';a.stk=0}else a.wt=1+Math.random()*2}break;
+  case'idle':a.wt-=dt;if(a.wt<=0){const okc=d.water?1:2;let wp=null;for(let k=0;k<10&&!wp;k++){const ang=Math.random()*6.283,r=(.3+Math.random()*.7)*d.roam*(d.agg?1:1.8),x=a.home.x+Math.cos(ang)*r,y=a.home.y+Math.sin(ang)*r;if(terrAt(x,y)===okc&&navDyn[navCell(x,y)]===0&&!(a.nb&&a.nb.some(o=>Math.hypot(o.x-x,o.y-y)-o.r<d.flee+35))/* Ziel nie in der Scheuchzone von Gebäuden/Einheiten */&&terrAt((x+a.x)/2,(y+a.y)/2)===okc&&navDyn[navCell((x+a.x)/2,(y+a.y)/2)]===0)wp={x,y}}if(wp){a.wp=wp;a.state='wander';a.stk=0}else a.wt=1+Math.random()*2}break;
   case'wander':if(animalMove(a,a.wp.x,a.wp.y,dt,d.spd*.35)||a.stk>.6){a.state='idle';a.wt=2+Math.random()*5;a.stk=0}break;
-  case'flee':{const t=a.thr||{x:a.x,y:a.y};if(G.t>a.until){a.state='idle';a.wt=1;a.home={x:a.x,y:a.y};break}const dx=a.x-t.x,dy=a.y-t.y,l=Math.hypot(dx,dy)||1;animalMove(a,a.x+dx/l*80,a.y+dy/l*80,dt,d.spd);if(a.stk>.5){a.stk=0;a.thr={x:a.x+(Math.random()-.5)*120,y:a.y+(Math.random()-.5)*120}}break}
-  case'chase':{const t=get(a.tid);if(!t||Math.hypot(a.home.x-a.x,a.home.y-a.y)>d.leash||Math.hypot(t.x-a.x,t.y-a.y)>d.agg*2.4){a.state='return';a.tid=null;a.stk=0;break}
+  case'flee':{const t=a.thr||{x:a.x,y:a.y};if(G.t>a.until){a.state='idle';a.wt=1;a.home={x:a.x,y:a.y};a.fgo=null;break}
+    /* Fluchtrichtung nur alle ~1,2 s neu wählen: weg von der Gefahr, aber nur über begehbares Land (Ufer/Fels/Hindernisse prüfen) – sonst pendelt das Tier */
+    if(!a.fgo||G.t>(a.fT||0)||Math.hypot(a.fgo.x-a.x,a.fgo.y-a.y)<12){const okc=d.water?1:2,base=Math.atan2(a.y-t.y,a.x-t.x);let pick=null;
+      for(const k of[0,1,-1,2,-2,3,-3,4,-4]){const an=base+k*.4,cx=Math.cos(an),cy=Math.sin(an);let ok=true;for(const L of[25,50,80,110])if(terrAt(a.x+cx*L,a.y+cy*L)!==okc||navDyn[navCell(a.x+cx*L,a.y+cy*L)]!==0){ok=false;break}if(ok){pick={x:a.x+cx*110,y:a.y+cy*110};break}}
+      a.fgo=pick;a.fT=G.t+1.2}
+    if(a.fgo)animalMove(a,a.fgo.x,a.fgo.y,dt,d.spd);else{a.until=Math.min(a.until,G.t+.3)/* eingekesselt: stehen bleiben */}break}
+  case'chase':{const t=get(a.tid);if(!t||Math.hypot(a.home.x-a.x,a.home.y-a.y)>d.leash||Math.hypot(t.x-a.x,t.y-a.y)>d.agg*2.4){a.state='return';a.tid=null;a.stk=0;a.noChase=G.t+10;break}
     const gap=Math.hypot(t.x-a.x,t.y-a.y)-a.r-t.r;
     if(gap<=d.rng){a.fa=Math.atan2(t.y-a.y,t.x-a.x);if(a.cd<=0){a.cd=d.cd;a.swing=G.t;sfx('hit',a);damage(t,d.atk,a)}}
-    else{animalMove(a,t.x,t.y,dt,d.spd);if(a.stk>1.2){a.state='return';a.stk=0}}break}
+    else{animalMove(a,t.x,t.y,dt,d.spd);/* kommt das Tier nicht näher (Ufer, Fels): nach 3 s aufgeben statt am Rand zu pendeln */if(!(a.cgt>0)||gap<a.cg-6){a.cg=gap;a.cgt=G.t}else if(G.t-a.cgt>3){a.state='return';a.stk=0;a.noChase=G.t+10;a.cgt=0;break}if(a.stk>1.2){a.state='return';a.stk=0;a.noChase=G.t+10}}break}
   case'return':if(animalMove(a,a.home.x,a.home.y,dt,d.spd*.7)||Math.hypot(a.home.x-a.x,a.home.y-a.y)<24||a.stk>1.5){a.state='idle';a.wt=2;a.stk=0}break;
   }
 }

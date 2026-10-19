@@ -6555,7 +6555,7 @@
     "neu/Swordfish.glb"
    ],
    "count": 2,
-   "size": 2.6,
+   "size": 2.3,
    "spread": 1.8,
    "yaw": 90
   },
@@ -6564,7 +6564,7 @@
     "neu/Shark.glb"
    ],
    "count": 1,
-   "size": 6.5,
+   "size": 12,
    "tint": "#5a7a9a",
    "yaw": 90
   }
