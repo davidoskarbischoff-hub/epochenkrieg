@@ -132,6 +132,21 @@ Regeln: immer nur EIN Agent gleichzeitig, danach prüft Claude Ergebnis und Bild
   - [ ] B1 Delfin hat ein falsches Modell (Tuna/Schwertfisch): echtes Delfin-Aussehen (vorhandenes Modell suchen, sonst David um Modell bitten)
   - [ ] B2 Wale zu klein im Vergleich zu Delfinen → Wal deutlich grösser als Delfin
   - [ ] B3 Wasser an den Ufern zu kantig → weichere Küstenlinien (Gelände/`renderBg`/`r3Map`)
+- [ ] **Paket E – Truppen, Tiere, Bauregeln** (Agent, nach B und D)
+  - [ ] E1 Mauern müssen auch im seichten Wasser baubar sein (`placeBlock`/`wallSnap`, TERR 1)
+  - [ ] E2 Krokodile greifen zu oft und zu viele Arbeiter an (`updAnimal`, Aggro `agg`, Revier `leash`, Wasser-Tiere)
+  - [ ] E3 Truppen reagieren nicht automatisch: im Leerlauf Gefahren in der Nähe angreifen; dazu Wildtiere (gefährliche, nicht alle) rund um Arbeiter/Basis säubern, Truppen schauen im eigenen Gebiet nach (nicht gegen friedliche Tiere/Rehe als Beute verwechseln)
+  - [ ] E4 Heiler/Priester zu stark, zu viel Heilung: abschwächen (`healAura`, `CTR`)
+- [ ] **Paket F – Wirtschaft, Berater, Karten-Vorkommen** (Agent, nach E)
+  - [ ] F1 Davids Partie: viel zu viel Nahrung und Holz (z. B. 16 000 Holz), die KI/der Berater baut kaum Stein und Eisen ab. Berater/Arbeiter-Verteilung (`advRules`, Auto-Verteilung) und KI (`w8`) prüfen; Farmen vs. Fischen vs. Jagd abgleichen (Farm soll weniger lohnen als Fischen/Jagd)
+  - [ ] F2 Karten prüfen: Anzahl Bäume pro Karte (zu wenige), Stein/Eisen-Vorkommen und Spawns (`near(...)`, `feats` in `map.js`), Bäume sollen nicht zu schnell leer sein
+  - [ ] F3 Berater reißt erschöpfte Minen automatisch ab und zeigt vorher den Hinweis „Mine erschöpft" (kleiner roter Pfeil/Marker, Meldung)
+  - [ ] F4 Arbeiter an Bäumen kleben aneinander: besser auf Bäume/Büsche verteilen (`cap`, Zielwahl `nearestNode`, Abstand)
+- [ ] **Paket G – Optik-Feinschliff** (Agent, nach F)
+  - [ ] G1 Beeren sammeln: Arbeiter stehen mit dem Kopf im Busch → mehr Abstand (`o.sh`, Griffweite)
+  - [ ] G2 Holzrand des Bretts mit Details (z. B. Schriftzug „Epochenkrieg", Verzierung)
+  - [ ] G3 Mehr Vielfalt bei Arbeitern in allen Zeitaltern (so divers wie die Mittelalter-Bauern: verschiedene Kleidung/Farben)
+- Erledigt/Klärung: Delfine und Wale erscheinen erst im passenden Zeitalter (so gewollt); „Normal"-Schwierigkeit gefällt David; kein weisser Bildschirm mehr.
 - Davids Lob (nicht kaputt machen): Karten, Jahreszeiten, Arbeiter-Animationen.
 
 ## Erledigt
@@ -192,6 +207,11 @@ Bitte selbst herunterladen und hochladen (nur CC0/CC-BY). Lizenz auf der Seite v
 - Gefundener Fehler: `advIdle` rief `has()` auf (nur in `advRules` bekannt), ab Epoche 5 brach der Berater-Tick ab. Behoben.
 - Offen: Streuung der ersten KI-Angriffswelle (kann früh sterben); KI trainiert in der Sparphase vor einem Aufstieg wenig. Messskripte liegen im Scratchpad (bal/bal.js, `EPS` überschreibt die Aufstiegskosten).
 
+## Paket B (19.10.): Delfin, Wal, weiche Ufer, pendelnde Rehe
+- [x] B1 Delfin: im ganzen Repo (`models/`, `models/archiv/`, CREDITS.md) gibt es kein Delfin- oder Wal-Modell (nur Fische, Hai). Kein Selbstbau; Delfin bleibt Tuna/Schwertfisch (Grösse 2,3), Wal bleibt getönter Hai. Bitte David um ein Paket mit Delfin/Wal (z. B. Quaternius „Ultimate Animals“ Meer).
+- [x] B2 Wal 12 statt 6,5 Einheiten (ca. 5x Delfin, ca. 2,5x Fischerboot), Delfin 2,3; Vorkommen `whale` r 24 (vorher 16), Abstand `GAP.whale` 30. Wale pro Karte (S/L Küste): 6/14 statt 6/16; Fjord L und Seen L 0 statt 2 (tiefes Wasser fehlt).
+- [x] B3 Ufer: Ursache = Land/Wasser-Anteil nur einmal 3x3 geglättet und bilinear abgetastet (eckige Facetten), Schaum aus 20-px-Quadraten. Jetzt `shoreField` (2 Glättungen) + `shoreAt` (bikubisch) in nav.js, benutzt von `r3Map` (Gelände, Übergang .40–.60), Schaum (`r3.foam`) und `renderBg`-Maske. Nur Darstellung, TERR unverändert. Kosten: ca. 75 ms je Maske (L), `r3Map` 0,6 s einmalig.
+- [x] B4 Rehe/Tiere: Ursache 1: Wanderziele lagen in der Scheuchzone von Gebäuden/Einheiten -> Flucht, Wandern, Flucht. Ursache 2: Flucht wählte bei Blockade zufällige Richtung (Eckenpendeln). Ursache 3: Krokodil/Wolf jagten ein unerreichbares Ziel am Ufer endlos (bis 171 Richtungswechsel in 3 min). Fix in `updAnimal`: Ziele ausserhalb Scheuchzone (`a.nb`), Flucht-Hysterese 1,35x, Fluchtrichtung nur alle 1,2 s über begehbares Land, Jagd gibt nach 3 s ohne Annäherung auf (`noChase` 10 s). Test (3 Karten, 3 min, Arbeiter neben 6 Rehen): Rehe-Richtungswechsel 11/5/7 -> 1/3/0, Krokodil 171 -> 0, Wolf 21 -> 10 (Küste).
 ## Davids Rückmeldungen – Paket C (Arbeiter-Animationen)
 - [x] C1 Last schwebt: Rucksack (aus Adventurer) am Rücken + echte Ladung obenauf (Holz, Erz, Gold, Nahrung), alle Körper/Zeitalter geprüft.
 - [x] C2 Lore-Schieber: Füsse nach innen = Schienbein-Beugung der Reiter wurde auch auf Schieber angewandt; behoben.

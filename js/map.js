@@ -51,7 +51,7 @@ function genMap(seed){
   const okSpot=landSpot,cfg=mapEff(curMap),bases=pickBases(cfg),A=bases[0];
   genRelief(A,bases[1],seed,curMap);applyPlayRect(playF);clearBases(bases);ensureWalk(bases);navInit(); // Hügel, Plateaus, Klippen
   if(cfg.cliff){const rc=cfg.shape==='fjord'?560:380;carveCoast(A.x,A.y,rc);carveCoast(W-A.x,H-A.y,rc);navInit()}
-  const GAP={tree:15,bush:12,stone:14,iron:14,gold:14,oil:16,fish:10,dolphin:14,whale:20};
+  const GAP={tree:15,bush:12,stone:14,iron:14,gold:14,oil:16,fish:10,dolphin:14,whale:30};
   const free=(x,y,r,type)=>!G.ents.some(e=>Math.hypot(e.x-x,e.y-y)<e.r+r+GAP[type]);
   const ORE=new Set(['stone','iron','gold','oil']);let szForce=0;const szFor=type=>{if(!ORE.has(type))return 1;if(type==='oil')return 1.7;/* Ölfelder: wenige, dafür grosse */if(szForce)return szForce;const q=R();return q<.4?.5:q<.8?1:1.7};
   const cluster=(type,cx,cy,n,spread,okFn)=>{for(let i=0;i<n;i++){for(let k=0;k<20;k++){const a=R()*6.283,d=Math.sqrt(R())*spread;const x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d,sz=szFor(type),r=Math.round(NODES[type].r*Math.sqrt(sz));if(!okFn(x,y,r))continue;if(!free(x,y,r,type))continue;addNode(type,x,y,sz);break}}};
@@ -222,10 +222,9 @@ function renderBg(seed){
   bg=document.createElement('canvas');bg.width=Math.round(W*K);bg.height=Math.round(H*K);const b=bg.getContext('2d');b.scale(K,K);const R=mulberry(seed+99);
   const tmp=document.createElement('canvas');tmp.width=Math.round(W*K);tmp.height=Math.round(H*K);const t=tmp.getContext('2d');t.scale(K,K);
   const mask=pred=>{ /* weiche Landform: Gelände glätten, in 4-facher Auflösung abtasten, Kante bei 50 % */
-    const K=4,w=TW*K,h=TH*K,g=new Float32Array(TW*TH);for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){let sm=0,n=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const nx=Math.max(0,Math.min(TW-1,x+dx)),ny=Math.max(0,Math.min(TH-1,y+dy)),wt=dx||dy?1:3;sm+=wt*(pred(TERR[ny*TW+nx])?1:0);n+=wt}g[y*TW+x]=sm/n}
+    const K=4,w=TW*K,h=TH*K,g=shoreField(pred); /* gleiche weiche Küste wie im 3D-Gelände */
     const c=document.createElement('canvas');c.width=w;c.height=h;const cx=c.getContext('2d'),im=cx.createImageData(w,h);
-    for(let Y=0;Y<h;Y++){const fy=Math.max(0,Math.min(TH-1.001,(Y+.5)/K-.5)),iy=fy|0,ty=fy-iy;for(let X=0;X<w;X++){const fx=Math.max(0,Math.min(TW-1.001,(X+.5)/K-.5)),ix=fx|0,tx=fx-ix;
-      const v=(g[iy*TW+ix]*(1-tx)+g[iy*TW+ix+1]*tx)*(1-ty)+(g[(iy+1)*TW+ix]*(1-tx)+g[(iy+1)*TW+ix+1]*tx)*ty,o=(Y*w+X)*4;im.data[o]=im.data[o+1]=im.data[o+2]=255;im.data[o+3]=Math.max(0,Math.min(255,((v-.5)*5+.5)*255))}}
+    for(let Y=0;Y<h;Y++)for(let X=0;X<w;X++){const v=shoreAt(g,(X+.5)/K-.5,(Y+.5)/K-.5),o=(Y*w+X)*4;im.data[o]=im.data[o+1]=im.data[o+2]=255;im.data[o+3]=Math.max(0,Math.min(255,((v-.5)*5+.5)*255))}
     cx.putImageData(im,0,0);return c};
   const shallowM=mask(v=>v>=1),landM=mask(v=>v>=2);
   const cut=(m,offs)=>{t.globalCompositeOperation='destination-in';t.imageSmoothingEnabled=true;for(const[ox,oy]of offs)t.drawImage(m,0,0,m.width,m.height,ox,oy,W,H);t.globalCompositeOperation='source-over'};
