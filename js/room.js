@@ -147,7 +147,7 @@ const ROOM={BGS:{werkstatt:'artist_workshop.jpg',studio:'ferndale_studio.jpg'},o
     {const now=performance.now(),dt=Math.min(.1,(now-(ROOM.tt||now))/1000);ROOM.tt=now;const tg=menu?0:1,k0=ROOM.tk===undefined?tg:ROOM.tk;ROOM.tone(k0+(tg-k0)*(1-Math.exp(-dt/.7)))}
     {const kk=.9/(typeof playF!=='undefined'?playF:.9),gg=ROOM.g;gg.scale.setScalar(gg.scale.x+(kk-gg.scale.x)*.08);gg.position.set(240*(1-gg.scale.x),ROOM.DESK*(1-gg.scale.x),160*(1-gg.scale.x))}
     /* Einzelspieler-Seite: Einstellungen rechts → Bild nach links schieben, damit das Brett frei sichtbar ist */
-    const side=menu&&!!document.querySelector('#overlay .mm-sp')&&innerWidth>820;if(side)cmr.setViewOffset(VW,VH,VW*.2,0,VW,VH);else if(cmr.view&&cmr.view.enabled)cmr.clearViewOffset();
+    const side=menu&&!!document.querySelector('#overlay .mm-sp')&&innerWidth>820,left=menu&&!side&&!!document.querySelector('#overlay .mm-side')&&innerWidth>820;if(side)cmr.setViewOffset(VW,VH,VW*.2,0,VW,VH);else if(left)cmr.setViewOffset(VW,VH,-VW*.11,0,VW,VH);else if(cmr.view&&cmr.view.enabled)cmr.clearViewOffset();
     if(ROOM.dbg){const d=ROOM.dbg;cmr.fov=d.fov||50;cmr.updateProjectionMatrix();cmr.position.set(...d.p);cmr.lookAt(...d.t);cmr.updateMatrixWorld();fg.near=1400;fg.far=6000;if(!menu)ROOM.dbg=null;else return}
     if(menu){ROOM.ang+=side?.0004:.0012;const sw=.62*Math.sin(ROOM.ang*.8);cmr.fov=50;cmr.updateProjectionMatrix();const P=roomPose(sw);cmr.position.copy(P.p);cmr.lookAt(P.t);cmr.updateMatrixWorld();fg.near=1400;fg.far=6000;ROOM.fly={a:sw,t0:-1};return}
     if(ROOM.fly){const f=ROOM.fly;const now=performance.now();if(f.t0<0){f.t0=now;f.k=0}f.k+=Math.min(.05,(now-f.t0)/1000)/5;f.t0=now;const k=Math.min(1,f.k),e=ease(k);
