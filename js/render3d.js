@@ -481,7 +481,7 @@ function r3Unit(o,e,h,dt,t){
       e._wi=!!(wp&&rig.wp.cur&&(kd==='chop'||kd==='mine'));/* Späne kommen dann vom Aufprall (r3Impact), nicht vom Takt in render.js */
       if(wp&&wp.imp)r3Impact(o,e,kd,rig);
       /* Figur tritt beim Arbeiten bis auf Griffweite an Baum/Strauch heran (nur Darstellung, die Spielposition bleibt) */
-      let sh=0;if(wp&&rig.wp.cur&&(kd==='chop'||kd==='pick'||kd==='mine')){const nd=G.byId.get(e.tid);if(nd){const dd=Math.hypot(nd.x-e.x,nd.y-e.y)/S,gap=kd==='chop'?1.35:kd==='pick'?1.15:nd.r/S*.9+1;sh=Math.max(-.3,Math.min(1.1,dd-gap))}}
+      let sh=0;if(wp&&rig.wp.cur&&(kd==='chop'||kd==='pick'||kd==='mine')){const nd=G.byId.get(e.tid);if(nd){const dd=Math.hypot(nd.x-e.x,nd.y-e.y)/S,gap=kd==='chop'?1.35:kd==='pick'?1.9:nd.r/S*.9+1;sh=Math.max(kd==='pick'?-1.3:-.3,Math.min(1.1,dd-gap))}}
       o.sh=(o.sh||0)+(sh-(o.sh||0))*Math.min(1,dt*3)}
     else if(rig.horse){rig.legs.forEach((l,i)=>l.rotation.z=(i%2?s:-s)*.7);const rd=rig.rider;rd.arms[1].rotation.z=.2+sw*.6}
     else if(rig.wheels){if(rig.load){rig.load.visible=(e.carry||0)>0;if(rig.loadMat&&rig.lc!==e.ctype){rig.lc=e.ctype;rig.loadMat.color.set({stone:0x8a8278,iron:0x8a4e3a,gold:0xe8c048}[e.ctype]||0x8a8278);if(rig.loadMat.metalness!==undefined)rig.loadMat.metalness=e.ctype==='gold'?.7:e.ctype==='iron'?.3:0}}if(rig.pusher&&moving){const p=rig.pusher,s=Math.sin(G.t*9);(p.legs||[]).forEach((l,i)=>l.rotation.z=(i?s:-s)*.5)}if(moving)rig.wheels.forEach(w=>w.rotation[w.userData.axis||'y']+=dt*3.2*(d.spd/40));if(rig.log)rig.log.position.x=sw*.9;if(rig.arm)rig.arm.rotation.z=-sw*1.8;if(rig.barrel)rig.barrel.position.x=.1-sw*.35}
