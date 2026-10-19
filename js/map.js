@@ -101,6 +101,7 @@ function genMap(seed){
    Alles punktsymmetrisch. Danach prüft forestPass, ob jede Basis noch alles erreicht, was ohne Wald erreichbar war,
    und schlägt sonst eine Gasse (mindestens 3 Felder breit) frei – auf beiden Seiten gleich. */
 const FOREST_S=21;
+const WOOD_MIN6=80,WOOD_MIN9=150; /* Bäume (je ~420 Holz) im Umkreis 600 / 900 px um jedes Hauptlager */
 function genForests(R,bases,A,cnt){
   const pre=bases.map(b=>navReach(b));
   const nz=vnoise(R,48,32),tr0=NODES.tree.r;
@@ -135,6 +136,10 @@ function genForests(R,bases,A,cnt){
   // nahe der Basis A (gespiegelt auf B): ein grosser Wald, ein zweiter etwas weiter weg, ein Wäldchen
   const nearF=(size,band,dmin,dmax,minN)=>{for(let k=0;k<60;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!walk(x,y,30))continue;if(forest(x,y,size,band,minN,175))return}};
   nearF(64,false,250,320,34);nearF(52,R()<.5,380,500,24);nearF(34,false,430,560,10);
+  /* Mindestmenge Holz rund um die Basis (David: zu wenig Bäume, Arbeiter roden zu schnell): reicht der Bestand im Umkreis nicht, kommen weitere Wälder dazu; ein Ring weiter draussen (600-860 px) sorgt für Nachschub */
+  {const cntT=r=>{let n=0;for(const e of G.ents)if(e.kind==='node'&&e.type==='tree'&&!e.dead&&Math.hypot(e.x-A.x,e.y-A.y)<r)n++;return n};
+   for(let i=0;i<4&&cntT(600)<WOOD_MIN6;i++)nearF(46,R()<.4,300,540,10);
+   for(let i=0;i<5&&cntT(900)<WOOD_MIN9;i++)nearF(50,R()<.5,560,860,10)}
   const wetNear=(x,y,d)=>{for(let k=0;k<8;k++){const a=k*.785;for(const r of[d*.5,d])if(terrAt(x+Math.cos(a)*r,y+Math.sin(a)*r)<2)return true}return false};
   // weiter draussen: grosse Wälder (Flecken und Bänder) und kleine Haine
   const far=(size,band,minN,wetD)=>{for(let k=0;k<80;k++){const x=150+R()*(W-300),y=150+R()*(H-300);if(!walk(x,y,40)||(wetD&&!wetNear(x,y,wetD))||bases.some(b=>Math.hypot(b.x-x,b.y-y)<700)||Math.hypot(x-W/2,y-H/2)<90)continue;if(forest(x,y,size,band,minN,600))return}};
