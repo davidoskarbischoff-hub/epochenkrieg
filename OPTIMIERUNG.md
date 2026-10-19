@@ -143,9 +143,9 @@ Regeln: immer nur EIN Agent gleichzeitig, danach prüft Claude Ergebnis und Bild
   - [x] F3 Berater reißt erschöpfte Minen automatisch ab und zeigt vorher den Hinweis „Mine erschöpft" (kleiner roter Pfeil/Marker, Meldung)
   - [x] F4 Arbeiter an Bäumen kleben aneinander: besser auf Bäume/Büsche verteilen (`cap`, Zielwahl `nearestNode`, Abstand)
 - [ ] **Paket G – Optik-Feinschliff** (Agent, nach F)
-  - [ ] G1 Beeren sammeln: Arbeiter stehen mit dem Kopf im Busch → mehr Abstand (`o.sh`, Griffweite)
-  - [ ] G2 Holzrand des Bretts mit Details (z. B. Schriftzug „Epochenkrieg", Verzierung)
-  - [ ] G3 Mehr Vielfalt bei Arbeitern in allen Zeitaltern (so divers wie die Mittelalter-Bauern: verschiedene Kleidung/Farben)
+  - [x] G1 Beeren sammeln: Griffweite für Sträucher 1,15 → 1,9 (render3d.js `o.sh`, Figur darf bis 1,3 zurück); Kopf nicht mehr im Laub, Hände noch am Busch. Winter-Variante nicht einzeln geprüft
+  - [x] G2 (durch Paket D erledigt) Holzrand des Bretts mit Details (z. B. Schriftzug „Epochenkrieg", Verzierung)
+  - [x] G3 Mehr Vielfalt bei Arbeitern: `vary`-Einträge im Manifest dürfen Objekte sein `{file,tint,skin,hair}`. Steinzeit/Bronze/Eisen je 8 Typen (Adventurer, andere Kleidungsfarben/Haut/Haar), Mittelalter 7 Bauern (wie vorher), Renaissance 7 (Bürger/Reiche + 2 Bauern, eigener Eintrag), Industrie/Weltkrieg 9 (Bauarbeiter mit Helm/Weste in 6 Farbtypen, Overall-Farmer x3). Bewusst nicht: Bürger-Modelle in Industrie/Weltkrieg (Renaissance-Kleidung passt nicht)
 - Erledigt/Klärung: Delfine und Wale erscheinen erst im passenden Zeitalter (so gewollt); „Normal"-Schwierigkeit gefällt David; kein weisser Bildschirm mehr.
 - Davids Lob (nicht kaputt machen): Karten, Jahreszeiten, Arbeiter-Animationen.
 

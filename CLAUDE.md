@@ -236,3 +236,5 @@ Idee für später: echte Nachbearbeitung (SSAO, Bloom mit Render-Target) braucht
 - Farmen gemessen (5 Arbeiter, 300 s): Feld 1,26 / Strauch 1,11 / Baum 0,68 je Arbeiter und Sekunde -> Felder sind nicht schlechter, nichts geändert.
 - Karten: `WOOD_MIN6`/`WOOD_MIN9` (map.js) = Mindestzahl Bäume im Umkreis 600/900 px um jedes Hauptlager, sonst kommen Wälder dazu. Holz im Umkreis 600 px: Median vorher ~30 000, jetzt ~42 000, Minimum 29 000 -> 33 600. Symmetrie bleibt (Differenz 0).
 - Arbeiter an Bäumen/Sträuchern: `treeSpot` (sim.js) gibt jedem Arbeiter eine eigene Seite (u.id, bevorzugt zur Abgabestelle), Rate und Rechenzeit unverändert (1,6-2,0 ms je Schritt bei 100 Arbeitern vorher und nachher).
+
+- Paket G (19.10.): Beeren-Griffweite 1,9 (`o.sh` in r3Unit). Arbeiter-Vielfalt: Manifest-`vary` darf Objekte `{file,tint,skin,hair}` enthalten (makeUnit überschreibt `tint`/`skins`/`hairs`; Wahl nach `u.id`, also auf beiden Mehrspieler-Seiten gleich); 7–9 feste Typen je Zeitalter halten `mergeCache` klein. Renaissance hat einen eigenen Arbeiter-Eintrag (Epoche 4).

@@ -365,9 +365,11 @@ const EKMODELS=(()=>{
       for(const o of L){o.parent.remove(o);removed++}}
     return removed}
   function makeUnit(u,origMake,kind,enO){
-    kind=kind||'unit';const en=enO||entryFor(kind,u.type,u.lvl||0);if(!en)return null;
+    kind=kind||'unit';let en=enO||entryFor(kind,u.type,u.lvl||0);if(!en)return null;
     /* Abwechslung: vary:[Dateien] – jede Figur bekommt nach ihrer Nummer (u.id) eine davon (z. B. verschiedene Bauern), sonst file */
-    const fv=(en.vary||[]).filter(f=>files.has(f)),gl=files.get(fv.length?fv[(u.id||0)%fv.length]:en.file);curGl=gl;
+    const fv=(en.vary||[]).map(v=>typeof v==='string'?{file:v}:v).filter(v=>files.has(v.file)),vr=fv.length?fv[(u.id||0)%fv.length]:null,gl=files.get(vr?vr.file:en.file);curGl=gl;
+    /* vary-Eintrag als Objekt {file,tint,skin,hair}: eigene Kleidungsfarben/Haut/Haar (wenige feste Typen je Zeitalter, damit mergeCache klein bleibt) */
+    if(vr&&(vr.tint||vr.skin||vr.hair))en=Object.assign({},en,{tint:Object.assign({},en.tint,vr.tint),skins:vr.skin?[vr.skin]:en.skins,hairs:vr.hair?[vr.hair]:en.hairs});
     try{
       const root=EKGLTF.SkeletonUtils.clone(gl.scene),wrap=new THREE.Group();wrap.add(root);prepare(root,u.team);
       {const fa=en.human?faceAngle(root):kind==='animal'?animalFace(root):null;root.rotation.y=(fa||0)+(en.yaw||0)*Math.PI/180}
@@ -511,7 +513,7 @@ const EKMODELS=(()=>{
     /* Kenney-Bausätze verweisen auf Textures/colormap.png: stattdessen die Farbtabelle aus dem Manifest (cmap) nehmen */
     const mgr=new THREE.LoadingManager();if(manifest.cmap)mgr.setURLModifier(u=>/colormap\.png$/.test(u)?'models/'+manifest.cmap:u);
     loader=new EKGLTF.GLTFLoader(mgr);try{loader.setMeshoptDecoder(EKGLTF.MeshoptDecoder)}catch(_){}
-    const want=new Set();if(manifest.ual)want.add(manifest.ual);for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const x of Object.values(manifest.wprops||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off&&!x.when){want.add(x.file);for(const f of x.vary||[])want.add(f);for(const v of x.variants||[]){if(v.file)want.add(v.file);for(const pr of v.props||[])if(pr&&pr.file)want.add(pr.file)}if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work)){if(w.tool&&w.tool.file)want.add(w.tool.file);if(w.net&&w.net.file)want.add(w.net.file)}if(x.extra&&x.extra.file)want.add(x.extra.file);for(const l of Object.values(x.load||{}))if(l&&l.file)want.add(l.file);for(const pr of(x.props||[]).concat(x.extras||[],x.wear||[]))if(pr&&pr.file)want.add(pr.file)}
+    const want=new Set();if(manifest.ual)want.add(manifest.ual);for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const x of Object.values(manifest.wprops||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off&&!x.when){want.add(x.file);for(const f of x.vary||[])want.add(typeof f==='string'?f:f.file);for(const v of x.variants||[]){if(v.file)want.add(v.file);for(const pr of v.props||[])if(pr&&pr.file)want.add(pr.file)}if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work)){if(w.tool&&w.tool.file)want.add(w.tool.file);if(w.net&&w.net.file)want.add(w.net.file)}if(x.extra&&x.extra.file)want.add(x.extra.file);for(const l of Object.values(x.load||{}))if(l&&l.file)want.add(l.file);for(const pr of(x.props||[]).concat(x.extras||[],x.wear||[]))if(pr&&pr.file)want.add(pr.file)}
     const cm=new Set();for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x){if(x.cmap)cm.add(x.cmap);for(const pr of x.props||[])if(pr&&typeof pr.cmap==='string')cm.add(pr.cmap)}
     await Promise.all([...cm].map(cmapLoad));
     await Promise.all([...want].map(async f=>{try{files.set(f,await loader.loadAsync('models/'+f))}catch(err){failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}}));
