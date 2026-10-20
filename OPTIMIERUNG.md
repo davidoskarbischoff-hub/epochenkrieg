@@ -130,8 +130,8 @@ Regeln: immer nur EIN Agent gleichzeitig, danach prüft Claude Ergebnis und Bild
   - [ ] D2 Rundum-Foto nicht mehr verzerrt (`groundSky` in `room.js`): als normales Bild/Hintergrund, Boden sauber gefüllt
   - [ ] D3 Modelle am Tisch neu anordnen: Sofa ergibt so keinen Sinn, Stifte weg bzw. nur einzelne Teile, nichts schwebt, Gesamtlayout viel besser
 - [ ] **Paket B – Meer & Wasser** (Agent 4)
-  - [ ] B1 Delfin hat ein falsches Modell (Tuna/Schwertfisch): echtes Delfin-Aussehen (vorhandenes Modell suchen, sonst David um Modell bitten)
-  - [ ] B2 Wale zu klein im Vergleich zu Delfinen → Wal deutlich grösser als Delfin
+  - [x] B1 Delfin hat ein falsches Modell (Tuna/Schwertfisch): echtes Delfin-Aussehen (vorhandenes Modell suchen, sonst David um Modell bitten)
+  - [x] B2 Wale zu klein im Vergleich zu Delfinen → Wal deutlich grösser als Delfin
   - [ ] B3 Wasser an den Ufern zu kantig → weichere Küstenlinien (Gelände/`renderBg`/`r3Map`)
 - [ ] **Paket E – Truppen, Tiere, Bauregeln** (Agent, nach B und D)
   - [ ] E1 Mauern müssen auch im seichten Wasser baubar sein (`placeBlock`/`wallSnap`, TERR 1)
@@ -229,3 +229,12 @@ Bitte selbst herunterladen und hochladen (nur CC0/CC-BY). Lizenz auf der Seite v
 - [x] E2 Krokodile: `ANIMALS.croc` agg 105→70, leash 210→150, Schaden 24→15, Abklingzeit 1,2→1,6 s, `ambush:{bites:2,rest:55,grp:3}` (greift keine Gruppe ab 3 Einheiten an, höchstens 2 Bisse, dann `a.rest` 55 s Rückzug; verletzt <40 % taucht es ab). Test (12 Krokodile × 4 Arbeiter am Ufer, 15 min, 3 Karten): getötete Arbeiter 127 → 5 von 144.
 - [x] E3 „Truppen denken mit“ (`guardTick` in sim.js, Schalter `guardOn`/`ek-guard`, Standard an, nur Einzelspieler wie `frontLine`): freie Truppen (Leerlauf, kein `manual`) bekämpfen gefährliche Wildtiere (agg ≥ 110 oder jagend; keine Rehe, Krokodile, friedliche Dinos) im Umkreis 300 px um Arbeiter/Wirtschaftsgebäude, höchstens 8 Einheiten, nur bei klarer Überlegenheit (Leben×Schaden ≥ 1,3×), Leine 520 px/60 s (`u.gd`); Rundgänge: höchstens 2 Truppen gleichzeitig (`u.pat`), danach holt sie `frontLine` zurück. Kosten ca. 0 ms (0,91 vs 0,96 ms je Schritt).
 - [x] E4 Heiler: `healAura` neu: höchstens `HEAL_N`=3 Ziele je Heiler (die Verletztesten), im Kampf (Treffer < 4 s, `u.lh`) nur 40 %, mehrere Heiler = stärkster Wert + 25 % der übrigen, Heilrate 2,2 → 1,8, Faktor (1+maxHp/400). Gesamtheilung bei 10 Verwundeten: 1 Heiler 37,8 → 7,3 hp/s (Kampf 2,9), 4 Heiler 151 → 12,9 hp/s.
+
+## Davids Wünsche vom 20.10. (Reihenfolge, immer nur EIN Agent)
+- [ ] **Paket H – Freie Kamera** (wichtig, Grundlage für First Person): Kamera drehen (Yaw), neigen (Pitch), Höhe/Zoom; rundum schauen; im Spielzimmer sieht man bei tiefem Blickwinkel Tisch, Brettrand und Raum. Maus/Tasten/Touch, Tasten änderbar (`KEYDEF`), Zurücksetzen-Taste. Alles, was Bildschirm↔Spiel umrechnet, muss mitdrehen (`toWorld`, `scr`, Auswahlrahmen, Minikarte-Sichtfeld, `clampCam`, Randscrollen, Schatten, LOD).
+- [ ] **Paket I – Intro-Animation:** Beim Start ist das Titelbild die Spielverpackung; sie öffnet sich (Deckel hebt ab), dann lädt das Vorzimmer = Spielzimmer, auf dem Tisch liegt das Brettspiel. (Grundlage: Ladebild-Karton `splash`, `mm-opening`, `ROOM.fly` aus Paket D; Übergang flüssiger und filmischer machen.)
+- [ ] **Paket J – First Person:** Auf Einheit, Gebäude oder Tier klicken → Ego-Sicht. Wachturm: Fernrohr mit Zoom zum Weitblick. Stufen: (1) Ansehen, (2) Umschauen mit Fernrohr, (3) später eine Figur selbst steuern (Toy-Soldiers-Idee, siehe ROADMAP). In Ego-Sicht/gedrehter Kamera noch mehr vom Raum und Spielbrettrand sehen.
+- [ ] **Paket K – Musik:** Davids acht Stücke in `music/` (Lobby, Kampf, Vivaldi Vier Jahreszeiten, Mittelalter-Tanz, Color-Tribe) den Zeitaltern/Menü/Kampf zuordnen (`PIECES`, `SND.setEpoch`, `pieceWar`, Überblenden), Lautstärke angleichen, Lizenzen in `music/CREDITS.md` prüfen.
+- [ ] **Paket L – Oberfläche auf neues Niveau (Zukunft):** Die ganze Benutzeroberfläche wirkt zu alt: moderner, zukunftsorientiert, mehr Transparenz, Platz besser nutzen. Erst Konzept (Skizzen/Varianten), dann Umbau von oben/unten Leiste, Konsole, Info-Feld, Menüs, Berater.
+- [ ] **R3 Gebäude-Durchsicht** (David 20.10.: Wachturm in der Renaissance ist kleiner als der davor → Größenverhältnisse aller Gebäude über die Zeitalter prüfen, Wachturm zuerst: Höhe/Grundfläche je Zeitalter messen, jeder Nachfolger mindestens so groß wie der Vorgänger; auch Hauptlager, Kaserne, Haus, Hafen, Markt) (mit Town Center, VillagePack von David; Häuser-Paket House_01–20 gestrichen, Farbbild fehlt).
+- Entschieden: Hai greift nicht an (Deko). Häuser-Paket gestrichen.
