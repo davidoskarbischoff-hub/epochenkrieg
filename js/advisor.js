@@ -70,6 +70,7 @@ function shiftWorkers(from,to,n){let k=0;for(const w of G.ents){if(k>=n)break;if
 function sendArmy(tx,ty){const us=G.ents.filter(u=>!u.dead&&u.team===0&&u.kind==='unit'&&!UNITS[u.type].passive&&!UNITS[u.type].naval&&!u.upj);const cols=Math.ceil(Math.sqrt(us.length)||1);us.forEach((u,i)=>giveOrder(u,{t:'amove',x:tx+(i%cols-(cols-1)/2)*20,y:ty+(Math.floor(i/cols)-(cols-1)/2)*20},false));fxMark(tx,ty,'attack');sfx('order')}
 /* Reihenfolge der Vorschläge: kleiner = wichtiger (Verteidigung 0, Mangel/Untätige 1, ...) */
 function advKey(r){const S=STRATS[advisor.strat]||STRATS.balanced,bw=S.w||{},base={defend:0,low:0.5,idle:1,adv:1.5,demo:1.8,surplus:2.1,balance:2,explore:3,in:4},k=r.id.split(':')[0];return bw[k]!==undefined?bw[k]:base[k]!==undefined?base[k]:5}
+let ADV_SIEGE_CAP=true;
 function advRules(){
   const ep=G.epoch[0],R=G.res[0],hq=G.ents.find(e=>e.type==='hq'&&e.team===0&&!e.dead);if(!hq||!hq.built)return[];
   const mine=G.ents.filter(e=>!e.dead&&e.team===0),has=t=>mine.filter(e=>e.type===t);
@@ -89,7 +90,8 @@ function advRules(){
   if(workers.length+queuedW<Math.max(S.wk[ep],wkNeed(ep))&&hq.queue.length<2&&G.pop[0]<G.cap[0]&&afford(0,UNITS.worker.cost))
     push({id:'worker',txt:'einen Arbeiter ausbilden',cost:UNITS.worker.cost,go:()=>enqueue(hq,'worker',0)&&(panelSig='')});
   const pd=pending(0);
-  if(pd.n&&!G.adv[0]){const gs=pd.groups.filter(g=>afford(0,g.cost)).sort((a,b)=>a.n-b.n);
+  const danger=foes.length>0||G.t-(advisor.calmT||-999)<30; /* M4: unter Angriff (und 30 s danach) keine Upgrades, sie lassen Einheiten und Gebäude ruhen */
+  if(pd.n&&!G.adv[0]&&!danger){const gs=pd.groups.filter(g=>afford(0,g.cost)).sort((a,b)=>a.n-b.n);
     if(afford(0,pd.cost)&&pd.groups.length>1)push({id:'upg:all',txt:'alles auf Stufe {0} upgraden',args:[LVLN[ep]],cost:pd.cost,go:()=>startUpgrade(0,'all')});
     else if(gs[0])push({id:'upg:'+gs[0].key,txt:'{0} auf Stufe {1} upgraden',args:[tr(gs[0].nm),LVLN[ep]],cost:gs[0].cost,go:()=>startUpgrade(0,gs[0].key)})}
   if(ep<EPOCHS.length-1&&!G.adv[0]&&!pd.n&&!G.jobs[0].length&&afford(0,EPOCHS[ep].cost))push({id:'adv',txt:'in die {0} aufsteigen',args:[tr(EPOCHS[ep+1].name)],cost:EPOCHS[ep].cost,go:()=>advance(0)});
@@ -150,7 +152,9 @@ function advRules(){
     if(I.horse>=2)counter('cn:horse','Der Gegner hat Reiter – {0} ausbilden (stark gegen Reiter)',['spear']);
     if(I.ranged>=4)counter('cn:ranged','Der Gegner setzt auf Fernkämpfer – {0} ausbilden, um sie schnell zu erreichen',['knight','sword','club']);
     if(I.mel>=5&&I.mel>mil)counter('cn:mel','Viele gegnerische Nahkämpfer – {0} ausbilden (schießen aus der Distanz)',['musket','crossbow','archer']);
-    if(I.towers>=2||I.siege)counter('cn:siege','Der Gegner baut Türme und Burgen – {0} ausbilden, um sie zu brechen',['cannon','catapult','ram']);
+    /* M5: Belagerung begrenzen: höchstens 1 + Türme/2 (+1 ab Mittelalter), nie mehr als 4 und nie mehr als ein Drittel der Truppen (vorher unbegrenzt: viele Rammen) */
+    const sg=mine.filter(e=>e.kind==='unit'&&UNITS[e.type].siege).length+bars.reduce((n,b)=>n+b.queue.filter(q=>q.type&&UNITS[q.type]&&UNITS[q.type].siege).length,0),sgCap=ADV_SIEGE_CAP?Math.min(4,1+Math.ceil(I.towers/2)+(ep>=3?1:0),Math.max(1,Math.floor(mil/3))):99;
+    if((I.towers>=2||I.siege)&&sg<sgCap&&(mil>=3||!ADV_SIEGE_CAP))counter('cn:siege','Der Gegner baut Türme und Burgen – {0} ausbilden, um sie zu brechen',['cannon','catapult','ram']);
     if(I.vis>=4&&I.vis>mil+2&&hq)push({info:true,id:'in:weak',txt:'Achtung: Der Gegner hat mehr Truppen in Sicht ({0}) als du ({1}) – mehr Truppen und Türme einplanen',args:[I.vis,mil],go:()=>{sfx('click')}});
     if(I.known&&I.ep>ep&&ep<EPOCHS.length-1)push({info:true,id:'in:behind',txt:'Der Gegner ist schon in der {0} – du liegst zurück, steige bald auf',args:[tr(EPOCHS[I.ep].name)],go:()=>{sfx('click')}});
     if((I.harbor||I.naval)&&!has('harbor').length&&workers.length>=8&&afford(0,BLDS.harbor.cost)&&advFindSpot('harbor'))push({id:'in:harbor',txt:'Der Gegner hat Schiffe oder einen Hafen – baue selbst einen Hafen und Kriegsschiffe',cost:BLDS.harbor.cost,go:()=>advBuild('harbor')});

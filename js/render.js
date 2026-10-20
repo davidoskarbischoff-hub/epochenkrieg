@@ -144,7 +144,7 @@ function draw(){
     const a=scr(p.x-Math.cos(p.a)*7,p.y-Math.sin(p.a)*7,16);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(q.x,q.y);ctx.stroke()}
   for(const e of vis){if(e.kind==='unit')ovUnit(e);else if(e.kind==='bld')ovBld(e)}
   if(OPT.hpBars!=='off')for(const e of vis)if(e.kind!=='node'&&(s.has(e.id)||OPT.hpBars==='all'&&e.kind==='unit'||e.hp<e.maxHp))hpBar(e);
-  for(const e of vis)if(e.kind==='node'&&s.has(e.id))atGround(e.x,e.y,entH(e)+6,()=>{ctx.fillStyle='rgba(20,15,10,.75)';ctx.fillRect(-12,0,24,4);ctx.fillStyle='#ecdfc3';ctx.fillRect(-12,0,24*e.amount/e.maxAmt,4)});
+  for(const e of vis)if(e.kind==='node'&&!e.sea&&s.has(e.id))atGround(e.x,e.y,entH(e)+6,()=>{ctx.fillStyle='rgba(20,15,10,.75)';ctx.fillRect(-12,0,24,4);ctx.fillStyle='#ecdfc3';ctx.fillRect(-12,0,24*e.amount/e.maxAmt,4)});
   if(placing&&pw&&!wl){const d=BLDS[placing];ctx.setLineDash([4,6]);ctx.lineWidth=1;ctx.strokeStyle='rgba(208,83,60,.85)';if(d.shoot)groundCircle(pw.x,pw.y,d.r+d.shoot.rng);ctx.strokeStyle='rgba(143,191,99,.9)';if(d.claim)groundCircle(pw.x,pw.y,d.claim);ctx.setLineDash([])}
   if(wl){ctx.setLineDash([6,5]);ctx.lineWidth=1.5;ctx.strokeStyle='rgba(243,212,138,.85)';groundLine([wl.A,wl.B]);ctx.setLineDash([]);wallLabel(wl)}
   // Upgrade und Forschung: Balken über dem Gebäude bzw. der Einheit

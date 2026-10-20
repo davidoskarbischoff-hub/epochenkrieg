@@ -74,6 +74,7 @@ function aiLook(mine){const ai=G.ai,ex=ai.ex;
   for(const o of G.ents){if(o.dead||o.team!==0||o.kind==='node')continue;const i=fogIdx(o.x,o.y);if(ex[i]&&mine.some(e=>dist(e,o)<sightOf(e)+o.r))ai.seen.set(o.id,{id:o.id,x:o.x,y:o.y,kind:o.kind})}
   for(const [id] of ai.seen)if(!G.byId.has(id))ai.seen.delete(id)}
 function aiWaterTarget(tx,ty){let best=null,bd=1e9;for(let r=120;r<=800;r+=40)for(let k=0;k<28;k++){const a=k*.2244,x=tx+Math.cos(a)*r,y=ty+Math.sin(a)*r;if(x<30||y<30||x>W-30||y>H-30||terrAt(x,y)>1||navDyn[navCell(x,y)])continue;const d=Math.hypot(x-tx,y-ty);if(d<bd){bd=d;best={x,y}}}return best}
+let AI_NOSHORE=true; /* M3: Arbeiter der KI (ausser Leicht) fischen nicht vom Ufer, Fischerboote übernehmen */
 function aiTick(){
   const ai=G.ai,r=G.res[1],ep=G.epoch[1],ST=AI_STYLES[ai.style]||AI_STYLES.balanced;
   const mine=G.ents.filter(e=>!e.dead&&e.team===1);
@@ -136,9 +137,10 @@ function aiTick(){
   // Marine: Hafen, Fischerboote, Kriegsschiffe
   if(diff!=='leicht'){
     const harbor=blds.find(b=>b.type==='harbor'&&b.built);
-    if(!blds.some(b=>b.type==='harbor')&&workers.length>=8&&G.t>100&&r.wood>=BLDS.harbor.cost.wood+120)aiPlaceHarbor(hq);
+    if(!blds.some(b=>b.type==='harbor')&&workers.length>=(AI_NOSHORE?6:8)&&G.t>(AI_NOSHORE?70:100)&&r.wood>=BLDS.harbor.cost.wood+120)aiPlaceHarbor(hq);
     if(harbor){
-      if(boats.length+harbor.queue.filter(q=>q.type==='boat').length<2&&harbor.queue.length<2)enqueue(harbor,'boat',1);
+      const nFish=G.ents.filter(n=>n.kind==='node'&&n.sea&&!n.dead&&n.regen&&!(NODES[n.type].lvl>ep)&&Math.hypot(n.x-harbor.x,n.y-harbor.y)<700).length,wantBoats=AI_NOSHORE?Math.max(2,Math.min(3+ep,Math.ceil(nFish/2),6)):2; /* M3: ein Boot je zwei Schwärme in Reichweite, Obergrenze 3+Zeitalter */
+      if(boats.length+harbor.queue.filter(q=>q.type==='boat').length<wantBoats&&harbor.queue.length<2&&r.wood>=UNITS.boat.cost.wood+40)enqueue(harbor,'boat',1);
       const wantShips=ep>=1&&!saving?Math.min(5,1+ep):0;
       if(ships.length+harbor.queue.filter(q=>UNITS[q.type].ranged).length<wantShips&&harbor.queue.length<2){const t=['ironclad','galleon','warship'].find(k=>uOk(k,ep)&&(k!=='galleon'||G.tech[1].has('galleonbuild')))||'boat';enqueue(harbor,t,1)}
       for(const bt of boats)if(bt.state==='idle'){const n=nearestNode('food',harbor.x,harbor.y,1500,bt,true)||nearestNode('food',harbor.x,harbor.y,1500,bt);if(n){bt.state='gather';bt.tid=n.id;bt.rtype='food'}}
