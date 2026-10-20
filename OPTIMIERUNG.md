@@ -28,8 +28,8 @@ Hilfsmittel:
   - Nachbesserungen: Beiwerk erst nach dem Bau sichtbar, Arbeiter-Symbol ohne verstecktes Netz, Sense und Jagdspeer beim Bauern kleiner
   - [x] Erledigt (David: ja): Arbeiter fischen kleine Schwärme vom Ufer (`shoreOf`). Früher offen: Arbeiter dürfen nicht vom Ufer fischen (nur Boote). Das Netz sieht man daher nur beim Ruderer. → David fragen, ob Uferfischen erwünscht ist
   - [x] Erledigt: Segelboot/Kutter haben einen Fischer mit Netz. Früher offen: Fischerboote ab Zeitalter 3 ohne Fischer (Segelboot 3,5 lang, Kutter 4,2 lang) → Fischer mit Netz als rider ergänzen
-  - [ ] Offen: Vorschlag Mittelalter-Krieger = Bürger city_dwellers_1 mit Schwert/Schild (Bilder: scratchpad/menschen2/vorschlag_krieger.png) → zusammen mit R2 entscheiden
-  - [ ] Offen: people-GLBs mit meshopt/Quantisierung verkleinern (+4,3 MB Download)
+  - [x] Erledigt (R2 zweiter Durchgang): Mittelalter-Krieger (Speer/Schwert/Reiter-Figur `rider_m`, Zeitalter 3–4) = Bürger `people/city_dwellers_1.glb` mit Schwert/Speer + Schild (Teamfarbe nur am Schildrand, Zeitalter 4 mit Messing-Schulterpanzer). Ehrlich: anderer Körper als Adventurer davor/danach (Zeitalter 2 und 5), Teamfarbe schwächer als beim Hemd
+  - [ ] Offen: people-GLBs mit meshopt/Quantisierung verkleinern (+4,3 MB Download). R2: nicht gemacht, im Bundle `gltf-bundle.js` fehlt der Meshopt-Decoder (nur der Haken `setMeshoptDecoder`), Quantisierung bräuchte gltfpack/gltf-transform
   - Offen aus Natur: Kiefern (neu/Pine) im anderen Stil als die Low-Poly-Laubbäume. Im Natur-Paket gibt es keine Nadelbäume.
   - Offen aus Türme: Code-Zusätze der anderen Ausbauten (Hauptlager eco/cmd, Kaserne usw. in `specModel`) sind noch aus Formen gebaut → durch echte Modelle (props) ersetzen
 - [ ] **R2:** Truppenlinien-Durchsicht. Gesamtbogen: scratchpad `s11.png`. Stand:
@@ -45,6 +45,7 @@ Hilfsmittel:
   - Ursprüngliche Aufgabe: Jede Linie von Zeitalter 0 bis 6 als Kontaktbogen prüfen und Brüche beheben:
   - Linien: Arbeiter, Keule/Speer, Schwert, Bogen → Armbrust → Muskete → Gewehr, Späher, Heiler, Reiterei, Belagerung, Schiffe, Flieger
   - Prüfen: gleicher Grundkörper, wachsende Ausrüstung, Waffe richtig gehalten, Blickrichtung, Größe, Teamfarbe erkennbar
+  - R2 zweiter Durchgang (Kontaktbögen Zeitalter 0–6): Heiler Zeitalter 4/5 hatten keinen Stab → ergänzt; Reiter Zeitalter 6 (`rider_m`/`rider_r`) war eine andere Figur (Soldier, Frau) → wie Zeitalter 5 (Adventurer + Stahlhelm, olive Tarnung); Kamelreiter nutzte die ausgelaufene Schwertlinie → `rider_m`; Fischerboot Zeitalter 0–2: Ruderboot war winzig und der Fischer schwebte → Boot grösser, Fischer steht im Boot. Offen: Armbrustschütze trägt Bogen, Bomber/Jäger Zeitalter 6 sind Doppeldecker, Zeitalter-3/4-Schwert/Speer ohne `hit`/`ready`-Clip (Bürger-Datei hat nur Idle/Walk/Sword_Slash)
 - [ ] **R3:** Gebäude-Durchsicht je Zeitalter:
   - Gebäude: hq, house, store, barracks, tower, harbor, market, castle, mine, farm, wall, gate, airfield, derrick, refinery, trench
   - Prüfen: fehlende Modelle (Code-Rückfall), Größenverhältnisse, Teamfarbe/Flagge, eigener Stil der Eisenzeit

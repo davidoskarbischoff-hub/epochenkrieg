@@ -1799,6 +1799,20 @@
      "Grey": "#2a2018",
      "Black": "#1c1c1c",
      "Gold": "#c9a24a"
+    },
+    "hand": {
+     "file": "waffen/DruidStaff_2_1_A.glb",
+     "scale": 0.9,
+     "rot": [
+      180,
+      0,
+      8
+     ],
+     "pos": [
+      0,
+      0.4,
+      0
+     ]
     }
    },
    {
@@ -1846,6 +1860,20 @@
      "Grey": "#1c1c1c",
      "Black": "#1c1c1c",
      "Gold": "#9aa0a6"
+    },
+    "hand": {
+     "file": "waffen/DruidStaff_2_1_A.glb",
+     "scale": 0.9,
+     "rot": [
+      180,
+      0,
+      8
+     ],
+     "pos": [
+      0,
+      0.4,
+      0
+     ]
     }
    },
    {
@@ -2336,49 +2364,10 @@
     ]
    },
    {
-    "file": "neu/Adventurer.glb",
     "epochs": [
      3
     ],
-    "anim": {
-     "idle": "Idle",
-     "walk": "Walk",
-     "attack": "Sword_Slash",
-     "work": "Interact",
-     "hit": [
-      "HitRecieve",
-      "HitRecieve_2"
-     ],
-     "ready": "Idle_Sword",
-     "run": "Run"
-    },
     "human": true,
-    "skins": [
-     "#e0ac85",
-     "#c68c63",
-     "#eab994",
-     "#a8734d",
-     "#d49a72"
-    ],
-    "hairs": [
-     "#2a1a10",
-     "#4a2e18",
-     "#1c1410",
-     "#6b4a2a",
-     "#3a2414"
-    ],
-    "hide": [
-     "Backpack"
-    ],
-    "tint": {
-     "Green": "team",
-     "LightGreen": "#8c8f94",
-     "Brown": "#4a3a2a",
-     "Brown2": "#3e3024",
-     "Grey": "#4a3a2a",
-     "Black": "#2a2018",
-     "Gold": "#9aa0a6"
-    },
     "hand": {
      "file": "neu/Spear.glb",
      "scale": 0.15,
@@ -2393,66 +2382,36 @@
       0
      ]
     },
-    "wear": [
-     {
-      "file": "archiv/Armor Metal.glb",
-      "bone": "^Chest$",
-      "scale": 0.42,
-      "pos": [
-       0,
-       -0.03,
-       0
-      ],
-      "tint": {
-       "LightSteel": "#a9adb3"
-      }
+    "file": "people/city_dwellers_1.glb",
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
+    },
+    "left": {
+     "file": "waffen/Shield_1_A.glb",
+     "scale": 0.85,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ],
+     "tint": {
+      "Metalic": "team"
      }
-    ]
+    }
    },
    {
-    "file": "neu/Adventurer.glb",
     "epochs": [
      4
     ],
-    "anim": {
-     "idle": "Idle",
-     "walk": "Walk",
-     "attack": "Sword_Slash",
-     "work": "Interact",
-     "hit": [
-      "HitRecieve",
-      "HitRecieve_2"
-     ],
-     "ready": "Idle_Sword",
-     "run": "Run"
-    },
     "human": true,
-    "skins": [
-     "#e0ac85",
-     "#c68c63",
-     "#eab994",
-     "#a8734d",
-     "#d49a72"
-    ],
-    "hairs": [
-     "#2a1a10",
-     "#4a2e18",
-     "#1c1410",
-     "#6b4a2a",
-     "#3a2414"
-    ],
-    "hide": [
-     "Backpack"
-    ],
-    "tint": {
-     "Green": "team",
-     "LightGreen": "#e8e0cc",
-     "Brown": "#e4dccb",
-     "Brown2": "#d6ccb4",
-     "Grey": "#2a2018",
-     "Black": "#1c1c1c",
-     "Gold": "#c9a24a"
-    },
     "hand": {
      "file": "neu/Spear.glb",
      "scale": 0.15,
@@ -2466,6 +2425,13 @@
       0,
       0
      ]
+    },
+    "file": "people/city_dwellers_1.glb",
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
     },
     "wear": [
      {
@@ -2481,7 +2447,24 @@
        "LightSteel": "#c9b37a"
       }
      }
-    ]
+    ],
+    "left": {
+     "file": "waffen/Shield_1_A.glb",
+     "scale": 0.85,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ],
+     "tint": {
+      "Metalic": "team"
+     }
+    }
    }
   ],
   "sword": [
@@ -2556,64 +2539,10 @@
     ]
    },
    {
-    "file": "neu/Adventurer.glb",
     "epochs": [
      3
     ],
-    "anim": {
-     "idle": "Idle",
-     "walk": "Walk",
-     "attack": "Sword_Slash",
-     "work": "Interact",
-     "hit": [
-      "HitRecieve",
-      "HitRecieve_2"
-     ],
-     "ready": "Idle_Sword",
-     "run": "Run"
-    },
     "human": true,
-    "skins": [
-     "#e0ac85",
-     "#c68c63",
-     "#eab994",
-     "#a8734d",
-     "#d49a72"
-    ],
-    "hairs": [
-     "#2a1a10",
-     "#4a2e18",
-     "#1c1410",
-     "#6b4a2a",
-     "#3a2414"
-    ],
-    "hide": [
-     "Backpack"
-    ],
-    "tint": {
-     "Green": "team",
-     "LightGreen": "#8c8f94",
-     "Brown": "#4a3a2a",
-     "Brown2": "#3e3024",
-     "Grey": "#4a3a2a",
-     "Black": "#2a2018",
-     "Gold": "#9aa0a6"
-    },
-    "wear": [
-     {
-      "file": "archiv/Armor Metal.glb",
-      "bone": "^Chest$",
-      "scale": 0.42,
-      "pos": [
-       0,
-       -0.03,
-       0
-      ],
-      "tint": {
-       "LightSteel": "#a9adb3"
-      }
-     }
-    ],
     "hand": {
      "file": "waffen/Sword_1_A.glb",
      "scale": 0.8,
@@ -2630,7 +2559,7 @@
     },
     "left": {
      "file": "waffen/Shield_2_A.glb",
-     "scale": 0.65,
+     "scale": 0.85,
      "rot": [
       0,
       0,
@@ -2644,51 +2573,57 @@
      "tint": {
       "Metalic": "team"
      }
-    }
-   },
-   {
-    "file": "neu/Adventurer.glb",
-    "epochs": [
-     4
-    ],
+    },
+    "file": "people/city_dwellers_1.glb",
     "anim": {
      "idle": "Idle",
      "walk": "Walk",
      "attack": "Sword_Slash",
-     "work": "Interact",
-     "hit": [
-      "HitRecieve",
-      "HitRecieve_2"
-     ],
-     "ready": "Idle_Sword",
-     "run": "Run"
-    },
+     "work": "Interact"
+    }
+   },
+   {
+    "epochs": [
+     4
+    ],
     "human": true,
-    "skins": [
-     "#e0ac85",
-     "#c68c63",
-     "#eab994",
-     "#a8734d",
-     "#d49a72"
-    ],
-    "hairs": [
-     "#2a1a10",
-     "#4a2e18",
-     "#1c1410",
-     "#6b4a2a",
-     "#3a2414"
-    ],
-    "hide": [
-     "Backpack"
-    ],
-    "tint": {
-     "Green": "team",
-     "LightGreen": "#e8e0cc",
-     "Brown": "#e4dccb",
-     "Brown2": "#d6ccb4",
-     "Grey": "#2a2018",
-     "Black": "#1c1c1c",
-     "Gold": "#c9a24a"
+    "hand": {
+     "file": "waffen/Sword_1_A.glb",
+     "scale": 0.8,
+     "rot": [
+      180,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ]
+    },
+    "left": {
+     "file": "waffen/Shield_2_A.glb",
+     "scale": 0.85,
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "pos": [
+      0,
+      0,
+      0
+     ],
+     "tint": {
+      "Metalic": "team"
+     }
+    },
+    "file": "people/city_dwellers_1.glb",
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
     },
     "wear": [
      {
@@ -2704,38 +2639,7 @@
        "LightSteel": "#c9b37a"
       }
      }
-    ],
-    "hand": {
-     "file": "waffen/Sword_1_A.glb",
-     "scale": 0.8,
-     "rot": [
-      180,
-      0,
-      0
-     ],
-     "pos": [
-      0,
-      0,
-      0
-     ]
-    },
-    "left": {
-     "file": "waffen/Shield_2_A.glb",
-     "scale": 0.65,
-     "rot": [
-      0,
-      0,
-      0
-     ],
-     "pos": [
-      0,
-      0,
-      0
-     ],
-     "tint": {
-      "Metalic": "team"
-     }
-    }
+    ]
    }
   ],
   "archer": [
@@ -3580,16 +3484,17 @@
      2
     ],
     "yaw": 90,
-    "scale": 0.55,
+    "scale": 0.85,
     "rider": {
      "as": "worker",
-     "seat": 0.1,
+     "seat": 2.4,
      "free": true,
-     "x": -0.3,
+     "x": -0.05,
      "net": {
       "turn": 90,
       "pitch": 16
-     }
+     },
+     "scale": 0.73
     }
    },
    {
@@ -4186,56 +4091,19 @@
     "attack": "Attack_Kick"
    },
    "rider": {
-    "as": "sword",
+    "as": [
+     "rider_m"
+    ],
     "seat": 0.72
    },
    "yaw": 90
   },
   "rider_m": [
    {
-    "file": "neu/Adventurer.glb",
     "epochs": [
      3
     ],
-    "anim": {
-     "idle": "Idle",
-     "walk": "Walk",
-     "attack": "Sword_Slash",
-     "work": "Interact",
-     "hit": [
-      "HitRecieve",
-      "HitRecieve_2"
-     ],
-     "ready": "Idle_Sword",
-     "run": "Run"
-    },
     "human": true,
-    "skins": [
-     "#e0ac85",
-     "#c68c63",
-     "#eab994",
-     "#a8734d",
-     "#d49a72"
-    ],
-    "hairs": [
-     "#2a1a10",
-     "#4a2e18",
-     "#1c1410",
-     "#6b4a2a",
-     "#3a2414"
-    ],
-    "hide": [
-     "Backpack"
-    ],
-    "tint": {
-     "Green": "team",
-     "LightGreen": "#8c8f94",
-     "Brown": "#4a3a2a",
-     "Brown2": "#3e3024",
-     "Grey": "#4a3a2a",
-     "Black": "#2a2018",
-     "Gold": "#9aa0a6"
-    },
     "hand": {
      "file": "neu/Spear.glb",
      "scale": 0.15,
@@ -4250,21 +4118,9 @@
       0
      ]
     },
-    "wear": [
-     {
-      "file": "archiv/Armor Metal.glb",
-      "bone": "^Chest$",
-      "scale": 0.42,
-      "pos": [
-       0,
-       -0.03,
-       0
-      ]
-     }
-    ],
     "left": {
      "file": "waffen/Shield_2_A.glb",
-     "scale": 0.65,
+     "scale": 0.85,
      "rot": [
       0,
       0,
@@ -4278,52 +4134,20 @@
      "tint": {
       "Metalic": "team"
      }
+    },
+    "file": "people/city_dwellers_1.glb",
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
     }
    },
    {
-    "file": "neu/Adventurer.glb",
     "epochs": [
      4
     ],
-    "anim": {
-     "idle": "Idle",
-     "walk": "Walk",
-     "attack": "Sword_Slash",
-     "work": "Interact",
-     "hit": [
-      "HitRecieve",
-      "HitRecieve_2"
-     ],
-     "ready": "Idle_Sword",
-     "run": "Run"
-    },
     "human": true,
-    "skins": [
-     "#e0ac85",
-     "#c68c63",
-     "#eab994",
-     "#a8734d",
-     "#d49a72"
-    ],
-    "hairs": [
-     "#2a1a10",
-     "#4a2e18",
-     "#1c1410",
-     "#6b4a2a",
-     "#3a2414"
-    ],
-    "hide": [
-     "Backpack"
-    ],
-    "tint": {
-     "Green": "team",
-     "LightGreen": "#e8e0cc",
-     "Brown": "#e4dccb",
-     "Brown2": "#d6ccb4",
-     "Grey": "#2a2018",
-     "Black": "#1c1c1c",
-     "Gold": "#c9a24a"
-    },
     "hand": {
      "file": "neu/Spear.glb",
      "scale": 0.15,
@@ -4338,21 +4162,9 @@
       0
      ]
     },
-    "wear": [
-     {
-      "file": "archiv/Armor Metal.glb",
-      "bone": "^Chest$",
-      "scale": 0.42,
-      "pos": [
-       0,
-       -0.03,
-       0
-      ]
-     }
-    ],
     "left": {
      "file": "waffen/Shield_2_A.glb",
-     "scale": 0.65,
+     "scale": 0.85,
      "rot": [
       0,
       0,
@@ -4366,7 +4178,29 @@
      "tint": {
       "Metalic": "team"
      }
-    }
+    },
+    "file": "people/city_dwellers_1.glb",
+    "anim": {
+     "idle": "Idle",
+     "walk": "Walk",
+     "attack": "Sword_Slash",
+     "work": "Interact"
+    },
+    "wear": [
+     {
+      "file": "archiv/Armor Metal.glb",
+      "bone": "^Chest$",
+      "scale": 0.42,
+      "pos": [
+       0,
+       -0.03,
+       0
+      ],
+      "tint": {
+       "LightSteel": "#c9b37a"
+      }
+     }
+    ]
    },
    {
     "file": "neu/Adventurer.glb",
@@ -4441,7 +4275,7 @@
     ]
    },
    {
-    "file": "neu/Soldier.glb",
+    "file": "neu/Adventurer.glb",
     "epochs": [
      6
     ],
@@ -4458,6 +4292,32 @@
      "run": "Run_Shoot"
     },
     "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#5a5c44",
+     "Brown": "#52543a",
+     "Brown2": "#4a4c34",
+     "Grey": "#3d2c1e",
+     "Black": "#2a2018",
+     "Gold": "#6b6a50"
+    },
     "hand": {
      "file": "neu/Sword.glb",
      "scale": 0.25,
@@ -4472,11 +4332,19 @@
       0
      ]
     },
-    "tint": {
-     "Black": "#66674a",
-     "Swat": "#52543a",
-     "Grey": "#3d2c1e"
-    }
+    "wear": [
+     {
+      "file": "archiv/Stahlhelm.glb",
+      "mesh": "^Helmet",
+      "pos": [
+       -0.04,
+       0.12,
+       0.04
+      ],
+      "scale": 1.4,
+      "tint": {}
+     }
+    ]
    }
   ],
   "rider_r": [
@@ -4669,7 +4537,7 @@
     ]
    },
    {
-    "file": "neu/Soldier.glb",
+    "file": "neu/Adventurer.glb",
     "epochs": [
      6
     ],
@@ -4686,6 +4554,32 @@
      "run": "Run_Shoot"
     },
     "human": true,
+    "skins": [
+     "#e0ac85",
+     "#c68c63",
+     "#eab994",
+     "#a8734d",
+     "#d49a72"
+    ],
+    "hairs": [
+     "#2a1a10",
+     "#4a2e18",
+     "#1c1410",
+     "#6b4a2a",
+     "#3a2414"
+    ],
+    "hide": [
+     "Backpack"
+    ],
+    "tint": {
+     "Green": "team",
+     "LightGreen": "#5a5c44",
+     "Brown": "#52543a",
+     "Brown2": "#4a4c34",
+     "Grey": "#3d2c1e",
+     "Black": "#2a2018",
+     "Gold": "#6b6a50"
+    },
     "hand": {
      "file": "neu/Sniper Rifle.glb",
      "scale": 0.16,
@@ -4700,11 +4594,19 @@
       0
      ]
     },
-    "tint": {
-     "Black": "#66674a",
-     "Swat": "#52543a",
-     "Grey": "#3d2c1e"
-    }
+    "wear": [
+     {
+      "file": "archiv/Stahlhelm.glb",
+      "mesh": "^Helmet",
+      "pos": [
+       -0.04,
+       0.12,
+       0.04
+      ],
+      "scale": 1.4,
+      "tint": {}
+     }
+    ]
    }
   ],
   "hbow": {
