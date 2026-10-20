@@ -9,8 +9,8 @@ body.mm #c,body.mm #top,body.mm #panel,body.mm #advisor,body.mm #fps,body.mm #ne
 /* Ladebildschirm: Spielkarton auf dunklem Holztisch */
 html,body{background:#0b0806}
 .mm-splash{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding:16px;animation:mmIn 1s ease;
-  background:radial-gradient(ellipse at 50% 38%,rgba(110,72,38,.55),rgba(30,19,10,.96) 62%,#080504 100%),repeating-linear-gradient(92deg,rgba(255,255,255,.025) 0 2px,transparent 2px 9px),#0b0806}
-#overlay.mmv:has(.mm-splash){background:#0b0806;transition:background 1s ease}
+  background:radial-gradient(ellipse at 50% 42%,rgba(255,206,120,.26),rgba(255,206,120,0) 46%),radial-gradient(ellipse at 50% 120%,rgba(120,60,150,.35),transparent 55%),radial-gradient(ellipse at 15% 0%,rgba(40,120,150,.35),transparent 50%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='46' height='46'%3E%3Cpath d='M23 3L43 23L23 43L3 23Z' fill='none' stroke='%23d9a93c' stroke-opacity='.07'/%3E%3C/svg%3E"),linear-gradient(#10243a,#0a1522 55%,#05080f)}
+#overlay.mmv:has(.mm-splash){background:#05080f;transition:background 1s ease}
 #overlay.mm-opening:has(.mm-splash){background:transparent}
 #overlay.mm-opening .mm-splash{background:transparent;transition:background .9s ease}
 .mm-box{position:relative;width:min(620px,88vw);aspect-ratio:3/2;perspective:1500px;transform-style:preserve-3d;transform:rotateX(14deg) rotateZ(-1.5deg);margin-top:-2vh}
