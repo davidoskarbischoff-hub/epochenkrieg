@@ -9,6 +9,21 @@ function resize(){const r=view.getBoundingClientRect();dpr=Math.min(2,window.dev
 /* Kamera: cam.x/cam.y = Punkt in der Bildmitte (Spielpixel), cam.z = Zoom. Umrechnung Bildschirm ↔ Spiel: toWorld/scr in render3d.js */
 /* Zoom-Grenzen (cam.z): 0,3 = weit weg (Übersicht), 3,2 = ganz nah (Figur ~70 Bildpunkte hoch bei 720p) */
 const ZOOM={min:.3,max:3.2};
+/* Freie Kamera: Neigung (pitch, Radiant; 1,14 = Standard) von fast waagrecht bis fast senkrecht; Drehung (yaw) unbegrenzt. Ziele tyaw/tpitch, camSmooth lässt die Kamera weich nachlaufen. */
+const PITCH0=1.14,PITCH_MIN=.2,PITCH_MAX=1.5;
+function camRot(dyaw,dpitch){cam.tyaw+=dyaw;cam.tpitch=Math.max(PITCH_MIN,Math.min(PITCH_MAX,cam.tpitch+dpitch))}
+function camReset(){cam.tyaw=Math.round(cam.yaw/(2*Math.PI))*2*Math.PI;cam.tpitch=PITCH0}
+/* Taste gehalten? (Taste aus den änderbaren Tastenkürzeln) */
+function kHeld(a){const k=OPT.keys[a];return !!k&&!!keys[k]}
+function camSmooth(dt){
+  if(!R3.ok||!VW)return;const wide=typeof ROOM!=='undefined'&&ROOM.wide();
+  if(wide){cam.yaw=cam.tyaw=0;cam.pitch=cam.tpitch=PITCH0;return}
+  if(G&&G.running&&!menuOpen){const r=1.7*OPT.camRot*dt,t=1.1*OPT.camRot*dt;
+    if(kHeld('rotL'))camRot(-r,0);if(kHeld('rotR'))camRot(r,0);if(kHeld('tiltU'))camRot(0,-t);if(kHeld('tiltD'))camRot(0,t)}
+  const ey=cam.tyaw-cam.yaw,ep=cam.tpitch-cam.pitch;if(Math.abs(ey)<1e-4&&Math.abs(ep)<1e-4){cam.yaw=cam.tyaw;cam.pitch=cam.tpitch;return}
+  /* um den Punkt in der Mitte der freien Fläche drehen (dort schaut der Spieler hin), nicht um die Bildmitte unter der Konsole */
+  camUpdate();const F=freeCenter(),a=toWorld(F.x,F.y,true),f=1-Math.exp(-Math.min(dt,.1)/.09);
+  cam.yaw+=ey*f;cam.pitch+=ep*f;camUpdate();const b=toWorld(F.x,F.y,true);cam.x+=a.x-b.x;cam.y+=a.y-b.y;clampCam()}
 /* Verdeckte Höhen: obere Leiste und Befehlskonsole liegen über der Karte. Werte kommen aus dem DOM (nie festverdrahtet), werden alle 0,4 s und bei Grössenänderung neu gelesen. */
 const UIINS={t:0,b:0,at:-1e9};
 function uiInsets(force){const now=performance.now();if(!force&&now-UIINS.at<400)return UIINS;UIINS.at=now;
@@ -26,7 +41,7 @@ function clampCam(){
   if(wide||!R3.ok||!VW){cam.x=Math.max(0,Math.min(W,cam.x));cam.y=Math.max(0,Math.min(H,cam.y));camUpdate();return}
   const F=freeCenter(),u=UIINS,B=playRect();camUpdate();
   for(let i=0;i<3;i++){
-    const c=toWorld(F.x,F.y,true),hx=Math.abs(toWorld(VW,F.y,true).x-toWorld(0,F.y,true).x)/2,hy=Math.abs(toWorld(F.x,VH-u.b,true).y-toWorld(F.x,u.t,true).y)/2,
+    const c=toWorld(F.x,F.y,true),hx0=toWorld(VW,F.y,true),hx1=toWorld(0,F.y,true),hy0=toWorld(F.x,VH-u.b,true),hy1=toWorld(F.x,u.t,true),lim=R3.D0/cam.z*R3.S*.9,hx=Math.min(lim,Math.hypot(hx0.x-hx1.x,hx0.y-hx1.y)/2),hy=Math.min(lim,Math.hypot(hy0.x-hy1.x,hy0.y-hy1.y)/2),
       ok=typeof ROOM!=='undefined'&&ROOM.on?.4:.2/* ohne Spielzimmer nur ein schmaler Rand (dahinter ist nur Meer) */,ox=hx*ok,oy=hy*ok,nx=Math.max(B.x0-ox,Math.min(B.x1+ox,c.x)),ny=Math.max(B.y0-oy,Math.min(B.y1+oy,c.y));
     if(Math.abs(nx-c.x)<.5&&Math.abs(ny-c.y)<.5)break;
     cam.x+=nx-c.x;cam.y+=ny-c.y;camUpdate()}
@@ -42,11 +57,12 @@ cv.addEventListener('pointerdown',e=>{
   if(!G||!G.running)return;const p=evPos(e);mouse.type=e.pointerType;
   try{cv.setPointerCapture(e.pointerId)}catch(_){}
   if(e.pointerType!=='mouse'){tpts.set(e.pointerId,{x:p.x,y:p.y});
-    if(tpts.size===2){/* zwei Finger: Pinch-Zoom */const[a,b]=[...tpts.values()];pinch={d:Math.max(20,Math.hypot(a.x-b.x,a.y-b.y)),z:cam.z};drag=null;return}
+    if(tpts.size===2){/* zwei Finger: Pinch-Zoom */const[a,b]=[...tpts.values()];pinch={d:Math.max(20,Math.hypot(a.x-b.x,a.y-b.y)),z:cam.z,an:Math.atan2(b.y-a.y,b.x-a.x),my:(a.y+b.y)/2,yaw:cam.tyaw,pit:cam.tpitch,on:false};drag=null;return}
     if(!e.isPrimary)return;drag={sx:p.x,sy:p.y,lx:p.x,ly:p.y,touch:true,moved:false};return}
   const w=toWorld(p.x,p.y);
   if(e.button===2){if(wallDrag){wallDrag=null;return}if(placing||armed){placing=null;armed=false;return}command(w.x,w.y,e.shiftKey,{x:p.x,y:p.y});if(ownSel().length)sfx('order');return}
-  if(e.button===1){drag={pan:true,lx:p.x,ly:p.y};e.preventDefault();return}
+  if(e.button===1){drag=e.shiftKey?{pan:true,lx:p.x,ly:p.y}:{rot:true,lx:p.x,ly:p.y};e.preventDefault();return}
+  if(e.button===0&&e.altKey&&!placing&&!armed){drag={rot:true,lx:p.x,ly:p.y};e.preventDefault();return}
   if(e.button===0){if(placing){
       /* Mauer: erst beim Loslassen bauen – Klick = ein Stück wie bisher, Ziehen = ganze Mauerlinie (Vorschau in render.js) */
       if(placing==='wall'){wallDrag={sx:p.x,sy:p.y,x:w.x,y:w.y,line:false,shift:e.shiftKey};return}
@@ -57,12 +73,17 @@ cv.addEventListener('pointermove',e=>{
   const p=evPos(e);mouse.x=p.x;mouse.y=p.y;mouse.in=true;mouse.type=e.pointerType;
   if(tpts.has(e.pointerId)){tpts.set(e.pointerId,{x:p.x,y:p.y});
     if(pinch&&tpts.size>=2){const[a,b]=[...tpts.values()],mx=(a.x+b.x)/2,my=(a.y+b.y)/2,before=toWorld(mx,my,true);
-      cam.z=Math.max(ZOOM.min,Math.min(ZOOM.max,pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d));camUpdate();const after=toWorld(mx,my,true);cam.x+=before.x-after.x;cam.y+=before.y-after.y;clampCam();return}}
+      cam.z=Math.max(ZOOM.min,Math.min(ZOOM.max,pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d));
+      /* Zwei-Finger-Drehen (Verdrehen der Finger) und -Neigen (beide Finger gemeinsam hoch/runter, erst ab 14 Pixel) */
+      {let da=Math.atan2(b.y-a.y,b.x-a.x)-pinch.an;da=Math.atan2(Math.sin(da),Math.cos(da));const dm=my-pinch.my;if(Math.abs(da)>.06)pinch.rt=true;if(Math.abs(dm)>14)pinch.tl=true;
+        if(pinch.rt)cam.tyaw=pinch.yaw+da*OPT.camRot;if(pinch.tl)cam.tpitch=Math.max(PITCH_MIN,Math.min(PITCH_MAX,pinch.pit+(dm-Math.sign(dm)*14)*.004*OPT.camRot))}
+      camUpdate();const after=toWorld(mx,my,true);cam.x+=before.x-after.x;cam.y+=before.y-after.y;clampCam();return}}
   if(wallDrag){
     /* Rechte Maustaste während des Ziehens (kommt als pointermove) bricht ab; Maustaste nicht mehr gedrückt (z. B. nach Fensterwechsel) ebenso */
     if(placing!=='wall'||(e.pointerType==='mouse'&&(e.buttons&2||!(e.buttons&1)))){wallDrag=null;return}
     if(!wallDrag.line&&Math.hypot(p.x-wallDrag.sx,p.y-wallDrag.sy)>8)wallDrag.line=true;return}
   if(!drag)return;
+  if(drag.rot){camRot(-(p.x-drag.lx)*.006*OPT.camRot,(p.y-drag.ly)*.004*OPT.camRot);drag.lx=p.x;drag.ly=p.y;return}
   if(drag.pan||drag.touch){if(drag.touch&&!drag.moved&&Math.hypot(p.x-drag.sx,p.y-drag.sy)<9)return;if(drag.touch)drag.moved=true;{const a=toWorld(drag.lx,drag.ly,true),b=toWorld(p.x,p.y,true);cam.x+=a.x-b.x;cam.y+=a.y-b.y}drag.lx=p.x;drag.ly=p.y;clampCam();return}
   if(Math.hypot(p.x-drag.sx,p.y-drag.sy)>5)drag.box=true;
 });
@@ -74,7 +95,7 @@ cv.addEventListener('pointerup',e=>{
     else tryPlace(wd.x,wd.y,true);
     return}
   if(!drag)return;const p=evPos(e);const d=drag;drag=null;
-  if(d.pan)return;
+  if(d.pan||d.rot)return;
   if(d.touch){if(!d.moved)tap(p);return}
   if(d.box){const x0=Math.min(d.sx,p.x),x1=Math.max(d.sx,p.x),y0=Math.min(d.sy,p.y),y1=Math.max(d.sy,p.y);
     const us=G.ents.filter(u=>{if(u.dead||u.kind!=='unit'||u.team!==0)return false;const q=scr(u.x,u.y,entH(u)*.45);return q.x>=x0&&q.x<=x1&&q.y>=y0&&q.y<=y1});
@@ -118,6 +139,8 @@ addEventListener('keydown',e=>{
   else if(kA(e)==='rage'){const ids=ownSel().filter(u=>u.kind==='unit').map(u=>u.id);if(ids.length){if(NET.client)NET.send({c:'rage',ids});else if(!useRage(0,ids))toast(tr('Kampfrausch lädt noch.'),'warn')}}
   else if(kA(e)==='mute'){SND.setMute(!SND.muted);toast(SND.muted?tr('Ton aus'):tr('Ton an'))}
   else if(kA(e)==='attack'){if(ownSel().some(u=>u.kind==='unit'&&!UNITS[u.type].passive)){armed=true;placing=null}}
+  else if(kA(e)==='camReset'){e.preventDefault();camReset()}
+  else if(kA(e)==='tiltU'||kA(e)==='tiltD'||kA(e)==='rotL'||kA(e)==='rotR'){if(e.key.length>1)e.preventDefault()}
   else if(kA(e)==='home'){const hq=G.ents.find(o=>o.type==='hq'&&o.team===0&&!o.dead);if(hq){sel.clear();sel.add(hq.id);centerOn(hq.x,hq.y);panelSig=''}}
   else if(kA(e)==='idle'){selectIdle()}
   else if(/^F[1-4]$/.test(e.key)){e.preventDefault();const f=e.key,m=f==='F1'?u=>u.type==='worker':f==='F2'?u=>u.type!=='worker'&&!UNITS[u.type].naval:f==='F4'?u=>UNITS[u.type].naval:()=>false;
@@ -134,7 +157,7 @@ function scrollCam(dt){
   let vx=0,vy=0;const s=700/cam.z*OPT.camSpeed;
   if(keys.ArrowLeft||keys.a)vx-=1;if(keys.ArrowRight||keys.d)vx+=1;if(keys.ArrowUp||keys.w)vy-=1;if(keys.ArrowDown||keys.s)vy+=1;
   if(OPT.edgeScroll&&mouse.in&&mouse.type==='mouse'&&!drag&&!mmDrag&&G&&G.running){const m=14;if(mouse.x<m)vx-=1;if(mouse.x>VW-m)vx+=1;if(mouse.y<m)vy-=1;if(mouse.y>VH-m)vy+=1}
-  if(vx||vy){cam.x+=vx*s*dt;cam.y+=vy*s*dt;clampCam()}
+  if(vx||vy){const cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw);/* relativ zur Blickrichtung */cam.x+=(vx*cy+vy*sy)*s*dt;cam.y+=(-vx*sy+vy*cy)*s*dt;clampCam()}
 }
 function togglePause(){if(G.mp)return;G.paused=!G.paused;$('pauseBtn').textContent=G.paused?tr('Weiter'):tr('Pause')}
 let idleIdx=0;

@@ -152,20 +152,32 @@ function r3Map(){
 function camUpdate(){
   if(!R3.ok||!VW)return;const{camera,sun}=r3,S=R3.S,d=R3.D0/cam.z,tx=cam.x/S,tz=cam.y/S,ty=hAt(cam.x,cam.y);
   camera.aspect=VW/VH;camera.fov=R3.FOV;camera.near=Math.max(.8,Math.min(2,d*.06));/* ganz nah ran: nichts schneidet in die Kamera */camera.updateProjectionMatrix();
-  camera.position.set(tx,ty+Math.sin(R3.PITCH)*d,tz+Math.cos(R3.PITCH)*d);camera.lookAt(tx,ty,tz);camera.updateMatrixWorld();
+  /* freie Kamera: Blick von (yaw, pitch) auf den Punkt cam.x/cam.y; yaw 0 = Standard (Norden oben), pitch 1,14 = Standard-Neigung */
+  const pc=Math.cos(cam.pitch)*d,px=tx+Math.sin(cam.yaw)*pc,pz=tz+Math.cos(cam.yaw)*pc;let py=ty+Math.sin(cam.pitch)*d;
+  /* nie unter den Boden / das Brett: Mindesthöhe über dem Gelände an der Kameraposition (und über dem Brett ausserhalb der Karte) */
+  py=Math.max(py,Math.max(0,hAt(px*S,pz*S))+1.6);
+  camera.position.set(px,py,pz);camera.lookAt(tx,ty,tz);camera.updateMatrixWorld();
   R3.k=(VH/(2*Math.tan(R3.FOV*Math.PI/360)*d))/S; // Bildschirm-Pixel pro Spiel-Pixel in der Bildmitte
   const b=Math.min(260,d*.85);/* weiter Zoom: Schattenbild deckt die Bildmitte weiträumig ab */sun.position.set(tx-.95*b,ty+.85*b,tz-.5*b);sun.target.position.set(tx,ty,tz);sun.target.updateMatrixWorld();
   const sc=sun.shadow.camera;sc.left=sc.bottom=-b;sc.right=sc.top=b;sc.near=1;sc.far=b*3.2;sc.updateProjectionMatrix();
-  r3.scene.fog.near=d*2.4;r3.scene.fog.far=d*6;
+  /* Flacher Blick sieht viel mehr Land (5× Dreiecke): Nebel rückt dann näher, und was hinter dem Nebel liegt, wird gar nicht erst gezeichnet (R3.cull = Reichweite in Spielpixeln) */
+  const fl=Math.max(0,Math.min(1,(1-cam.pitch)/.7)),fn=d*(2.4-1.1*fl),ff=d*(6-2.8*fl);r3.scene.fog.near=fn;r3.scene.fog.far=ff;R3.farT=ff*1.05;R3.cull=fl>0?ff*1.02*S:0;R3.cx=cam.x+Math.sin(cam.yaw)*pc*S;R3.cy=cam.y+Math.cos(cam.yaw)*pc*S;
 }
-/* Spielpunkt (x,y in Pixeln, Höhe z in Pixeln) → Bildschirm */
-function scr(x,y,z){const v=r3.vec,S=R3.S;v.set(x/S,hAt(x,y)+(z||0)/S,y/S).project(r3.camera);return{x:(v.x+1)/2*VW,y:(1-v.y)/2*VH,front:v.z<1}}
-/* Bildschirm → Spielpunkt (Strahl auf das Gelände) */
+/* Spielpunkt (x,y in Pixeln, Höhe z in Pixeln) → Bildschirm. k = Bildschirm-Pixel je Spielpixel genau an diesem Punkt (Tiefe), front = vor der Kamera und im Tiefenbereich */
+const _sc3=new THREE.Vector3();
+function scr(x,y,z){const v=r3.vec,S=R3.S,c=r3.camera;v.set(x/S,hAt(x,y)+(z||0)/S,y/S);_sc3.copy(v).sub(c.position);const e=c.matrixWorld.elements,dep=-(_sc3.x*e[8]+_sc3.y*e[9]+_sc3.z*e[10]);v.project(c);return{x:(v.x+1)/2*VW,y:(1-v.y)/2*VH,front:v.z<1&&dep>0,k:dep>0?VH/(2*Math.tan(R3.FOV*Math.PI/360)*dep)/S:R3.k}}
+/* Bildschirm → Spielpunkt (Strahl auf das Gelände). Bei steilem Blick wenige Fixpunkt-Schritte, bei flachem Blick Strahlmarsch (Berge verdecken sonst falsch). */
 function toWorld(sx,sy,raw){/* raw: auch ausserhalb der Karte (Kamera, Tisch), sonst auf die Karte begrenzt */
   if(!R3.ok)return{x:cam.x,y:cam.y};
-  const{camera,ray}=r3,S=R3.S;ray.setFromCamera({x:sx/VW*2-1,y:-(sy/VH)*2+1},camera);const o=ray.ray.origin,d=ray.ray.direction;
-  let h=0,x=cam.x/S,z=cam.y/S;
-  for(let i=0;i<4;i++){const t=(h-o.y)/(d.y<-1e-4?d.y:-1e-4);x=o.x+d.x*t;z=o.z+d.z*t;h=hAt(x*S,z*S)}
+  const{camera,ray}=r3,S=R3.S;ray.setFromCamera({x:sx/VW*2-1,y:-(sy/VH)*2+1},camera);const o=ray.ray.origin,d=ray.ray.direction,far=R3.farT||1200;
+  let x,z;
+  if(cam.pitch>=.95){let h=0;x=cam.x/S;z=cam.y/S;
+    for(let i=0;i<4;i++){const t=Math.min(far,(h-o.y)/(d.y<-1e-4?d.y:-1e-4));x=o.x+d.x*t;z=o.z+d.z*t;h=hAt(x*S,z*S)}}
+  else{/* Strahlmarsch bis zum ersten Punkt unter dem Gelände, dann halbieren */
+    let t0=0,t1=-1,st=Math.max(.8,far/260);
+    for(let t=st;t<=far;t+=st*(1+t/far)){if(o.y+d.y*t<=Math.max(-2.4,hAt((o.x+d.x*t)*S,(o.z+d.z*t)*S))){t1=t;break}t0=t}
+    if(t1<0)t1=far;else for(let i=0;i<7;i++){const m=(t0+t1)/2;if(o.y+d.y*m<=Math.max(-2.4,hAt((o.x+d.x*m)*S,(o.z+d.z*m)*S)))t1=m;else t0=m}
+    x=o.x+d.x*t1;z=o.z+d.z*t1}
   return raw?{x:x*S,y:z*S}:{x:Math.max(0,Math.min(W,x*S)),y:Math.max(0,Math.min(H,z*S))}}
 
 /* Wind: Bäume, Büsche und Gras wiegen sich (Vertex-Shader-Zusatz; Ausschlag wächst mit der Höhe, jede Instanz hat eine andere Phase) */
@@ -257,9 +269,9 @@ function r3Grass(){
 }
 /* Gras im sichtbaren Ausschnitt in die Instanzen schreiben (nur wenn sich der Ausschnitt merklich ändert oder der Nebel neu schattiert wurde) */
 function r3GrassView(force){
-  const v=R3.view,gc=r3.gCells;if(!r3.i_tuft||!v||!gc)return;const st=cam.z<.4?4:cam.z<.55?2:1/* weit weg: nur jedes 2./4. Büschel, dafür grösser (spart Dreiecke, Gras ist dort ohnehin nur Farbfleck) */,key=st+':'+[v.x0,v.x1,v.y0,v.y1].map(a=>Math.round(a/80)).join();if(!force&&key===r3.gKey)return;r3.gKey=key;
+  const v=R3.view,gc=r3.gCells;if(!r3.i_tuft||!v||!gc)return;const st=cam.z<.4?4:cam.z<.55?2:1/* weit weg: nur jedes 2./4. Büschel, dafür grösser (spart Dreiecke, Gras ist dort ohnehin nur Farbfleck) */,key=st+':'+[v.x0,v.x1,v.y0,v.y1].map(a=>Math.round(a/80)).join()+(R3.cull?':'+Math.round(R3.cx/80)+','+Math.round(R3.cy/80)+','+Math.round(R3.cull/80):'');if(!force&&key===r3.gKey)return;r3.gKey=key;
   const S=R3.S,o=_gO||(_gO=new THREE.Object3D()),c=_gC||(_gC=new THREE.Color()),cx0=Math.max(0,(v.x0/gc.GC)|0),cx1=Math.min(gc.gw-1,(v.x1/gc.GC)|0),cy0=Math.max(0,(v.y0/gc.GC)|0),cy1=Math.min(((H-1)/gc.GC)|0,(v.y1/gc.GC)|0);
-  const sk=st===1?1:st===2?1.35:1.7,fill=(m,cells,col)=>{let k=0;for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++){const ls=cells[cy*gc.gw+cx];for(let q=0;q<ls.length;q+=st){const p=ls[q];if(p.hid)continue;o.position.set(p.x/S,p.h,p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(p.s*sk);o.updateMatrix();m.setMatrixAt(k,o.matrix);m.setColorAt(k,col(p));k++}}
+  const sk=st===1?1:st===2?1.35:1.7,fill=(m,cells,col)=>{let k=0;for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++){if(R3.cull){const ddx=(cx+.5)*gc.GC-R3.cx,ddy=(cy+.5)*gc.GC-R3.cy;if(ddx*ddx+ddy*ddy>(R3.cull+gc.GC)*(R3.cull+gc.GC))continue}const ls=cells[cy*gc.gw+cx];for(let q=0;q<ls.length;q+=st){const p=ls[q];if(p.hid)continue;o.position.set(p.x/S,p.h,p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(p.s*sk);o.updateMatrix();m.setMatrixAt(k,o.matrix);m.setColorAt(k,col(p));k++}}
     m.count=k;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true};
   fill(r3.i_tuft,gc.t,p=>{const sh=fogShade(p.x,p.y)*p.c;return c.setRGB(sh,sh*(.96+p.j*.08),sh*.95)});fill(r3.i_flower,gc.f,p=>p.col)}
 let _gO=null,_gC=null;
@@ -301,7 +313,7 @@ function r3Nodes(){
   const inV0=(x,y,m)=>!V||(x>=V.x0-m&&x<=V.x1+m&&y>=V.y0-m&&y<=V.y1+m);
   /* genauer: Fusspunkt auf dem Bildschirm (Rand links/rechts 170 px, oben 120 px, unten 300 px für hohe Bäume, deren Krone ins Bild ragt) */
   const sv=r3.vec,pm=new THREE.Matrix4().multiplyMatrices(r3.camera.projectionMatrix,r3.camera.matrixWorldInverse),mx=1+340/Math.max(1,VW),myT=1+240/Math.max(1,VH),myB=1+600/Math.max(1,VH);
-  const onS=(x,y)=>{sv.set(x/S,hAt(x,y),y/S).applyMatrix4(pm);return sv.z<1&&sv.x>-mx&&sv.x<mx&&sv.y<myT&&sv.y>-myB};
+  const cl=R3.cull,cl2=cl*cl,onS=(x,y)=>{if(cl){const dx=x-R3.cx,dy=y-R3.cy;if(dx*dx+dy*dy>cl2)return false}sv.set(x/S,hAt(x,y),y/S).applyMatrix4(pm);return sv.z<1&&sv.x>-mx&&sv.x<mx&&sv.y<myT&&sv.y>-myB};
   const inV=(x,y,m)=>inV0(x,y,m)&&onS(x,y);
   R3.nodeV=V&&{x:(V.x0+V.x1)/2,y:(V.y0+V.y1)/2,w:V.x1-V.x0}; /* nur Vorkommen im Bild (+Rand) zeichnen */
   const fields=new Map(),farms=[];
@@ -311,9 +323,10 @@ function r3Nodes(){
     if(e.type==='tree'){const t=tl.get(e.id);if(t)t.f=fr;else tl.set(e.id,{x:e.x,y:e.y,r:e.r,sd:e.seed,f:fr})}
     if(e.type==='field'){fields.set(e.farm,e.amount/e.maxAmt);continue}
     if(!inV(e.x,e.y,M))continue;
-    if(e.type==='tree'&&thin>1&&e.id%thin)continue; /* weit weg: nur jeder 2./3. Baum, die übrigen etwas grösser (Wald bleibt dicht, halb so viele Dreiecke) */
+    let th=thin;if(cl&&e.type==='tree'){const dd=Math.hypot(e.x-R3.cx,e.y-R3.cy)/cl;th=Math.max(th,dd>.6?4:dd>.32?2:1)}/* flacher Blick: ferne Bäume dünnen aus */
+    if(e.type==='tree'&&th>1&&e.id%th)continue; /* weit weg: nur jeder 2./3. Baum, die übrigen etwas grösser (Wald bleibt dicht, halb so viele Dreiecke) */
     const k=Math.max(.5,Math.sqrt(e.amount/e.maxAmt)),sh=fogShade(e.x,e.y),h=hAt(e.x,e.y),x=e.x/S,z=e.y/S,sd=e.seed;
-    if(e.type==='tree'){const s=e.r/11*.62*(.85+sd*.35)*(.55+.45*k)*(thin>1?1+.28*(thin-1):1),tk=treeKind(e),v=.9+((sd*97)%1)*.2;{const ts=treeSea(tk.k,sd),ix=add(ts[0],tk.v,x,h-.05,z,sd*6.28,s,s*(.9+((sd*31)%1)*.3),v*sh*ts[1],(.95+((sd*53)%1)*.12)*v*sh*ts[2],v*sh*ts[3]);if(ix&&SHK.size){const sk=SHK.get(e.id);if(sk)sk.ix=ix}}}
+    if(e.type==='tree'){const s=e.r/11*.62*(.85+sd*.35)*(.55+.45*k)*(th>1?Math.min(1.6,1+.28*(th-1)):1),tk=treeKind(e),v=.9+((sd*97)%1)*.2;{const ts=treeSea(tk.k,sd),ix=add(ts[0],tk.v,x,h-.05,z,sd*6.28,s,s*(.9+((sd*31)%1)*.3),v*sh*ts[1],(.95+((sd*53)%1)*.12)*v*sh*ts[2],v*sh*ts[3]);if(ix&&SHK.size){const sk=SHK.get(e.id);if(sk)sk.ix=ix}}}
     else if(e.type==='bush'){const s=e.r/10*(.55+.45*k);add(e.amount<e.maxAmt*.25?'bushE':'bush',(sd*97)|0,x,h-.03,z,sd*6.28,s,s,sh,sh,sh)} /* fast leer gepflückt: Busch ohne Beeren */
     else{if(HIDDEN_NODES.has(e.type)){if(!nodeKnown(e)){if(!nodeEpochOk(e,0))hidT[e.type]=1;continue}if(hidT[e.type]&&ap[e.type]===undefined)ap[e.type]=G.t}if(!NSET[e.type])continue;const gk=grow(e.type),kv=Math.floor(sd*3)%3,base=e.r/10*(.6+.4*k)*.78*gk;
       const nn=e.type==='oil'?1:5;for(let j=0;j<nn;j++){const a=sd*20+j*1.9,dd=j?e.r/S*.62:0,sz=base*(j?.55+((j*37+sd*50)%7)/14:1.05),xx=x+Math.cos(a)*dd,zz=z+Math.sin(a)*dd,cc=sh*(.92+(j%3)*.05);add(e.type,kv,xx,hAt(xx*S,zz*S)-.1,zz,a,sz,sz*(j?1:1.15),cc,cc,sh*(.95+(j%2)*.05))}}}
@@ -526,13 +539,13 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   if(r3.foam)r3.foam.material.opacity=(.42+.3*Math.sin(t*1.4)+.1*Math.sin(t*3.1))*(1-(R3.ice||0)*.8);
   for(const w of r3.waves){w.material.opacity=w.userData.op0*(1-(R3.ice||0)*.72);const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
-  {const V=R3.view,N=R3.nodeV;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
+  {const V=R3.view,N=R3.nodeV,ck=Math.round(cam.yaw*12)+','+Math.round(cam.pitch*12);if(ck!==R3.camK){R3.camK=ck;R3.nodeT=0}if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
   r3Lod();R3.nodeT-=dt;R3.gsT=(R3.gsT||0)-dt;if(R3.nodeT<=0){R3.nodeT=R3.apBusy?.06:.4;r3Nodes();if(R3.gsT<=0){R3.gsT=.4;r3GrassShade()}else r3GrassView()}else r3GrassView();if(SHK.size)r3Shake(dt)
   if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;
   /* Schattenkarte nur jedes 2. Bild neu (bewegt sich die Kamera, sofort) – halbiert die Schatten-Zeichenarbeit, Unterschied ist nicht zu sehen */
-  {const sm=r3.rd.shadowMap,ck=cam.x.toFixed(1)+','+cam.y.toFixed(1)+','+cam.z.toFixed(3);sm.autoUpdate=false;R3.shF=(R3.shF||0)+1;if(R3.shF%2===0||ck!==R3.shK){sm.needsUpdate=true;R3.shK=ck}}
+  {const sm=r3.rd.shadowMap,ck=cam.x.toFixed(1)+','+cam.y.toFixed(1)+','+cam.z.toFixed(3)+','+cam.yaw.toFixed(3)+','+cam.pitch.toFixed(3);sm.autoUpdate=false;R3.shF=(R3.shF||0)+1;if(R3.shF%2===0||ck!==R3.shK){sm.needsUpdate=true;R3.shK=ck}}
   r3.rd.render(r3.scene,r3.camera);R3.ghostOn=false;r3Bloom();
 }
 /* Höhe einer Figur/eines Gebäudes über dem Boden in Spielpixeln (für Lebensbalken, Marker) */
