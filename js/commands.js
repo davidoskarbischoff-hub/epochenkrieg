@@ -8,8 +8,8 @@ function ownSel(){return selection().filter(e=>e.team===0)}
 function entityAt(x,y,sp){
   let best=null,bd=1e9;
   for(const e of G.ents){if(e.dead||!shown(e))continue;let sc;
-    if(sp&&e.sea){const b=scr(e.x,e.y,0);if(!b.front)continue;const d=Math.hypot(sp.x-b.x,(sp.y-b.y)*1.5);if(d>e.r*R3.k*1.8+10)continue;sc=2000+d*.05} /* Fischgrund: großzügige Klickfläche */
-    else if(sp){const b=scr(e.x,e.y,0);if(!b.front)continue;const k=R3.k,hp=entH(e)*k,u=e.kind==='unit'||e.kind==='animal',hw=Math.max(7,e.r*k*(e.kind==='node'?.8:1.1))+(u?3:1);
+    if(sp&&e.sea){const b=scr(e.x,e.y,0);if(!b.front)continue;const d=Math.hypot(sp.x-b.x,(sp.y-b.y)*1.5);if(d>e.r*b.k*1.8+10)continue;sc=2000+d*.05} /* Fischgrund: großzügige Klickfläche */
+    else if(sp){const b=scr(e.x,e.y,0);if(!b.front)continue;const k=b.k,hp=entH(e)*k,u=e.kind==='unit'||e.kind==='animal',hw=Math.max(7,e.r*k*(e.kind==='node'?.8:1.1))+(u?3:1);
       const onBody=Math.abs(sp.x-b.x)<=hw&&sp.y<=b.y+e.r*k*.4+3&&sp.y>=b.y-hp;if(!onBody&&Math.hypot(sp.x-b.x,(sp.y-b.y)*1.5)>e.r*k+4)continue;
       sc=(u?0:e.kind==='bld'?1000:2000)-b.y*.01+Math.hypot(sp.x-b.x,sp.y-(b.y-hp*.4))*.05}
     else{const d=Math.hypot(e.x-x,e.y-y),u=e.kind==='unit'||e.kind==='animal';if(d>e.r+(u?5:2))continue;sc=(u?0:e.kind==='bld'?1000:2000)+d}

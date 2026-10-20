@@ -4,7 +4,8 @@
 const $=id=>document.getElementById(id);
 const cv=$('c'),ctx=cv.getContext('2d'),mm=$('mini'),mctx=mm.getContext('2d'),view=$('view');
 let dpr=1,VW=0,VH=0,MW=0,MH=0;
-const cam={x:0,y:0,z:1};
+/* yaw/pitch = aktuelle Blickrichtung (Radiant), tyaw/tpitch = Ziel (weiches Nachlaufen in camSmooth, input.js). Rein lokal, nie im Spielstand. */
+const cam={x:0,y:0,z:1,yaw:0,pitch:1.14,tyaw:0,tpitch:1.14};
 /* Ton: Eigene Geräusche immer, fremde nur wenn sie im Bild sind */
 /* ---------- Nebel des Krieges ---------- */
 const FC=20,FW=W/FC,FH=H/FC;
