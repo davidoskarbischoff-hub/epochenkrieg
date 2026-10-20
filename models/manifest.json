@@ -6936,11 +6936,22 @@
    "size": 1.4,
    "spread": 1.5,
    "yaw": -90,
-   "manta": {
-    "file": "neu/fische/Manta ray.glb",
-    "size": 2.6,
-    "every": 3
-   }
+   "extra": [
+    {
+     "file": "neu/fische/Manta ray.glb",
+     "size": 2.6,
+     "every": 3,
+     "mod": 0,
+     "slot": 1
+    },
+    {
+     "file": "neu/fische/Shark.glb",
+     "size": 3.4,
+     "every": 5,
+     "mod": 1,
+     "slot": 2
+    }
+   ]
   },
   "dolphin": {
    "files": [
