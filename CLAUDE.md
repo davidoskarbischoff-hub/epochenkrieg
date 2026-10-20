@@ -238,3 +238,5 @@ Idee für später: echte Nachbearbeitung (SSAO, Bloom mit Render-Target) braucht
 - Arbeiter an Bäumen/Sträuchern: `treeSpot` (sim.js) gibt jedem Arbeiter eine eigene Seite (u.id, bevorzugt zur Abgabestelle), Rate und Rechenzeit unverändert (1,6-2,0 ms je Schritt bei 100 Arbeitern vorher und nachher).
 
 - Paket G (19.10.): Beeren-Griffweite 1,9 (`o.sh` in r3Unit). Arbeiter-Vielfalt: Manifest-`vary` darf Objekte `{file,tint,skin,hair}` enthalten (makeUnit überschreibt `tint`/`skins`/`hairs`; Wahl nach `u.id`, also auf beiden Mehrspieler-Seiten gleich); 7–9 feste Typen je Zeitalter halten `mergeCache` klein. Renaissance hat einen eigenen Arbeiter-Eintrag (Epoche 4).
+
+- R2 (20.10.): Zeitalter 3/4 Schwert/Speer/Reiter-Figur = `people/city_dwellers_1.glb` (Bürger, Schild mit Teamfarbe am Rand, Ep. 4 Messing-Schulterpanzer), nur Clips Idle/Walk/Sword_Slash/Interact. Reiter Ep. 6 = Adventurer wie Ep. 5. Meshopt-Decoder fehlt im Bundle (nicht verkleinert).
