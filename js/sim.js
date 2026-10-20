@@ -3,7 +3,7 @@
 'use strict';
 /* ---------- game ---------- */
 let mapSeed=0,mapFresh=false,mapKey='',curMap='coast';
-function newGame(d,reuse,opts){
+function newGame(d,reuse,opts){cam.yaw=cam.tyaw=0;cam.pitch=cam.tpitch=1.14;
   opts=opts||{};startK=opts.size==='S'?.5:opts.size==='M'?.78:1;playF=opts.size==='S'?.62:opts.size==='M'?.84:.9;/* auch gross: schmales Randgebirge statt harter Kartenkante im Meer */if(!opts.mp)setTeamColors('#3d72b8','#b9442f');diff=d;if(opts.aiStyle)aiStyle=opts.aiStyle;if(opts.map)curMap=opts.map;else if(typeof window.__map==='string')curMap=window.__map;
   /* Karten-Regler (Wasser, Gebirge, Jahreszeit): gelten für diese Karte und bleiben bis zum nächsten Aufruf gemerkt */
   if(opts.water!==undefined)MOPT.water=Math.max(0,Math.min(2,opts.water|0));if(opts.mount!==undefined)MOPT.mount=Math.max(0,Math.min(2,opts.mount|0));if(opts.season!==undefined)MOPT.sel=opts.season;

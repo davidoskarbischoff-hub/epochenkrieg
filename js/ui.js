@@ -28,6 +28,7 @@ function renderOptions(){
   const rng=(id,min,max,step,val,out)=>`<div class="rg"><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}"><output id="${id}o">${out}</output></div>`;
   let body='';
   if(optTab==='game')body=row('Kamera-Geschwindigkeit',rng('oCam',.4,2.2,.1,OPT.camSpeed,OPT.camSpeed.toFixed(1)+'×'),'Wie schnell die Karte mit Tasten und Bildschirmrand wandert')
+    +row('Kamera-Drehung',rng('oRot',.3,2.5,.1,OPT.camRot,OPT.camRot.toFixed(1)+'×'),'Wie schnell sich die Kamera beim Drehen und Neigen bewegt')
     +row('Bildschirmrand-Scrollen',tog('oEdge',OPT.edgeScroll),'Maus an den Rand schieben, um die Karte zu bewegen')
     +row('Zoom-Stärke',rng('oZoom',.4,2.5,.1,OPT.zoomSpeed,OPT.zoomSpeed.toFixed(1)+'×'),'Wie stark das Mausrad zoomt')
     +row('Lebensbalken',seg('oHp',[['hurt','Verletzte'],['all','Alle'],['off','Aus']],OPT.hpBars),'Wann Balken über Einheiten und Gebäuden stehen')
@@ -49,7 +50,7 @@ function renderOptions(){
     +row('Effekte',rng('sv',0,100,1,Math.round(SND.sfx*100),pc(SND.sfx)))
     +row('Kampfmusik',tog('oWar',OPT.combatMusic),'Trommeln und Bläser bei Gefechten')
     +row('Stimmen',tog('oVoice',OPT.voices),'Brummen der Arbeiter, Kampfschreie, Kriegshorn');
-  if(optTab==='ctl'){const K=[['WASD / Pfeile','Karte bewegen'],['Mausrad','Zoom'],['Linksklick / Rahmen','Auswählen'],['Doppelklick','Alle gleichen im Bild'],['Rechtsklick','Bewegen, sammeln, bauen, angreifen, reparieren'],['Q','Angriffsmarsch'],['F','Kampfrausch'],['G','Formation wechseln (Linie, Keil, Kolonne, Karree, Kreis)'],['H','Zum Hauptlager'],['E','Späher erkunden'],['.','Untätigen Arbeiter wählen'],['Y / X','Berater: annehmen / ablehnen'],['Leertaste','Pause'],['M','Ton an/aus'],['Esc','Menü']];
+  if(optTab==='ctl'){const K=[['WASD / Pfeile','Karte bewegen'],['Mausrad','Zoom'],['Mittlere Maustaste ziehen / Alt + Linksziehen','Kamera drehen und neigen'],['Umschalt + Mittlere Maustaste ziehen','Karte schieben'],['Zwei Finger verdrehen / gemeinsam hoch und runter','Kamera drehen / neigen (Touch)'],['Linksklick / Rahmen','Auswählen'],['Doppelklick','Alle gleichen im Bild'],['Rechtsklick','Bewegen, sammeln, bauen, angreifen, reparieren'],['Q','Angriffsmarsch'],['F','Kampfrausch'],['G','Formation wechseln (Linie, Keil, Kolonne, Karree, Kreis)'],['H','Zum Hauptlager'],['E','Späher erkunden'],['.','Untätigen Arbeiter wählen'],['Y / X','Berater: annehmen / ablehnen'],['Leertaste','Pause'],['M','Ton an/aus'],['Esc','Menü']];
     const fixed=K.filter(([k])=>!['Q','F','G','H','E','.','Y / X','Leertaste','M'].includes(k));
     body='<h3 class="ktitle">'+tr('Tastenkürzel (zum Ändern anklicken)')+'</h3><div class="keymap">'+KEYDEF.map(([a,d,lab])=>`<div class="kmrow"><span>${tr(lab)}</span><button class="kmbtn" data-a="${a}">${keyLabel(OPT.keys[a]||'')||'–'}</button></div>`).join('')+'</div><div class="kmnote">'+tr('Esc bricht ab. Eine Taste, die schon vergeben ist, wird der alten Aktion weggenommen.')+' <button class="kmreset" id="kmReset">'+tr('Standard')+'</button></div><h3 class="ktitle">'+tr('Maus und Karte')+'</h3><div class="keys">'+fixed.map(([k,d])=>`<div><kbd>${k}</kbd><span>${tr(d)}</span></div>`).join('')+'</div>'}
   if(optTab==='cred')body=`<div class="credits"><p>${tr('Epochenkrieg – Idee und Spielgestaltung: Daveson für Deus Vult Infidel. Programmiert mit Claude (Anthropic).')}</p>
@@ -73,6 +74,7 @@ function renderOptions(){
   const segB=(id,fn)=>bind(id,e=>e.querySelectorAll('button').forEach(b=>b.onclick=()=>{fn(b.dataset.v);e.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
   bind('oCam',e=>e.oninput=()=>{optSet('camSpeed',+e.value);q('oCamo').textContent=(+e.value).toFixed(1)+'×'});
   bind('oEdge',e=>e.onchange=()=>optSet('edgeScroll',e.checked));
+  bind('oRot',e=>e.oninput=()=>{optSet('camRot',+e.value);q('oRoto').textContent=(+e.value).toFixed(1)+'×'});
   bind('oZoom',e=>e.oninput=()=>{optSet('zoomSpeed',+e.value);q('oZoomo').textContent=(+e.value).toFixed(1)+'×'});
   segB('oHp',v=>optSet('hpBars',v));bind('oTips',e=>e.onchange=()=>optSet('tips',e.checked));bind('oToasts',e=>e.onchange=()=>optSet('toasts',e.checked));
   segB('oLang',v=>{applyLang(v);renderOptions()});
@@ -208,7 +210,7 @@ function showStart(){
   <div class="diff" role="group" aria-label="${tr('Schwierigkeit')}">${['leicht','normal','schwer'].map(d=>`<button data-d="${d}" aria-pressed="${d===diff}">${tr(d)}</button>`).join('')}</div>
   <div class="diff aist" role="group" aria-label="${tr('Gegner')}">${Object.entries(AI_STYLES).map(([k,v])=>`<button data-as="${k}" aria-pressed="${k===aiStyle}" title="${tr(v.desc)}">${tr(v.name)}</button>`).join('')}</div>
   <div class="maps" role="group" aria-label="${tr('Karte')}">${Object.entries(MAPS).map(([k,m])=>`<button data-map="${k}" aria-pressed="${k===curMap}"><b>${tr(m.name)}</b><img src="${mapPreview(k)}" alt="" title="${tr(m.desc)}"></button>`).join('')}</div>
-  <dl class="ctl"><dt>${tr('Auswählen')}</dt><dd>${tr('Linksklick, Rahmen ziehen, Doppelklick für alle gleichen')}</dd><dt>${tr('Befehl')}</dt><dd>${tr('Rechtsklick: bewegen, sammeln, bauen, angreifen, Sammelpunkt')}</dd><dt>${tr('Kamera')}</dt><dd>${tr('WASD oder Pfeiltasten, Bildschirmrand, Minikarte, Mausrad zoomt')}</dd><dt>${tr('Tasten')}</dt><dd>${tr('Q Angriffsmarsch · H Hauptlager · . untätiger Arbeiter · Leertaste Pause · Esc Menü')}</dd><dt>${tr('Touch')}</dt><dd>${tr('Tippen wählt aus, mit Auswahl tippen gibt Befehl, Wischen bewegt die Karte')}</dd></dl>
+  <dl class="ctl"><dt>${tr('Auswählen')}</dt><dd>${tr('Linksklick, Rahmen ziehen, Doppelklick für alle gleichen')}</dd><dt>${tr('Befehl')}</dt><dd>${tr('Rechtsklick: bewegen, sammeln, bauen, angreifen, Sammelpunkt')}</dd><dt>${tr('Kamera')}</dt><dd>${tr('WASD oder Pfeiltasten, Bildschirmrand, Minikarte, Mausrad zoomt, mittlere Maustaste dreht und neigt')}</dd><dt>${tr('Tasten')}</dt><dd>${tr('Q Angriffsmarsch · H Hauptlager · . untätiger Arbeiter · Leertaste Pause · Esc Menü')}</dd><dt>${tr('Touch')}</dt><dd>${tr('Tippen wählt aus, mit Auswahl tippen gibt Befehl, Wischen bewegt die Karte')}</dd></dl>
   <div class="langrow"><span>${tr('Sprache')}</span><div class="diff" role="group">${['de','en'].map(l=>`<button data-l="${l}" aria-pressed="${l===LANG}">${l==='de'?'Deutsch':'English'}</button>`).join('')}</div></div>
   <div class="btnrow row"><button class="go" id="goBtn">${tr('Einzelspiel starten')}</button><button class="btn2" id="mpBtn">${tr('Mehrspieler')} …</button></div></div>`;
   ov.querySelectorAll('[data-map]').forEach(b=>b.onclick=()=>{curMap=b.dataset.map;ov.querySelectorAll('[data-map]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
