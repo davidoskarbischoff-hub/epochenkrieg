@@ -6928,32 +6928,48 @@
  "sea": {
   "fish": {
    "files": [
-    "neu/Tuna.glb",
-    "neu/Red Snapper.glb"
+    "neu/fische/Fish.glb",
+    "neu/fische/Fish-XWl86YFtpF.glb",
+    "neu/fische/Fish-BEcU9rjiAq.glb"
    ],
    "count": 4,
-   "size": 1.0,
+   "size": 1.4,
    "spread": 1.5,
-   "yaw": 90
+   "yaw": -90,
+   "extra": [
+    {
+     "file": "neu/fische/Manta ray.glb",
+     "size": 2.6,
+     "every": 3,
+     "mod": 0,
+     "slot": 1
+    },
+    {
+     "file": "neu/fische/Shark.glb",
+     "size": 3.4,
+     "every": 5,
+     "mod": 1,
+     "slot": 2
+    }
+   ]
   },
   "dolphin": {
    "files": [
-    "neu/Tuna.glb",
-    "neu/Swordfish.glb"
+    "neu/fische/Dolphin.glb"
    ],
    "count": 2,
-   "size": 2.3,
+   "size": 2.6,
    "spread": 1.8,
-   "yaw": 90
+   "yaw": -90
   },
   "whale": {
    "files": [
-    "neu/Shark.glb"
+    "neu/fische/Whale.glb"
    ],
    "count": 1,
    "size": 12,
-   "tint": "#5a7a9a",
-   "yaw": 90
+   "tint": "#6c8196",
+   "yaw": -90
   }
  },
  "icons": {
