@@ -26,7 +26,7 @@
       <path d="M440 326 V296 l22 -10 l22 10 V326Z"/><path d="M500 328 V300 h46 V328Z"/><path d="M510 300 l18 -12 l18 12Z"/></g>
     <g fill="#150f17" opacity=".85"><path d="M440 120 l30 -3 l8 -9 l3 9 l24 3 l-24 5 l-3 9 l-8 -9Z"/><path d="M90 150 l18 -2 l5 -5 l2 5 l14 2 l-14 3 l-2 5 l-5 -5Z"/></g></svg>`;
   function titleArt(cls){return `<div class="mm-art ${cls||''}">${PLACEHOLDER}<img class="mm-img" alt="" hidden></div>`}
-  function loadTitle(root){const img=root.querySelector('.mm-img');if(!img)return;const show=src=>{img.onload=()=>{img.hidden=false;const sv=root.querySelector('.mm-svg');if(sv)sv.style.display='none'};img.src=src};
+  function loadTitle(root){const img=root.querySelector('.mm-img');if(!img)return;const show=src=>{img.onload=()=>{img.hidden=false;document.body.classList.add('title-img');const sv=root.querySelector('.mm-svg');if(sv)sv.style.display='none'};img.src=src};
     if(titleSrc!==undefined){if(titleSrc)show(titleSrc);return}
     const next=i=>{if(i>=TITLE_FILES.length){titleSrc='';return}const t=new Image();t.onload=()=>{titleSrc=TITLE_FILES[i];show(titleSrc)};t.onerror=()=>next(i+1);t.src=TITLE_FILES[i]};next(0)}
   /* Ladebildschirm als Brettspiel-Karton: Deckel mit Titelbild, Fortschritt als Aufbau-Meldungen; Klick hebt den Deckel ab und gibt das Spielzimmer frei */
