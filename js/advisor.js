@@ -99,6 +99,7 @@ function advRules(){
   if(ep>=(advisor.strat==='turtle'?0:1)&&has('tower').length<S.tow(ep)&&workers.length>=8&&afford(0,BLDS.tower.cost)&&advFindSpot('tower'))push({id:'tower',txt:'einen Wachturm bauen, um Land zu erobern und zu überblicken',cost:BLDS.tower.cost,go:()=>advBuild('tower')});
   if(!has('harbor').length&&workers.length>=9&&afford(0,BLDS.harbor.cost)&&advFish().length&&advFindSpot('harbor',1))push({id:'harbor',txt:'einen Hafen bauen, um Fische zu fangen',cost:BLDS.harbor.cost,go:()=>advBuild('harbor',advFindSpot('harbor',1))});
   if(ep>=1&&workers.length>=8&&has('farm').length<Math.min(2+ep,5)&&R.food<420&&afford(0,BLDS.farm.cost)&&advFindSpot('farm')&&!mine.some(e=>e.type==='farm'&&!e.built))push({id:'farm',txt:'ein Feld anlegen (Nahrung, die nie ausgeht)',cost:BLDS.farm.cost,go:()=>advBuild('farm')});
+  {const cm=has('mine').find(b=>b.built&&!b.empty&&cartWant(b)<CART_MAX&&mineStock(b)>=MINE_STOCK*.8&&minersIn(b)>=3&&afford(0,CART_COST));if(cm)push({id:'cart2:'+cm.id,txt:'eine zusätzliche Lore für die Mine kaufen (das Minenlager ist fast voll)',cost:CART_COST,go:()=>{buyCart(0,cm.id)}})}
   // erschöpfte Minen abreißen (Rest im Lager wird erstattet; nicht, solange noch eine Lore unterwegs ist)
   {const em=has('mine').find(b=>b.built&&b.empty&&!G.ents.some(c=>c.type==='cart'&&c.home===b.id&&!c.dead));if(em)push({id:'demo:'+em.id,txt:'die erschöpfte Mine abreißen (es gibt dort nichts mehr zu holen)',go:()=>{demolish(0,em.id);sfx('click')}})}
   // Minen: Eisen ab der Eisenzeit, Gold ab dem Mittelalter; Markt zum Tauschen

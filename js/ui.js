@@ -124,6 +124,7 @@ function actionsFor0(s){
   if(f.kind==='bld'&&f.built){
     for(const [k,d] of Object.entries(UNITS))if(d.from===f.type&&uOk(k,ep)&&(!d.nation||d.nation===G.nation[0])){const nt=d.tech&&!G.tech[0].has(d.tech);acts.push({key:'t'+k,nm:tr(UNAMES[k]?UNAMES[k][Math.min(5,G.epoch[0])]:d.name),cost:ucost(0,k),need:nt?tr('Technologie nötig: {0}',tr(TECH[d.tech].name)):null,sub:nt?tr('Technologie nötig'):null,run:()=>enqueue(f,k,0),unit:k})}
     if(BSPEC[f.type]&&f.team===0&&!f.spec)for(const [k,sp] of Object.entries(BSPEC[f.type]).filter(([k,sp])=>(sp.ep||0)<=G.epoch[0])){acts.push({key:'ts'+k,ib:f.type,nm:tr(sp.name),cost:sp.cost,sub:tr(sp.sub),adv:true,run:()=>{if(!buildSpec(0,f.id,k))toast(tr('Nicht genug Rohstoffe.'),'warn')}})}
+    if(f.type==='mine'&&f.team===0&&!f.empty&&cartWant(f)<CART_MAX)acts.push({key:'cart2',nm:tr('Zusätzliche Lore'),cost:CART_COST,sub:tr('Lore {0} von {1}: mehr Erz zum Lager',cartWant(f)+1,CART_MAX),adv:true,run:()=>{if(!buyCart(0,f.id))toast(tr('Nicht genug Rohstoffe.'),'warn');else panelSig=''}});
     if(f.type==='mine'&&f.team===0){const n=minersIn(f);if(n)acts.push({key:'unmine',nm:tr('Arbeiter herausholen'),sub:tr('{0} Bergleute kommen heraus',n),run:()=>{mineRelease(0,f.id);panelSig=''}})}
     if(f.team===0&&f.type!=='hq'&&f.kind==='bld'){const k=f.built?.5:1,c={};for(const r in BLDS[f.type].cost)c[r]=Math.round(BLDS[f.type].cost[r]*k);
       acts.push({key:'demo',nm:tr('Abreißen'),sub:tr('Gibt {0} % der Rohstoffe zurück',Math.round(k*100)),adv:true,run:()=>{if(G.demoArm!==f.id||G.t>G.demoT){G.demoArm=f.id;G.demoT=G.t+3;toast(tr('Zum Abreißen noch einmal klicken.'),'warn');return}G.demoArm=null;demolish(0,f.id)}})}
@@ -176,6 +177,7 @@ function infoHTML(s){
       h+='</div>'}
     if(e.type==='mine'&&e.built){const n=minersIn(e),tot=Object.values(e.st||{}).reduce((a,v)=>a+v,0);
       h+=`<div class="line">${tr('Bergleute: {0} / {1}',n,MINE_CAP)}</div><div class="chips"><span class="q">${tr('Minenlager')}: ${Math.floor(tot)} / ${MINE_STOCK}<span class="qb"><span style="width:${Math.min(100,tot/MINE_STOCK*100)}%"></span></span></span></div>`;
+      h+=`<div class="line">${tr('Loren: {0} / {1}',cartWant(e),CART_MAX)}</div>`;
       if(e.empty)h+='<div class="line"><em>'+tr('Vorkommen erschöpft – Mine abreißen, um den Rest aus dem Minenlager zu bekommen.')+'</em></div>';
       else if(e.team===0&&!n)h+='<div class="line"><em>'+tr('Arbeiter per Rechtsklick auf die Mine oder das Vorkommen schicken. Eine Lore bringt das Erz zum Lager.')+'</em></div>'}
     if(e.team===0&&e.built)h+=techBlock(e);

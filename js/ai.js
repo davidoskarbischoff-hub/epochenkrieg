@@ -115,6 +115,7 @@ function aiTick(){
   // Felder: Nahrung, die nachwächst (ab Bronzezeit), wenn Beeren und Wild knapp werden
   if(ep>=1&&workers.length>=8&&G.t>(ai.farmT||0)&&!unbuilt.some(b=>b.type==='farm')){ai.farmT=G.t+35;const nf=blds.filter(b=>b.type==='farm').length;
     if(nf<Math.min(2+ep,5)&&r.wood>=BLDS.farm.cost.wood+60&&(r.food<400||nf<2))aiPlace('farm',hq,60,150)}
+  if(diff!=='leicht'&&(ai.cartT=(ai.cartT||0))<=G.t){ai.cartT=G.t+20;const cm=blds.find(b=>b.type==='mine'&&b.built&&!b.empty&&cartWant(b)<CART_MAX&&mineStock(b)>=MINE_STOCK*.8&&minersIn(b)>=3);if(cm&&afford(1,CART_COST))buyCart(1,cm.id)} // Rückstau im Minenlager: zweite/dritte Lore
   for(const b of blds)if(b.type==='mine'&&b.empty&&!G.ents.some(c=>c.type==='cart'&&c.home===b.id&&!c.dead))demolish(1,b.id); // erschöpfte Minen abtragen
   // Minen für Eisen und Gold, Markt für Gold
   if(ep>=1&&workers.length>=6&&G.t>(ai.mineT||0)&&!unbuilt.some(b=>b.type==='mine'||b.type==='derrick')){ai.mineT=G.t+25;

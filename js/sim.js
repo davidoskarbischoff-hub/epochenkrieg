@@ -374,7 +374,10 @@ function mineOf(team,n){let best=null,bd=1e9;for(const b of G.ents){if(b.kind!==
 function mineNode(b,u){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='node'||e.dead||MINE_RT[e.rt]!=='mine'||e.amount<=0||!canGather(u,e)||(u.team===0&&!nodeKnown(e)))continue;const d=Math.hypot(e.x-b.x,e.y-b.y);if(d<e.r+b.r+8&&d<bd){bd=d;best=e}}return best}
 function mineOut(u){const b=u.inm&&G.byId.get(u.inm);if(u.inm){u.x=b?b.x:u.x;u.y=(b?b.y+b.r+8:u.y+20)}u.inm=null;u.state='idle';u.tid=null;u.pf=null}
 function mineRelease(team,id){if(NET.client&&team===0){NET.send({c:'unmine',id});return}for(const e of G.ents)if(e.inm===id&&e.team===team&&!e.dead)mineOut(e)}
-function mineCarts(){for(const b of G.ents){if(b.kind!=='bld'||b.type!=='mine'||!b.built||b.dead)continue;const want=b.spec==='rails'?2:1,have=G.ents.filter(c=>c.type==='cart'&&!c.dead&&c.home===b.id).length;
+const cartWant=b=>Math.min(CART_MAX,(b.spec==='rails'?2:1)+(b.xc||0));
+function buyCart(team,id){if(NET.client&&team===0){NET.send({c:'cart2',id});return true}const b=G.byId.get(id);if(!b||b.dead||b.team!==team||b.type!=='mine'||!b.built||b.empty||cartWant(b)>=CART_MAX||!pay(team,CART_COST))return false;b.xc=(b.xc||0)+1;b.cartT=0;if(team===0)sfx('built',b);return true}
+function mineStock(b){return Object.values(b.st||{}).reduce((a,v)=>a+v,0)}
+function mineCarts(){for(const b of G.ents){if(b.kind!=='bld'||b.type!=='mine'||!b.built||b.dead)continue;const want=cartWant(b),have=G.ents.filter(c=>c.type==='cart'&&!c.dead&&c.home===b.id).length;
   if(have<want&&!b.empty&&G.t>(b.cartT||0)){b.cartT=G.t+25;const c=addUnit('cart',b.team,b.x,b.y+b.r+8);c.home=b.id;c.state='haul'}}}
 /* Sammeltempo eines Arbeiters an einem Vorkommen (Technologien, Nation, Ausbau, Stufe, Schwierigkeit) */
 function gRate(u,n){const d=UNITS[u.type],gc=GATHER[n.rt];return .85*gc.rate*(1+G.tfx[u.team].gather+G.nfx[u.team].gather+((n.rt==='gold'||n.rt==='oil')?G.nfx[u.team].oilgold:0)+(d.naval?G.tfx[u.team].bgather+SF(u.team).bgather:0)+SF(u.team).gather)*(NODES[n.type].gm||1)*LVL.gather[u.lvl]*(u.team===1?DIFF[diff].gather:1)}

@@ -260,3 +260,6 @@ Bitte selbst herunterladen und hochladen (nur CC0/CC-BY). Lizenz auf der Seite v
 - Behoben: Ego-Zielwahl ohne Sichttest (jetzt `EGO.clear`), Absturz von `EGO.aim` bei Gebäuden (`UNITS[e.type]` undefiniert), `#netbadge` konnte bei 641-900 px die Chips überdecken.
 - Frame-Zeit mit/ohne Oberfläche und mit leichtem `backdrop-filter` auf Chips/Minikarte: in Software-GL nicht aussagekräftig (~2 s je Bild, alle Varianten gleich); Entscheidung bleibt: kein Blur, nur Verläufe/Innenglanz.
 - Offen: Nationen-Auswahl zeigt fehlende Einheiten-Bilder, solange Modelle nachladen; Mehrspieler-Anzeigen/`tfire` nicht mit zwei Spielern getestet; Ego-Blickrichtung Boot passt rechnerisch (yaw = pi/2 - fa), Tiere nur per Code.
+
+## Paket N2: Loren (21.10.)
+Messskript (nicht im Repo): 8 Bergleute Stufe 5 in einer Mine, 20 min `step(.04)` mit `__norender`. Eisen 336 px vom Lager: 1 Lore 240–300/min (Lore ist die Bremse, Minenlager 13 % voll), 2 Loren 480–540/min. Stein 188 px: 570/min ohne Rückstau. Gold: auf dem Testkarte kein Vorkommen nah. Zweite/dritte Lore: Knopf (Holz 100, Eisen 40), Berater-Vorschlag, KI-Kauf bei vollem Lager.

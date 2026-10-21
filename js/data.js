@@ -113,7 +113,7 @@ const MOVE_K=.9; /* alle Landeinheiten etwas gemächlicher (David: Truppen liefe
 /* Einheiten ändern ihren Namen mit dem Zeitalter (Sanitäter-Reihe) */
 /* Truppenlinien: ab einem späteren Zeitalter ist eine Einheit veraltet und nicht mehr ausbildbar (upto = letztes Zeitalter); vorhandene bleiben. uOk prüft beides. */
 /* Minen: bis MINE_CAP Arbeiter arbeiten drinnen, das Erz sammelt sich im Minenlager (MINE_STOCK) und eine Lore (Einheit cart) fährt es zum nächsten Lager */
-const MINE_CAP=8,MINE_STOCK=300,CART_LOAD=60;
+const MINE_CAP=8,MINE_STOCK=300,CART_LOAD=60,CART_MAX=3,CART_COST={wood:100,iron:40}; /* CART_MAX = Loren je Mine (Schienen zählen als 2, jede Zusatz-Lore +1) */
 const UPTO={hbow:5,sling:0,club:1,archer:2,warship:2,crossbow:3,catapult:3,ram:2,spear:4,sword:4,musket:4,cannon:4,galleon:4,knight:5};for(const k in UPTO)UNITS[k].upto=UPTO[k];
 /* Truppenlinien: wird eine Einheit nach ihrem letzten Zeitalter aufgewertet, wechselt sie zur Nachfolger-Einheit (Aussehen und Werte).
    Fernkampf: Steinschleuder → Bogen → Armbrust → Muskete → Gewehr; Nahkampf: Keule → Speer → Gewehr; Schwert → Gewehr; Reiter → Panzer/Gewehr; Belagerung → Kanone → Haubitze */
