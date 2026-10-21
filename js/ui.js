@@ -42,6 +42,7 @@ function renderOptions(){
     +row('Schatten',tog('oShadow',OPT.shadows),'Aus macht das Spiel auf schwachen Geräten schneller')
     +row('Gras und Blumen',tog('oGrass',OPT.grass))
     +row('Farbfilter',tog('oGrade',OPT.grade),'Etwas kräftigerer Kontrast und kräftigere Farben')
+    +row('Team-Markierung',seg('oTm',[['off','Aus'],['soft','Dezent'],['strong','Deutlich']],OPT.teamMark),'Ring unter Einheiten und Gebäuden in Teamfarbe (eigene Kreis, Gegner Raute) und Lebensbalken nach Team')
     +row('Leuchten (Bloom)',tog('oBloom',OPT.bloom),'Helle Stellen strahlen weich nach – kostet etwas Leistung')
     +row('Wetter (Laub, Schnee)',tog('oWeather',OPT.weather),'Fallende Blätter im Herbst, Blütenblätter im Frühling, Schnee im Winter – nur Optik')
     +row('Spielzimmer',tog('oRoom',OPT.room),'Karte liegt als Brett auf einem Schreibtisch in einer Werkstatt')
@@ -80,7 +81,7 @@ function renderOptions(){
   bind('oEdge',e=>e.onchange=()=>optSet('edgeScroll',e.checked));
   bind('oRot',e=>e.oninput=()=>{optSet('camRot',+e.value);q('oRoto').textContent=(+e.value).toFixed(1)+'×'});
   bind('oZoom',e=>e.oninput=()=>{optSet('zoomSpeed',+e.value);q('oZoomo').textContent=(+e.value).toFixed(1)+'×'});
-  segB('oUi',v=>{optSet('uiClassic',v==='classic');panelSig='';infoCache='';if(G)updateUI()});segB('oHp',v=>optSet('hpBars',v));bind('oTips',e=>e.onchange=()=>optSet('tips',e.checked));bind('oToasts',e=>e.onchange=()=>optSet('toasts',e.checked));
+  segB('oUi',v=>{optSet('uiClassic',v==='classic');panelSig='';infoCache='';if(G)updateUI()});segB('oHp',v=>optSet('hpBars',v));segB('oTm',v=>optSet('teamMark',v));bind('oTips',e=>e.onchange=()=>optSet('tips',e.checked));bind('oToasts',e=>e.onchange=()=>optSet('toasts',e.checked));
   segB('oLang',v=>{applyLang(v);renderOptions()});
   segB('oWild',v=>{try{localStorage.setItem('ek-wild',v)}catch(_){}renderOptions()});
   document.querySelectorAll('.kmbtn').forEach(b=>b.onclick=()=>{b.textContent=tr('Taste drücken …');b.classList.add('wait');

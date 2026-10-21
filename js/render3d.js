@@ -519,6 +519,15 @@ function r3Animal(o,e,h,dt,t){const S=R3.S,rig=o.rig,moving=G.t-(e.mvT||-9)<.2;l
   o.obj.position.set(e.x/S,(UNITS_A(e).water?Math.max(h,-.12):h)+(moving?Math.abs(s)*.06:0),e.y/S);o.obj.rotation.y=o.yaw}
 const UNITS_A=e=>ANIMALS[e.type];
 
+/* ---------- Team-Markierung: je Einheit/Gebäude ein dünner Bodenring (eigene = Kreis, Gegner = Raute, auch ohne Farbsehen unterscheidbar); zwei InstancedMesh, kein Aufbau je Bild ---------- */
+const TM_MAX=1600,_tmM=new THREE.Matrix4(),_tmC=new THREE.Color(),_tmQ=new THREE.Quaternion(),_tmS=new THREE.Vector3(),_tmP=new THREE.Vector3();
+function r3TeamMarks(arr,mode){
+  if(!R3.tm){R3.tm=[0,1].map(i=>{const g=i?new THREE.RingGeometry(.84,1,4,1,Math.PI/4).rotateX(-Math.PI/2):new THREE.RingGeometry(.9,1,40).rotateX(-Math.PI/2);const m=new THREE.InstancedMesh(g,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,depthWrite:false,fog:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),TM_MAX);m.renderOrder=3;m.frustumCulled=false;m.count=0;m.setColorAt(0,_tmC.set('#fff'));r3.scene.add(m);return m})}
+  const S=R3.S,n=[0,0];
+  for(const e of arr){const i=e.team===0?0:1,m=R3.tm[i];if(n[i]>=TM_MAX)continue;
+    const rr=(e.r+(e.kind==='bld'?3:2))/S*(i?1.12:1);_tmP.set(e.x/S,hAt(e.x,e.y)+.12,e.y/S);_tmS.set(rr,1,rr);_tmM.compose(_tmP,_tmQ,_tmS);m.setMatrixAt(n[i],_tmM);
+    _tmC.set(shadeHex(TC[e.team]||'#ffffff',.18));m.setColorAt(n[i],_tmC);n[i]++}
+  for(const i of[0,1]){const m=R3.tm[i];m.count=mode==='off'?0:n[i];m.material.opacity=mode==='strong'?.95:.6;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true}}
 /* ---------- Auswahlringe am Boden ---------- */
 function r3Ring(x,y,r,col,op){
   const S=R3.S;let m=R3.rings[R3.ringN];
@@ -542,6 +551,7 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   {const V=R3.view,N=R3.nodeV,ck=Math.round(cam.yaw*12)+','+Math.round(cam.pitch*12);if(ck!==R3.camK){R3.camK=ck;R3.nodeT=0}if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
   r3Lod();R3.nodeT-=dt;R3.gsT=(R3.gsT||0)-dt;if(R3.nodeT<=0){R3.nodeT=R3.apBusy?.06:.4;r3Nodes();if(R3.gsT<=0){R3.gsT=.4;r3GrassShade()}else r3GrassView()}else r3GrassView();if(SHK.size)r3Shake(dt)
   if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);if(EGO.on)EGO.hide();r3Smoke(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
+  r3TeamMarks(R3.tmList||[],OPT.teamMark||'soft');
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;
   /* Schattenkarte nur jedes 2. Bild neu (bewegt sich die Kamera, sofort) – halbiert die Schatten-Zeichenarbeit, Unterschied ist nicht zu sehen */
