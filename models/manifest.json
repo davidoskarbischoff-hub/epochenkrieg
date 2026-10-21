@@ -4849,7 +4849,8 @@
     "epochs": [
      5
     ],
-    "fit": 1
+    "fit": 1,
+    "scale": 1.45
    },
    {
     "file": "neu/Large Building-ppwtREejXg.glb",
@@ -4983,7 +4984,8 @@
     "epochs": [
      5
     ],
-    "fit": 1
+    "fit": 1,
+    "scale": 1.25
    },
    {
     "file": "kenney/building-small-d.glb",
@@ -5085,7 +5087,8 @@
       "h": 0.95,
       "cmap": true
      }
-    ]
+    ],
+    "scale": 1.5
    },
    {
     "file": "neu/building-s.glb",
@@ -5109,7 +5112,8 @@
       "h": 0.95,
       "cmap": true
      }
-    ]
+    ],
+    "scale": 1.6
    }
   ],
   "barracks": [
@@ -5193,39 +5197,38 @@
     ]
    },
    {
-    "file": "archiv/Tent.glb",
+    "file": "archiv/Large Building-1bt4yYKmuK.glb",
     "epochs": [
      6
     ],
-    "fit": 1,
+    "fit": 0.65,
     "props": [
      {
       "file": "archiv/Tent.glb",
-      "h": 2.6,
-      "x": -1.15,
-      "z": -0.5,
-      "ry": 90
-     },
-     {
-      "file": "archiv/Tent.glb",
-      "h": 2.6,
-      "x": 1.15,
-      "z": -0.5,
+      "h": 2.4,
+      "x": -1.2,
+      "z": 0.9,
       "ry": 90
      },
      {
       "file": "military/Jeep.glb",
       "h": 1.2,
-      "x": -1,
-      "z": 1.15,
+      "x": 0.9,
+      "z": 1.2,
       "ry": 30
      },
      {
       "file": "military/Truck.glb",
       "h": 1.4,
-      "x": 1.05,
-      "z": 1.15,
+      "x": -0.1,
+      "z": 1.45,
       "ry": -20
+     },
+     {
+      "file": "archiv/dorf/Practice Dummy.glb",
+      "h": 1.6,
+      "x": 1.25,
+      "z": 0.4
      }
     ]
    }
