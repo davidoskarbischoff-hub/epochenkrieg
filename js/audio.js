@@ -27,6 +27,52 @@ function init(){
   if(!musTimer)musTimer=setInterval(schedule,250);
 }
 
+
+/* ---- Musik aus Dateien (music/*.mp3): Streaming per HTMLAudioElement, Überblenden, Rückfall = Synthesizer ---- */
+const MF={lobby:['alex-morgan-lobby-music-hotel-ambient-583259.mp3','Lobby (Alex Morgan)'],battle:['echoes_of_lumen-battle-cinematic-heroic-orchestra-586988.mp3','Kampf (Echoes of Lumen)'],
+  tribe:['stereo_color-tribe-484497.mp3','Tribe (Stereo Color)'],medieval:['victorvantast-arabischer-tanz-mittelaltermusik-nach-einer-spanischen-cantigas-137674.mp3','Mittelaltertanz (Victor Vantast)'],
+  spring:['nesrality-vivaldi-four-seasons-spring-2nd-movement-classical-remix-7831.mp3','Vivaldi, Frühling'],summer:['nesrality-vivaldi-four-seasons-summer-4th-movement-classical-remix-7830.mp3','Vivaldi, Sommer'],
+  autumn:['nesrality-vivaldi-four-seasons-autumn-1st-movement-classical-remix-7875.mp3','Vivaldi, Herbst'],winter:['nesrality-vivaldi-four-seasons-winter-3rd-movement-classical-remix-7880.mp3','Vivaldi, Winter']};
+const MGAIN={lobby:1,battle:.9,tribe:1,medieval:1,spring:.85,summer:.85,autumn:.85,winter:.85}; /* Angleich der Lautstärke, Schätzwerte */
+const mfp={}; let mWant=null,mSince=0,mBattle=false;const FADE=.07; /* Überblenden ca. 3 s */
+function wantFile(){
+  if(epoch===7)return 'lobby';
+  const n=performance.now();
+  if(!mBattle&&tn>.55&&n-mSince>6000){mBattle=true;mSince=n}else if(mBattle&&tn<.3&&n-mSince>12000){mBattle=false;mSince=n}
+  if(mBattle&&flags.war)return 'battle';
+  if(epoch===0)return 'tribe';
+  if(epoch===3||epoch===4)return 'medieval';
+  let se='summer';try{if(typeof MOPT!=='undefined'&&MOPT.season)se=MOPT.season}catch(_){}
+  return MF[se]?se:'summer';
+}
+function mTick(){
+  if(!ac)return; /* erst nach dem ersten Klick (SND.init) */
+  let w=wantFile();if(w&&mfp[w]&&mfp[w].bad)w=null;
+  mWant=w;
+  const pz=typeof G!=='undefined'&&G&&G.paused&&epoch!==7;
+  for(const k in MF){
+    let t=mfp[k];
+    if(k===w&&musicV>0){
+      if(!t){const el=new Audio();el.preload='none';el.loop=true;el.volume=0;el.src='music/'+MF[k][0];t=mfp[k]={el,v:0,pos:0,bad:false,go:false,dead:0,rest:0};
+        el.addEventListener('error',()=>{t.bad=true;t.go=false})}
+      if(t.dead){t.el.src='music/'+MF[k][0];t.dead=0;t.rest=0}
+      t.el.muted=muted;
+      if(pz){if(!t.el.paused)t.el.pause();continue}
+      if(t.el.paused&&!t.bad){const pr=t.el.play();if(pr&&pr.catch)pr.catch(()=>{})}
+      if(t.pos&&!t.rest&&t.el.readyState>0){try{t.el.currentTime=t.pos}catch(_){}t.rest=1}
+      if(!t.el.paused&&t.el.currentTime>0)t.go=true;
+      t.v+=(1-t.v)*FADE*2.2;if(t.v>.995)t.v=1;
+      t.el.volume=Math.max(0,Math.min(1,t.v*musicV*MGAIN[k]));
+    }else if(t&&!t.dead){
+      t.v-=Math.max(FADE*.5,t.v*FADE*2.2);t.go=t.go&&t.v>.05;
+      if(t.v<=.01){t.v=0;t.pos=t.el.currentTime||0;t.el.pause();t.el.removeAttribute('src');t.el.load();t.dead=1;t.go=false}
+      else{t.el.muted=muted;t.el.volume=Math.max(0,Math.min(1,t.v*musicV*MGAIN[k]))}
+    }
+  }
+}
+const fileOn=()=>{const t=mWant&&mfp[mWant];return !!(t&&!t.bad&&t.go)};
+setInterval(mTick,200);
+
 /* ---- Bausteine ---- */
 function tone(f,t,dur,{type='sine',vol=.3,to=null,dest=cur||sfxG,atk=.005}={}){
   const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
@@ -310,6 +356,7 @@ function schedule(){
   fight*=.93;const want=Math.max(fight,alertV,bat);tn+=(want-tn)*.18;const n=ac.currentTime;
   if(sfxV>0&&tn<.12&&epoch<4&&Math.random()<.035)chirp(n+.05+Math.random()*.2);
   if(musicV<=0)return;
+  if(fileOn()){const a=ac.currentTime;musBase.gain.setTargetAtTime(0,a,.4);musWar.gain.setTargetAtTime(0,a,.4);musHi.gain.setTargetAtTime(0,a,.4);base.cur=-1;war.cur=-1;hi.cur=-1;return}
   musBase.gain.setTargetAtTime(1-.6*(flags.war?tn:0),n,.6);musWar.gain.setTargetAtTime(tn>.1&&flags.war?Math.min(1.1,Math.pow(tn,1.15)*1.15):0,n,.5);
   if(base.cur!==epoch){base.cur=epoch;base.loopT=n+.4;base.done=0}
   runLayer(base,PIECES[base.cur],musBase);
@@ -330,7 +377,7 @@ function render(name,len=1.2,vol=1){
   ac=oc;sfxG=oc.createGain();sfxG.gain.value=sfxV*.57;sfxG.connect(outChain(oc));last[name]=0;
   try{play(name,0,vol)}finally{ac=keep[0];sfxG=keep[1];last[name]=keep[2]}
   return oc.startRendering().then(b=>[b.getChannelData(0),b.getChannelData(1)])}
-return{render,dbg:()=>({n:Object.keys(SBUF).length,ok:Object.values(SBUF).filter(Boolean).length,bad:Object.entries(SBUF).filter(e=>e[1]===false).map(e=>e[0])}),
+return{render,now:()=>fileOn()?MF[mWant][1]:null,dbg:()=>({file:mWant,fileOn:fileOn(),tracks:Object.fromEntries(Object.entries(mfp).map(([k,t])=>[k,{v:+t.v.toFixed(2),paused:t.el.paused,vol:+t.el.volume.toFixed(2),muted:t.el.muted,bad:t.bad,t:+t.el.currentTime.toFixed(1)}])),n:Object.keys(SBUF).length,ok:Object.values(SBUF).filter(Boolean).length,bad:Object.entries(SBUF).filter(e=>e[1]===false).map(e=>e[0])}),
   init,play,
   setEpoch(e){epoch=Math.max(0,Math.min(PIECES.length-1,e|0))},
   setFlags(f){Object.assign(flags,f)},

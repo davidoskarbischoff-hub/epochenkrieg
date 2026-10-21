@@ -1,0 +1,205 @@
+/* ===== Oberfläche "Neu" (Entwurf B, Paket L2) =====
+   Gilt nur mit <body class="ui2"> (Menü > Spiel > Oberfläche: Neu / Klassisch). Ohne die Klasse bleibt die alte Konsole unverändert.
+   Aufbau: Rohstoff-Chips oben links, runde Knöpfe oben rechts, Seitenleiste rechts (nur mit Auswahl), Minikarte unten links,
+   Berater als Sprechblase darüber. Material: durchscheinendes "Glas" in der Zeitalter-Farbe (--fr, --tint) OHNE backdrop-filter
+   (der Weichzeichner über dem WebGL-Bild kostet Leistung); die Fläche ist dafür etwas dichter.
+   Wird NACH style.css/topbar.css geladen; Selektoren beginnen mit "body.ui2 #app", damit sie die alten Regeln sicher überstimmen. */
+
+/* Klassisch: der Wrapper #side verschwindet, Info und Aktionen bleiben Kinder der Konsole */
+#side{display:contents}
+
+body.ui2{--u:1;--rim:color-mix(in srgb,var(--fr) 46%,transparent);--rim2:color-mix(in srgb,var(--fr) 22%,transparent);
+  --glass:linear-gradient(rgba(10,8,6,.30),rgba(10,8,6,.30)),linear-gradient(var(--tint),var(--tint)),rgba(12,9,7,.50);
+  --glassS:0 6px 20px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.10);
+  --ink:#f1e7d3;--ink2:#c5b9a2;--miniW:calc(176px*var(--u));--miniH:calc(124px*var(--u));--sideW:calc(304px*var(--u));--btnsW:260px}
+@media (min-width:1700px){body.ui2{--u:1.25}}
+@media (min-width:2400px){body.ui2{--u:1.5}}
+@media (max-width:900px){body.ui2{--u:.94}}
+@media (max-width:640px){body.ui2{--u:.9;--miniW:calc(132px*var(--u));--miniH:calc(92px*var(--u))}}
+
+/* ---------- altes Gerüst abschalten ---------- */
+body.ui2 #app #panel{display:contents}
+body.ui2 #app #top::before,body.ui2 #app #top::after{display:none!important}
+body.ui2 #app #panel::before,body.ui2 #app #panel::after{display:none}
+
+/* ---------- oben: Chips links, runde Knöpfe rechts ---------- */
+body.ui2 #app #top{position:absolute;left:0;right:0;top:0;z-index:20;display:flex!important;flex-wrap:wrap;align-items:flex-start;align-content:flex-start;
+  gap:calc(5px*var(--u));padding:calc(8px*var(--u)) calc(var(--btnsW) + 16px) 0 calc(8px*var(--u));margin:0;height:auto;min-height:calc(52px*var(--u));
+  background:none;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;pointer-events:none;overflow:visible;grid-template-columns:none;grid-template-rows:none}
+body.ui2 #app #top>*{pointer-events:none}
+body.ui2 #app #top .tr{display:contents}
+body.ui2 #app #top .tr .res,body.ui2 #app #top #epoch{pointer-events:auto}
+
+/* Zeitalter-Chip (bleibt wie bisher sichtbar, auch mit Aufstiegsfortschritt) */
+body.ui2 #app #top #epoch{order:0;position:relative;left:auto;top:auto;transform:none;grid-column:auto;grid-row:auto;align-self:flex-start;justify-self:auto;
+  display:flex;flex-direction:row;align-items:baseline;gap:calc(7px*var(--u));height:calc(34px*var(--u));min-height:0;margin:0;padding:0 calc(14px*var(--u));
+  border:1px solid var(--rim);border-image:none;border-radius:99px;background:linear-gradient(color-mix(in srgb,var(--fr) 34%,transparent),color-mix(in srgb,var(--fr) 34%,transparent)),var(--glass);
+  box-shadow:var(--glassS);font:400 calc(17px*var(--u))/calc(32px*var(--u)) var(--f-display,var(--f-h,Georgia,serif));color:#fff;letter-spacing:.02em;white-space:nowrap;text-shadow:0 1px 2px #000}
+body.ui2 #app #top #epoch::before,body.ui2 #app #top #epoch::after{display:none}
+body.ui2 #app #top #epoch .prog{display:inline;margin:0;font:600 calc(12px*var(--u)) var(--f-ui);color:var(--warn);letter-spacing:0}
+body.ui2 #app #top #epoch:has(.prog){font-size:calc(17px*var(--u))}
+
+/* Rohstoff-Chips: Symbol + Zahl, ohne Beschriftung (Name steht im Hinweis beim Verweilen) */
+body.ui2 #app #top .tr .res{display:flex;align-items:center;gap:calc(4px*var(--u));height:calc(34px*var(--u));min-height:0;margin:0;padding:0 calc(11px*var(--u)) 0 calc(5px*var(--u));
+  border:1px solid var(--rim2);border-image:none;border-radius:99px;background:var(--glass);box-shadow:var(--glassS);flex:none;position:relative;white-space:nowrap}
+body.ui2 #app #top .tr .res::before{content:"";position:absolute;inset:calc(-5px*var(--u)) -2px} /* unsichtbare Trefferfläche für Hinweis/Touch */
+body.ui2 #app #top .tr .res small{display:none}
+body.ui2 #app #top .tr .res b{font:600 calc(14.5px*var(--u))/1 var(--f-ui);min-width:0;text-align:left;font-variant-numeric:tabular-nums;color:var(--ink);text-shadow:0 1px 1px rgba(0,0,0,.6)}
+body.ui2 #app #top .tr .res .icn{width:calc(26px*var(--u));height:calc(26px*var(--u));display:inline-flex;align-items:center;justify-content:center;flex:none}
+body.ui2 #app #top .tr .res .icn img.ic,body.ui2 #app #top .tr .res .icn svg{width:calc(26px*var(--u));height:calc(26px*var(--u));margin:0}
+body.ui2 #app #top .tr .res[hidden]{display:none!important}
+body.ui2 #app #top .tr .res[hidden]::after{display:none}
+body.ui2 #app #top .tr .res:has(#v-pop){margin-left:calc(6px*var(--u));padding-left:calc(5px*var(--u))}
+body.ui2 #app #top .tr .res:not(:has(#v-food)){background:var(--glass)}
+
+/* Runde Knöpfe oben rechts */
+body.ui2 #app #top .tl{position:absolute;right:calc(8px*var(--u));top:calc(8px*var(--u));left:auto;display:flex;flex-wrap:nowrap;justify-content:flex-end;gap:calc(6px*var(--u));
+  width:auto;height:auto;padding:0;margin:0;grid-column:auto;grid-row:auto;pointer-events:none}
+body.ui2 #app #top .tl .brand{display:none}
+body.ui2 #app #top .tl .tbtn{pointer-events:auto;position:relative;flex:none;display:grid;place-items:center;width:calc(44px*var(--u));height:calc(44px*var(--u));min-width:0;max-width:none;padding:0;margin:0;
+  border:1px solid var(--rim);border-image:none;border-radius:50%;background:var(--glass);box-shadow:var(--glassS);color:var(--ink);font-size:0;line-height:0;overflow:visible;letter-spacing:0;text-shadow:none}
+body.ui2 #app #top .tl .tbtn:hover{border-color:var(--fr);background:linear-gradient(color-mix(in srgb,var(--fr) 26%,transparent),color-mix(in srgb,var(--fr) 26%,transparent)),var(--glass);color:#fff}
+body.ui2 #app #top .tl .tbtn:focus-visible{outline:2px solid var(--fr);outline-offset:2px}
+body.ui2 #app #top .tl .tbtn[hidden]{display:none}
+body.ui2 #app #top .tl #idleBtn{order:0}body.ui2 #app #top .tl #treeBtn{order:1}body.ui2 #app #top .tl #pauseBtn{order:2}body.ui2 #app #top .tl #speedBtn{order:3}body.ui2 #app #top .tl #menuBtn{order:4}
+/* Symbole der runden Knöpfe: reine CSS-Formen (keine Schriftarten nötig) */
+body.ui2 #app #top .tl .tbtn::before{content:"";display:block;width:calc(20px*var(--u));height:calc(20px*var(--u));background:currentColor}
+body.ui2 #app #top .tl #idleBtn::before{width:calc(40px*var(--u));height:calc(40px*var(--u));background:var(--ico,none) center/contain no-repeat;border-radius:50%}
+body.ui2 #app #top .tl #idleBtn::after{content:attr(data-n);position:absolute;right:-4px;top:-4px;min-width:1.5em;height:1.5em;padding:0 .3em;border-radius:99px;background:#c8432d;color:#fff;
+  font:700 calc(11.5px*var(--u))/1.5em var(--f-ui);text-align:center;border:1px solid rgba(0,0,0,.45)}
+body.ui2 #app #top .tl #idleBtn[data-n="0"]::after,body.ui2 #app #top .tl #idleBtn:not([data-n])::after{display:none}
+body.ui2 #app #top .tl #idleBtn.ok{border-color:color-mix(in srgb,#8fbf63 60%,transparent)}
+body.ui2 #app #top .tl #idleBtn.alert{border-color:#e0533c;box-shadow:var(--glassS),0 0 0 2px rgba(224,83,60,.35)}
+body.ui2 #app #top .tl #treeBtn::before{-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2'%3E%3Ccircle cx='12' cy='5' r='2.5'/%3E%3Ccircle cx='5' cy='19' r='2.5'/%3E%3Ccircle cx='19' cy='19' r='2.5'/%3E%3Cpath d='M12 7.5v4.5M12 12H5v4.5M12 12h7v4.5'/%3E%3C/svg%3E") center/100% no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2'%3E%3Ccircle cx='12' cy='5' r='2.5'/%3E%3Ccircle cx='5' cy='19' r='2.5'/%3E%3Ccircle cx='19' cy='19' r='2.5'/%3E%3Cpath d='M12 7.5v4.5M12 12H5v4.5M12 12h7v4.5'/%3E%3C/svg%3E") center/100% no-repeat;width:calc(24px*var(--u));height:calc(24px*var(--u))}
+body.ui2 #app #top .tl #pauseBtn::before{width:calc(16px*var(--u));height:calc(18px*var(--u));background:linear-gradient(90deg,currentColor 0 36%,transparent 36% 64%,currentColor 64%)}
+body.ui2 #app #top .tl #pauseBtn[data-on="1"]::before{width:calc(18px*var(--u));background:currentColor;clip-path:polygon(18% 0,100% 50%,18% 100%)}
+body.ui2 #app #top .tl #pauseBtn[data-on="1"]{border-color:var(--warn)}
+body.ui2 #app #top .tl #speedBtn::before{content:attr(data-sp) "×";width:auto;height:auto;background:none;font:700 calc(15px*var(--u))/1 var(--f-ui)}
+body.ui2 #app #top .tl #menuBtn::before{width:calc(20px*var(--u));height:calc(16px*var(--u));background:linear-gradient(currentColor,currentColor) 0 0/100% 2.5px no-repeat,linear-gradient(currentColor,currentColor) 0 50%/100% 2.5px no-repeat,linear-gradient(currentColor,currentColor) 0 100%/100% 2.5px no-repeat}
+
+/* ---------- Seitenleiste rechts (nur mit Auswahl) ---------- */
+body.ui2 #app #side{position:absolute;right:calc(8px*var(--u));top:calc(var(--topH,54px) + 2px);width:var(--sideW);max-height:calc(100% - var(--topH,54px) - 10px*var(--u));overflow-x:hidden;overflow-y:auto;
+  display:flex;flex-direction:column;gap:calc(6px*var(--u));padding:calc(12px*var(--u));z-index:19;color:var(--ink);background:var(--glass);border:1px solid var(--rim);border-radius:calc(14px*var(--u));box-shadow:var(--glassS);
+  overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--rim) transparent}
+body.ui2:not(.has-sel) #app #side{display:none}
+/* Info-Feld löst sich auf: seine Teile ordnen sich mit den Aktionen in einer Spalte (Kopf, Zustand, Warteschlange, Aktionen, dann lange Upgrade-/Technologielisten) */
+body.ui2 #app #side #info{display:contents}
+body.ui2 #app #side>*,body.ui2 #app #side #info>*{flex:none;min-width:0;margin:0}
+body.ui2 #side #info>.chips{order:2}body.ui2 #side #acts{order:3}body.ui2 #side #info>.upg{order:4}
+body.ui2 #app #side #info .muted{font-size:calc(13px*var(--u));color:var(--ink2)}
+body.ui2 #side .ih{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:calc(4px*var(--u)) calc(8px*var(--u));padding-right:calc(34px*var(--u))}
+body.ui2 #side .ih .hic{width:calc(56px*var(--u));height:calc(56px*var(--u));object-fit:contain;flex:none;padding:3px;border-radius:10px;background:rgba(0,0,0,.28);border:1px solid var(--rim2)}
+body.ui2 #side .ih h2{flex:1 1 100%;min-width:5em;margin:0;font:400 calc(21px*var(--u))/1.08 var(--f-display,var(--f-h,Georgia,serif));color:var(--fr);text-shadow:0 1px 2px rgba(0,0,0,.7)}
+body.ui2 #side .ih .hic~h2{flex-basis:calc(100% - 66px*var(--u))}
+body.ui2 #side .ih .hic~h2~.tag:first-of-type{margin-left:calc(64px*var(--u))}
+body.ui2 #side .ih .tag{font-size:calc(11px*var(--u));letter-spacing:.07em;text-transform:uppercase;color:var(--ink2)}
+body.ui2 #side .ih .x{position:absolute;right:calc(-8px*var(--u));top:calc(-8px*var(--u));margin:0;width:calc(44px*var(--u));height:calc(44px*var(--u));border:0;background:none;color:var(--ink2);font-size:calc(22px*var(--u));align-self:flex-start;border-radius:50%}
+body.ui2 #side .ih .x:hover{color:#fff;background:rgba(255,255,255,.08)}
+body.ui2 #side .hpw{font-size:calc(12.5px*var(--u));color:var(--ink2)}
+body.ui2 #side .hp{flex:1;height:calc(7px*var(--u));border:0;background:rgba(0,0,0,.45);border-radius:4px}
+body.ui2 #side .line{font-size:calc(13px*var(--u));color:var(--ink);line-height:1.35}
+body.ui2 #side .line em{color:var(--ink2)}
+body.ui2 #side .chips{gap:calc(6px*var(--u))}
+body.ui2 #side .chips .chip{background:rgba(0,0,0,.28);border:1px solid var(--rim2);border-radius:99px;padding:calc(3px*var(--u)) calc(9px*var(--u));font-size:calc(12.5px*var(--u))}
+body.ui2 #side .q{background:rgba(0,0,0,.28);border:1px solid var(--rim2);border-radius:10px;min-height:calc(44px*var(--u));min-width:calc(84px*var(--u));padding:calc(5px*var(--u)) calc(9px*var(--u));font-size:calc(12.5px*var(--u));color:var(--ink);justify-content:center}
+body.ui2 #side .q:hover{border-color:var(--fr)}
+/* Upgrades und Technologien: eine Spalte, kompakte Karten */
+body.ui2 #side .upg{display:grid;grid-template-columns:1fr;gap:calc(6px*var(--u));margin-top:calc(6px*var(--u))}
+body.ui2 #side .upg .ur{display:flex;flex-direction:column;gap:calc(4px*var(--u));padding:calc(8px*var(--u));border:1px solid var(--rim2);border-radius:10px;background:linear-gradient(rgba(255,255,255,.07),rgba(0,0,0,.18))}
+body.ui2 #side .upg .ur.all{flex-direction:column;align-items:stretch}
+body.ui2 #side .upg .ur .un{font-size:calc(13px*var(--u))}body.ui2 #side .upg .ur .un small{font-size:calc(11.5px*var(--u));color:var(--ink2)}
+body.ui2 #side .upg .ur .uc{font-size:calc(12px*var(--u))}
+body.ui2 #side .upg .ur .ub{min-height:calc(36px*var(--u));padding:0 calc(10px*var(--u));font-size:calc(12.5px*var(--u));border-radius:8px}
+body.ui2 #side .upg .uh{font-size:calc(13px*var(--u));color:var(--fr)}body.ui2 #side .upg .uh em{display:block;font-style:normal;font-size:calc(11.5px*var(--u));color:var(--ink2)}
+body.ui2 #side .c.ok{color:#a9e283}body.ui2 #side .c.bad{color:#f2806a}
+
+/* Aktionen: Zeilen (Bild, Name, Kosten, Taste) */
+body.ui2 #app #side #acts{display:flex;flex-direction:column;flex:none;gap:calc(6px*var(--u));margin:calc(4px*var(--u)) 0 0;padding:0;border:0;border-image:none;border-radius:0;background:none;box-shadow:none;overflow:visible;max-height:none;min-width:0}
+body.ui2 #app #side #acts:empty{display:none}
+body.ui2 #side .act{position:relative;display:grid;grid-template-columns:calc(48px*var(--u)) minmax(0,1fr);grid-template-areas:"ic nm" "ic cs" "ic sb";align-items:center;column-gap:calc(10px*var(--u));row-gap:2px;
+  width:100%;min-width:0;min-height:calc(60px*var(--u));padding:calc(5px*var(--u)) calc(8px*var(--u));border:1px solid rgba(255,255,255,.13);border-image:none;border-radius:calc(10px*var(--u));
+  background:linear-gradient(rgba(255,255,255,.08),rgba(0,0,0,.2));box-shadow:none;text-align:left;color:var(--ink);filter:none;opacity:1}
+body.ui2 #side .act:not(:has(.aic)){grid-template-columns:minmax(0,1fr);grid-template-areas:"nm" "cs" "sb"}
+body.ui2 #side .act:hover{border-color:var(--fr);background:linear-gradient(color-mix(in srgb,var(--fr) 24%,transparent),rgba(0,0,0,.2))}
+body.ui2 #side .act:focus-visible{outline:2px solid var(--fr);outline-offset:1px}
+body.ui2 #side .act:not(.poor):not(.locked){border-color:rgba(143,191,99,.55)}
+body.ui2 #side .act:not(.poor):not(.locked):hover{border-color:#b6e68c}
+body.ui2 #side .act.poor{opacity:.72}
+body.ui2 #side .act.locked{opacity:.5;filter:grayscale(.8)}
+body.ui2 #side .act .aic{grid-area:ic;width:calc(46px*var(--u));height:calc(46px*var(--u));object-fit:contain;margin:0;background:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.55))}
+body.ui2 #side .act .nm{grid-area:nm;font:600 calc(14.5px*var(--u))/1.1 var(--f-ui);color:#f6ead0;padding-right:calc(30px*var(--u))}
+body.ui2 #side .act .cost{grid-area:cs;display:flex;flex-wrap:wrap;gap:calc(2px*var(--u)) calc(8px*var(--u));font-size:calc(12px*var(--u));color:var(--ink2)}
+body.ui2 #side .act .cost .c{display:inline-flex;align-items:center;gap:3px;font-weight:600}
+body.ui2 #side .act .sub{grid-area:sb;font-size:calc(11.5px*var(--u));line-height:1.25;color:var(--ink2);letter-spacing:0}
+body.ui2 #side .act kbd{position:absolute;right:calc(6px*var(--u));top:calc(5px*var(--u));min-width:0;width:auto;padding:0 calc(5px*var(--u));font:700 calc(11px*var(--u))/calc(17px*var(--u)) var(--f-ui);
+  border:1px solid var(--rim);border-bottom-width:1px;border-radius:4px;background:rgba(0,0,0,.45);color:var(--fr);text-align:center}
+
+/* ---------- Minikarte unten links ---------- */
+body.ui2 #app #mini{position:absolute;left:calc(8px*var(--u));bottom:calc(8px*var(--u));width:var(--miniW);height:var(--miniH);z-index:19;margin:0;padding:0;order:0;
+  border:0;border-image:none;border-radius:calc(12px*var(--u));outline:1px solid var(--rim);outline-offset:0;background:rgba(10,12,16,.82);box-shadow:var(--glassS);align-self:auto}
+
+/* ---------- Berater als Sprechblase / Pille ---------- */
+body.ui2 #app #advisor{left:calc(8px*var(--u));top:auto;bottom:calc(var(--miniH) + 16px*var(--u));margin:0;width:min(calc(330px*var(--u)),calc(100% - 16px));
+  padding:0;border:0;border-image:none;border-radius:0;background:none;box-shadow:none;z-index:19;display:block}
+body.ui2 #advisor[hidden]{display:none}
+body.ui2 #advisor .bb{display:flex;align-items:center;gap:calc(8px*var(--u));padding:calc(5px*var(--u)) calc(6px*var(--u)) calc(5px*var(--u)) calc(7px*var(--u));min-height:calc(46px*var(--u));width:fit-content;max-width:100%;
+  background:var(--glass);border:1px solid var(--rim);border-radius:calc(23px*var(--u));box-shadow:var(--glassS)}
+body.ui2 #advisor .bb.has{border-radius:calc(16px*var(--u)) calc(16px*var(--u)) calc(16px*var(--u)) 5px;padding:calc(8px*var(--u)) calc(8px*var(--u)) calc(8px*var(--u)) calc(10px*var(--u));width:100%}
+body.ui2 #advisor .bb.has{flex-wrap:wrap;row-gap:calc(4px*var(--u))}
+body.ui2 #advisor .bb.has .bm{flex:1 1 calc(100% - 50px*var(--u))}
+body.ui2 #advisor .bb.has .yn.yes{margin-left:calc(40px*var(--u))}
+body.ui2 #advisor .bb.has .auto{margin-left:auto}
+body.ui2 #advisor .av{flex:none;width:calc(32px*var(--u));height:calc(32px*var(--u));border-radius:50%;background:color-mix(in srgb,var(--fr) 40%,#000);display:grid;place-items:center;color:#fff;font-size:calc(16px*var(--u))}
+body.ui2 #advisor .bm{flex:1 1 auto;min-width:0}
+body.ui2 #advisor .bm p{margin:0;font-size:calc(13.5px*var(--u));line-height:1.25;color:var(--ink)}
+body.ui2 #advisor .bm p.idl{font:400 calc(15px*var(--u))/1 var(--f-display,var(--f-h,Georgia,serif));color:var(--fr);padding-right:calc(4px*var(--u))}
+body.ui2 #advisor .bm .ac{display:flex;gap:8px;margin-top:3px;font-size:calc(12.5px*var(--u))}
+body.ui2 #advisor .yn{flex:none;width:calc(44px*var(--u));height:calc(44px*var(--u));border:0;border-radius:50%;background:rgba(255,255,255,.08);font-size:calc(19px*var(--u));font-weight:700;cursor:pointer;padding:0;line-height:1}
+body.ui2 #advisor .yn:hover{background:rgba(255,255,255,.18)}
+body.ui2 #advisor .yn.yes{color:#9fe08a}body.ui2 #advisor .yn.no{color:#ff8a7a}
+body.ui2 #advisor .bb .auto{flex:none;min-height:calc(32px*var(--u));padding:0 calc(9px*var(--u));border-radius:99px;background:rgba(0,0,0,.3);border:1px solid var(--rim2);color:var(--ink2);font-size:calc(11.5px*var(--u));cursor:pointer;margin:0}
+body.ui2 #advisor .bb .auto[aria-pressed="true"]{background:#2f5a26;border-color:#8fd35f;color:#e2f7d2}
+body.ui2 #advisor .bb .x{flex:none;margin:0;width:calc(36px*var(--u));height:calc(36px*var(--u));border-radius:50%;border:0;background:none;color:var(--ink2);font-size:calc(18px*var(--u));cursor:pointer;padding:0}
+body.ui2 #advisor .sts,body.ui2 #advisor .intel{margin-top:calc(6px*var(--u));padding:calc(7px*var(--u)) calc(9px*var(--u));background:var(--glass);border:1px solid var(--rim2);border-radius:12px}
+body.ui2 #advisor .sts{display:flex;flex-wrap:wrap;gap:calc(5px*var(--u))}
+body.ui2 #advisor .st{min-height:calc(34px*var(--u));padding:0 calc(10px*var(--u));border-radius:99px;font-size:calc(12px*var(--u));background:rgba(0,0,0,.3);border:1px solid var(--rim2);color:var(--ink)}
+body.ui2 #advisor .st[aria-pressed="true"]{background:color-mix(in srgb,var(--fr) 45%,#000);border-color:var(--fr);color:#fff}
+body.ui2 #advisor .intel{margin-top:calc(5px*var(--u));font-size:calc(12px*var(--u));color:var(--ink2)}
+
+/* ---------- Meldungen, Hinweise, Anzeigen ---------- */
+body.ui2 #app #toasts{top:calc(var(--topH,54px) + 2px);margin-top:0}
+body.ui2 #app #hint{bottom:calc(10px*var(--u));margin:0;background:var(--glass);border:1px solid var(--rim);border-radius:99px;padding:calc(7px*var(--u)) calc(16px*var(--u));color:var(--ink);font-size:calc(13px*var(--u));box-shadow:var(--glassS);
+  max-width:calc(100% - var(--miniW) - var(--sideW) - 56px*var(--u));white-space:normal;text-align:center}
+body.ui2 #app #fps{left:calc(var(--miniW) + 18px*var(--u));right:auto;bottom:calc(8px*var(--u));margin:0}
+body.ui2 #app #upgbar{margin-top:0;top:calc(var(--topH,54px) + 2px)}
+body.ui2 #app .toast{background:var(--glass);border:1px solid var(--rim);border-radius:99px;box-shadow:var(--glassS)}
+/* Mehrspieler: Verbindungsanzeige links neben den runden Knöpfen, Protokoll unter den Knöpfen */
+body.ui2 #app #netbadge{top:calc(8px*var(--u) + (44px*var(--u) - 26px)/2);right:calc(var(--btnsW) + 18px*var(--u));margin-top:0;backdrop-filter:none;-webkit-backdrop-filter:none;z-index:21}
+body.ui2 #app #netpanel{top:calc(var(--topH,54px) + 2px);right:calc(8px*var(--u));z-index:31}
+body.ui2 #egohud .eg-txt{top:calc(var(--topH,60px) + 6px)}
+
+/* ---------- Menü / Dialoge: Spieloberfläche ausblenden ---------- */
+body.ui2.menu-open #app #top,body.ui2.menu-open #app #side,body.ui2.menu-open #app #mini{display:none!important}
+body.ui2 #app:has(#overlay:not([hidden]) .card) :is(#top,#side,#mini),body.ui2.mm #app :is(#top,#side,#mini,#advisor){display:none!important}
+body.ui2.ego #app #side,body.ui2.ego #app #advisor{display:none}
+/* Pause-Menü und Zeitalter-Baum im Glas-Stil: schlanker Rand statt Schmuckrahmen mit Ecken */
+body.ui2 #menu{background:rgba(8,9,11,.62)}
+body.ui2 #menu .gm-frame,body.ui2 #tree .gm-frame{border:1px solid var(--rim);border-image:none;border-radius:16px;background:linear-gradient(var(--tint),var(--tint)),rgba(14,11,8,.84);background-clip:border-box;
+  box-shadow:0 20px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.1)}
+body.ui2 #menu .gm-frame::before,body.ui2 #menu .gm-frame::after,body.ui2 #tree .gm-frame::before,body.ui2 #tree .gm-frame::after{display:none}
+
+/* ---------- schmale Fenster: Knöpfe in eigene Zeile, Seitenleiste wird Schublade unten ---------- */
+@media (max-width:640px){
+  body.ui2 #app #top{padding-right:calc(8px*var(--u))}
+  body.ui2 #app #top .tl{position:static;order:99;flex:1 0 100%;justify-content:flex-end;margin-top:calc(2px*var(--u))}
+  body.ui2 #app #top .tr .res{height:calc(30px*var(--u));padding:0 calc(8px*var(--u)) 0 calc(4px*var(--u))}
+  body.ui2 #app #top #epoch{height:calc(30px*var(--u));font-size:calc(15px*var(--u));line-height:calc(28px*var(--u))}
+  body.ui2 #app #top .tr .res .icn,body.ui2 #app #top .tr .res .icn img.ic,body.ui2 #app #top .tr .res .icn svg{width:calc(22px*var(--u));height:calc(22px*var(--u))}
+  body.ui2 #app #top .tr .res b{font-size:calc(13px*var(--u))}
+  body.ui2 #app #side{left:calc(8px*var(--u));right:calc(8px*var(--u));top:auto;bottom:calc(8px*var(--u));width:auto;max-height:42%}
+  body.ui2.has-sel #app #mini,body.ui2.has-sel #app #advisor{display:none}
+  body.ui2 #app #netbadge{top:calc(var(--topH,54px) + 4px);right:calc(8px*var(--u))}
+  body.ui2 #app #hint{max-width:calc(100% - 16px);bottom:calc(var(--miniH) + 14px*var(--u))}
+  body.ui2 #app #fps{left:calc(var(--miniW) + 14px*var(--u))}
+}
