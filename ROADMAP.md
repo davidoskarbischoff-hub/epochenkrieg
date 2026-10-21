@@ -143,7 +143,8 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Gold, Minen (für Eisen und Gold), Markt, Rohstoffe erscheinen je Epoche
 - [x] Mammut und Säbelzahntiger (sterben aus), Wölfe/Bären/Tiger erst später
 - [x] Stimmen, Kriegshorn, dritte Musikstufe, Ton-Schalter, `SOUNDS.md`
-- [ ] Idee: Gegner-Typ „Zufall“, Handelsrouten/Schiffe mit Gold, Berater-Warnung bei Gold-Überschuss
+- [x] Gegner-Typ „Zufall“ und Berater-Hinweis bei Gold-Überschuss (Gold kaufen, 21.10.)
+- [ ] Idee: Handelsrouten/Schiffe mit Gold
 - [ ] Idee: Mehrspieler siehe `MEHRSPIELER-VORSCHLAG.md`
 
 ## Runde 3: Animation, Karten, Felder, Kampf
@@ -334,7 +335,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 ## Idee von David: Ego-Sicht und Einheit selbst spielen (18.10., langfristig)
 Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der Blick „ins Brett hinein" gut zum Thema.
 - [ ] **Stufe 1 – Ansicht aus Sicht der Einheit (nur schauen):** Ein Klick auf eine Einheit, ein Gebäude oder ein Wildtier öffnet eine Ego-Kamera (Kopfhöhe, Blick in Laufrichtung, Taste zum Zurückkehren). Kopf der Figur ausblenden, Nah-Ebene der Kamera klein genug, Gelände/Gras/Nebel/LOD/Chunks (`r3GrassView`, `r3Lod`, `r3Chunks`) müssen mit der tiefen Kamera arbeiten (sie gehen heute von der Draufsicht aus). Gebäude: Blick vom Dach/Eingang oder Wachposten. Tiere: Kopfhöhe des Tieres. Schatten und Leistung prüfen, im Mehrspieler nur lokal.
-- [ ] **Stufe 2 – Eine Einheit selbst steuern (Einzelspieler):** Laufen (WASD + Maus), Angriff/Schuss/Werkzeug auf Tastendruck, Zielen aus Ego-Sicht; Kollision über `navDyn`/Gelände, der Rest des Heeres läuft per KI/Befehl weiter. Auswahl der Fähigkeiten pro Einheit (Nahkampf, Fernkampf, Heilen, Bauen/Sammeln).
+- [x] (21.10. Phase 2+3: Laufen, Schlagen/Schießen per Klick, HUD, Einheitenwechsel; Mehrspieler `ufire`) **Stufe 2 – Eine Einheit selbst steuern (Einzelspieler):** Laufen (WASD + Maus), Angriff/Schuss/Werkzeug auf Tastendruck, Zielen aus Ego-Sicht; Kollision über `navDyn`/Gelände, der Rest des Heeres läuft per KI/Befehl weiter. Auswahl der Fähigkeiten pro Einheit (Nahkampf, Fernkampf, Heilen, Bauen/Sammeln).
 - [ ] **Stufe 3 – Mehrspieler und Feinschliff:** Befehle der selbst gespielten Einheit im Mehrspieler übertragen (`NET.send`, `execRemote`), Spielerfigur im Spielstand kennzeichnen, Balance (nicht stärker als normal gesteuert), Sicht/Nebel des Krieges aus der Ego-Sicht.
 - Schätzung: Stufe 1 mittel (Kamera, Sichtbarkeits-Anpassungen), Stufe 2 gross (Eingabe, Kampf, Kollision), Stufe 3 gross. Erst nach den Arbeitspaketen A–D.
 

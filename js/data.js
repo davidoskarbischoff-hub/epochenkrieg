@@ -60,7 +60,7 @@ const BSPEC={
   harbor:{fish:{name:'Fischerhafen',ep:2,cost:{wood:200,stone:80},sub:'Boote fangen 25 % mehr'},navy:{name:'Werft',ep:3,cost:{wood:250,iron:120},sub:'Neue Schiffe +25 % Leben'}},
   market:{trade:{name:'Handelskontor',ep:3,cost:{wood:200,stone:150},sub:'Besserer Kurs: Verkauf bringt 25 % mehr Gold'},bank:{name:'Bank',ep:4,cost:{wood:200,stone:250,gold:100},sub:'Bringt dauerhaft Gold (1,5 pro Sekunde)'}},
   airfield:{ace:{name:'Jagdstaffel',ep:6,cost:{wood:200,iron:150,gold:100},sub:'Neue Flugzeuge +25 % Schaden'},armor:{name:'Panzerung',ep:6,cost:{wood:200,iron:200,gold:80},sub:'Neue Flugzeuge +30 % Leben'}},
-  mine:{rails:{name:'Schienen',ep:3,cost:{wood:150,iron:60},sub:'Loren auf Schienen: doppelt so schnell, eine zweite Lore'},deep:{name:'Tiefer Stollen',ep:2,cost:{wood:150,stone:100},sub:'Bergleute fördern 30 % mehr'}},
+  mine:{rails:{name:'Schienen',ep:3,cost:{wood:150,iron:60},sub:'Loren auf Schienen: doppelt so schnell, 2 Loren statt 1 (mit Zusatz-Loren höchstens 3)'},deep:{name:'Tiefer Stollen',ep:2,cost:{wood:150,stone:100},sub:'Bergleute fördern 30 % mehr'}},
   barracks:{drill:{name:'Drillplatz',ep:1,cost:{wood:150,iron:80},sub:'Nahkämpfer und Reiter dieser Kaserne +25 % Leben'},range:{name:'Schiessstand',ep:2,cost:{wood:150,iron:80},sub:'Fernkämpfer dieser Kaserne +25 % Schaden'}}
 };
 const TSPEC=BSPEC.tower;
@@ -113,7 +113,7 @@ const MOVE_K=.9; /* alle Landeinheiten etwas gemächlicher (David: Truppen liefe
 /* Einheiten ändern ihren Namen mit dem Zeitalter (Sanitäter-Reihe) */
 /* Truppenlinien: ab einem späteren Zeitalter ist eine Einheit veraltet und nicht mehr ausbildbar (upto = letztes Zeitalter); vorhandene bleiben. uOk prüft beides. */
 /* Minen: bis MINE_CAP Arbeiter arbeiten drinnen, das Erz sammelt sich im Minenlager (MINE_STOCK) und eine Lore (Einheit cart) fährt es zum nächsten Lager */
-const MINE_CAP=8,MINE_STOCK=300,CART_LOAD=60;
+const MINE_CAP=8,MINE_STOCK=300,CART_LOAD=60,CART_MAX=3,CART_COST={wood:100,iron:40}; /* CART_MAX = Loren je Mine (Schienen zählen als 2, jede Zusatz-Lore +1) */
 const UPTO={hbow:5,sling:0,club:1,archer:2,warship:2,crossbow:3,catapult:3,ram:2,spear:4,sword:4,musket:4,cannon:4,galleon:4,knight:5};for(const k in UPTO)UNITS[k].upto=UPTO[k];
 /* Truppenlinien: wird eine Einheit nach ihrem letzten Zeitalter aufgewertet, wechselt sie zur Nachfolger-Einheit (Aussehen und Werte).
    Fernkampf: Steinschleuder → Bogen → Armbrust → Muskete → Gewehr; Nahkampf: Keule → Speer → Gewehr; Schwert → Gewehr; Reiter → Panzer/Gewehr; Belagerung → Kanone → Haubitze */
@@ -149,8 +149,10 @@ const AI_STYLES={
   turtle:{name:'Turtle',desc:'Baut viele Türme, verteidigt, greift spät an',wk:1,pace:1.05,army:.9,first:2,wave:1.7,tow:2,bar:0,def:380},
   rush:{name:'Rush',desc:'Früh viele Truppen und frühe Angriffe, kaum Wirtschaft',wk:.65,pace:1.5,army:1.5,first:.55,wave:.65,tow:-1,bar:1,def:240},
   eco:{name:'Wirtschaft',desc:'Viele Arbeiter, große Vorräte, späte Armee',wk:1.3,pace:.95,army:.7,first:1.5,wave:1.3,tow:0,bar:0,def:260},
-  boom:{name:'Aufstieg',desc:'Steigt so schnell wie möglich auf',wk:1.1,pace:.7,army:.6,first:1.4,wave:1.2,tow:0,bar:0,def:260}
+  boom:{name:'Aufstieg',desc:'Steigt so schnell wie möglich auf',wk:1.1,pace:.7,army:.6,first:1.4,wave:1.2,tow:0,bar:0,def:260},
+  random:{name:'Zufall',desc:'Ein zufälliger Gegner-Typ, du erfährst nicht welcher',wk:1,pace:1,army:1,first:1,wave:1,tow:0,bar:0,def:260}
 };
+const AI_PICK=Object.keys(AI_STYLES).filter(k=>k!=='random'); /* 'random' wird in newGame zu einem dieser Typen gewürfelt (Math.random, nicht der Karten-Zufall) */
 const AI_ADV_COST=.4; /* die KI zahlt nur diesen Anteil der Aufstiegskosten (ihre Wirtschaft ist schwächer als die des Spielers) */
 const AI_MINT=[600,1260,1900,2540,3180,3800]; /* früheste Zeit (s), zu der die KI in die nächste Epoche steigen darf (normal) */
 const TC=['#3d72b8','#b9442f'],TCD=['#1f3f6b','#6e2215'],TCL=['#8fb4e6','#ef9b86'];

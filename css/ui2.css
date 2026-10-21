@@ -1,17 +1,18 @@
-/* ===== Oberfläche "Neu" (Entwurf B, Paket L2) =====
-   Gilt nur mit <body class="ui2"> (Menü > Spiel > Oberfläche: Neu / Klassisch). Ohne die Klasse bleibt die alte Konsole unverändert.
+/* ===== Oberfläche "Liquid Glass" (Entwurf B, Paket L2/L3) =====
+   Gilt nur mit <body class="ui2"> (Menü > Spiel > Oberfläche: Liquid Glass / Klassisch). Ohne die Klasse bleibt die alte Konsole unverändert.
    Aufbau: Rohstoff-Chips oben links, runde Knöpfe oben rechts, Seitenleiste rechts (nur mit Auswahl), Minikarte unten links,
-   Berater als Sprechblase darüber. Material: durchscheinendes "Glas" in der Zeitalter-Farbe (--fr, --tint) OHNE backdrop-filter
+   Berater als Sprechblase darüber. Material "Liquid Glass": helle, halbtransparente Glasflächen mit Lichtkante oben (Innenglanz), feinem hellem Rand und weichem Schatten, getönt in der Zeitalter-Farbe (--fr, --tint), OHNE backdrop-filter
    (der Weichzeichner über dem WebGL-Bild kostet Leistung); die Fläche ist dafür etwas dichter.
    Wird NACH style.css/topbar.css geladen; Selektoren beginnen mit "body.ui2 #app", damit sie die alten Regeln sicher überstimmen. */
 
 /* Klassisch: der Wrapper #side verschwindet, Info und Aktionen bleiben Kinder der Konsole */
 #side{display:contents}
 
-body.ui2{--u:1;--rim:color-mix(in srgb,var(--fr) 46%,transparent);--rim2:color-mix(in srgb,var(--fr) 22%,transparent);
-  --glass:linear-gradient(rgba(10,8,6,.30),rgba(10,8,6,.30)),linear-gradient(var(--tint),var(--tint)),rgba(12,9,7,.50);
-  --glassS:0 6px 20px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.10);
-  --ink:#f1e7d3;--ink2:#c5b9a2;--miniW:calc(176px*var(--u));--miniH:calc(124px*var(--u));--sideW:calc(304px*var(--u));--btnsW:260px}
+body.ui2{--u:1;--rim:color-mix(in srgb,var(--fr) 28%,rgba(255,255,255,.34));--rim2:rgba(255,255,255,.17);
+  --glass:linear-gradient(180deg,rgba(255,255,255,.24) 0,rgba(255,255,255,.07) 44%,rgba(255,255,255,0) 100%),linear-gradient(var(--tint),var(--tint)),rgba(15,19,27,.55);
+  --glassS:0 8px 26px rgba(0,0,0,.30),0 1px 3px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(255,255,255,.07),inset 0 0 16px rgba(255,255,255,.06);
+  --glow:0 0 0 1px color-mix(in srgb,var(--fr) 60%,#fff),0 0 16px color-mix(in srgb,var(--fr) 55%,transparent);
+  --ink:#f6f1e6;--ink2:#d2cab9;--miniW:calc(176px*var(--u));--miniH:calc(124px*var(--u));--sideW:calc(304px*var(--u));--btnsW:260px}
 @media (min-width:1700px){body.ui2{--u:1.25}}
 @media (min-width:2400px){body.ui2{--u:1.5}}
 @media (max-width:900px){body.ui2{--u:.94}}
@@ -32,24 +33,24 @@ body.ui2 #app #top .tr .res,body.ui2 #app #top #epoch{pointer-events:auto}
 
 /* Zeitalter-Chip (bleibt wie bisher sichtbar, auch mit Aufstiegsfortschritt) */
 body.ui2 #app #top #epoch{order:0;position:relative;left:auto;top:auto;transform:none;grid-column:auto;grid-row:auto;align-self:flex-start;justify-self:auto;
-  display:flex;flex-direction:row;align-items:baseline;gap:calc(7px*var(--u));height:calc(34px*var(--u));min-height:0;margin:0;padding:0 calc(14px*var(--u));
+  display:flex;flex-direction:row;align-items:center;gap:calc(7px*var(--u));height:calc(36px*var(--u));min-height:0;margin:0;padding:0 calc(14px*var(--u));
   border:1px solid var(--rim);border-image:none;border-radius:99px;background:linear-gradient(color-mix(in srgb,var(--fr) 34%,transparent),color-mix(in srgb,var(--fr) 34%,transparent)),var(--glass);
-  box-shadow:var(--glassS);font:400 calc(17px*var(--u))/calc(32px*var(--u)) var(--f-display,var(--f-h,Georgia,serif));color:#fff;letter-spacing:.02em;white-space:nowrap;text-shadow:0 1px 2px #000}
+  box-shadow:var(--glassS);font:400 calc(17px*var(--u))/1 var(--f-display,var(--f-h,Georgia,serif));color:#fff;letter-spacing:.02em;white-space:nowrap;text-shadow:0 1px 2px #000}
 body.ui2 #app #top #epoch::before,body.ui2 #app #top #epoch::after{display:none}
 body.ui2 #app #top #epoch .prog{display:inline;margin:0;font:600 calc(12px*var(--u)) var(--f-ui);color:var(--warn);letter-spacing:0}
 body.ui2 #app #top #epoch:has(.prog){font-size:calc(17px*var(--u))}
 
 /* Rohstoff-Chips: Symbol + Zahl, ohne Beschriftung (Name steht im Hinweis beim Verweilen) */
-body.ui2 #app #top .tr .res{display:flex;align-items:center;gap:calc(4px*var(--u));height:calc(34px*var(--u));min-height:0;margin:0;padding:0 calc(11px*var(--u)) 0 calc(5px*var(--u));
+body.ui2 #app #top .tr .res{display:flex;align-items:center;gap:calc(5px*var(--u));height:calc(36px*var(--u));min-height:0;margin:0;padding:0 calc(12px*var(--u)) 0 calc(4px*var(--u));
   border:1px solid var(--rim2);border-image:none;border-radius:99px;background:var(--glass);box-shadow:var(--glassS);flex:none;position:relative;white-space:nowrap}
 body.ui2 #app #top .tr .res::before{content:"";position:absolute;inset:calc(-5px*var(--u)) -2px} /* unsichtbare Trefferfläche für Hinweis/Touch */
 body.ui2 #app #top .tr .res small{display:none}
-body.ui2 #app #top .tr .res b{font:600 calc(14.5px*var(--u))/1 var(--f-ui);min-width:0;text-align:left;font-variant-numeric:tabular-nums;color:var(--ink);text-shadow:0 1px 1px rgba(0,0,0,.6)}
-body.ui2 #app #top .tr .res .icn{width:calc(26px*var(--u));height:calc(26px*var(--u));display:inline-flex;align-items:center;justify-content:center;flex:none}
-body.ui2 #app #top .tr .res .icn img.ic,body.ui2 #app #top .tr .res .icn svg{width:calc(26px*var(--u));height:calc(26px*var(--u));margin:0}
+body.ui2 #app #top .tr .res b{font:600 calc(15px*var(--u))/1 var(--f-ui);min-width:0;display:block;text-align:left;font-variant-numeric:tabular-nums;color:var(--ink);text-shadow:0 1px 1px rgba(0,0,0,.6)}
+body.ui2 #app #top .tr .res .icn{width:calc(30px*var(--u));height:calc(30px*var(--u));display:inline-flex;align-items:center;justify-content:center;flex:none;line-height:0}
+body.ui2 #app #top .tr .res .icn img.ic,body.ui2 #app #top .tr .res .icn svg{width:calc(30px*var(--u));height:calc(30px*var(--u));margin:0;object-fit:contain;display:block;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.5))}
 body.ui2 #app #top .tr .res[hidden]{display:none!important}
 body.ui2 #app #top .tr .res[hidden]::after{display:none}
-body.ui2 #app #top .tr .res:has(#v-pop){margin-left:calc(6px*var(--u));padding-left:calc(5px*var(--u))}
+body.ui2 #app #top .tr .res:has(#v-pop){margin-left:calc(6px*var(--u))}
 body.ui2 #app #top .tr .res:not(:has(#v-food)){background:var(--glass)}
 
 /* Runde Knöpfe oben rechts */
@@ -58,7 +59,7 @@ body.ui2 #app #top .tl{position:absolute;right:calc(8px*var(--u));top:calc(8px*v
 body.ui2 #app #top .tl .brand{display:none}
 body.ui2 #app #top .tl .tbtn{pointer-events:auto;position:relative;flex:none;display:grid;place-items:center;width:calc(44px*var(--u));height:calc(44px*var(--u));min-width:0;max-width:none;padding:0;margin:0;
   border:1px solid var(--rim);border-image:none;border-radius:50%;background:var(--glass);box-shadow:var(--glassS);color:var(--ink);font-size:0;line-height:0;overflow:visible;letter-spacing:0;text-shadow:none}
-body.ui2 #app #top .tl .tbtn:hover{border-color:var(--fr);background:linear-gradient(color-mix(in srgb,var(--fr) 26%,transparent),color-mix(in srgb,var(--fr) 26%,transparent)),var(--glass);color:#fff}
+body.ui2 #app #top .tl .tbtn:hover{box-shadow:var(--glassS),var(--glow);border-color:var(--fr);background:linear-gradient(color-mix(in srgb,var(--fr) 26%,transparent),color-mix(in srgb,var(--fr) 26%,transparent)),var(--glass);color:#fff}
 body.ui2 #app #top .tl .tbtn:focus-visible{outline:2px solid var(--fr);outline-offset:2px}
 body.ui2 #app #top .tl .tbtn[hidden]{display:none}
 body.ui2 #app #top .tl #idleBtn{order:0}body.ui2 #app #top .tl #treeBtn{order:1}body.ui2 #app #top .tl #pauseBtn{order:2}body.ui2 #app #top .tl #speedBtn{order:3}body.ui2 #app #top .tl #menuBtn{order:4}
@@ -80,7 +81,7 @@ body.ui2 #app #top .tl #menuBtn::before{width:calc(20px*var(--u));height:calc(16
 
 /* ---------- Seitenleiste rechts (nur mit Auswahl) ---------- */
 body.ui2 #app #side{position:absolute;right:calc(8px*var(--u));top:calc(var(--topH,54px) + 2px);width:var(--sideW);max-height:calc(100% - var(--topH,54px) - 10px*var(--u));overflow-x:hidden;overflow-y:auto;
-  display:flex;flex-direction:column;gap:calc(6px*var(--u));padding:calc(12px*var(--u));z-index:19;color:var(--ink);background:var(--glass);border:1px solid var(--rim);border-radius:calc(14px*var(--u));box-shadow:var(--glassS);
+  display:flex;flex-direction:column;gap:calc(6px*var(--u));padding:calc(12px*var(--u));z-index:19;color:var(--ink);background:var(--glass);border:1px solid var(--rim);border-radius:calc(22px*var(--u));box-shadow:var(--glassS);
   overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--rim) transparent}
 body.ui2:not(.has-sel) #app #side{display:none}
 /* Info-Feld löst sich auf: seine Teile ordnen sich mit den Aktionen in einer Spalte (Kopf, Zustand, Warteschlange, Aktionen, dann lange Upgrade-/Technologielisten) */
@@ -106,7 +107,7 @@ body.ui2 #side .q{background:rgba(0,0,0,.28);border:1px solid var(--rim2);border
 body.ui2 #side .q:hover{border-color:var(--fr)}
 /* Upgrades und Technologien: eine Spalte, kompakte Karten */
 body.ui2 #side .upg{display:grid;grid-template-columns:1fr;gap:calc(6px*var(--u));margin-top:calc(6px*var(--u))}
-body.ui2 #side .upg .ur{display:flex;flex-direction:column;gap:calc(4px*var(--u));padding:calc(8px*var(--u));border:1px solid var(--rim2);border-radius:10px;background:linear-gradient(rgba(255,255,255,.07),rgba(0,0,0,.18))}
+body.ui2 #side .upg .ur{display:flex;flex-direction:column;gap:calc(4px*var(--u));padding:calc(8px*var(--u));border:1px solid var(--rim2);border-radius:14px;background:linear-gradient(rgba(255,255,255,.07),rgba(0,0,0,.18))}
 body.ui2 #side .upg .ur.all{flex-direction:column;align-items:stretch}
 body.ui2 #side .upg .ur .un{font-size:calc(13px*var(--u))}body.ui2 #side .upg .ur .un small{font-size:calc(11.5px*var(--u));color:var(--ink2)}
 body.ui2 #side .upg .ur .uc{font-size:calc(12px*var(--u))}
@@ -118,10 +119,10 @@ body.ui2 #side .c.ok{color:#a9e283}body.ui2 #side .c.bad{color:#f2806a}
 body.ui2 #app #side #acts{display:flex;flex-direction:column;flex:none;gap:calc(6px*var(--u));margin:calc(4px*var(--u)) 0 0;padding:0;border:0;border-image:none;border-radius:0;background:none;box-shadow:none;overflow:visible;max-height:none;min-width:0}
 body.ui2 #app #side #acts:empty{display:none}
 body.ui2 #side .act{position:relative;display:grid;grid-template-columns:calc(48px*var(--u)) minmax(0,1fr);grid-template-areas:"ic nm" "ic cs" "ic sb";align-items:center;column-gap:calc(10px*var(--u));row-gap:2px;
-  width:100%;min-width:0;min-height:calc(60px*var(--u));padding:calc(5px*var(--u)) calc(8px*var(--u));border:1px solid rgba(255,255,255,.13);border-image:none;border-radius:calc(10px*var(--u));
-  background:linear-gradient(rgba(255,255,255,.08),rgba(0,0,0,.2));box-shadow:none;text-align:left;color:var(--ink);filter:none;opacity:1}
+  width:100%;min-width:0;min-height:calc(60px*var(--u));padding:calc(5px*var(--u)) calc(8px*var(--u));border:1px solid rgba(255,255,255,.13);border-image:none;border-radius:calc(16px*var(--u));
+  background:linear-gradient(rgba(255,255,255,.14),rgba(255,255,255,.03) 50%,rgba(0,0,0,.14));box-shadow:inset 0 1px 0 rgba(255,255,255,.28);text-align:left;color:var(--ink);filter:none;opacity:1}
 body.ui2 #side .act:not(:has(.aic)){grid-template-columns:minmax(0,1fr);grid-template-areas:"nm" "cs" "sb"}
-body.ui2 #side .act:hover{border-color:var(--fr);background:linear-gradient(color-mix(in srgb,var(--fr) 24%,transparent),rgba(0,0,0,.2))}
+body.ui2 #side .act:hover{box-shadow:var(--glow);border-color:var(--fr);background:linear-gradient(color-mix(in srgb,var(--fr) 24%,transparent),rgba(0,0,0,.2))}
 body.ui2 #side .act:focus-visible{outline:2px solid var(--fr);outline-offset:1px}
 body.ui2 #side .act:not(.poor):not(.locked){border-color:rgba(143,191,99,.55)}
 body.ui2 #side .act:not(.poor):not(.locked):hover{border-color:#b6e68c}
@@ -137,7 +138,7 @@ body.ui2 #side .act kbd{position:absolute;right:calc(6px*var(--u));top:calc(5px*
 
 /* ---------- Minikarte unten links ---------- */
 body.ui2 #app #mini{position:absolute;left:calc(8px*var(--u));bottom:calc(8px*var(--u));width:var(--miniW);height:var(--miniH);z-index:19;margin:0;padding:0;order:0;
-  border:0;border-image:none;border-radius:calc(12px*var(--u));outline:1px solid var(--rim);outline-offset:0;background:rgba(10,12,16,.82);box-shadow:var(--glassS);align-self:auto}
+  border:0;border-image:none;border-radius:calc(20px*var(--u));outline:1px solid var(--rim);outline-offset:-1px;background:rgba(10,12,16,.82);box-shadow:var(--glassS);align-self:auto}
 
 /* ---------- Berater als Sprechblase / Pille ---------- */
 body.ui2 #app #advisor{left:calc(8px*var(--u));top:auto;bottom:calc(var(--miniH) + 16px*var(--u));margin:0;width:min(calc(330px*var(--u)),calc(100% - 16px));
@@ -185,11 +186,13 @@ body.ui2 #app:has(#overlay:not([hidden]) .card) :is(#top,#side,#mini),body.ui2.m
 body.ui2.ego #app #side,body.ui2.ego #app #advisor{display:none}
 /* Pause-Menü und Zeitalter-Baum im Glas-Stil: schlanker Rand statt Schmuckrahmen mit Ecken */
 body.ui2 #menu{background:rgba(8,9,11,.62)}
-body.ui2 #menu .gm-frame,body.ui2 #tree .gm-frame{border:1px solid var(--rim);border-image:none;border-radius:16px;background:linear-gradient(var(--tint),var(--tint)),rgba(14,11,8,.84);background-clip:border-box;
-  box-shadow:0 20px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.1)}
+body.ui2 #menu .gm-frame,body.ui2 #tree .gm-frame{border:1px solid var(--rim);border-image:none;border-radius:26px;background:linear-gradient(180deg,rgba(255,255,255,.16) 0,rgba(255,255,255,0) 40%),linear-gradient(var(--tint),var(--tint)),rgba(14,17,24,.88);background-clip:border-box;
+  box-shadow:0 24px 64px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.5),inset 0 0 22px rgba(255,255,255,.05)}
 body.ui2 #menu .gm-frame::before,body.ui2 #menu .gm-frame::after,body.ui2 #tree .gm-frame::before,body.ui2 #tree .gm-frame::after{display:none}
 
 /* ---------- schmale Fenster: Knöpfe in eigene Zeile, Seitenleiste wird Schublade unten ---------- */
+/* mittelbreite Fenster: Verbindungs-Anzeige unter die Chips (zwischen Chips und runden Knöpfen ist kein Platz mehr) */
+@media (max-width:900px) and (min-width:641px){body.ui2 #app #netbadge{top:calc(var(--topH,54px) + 4px);left:calc(8px*var(--u));right:auto}}
 @media (max-width:640px){
   body.ui2 #app #top{padding-right:calc(8px*var(--u))}
   body.ui2 #app #top .tl{position:static;order:99;flex:1 0 100%;justify-content:flex-end;margin-top:calc(2px*var(--u))}
@@ -199,7 +202,7 @@ body.ui2 #menu .gm-frame::before,body.ui2 #menu .gm-frame::after,body.ui2 #tree 
   body.ui2 #app #top .tr .res b{font-size:calc(13px*var(--u))}
   body.ui2 #app #side{left:calc(8px*var(--u));right:calc(8px*var(--u));top:auto;bottom:calc(8px*var(--u));width:auto;max-height:42%}
   body.ui2.has-sel #app #mini,body.ui2.has-sel #app #advisor{display:none}
-  body.ui2 #app #netbadge{top:calc(var(--topH,54px) + 4px);right:calc(8px*var(--u))}
+  body.ui2 #app #netbadge{top:calc(var(--topH,54px) + 4px);left:calc(8px*var(--u));right:auto}
   body.ui2 #app #hint{max-width:calc(100% - 16px);bottom:calc(var(--miniH) + 14px*var(--u))}
   body.ui2 #app #fps{left:calc(var(--miniW) + 14px*var(--u))}
 }

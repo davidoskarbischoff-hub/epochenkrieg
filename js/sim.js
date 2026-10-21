@@ -4,10 +4,10 @@
 /* ---------- game ---------- */
 let mapSeed=0,mapFresh=false,mapKey='',curMap='coast';
 function newGame(d,reuse,opts){cam.yaw=cam.tyaw=0;cam.pitch=cam.tpitch=1.14;
-  opts=opts||{};startK=opts.size==='S'?.5:opts.size==='M'?.78:1;playF=opts.size==='S'?.62:opts.size==='M'?.84:.9;/* auch gross: schmales Randgebirge statt harter Kartenkante im Meer */if(!opts.mp)setTeamColors('#3d72b8','#b9442f');diff=d;if(opts.aiStyle)aiStyle=opts.aiStyle;if(opts.map)curMap=opts.map;else if(typeof window.__map==='string')curMap=window.__map;
+  opts=opts||{};startK=opts.size==='S'?.5:opts.size==='M'?.78:1;playF=opts.size==='S'?.62:opts.size==='M'?.84:.9;/* auch gross: schmales Randgebirge statt harter Kartenkante im Meer */if(!opts.mp)setTeamColors('#3d72b8','#b9442f');diff=d;if(opts.aiStyle)aiStyle=opts.aiStyle;const AS=aiStyle==='random'?AI_PICK[Math.floor(Math.random()*AI_PICK.length)]:aiStyle;if(opts.map)curMap=opts.map;else if(typeof window.__map==='string')curMap=window.__map;
   /* Karten-Regler (Wasser, Gebirge, Jahreszeit): gelten für diese Karte und bleiben bis zum nächsten Aufruf gemerkt */
   if(opts.water!==undefined)MOPT.water=Math.max(0,Math.min(2,opts.water|0));if(opts.mount!==undefined)MOPT.mount=Math.max(0,Math.min(2,opts.mount|0));if(opts.season!==undefined)MOPT.sel=opts.season;
-  G={late:[],nation:[null,null],nfx:[nationFx(),nationFx()],t:0,ents:[],byId:new Map(),nid:1,res:[{food:200,wood:200,stone:100,iron:0,gold:0,oil:0},{food:200,wood:200,stone:100,iron:0,gold:0,oil:0}],epoch:[0,0],adv:[null,null],jobs:[[],[]],tech:[new Set(),new Set()],rs:[[],[]],tfx:[techFx(new Set()),techFx(new Set())],pop:[0,0],cap:[0,0],speed:1,paused:false,running:false,over:null,overShown:false,proj:[],fx:[],aiT:1,alertT:-99,ping:null,ev:[],alertT1:-99,mem:new Map(),ai:{style:opts.aiStyle||aiStyle,next:DIFF[d].first*AI_STYLES[opts.aiStyle||aiStyle].first,wave:DIFF[d].wave*AI_STYLES[opts.aiStyle||aiStyle].wave,ex:new Uint8Array(FW*FH),seen:new Map(),attack:false,towT:0,shipNext:200,exPt:null},stats:{lost:[0,0],trained:[0,0]}};
+  G={late:[],nation:[null,null],nfx:[nationFx(),nationFx()],t:0,ents:[],byId:new Map(),nid:1,res:[{food:200,wood:200,stone:100,iron:0,gold:0,oil:0},{food:200,wood:200,stone:100,iron:0,gold:0,oil:0}],epoch:[0,0],adv:[null,null],jobs:[[],[]],tech:[new Set(),new Set()],rs:[[],[]],tfx:[techFx(new Set()),techFx(new Set())],pop:[0,0],cap:[0,0],speed:1,paused:false,running:false,over:null,overShown:false,proj:[],fx:[],aiT:1,alertT:-99,ping:null,ev:[],alertT1:-99,mem:new Map(),ai:{style:AS,next:DIFF[d].first*AI_STYLES[AS].first,wave:DIFF[d].wave*AI_STYLES[AS].wave,ex:new Uint8Array(FW*FH),seen:new Map(),attack:false,towT:0,shipNext:200,exPt:null},stats:{lost:[0,0],trained:[0,0]}};
   G.bones=[];sel.clear();placing=null;armed=false;panelSig='';advisor.cur=null;advisor.ignore={};advisor.next=8;advisor.last=-9;if(typeof SND!=='undefined')SND.setEpoch(0);
   const want=opts.seed!==undefined?opts.seed:(typeof window.__seed==='number'?window.__seed:undefined),mkey=curMap+'|'+MOPT.water+MOPT.mount+MOPT.sel,keep=reuse&&mapFresh&&bg&&mapKey===mkey&&want===undefined,seed=keep?mapSeed:(want!==undefined?want:(Math.random()*1e9)|0);mapSeed=seed;mapFresh=true;mapKey=mkey;MOPT.season=seasonOf(MOPT.sel,seed);genTerrain(seed,curMap);navInit();genMap(seed);if(!keep)renderBg(seed);
   if(opts.flip)flipTeams();G.mp=!!opts.mp;if(G.mp)G.speed=opts.speed||1;
@@ -289,10 +289,28 @@ function damage(t,amt,src){
 }
 function kill(e){if(e.dead)return;e.dead=true;if(e.type==='farm')for(const n of G.ents)if(n.type==='field'&&n.farm===e.id)n.dead=true;if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea&&e.type!=='field'))navStamp(e,-1);if(e.kind==='unit'||e.kind==='animal')sfx('die',e);else if(e.kind==='bld')sfx('crumble',e);sel.delete(e.id);if(e.kind==='unit')G.stats.lost[e.team]++;
   if(e.type==='hq'&&!G.over)G.over=e.team===0?'lose':'win';}
+/* Ego-Ansicht im Turm: der Spieler feuert selbst (Schaden, Reichweite, Nachladezeit wie die Automatik; solange er zielt, pausiert die Auto-Wahl).
+   Gibt true zurück, wenn ein Schuss fiel. Mehrspieler: Gast schickt 'tfire', Gastgeber prüft Besitz (nach flipTeams ist der Gast Team 0). */
+function towerFire(team,id,tid){
+  if(NET.client&&team===0){NET.send({c:'tfire',id,tid});return true}
+  const b=G.byId.get(id),t=G.byId.get(tid),d=b&&BLDS[b.type];if(!b||b.dead||b.team!==team||!b.built||!d||!d.shoot||!t||t.dead||t.team===team||t.inm)return false;
+  if(t.kind!=='unit'&&t.kind!=='animal'&&t.kind!=='bld')return false;if(t.team<0&&t.kind!=='animal')return false;
+  const sd=b.spec==='def',sob=b.spec==='obs';b.manT=G.t+2.5;if(b.cd>0)return false;
+  if(Math.hypot(t.x-b.x,t.y-b.y)>d.shoot.rng*(sd?1.3:sob?.8:1))return false;
+  b.cd=d.shoot.cd*(sob?1.3:1);sfx('arrow',b);G.proj.push({x:b.x,y:b.y-8,tid:t.id,dmg:d.shoot.atk*(sd?1.8:sob?.7:1)*LVL.atk[b.lvl]*(1+G.tfx[b.team].tower),src:b.id,a:0});return true}
+/* Ego-Ansicht (Phase 3): eigene Einheit schlägt/schießt selbst auf das Ziel im Fadenkreuz. Reichweite, Schaden und Nachladezeit wie im normalen Kampf (hit/cd),
+   Mehrspieler: Gast schickt 'ufire', Gastgeber prüft Besitz (nach flipTeams ist der Gast Team 0). true = Schlag/Schuss ging raus. */
+function unitStrike(team,id,tid){
+  if(NET.client&&team===0){NET.send({c:'ufire',id,tid});return true}
+  const u=G.byId.get(id),t=G.byId.get(tid),d=u&&UNITS[u.type];if(!u||u.kind!=='unit'||u.dead||u.team!==team||u.inm||u.upj||!d||!(d.atk>0)||!t||t.dead||t.team===team||t.inm)return false;
+  if(t.kind!=='unit'&&t.kind!=='animal'&&t.kind!=='bld')return false;if(t.team<0&&t.kind!=='animal')return false;
+  const shooter=d.ranged||d.air;if(t.gar&&!shooter)return false;if(UNITS[t.type]&&UNITS[t.type].air&&!shooter)return false;
+  if(u.cd>0)return false;if(Math.hypot(t.x-u.x,t.y-u.y)-u.r-t.r>d.rng)return false;
+  u.fa=Math.atan2(t.y-u.y,t.x-u.x);u.cd=d.cd;u.swing=G.t;hit(u,t);return true}
 function updBld(b,dt){
   if(!b.built)return;const d=BLDS[b.type];
   if(b.type==='harbor'&&G.tfx[b.team].statfish)G.res[b.team].food+=G.tfx[b.team].statfish*dt*(1+.2*b.lvl);
-  if(d.shoot){const sd=b.spec==='def',sob=b.spec==='obs';b.cd=Math.max(0,b.cd-dt);if(b.cd<=0){const t=findEnemy(b,d.shoot.rng*(sd?1.3:sob?.8:1),true);if(t){b.cd=d.shoot.cd*(sob?1.3:1);sfx('arrow',b);G.proj.push({x:b.x,y:b.y-8,tid:t.id,dmg:d.shoot.atk*(sd?1.8:sob?.7:1)*LVL.atk[b.lvl]*(1+G.tfx[b.team].tower),src:b.id,a:0})}}}
+  if(d.shoot){const sd=b.spec==='def',sob=b.spec==='obs';b.cd=Math.max(0,b.cd-dt);if(b.cd<=0&&!(b.manT>G.t)){const t=findEnemy(b,d.shoot.rng*(sd?1.3:sob?.8:1),true);if(t){b.cd=d.shoot.cd*(sob?1.3:1);sfx('arrow',b);G.proj.push({x:b.x,y:b.y-8,tid:t.id,dmg:d.shoot.atk*(sd?1.8:sob?.7:1)*LVL.atk[b.lvl]*(1+G.tfx[b.team].tower),src:b.id,a:0})}}}
   if(b.queue.length&&b.queue[0].tech){const q=b.queue[0],T=TECH[q.tech]; /* Forschung in der Warteschlange: Kosten werden während der Forschung abgebucht */
     if(G.tech[b.team].has(q.tech)){b.queue.shift()}else{const f=Math.min(dt,T.time-q.t)/T.time,c={};for(const r in T.cost)c[r]=T.cost[r]*f;
       if(afford(b.team,c)){q.blocked=false;pay(b.team,c);q.paid=(q.paid||0)+f;q.t+=dt;if(q.t>=T.time){b.queue.shift();G.tech[b.team].add(q.tech);techRefresh(b.team);if(b.team===0){panelSig='';infoCache='';sfx('epoch');toast(tr('Erforscht: {0}',tr(T.name)),'good')}}}else q.blocked=true}}
@@ -365,7 +383,10 @@ function mineOf(team,n){let best=null,bd=1e9;for(const b of G.ents){if(b.kind!==
 function mineNode(b,u){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='node'||e.dead||MINE_RT[e.rt]!=='mine'||e.amount<=0||!canGather(u,e)||(u.team===0&&!nodeKnown(e)))continue;const d=Math.hypot(e.x-b.x,e.y-b.y);if(d<e.r+b.r+8&&d<bd){bd=d;best=e}}return best}
 function mineOut(u){const b=u.inm&&G.byId.get(u.inm);if(u.inm){u.x=b?b.x:u.x;u.y=(b?b.y+b.r+8:u.y+20)}u.inm=null;u.state='idle';u.tid=null;u.pf=null}
 function mineRelease(team,id){if(NET.client&&team===0){NET.send({c:'unmine',id});return}for(const e of G.ents)if(e.inm===id&&e.team===team&&!e.dead)mineOut(e)}
-function mineCarts(){for(const b of G.ents){if(b.kind!=='bld'||b.type!=='mine'||!b.built||b.dead)continue;const want=b.spec==='rails'?2:1,have=G.ents.filter(c=>c.type==='cart'&&!c.dead&&c.home===b.id).length;
+const cartWant=b=>Math.min(CART_MAX,(b.spec==='rails'?2:1)+(b.xc||0));
+function buyCart(team,id){if(NET.client&&team===0){NET.send({c:'cart2',id});return true}const b=G.byId.get(id);if(!b||b.dead||b.team!==team||b.type!=='mine'||!b.built||b.empty||cartWant(b)>=CART_MAX||!pay(team,CART_COST))return false;b.xc=(b.xc||0)+1;b.cartT=0;if(team===0)sfx('built',b);return true}
+function mineStock(b){return Object.values(b.st||{}).reduce((a,v)=>a+v,0)}
+function mineCarts(){for(const b of G.ents){if(b.kind!=='bld'||b.type!=='mine'||!b.built||b.dead)continue;const want=cartWant(b),have=G.ents.filter(c=>c.type==='cart'&&!c.dead&&c.home===b.id).length;
   if(have<want&&!b.empty&&G.t>(b.cartT||0)){b.cartT=G.t+25;const c=addUnit('cart',b.team,b.x,b.y+b.r+8);c.home=b.id;c.state='haul'}}}
 /* Sammeltempo eines Arbeiters an einem Vorkommen (Technologien, Nation, Ausbau, Stufe, Schwierigkeit) */
 function gRate(u,n){const d=UNITS[u.type],gc=GATHER[n.rt];return .85*gc.rate*(1+G.tfx[u.team].gather+G.nfx[u.team].gather+((n.rt==='gold'||n.rt==='oil')?G.nfx[u.team].oilgold:0)+(d.naval?G.tfx[u.team].bgather+SF(u.team).bgather:0)+SF(u.team).gather)*(NODES[n.type].gm||1)*LVL.gather[u.lvl]*(u.team===1?DIFF[diff].gather:1)}

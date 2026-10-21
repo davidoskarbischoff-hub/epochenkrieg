@@ -143,7 +143,8 @@ addEventListener('keydown',e=>{
   else if(kA(e)==='rage'){const ids=ownSel().filter(u=>u.kind==='unit').map(u=>u.id);if(ids.length){if(NET.client)NET.send({c:'rage',ids});else if(!useRage(0,ids))toast(tr('Kampfrausch lädt noch.'),'warn')}}
   else if(kA(e)==='mute'){SND.setMute(!SND.muted);toast(SND.muted?tr('Ton aus'):tr('Ton an'))}
   else if(kA(e)==='attack'){if(ownSel().some(u=>u.kind==='unit'&&!UNITS[u.type].passive)){armed=true;placing=null}}
-  else if(kA(e)==='camReset'){e.preventDefault();camReset()}
+  else if(kA(e)==='look'){if(e.key.length>1)e.preventDefault();if(!e.repeat&&!EGO.on&&!document.pointerLockElement)try{const p=cv.requestPointerLock&&cv.requestPointerLock();if(p&&p.catch)p.catch(()=>{})}catch(_){}}
+  else if(kA(e)==='camReset'||e.key==='Home'){e.preventDefault();camReset()}
   else if(kA(e)==='tiltU'||kA(e)==='tiltD'||kA(e)==='rotL'||kA(e)==='rotR'){if(e.key.length>1)e.preventDefault()}
   else if(kA(e)==='home'){const hq=G.ents.find(o=>o.type==='hq'&&o.team===0&&!o.dead);if(hq){sel.clear();sel.add(hq.id);centerOn(hq.x,hq.y);panelSig=''}}
   else if(kA(e)==='idle'){selectIdle()}
@@ -156,7 +157,15 @@ addEventListener('keydown',e=>{
   else if(kA(e)==='no'){advAnswer(false)}
   if(e.key.startsWith('Arrow'))e.preventDefault();
 });
-addEventListener('keyup',e=>{keys[e.key]=false;keys[e.key.toLowerCase()]=false});
+addEventListener('keyup',e=>{keys[e.key]=false;keys[e.key.toLowerCase()]=false;if(kA(e)==='look'&&document.pointerLockElement===cv&&!EGO.on)try{document.exitPointerLock()}catch(_){}});
+/* Fokusverlust / Zeigerfang verloren (Esc, Fensterwechsel): gehaltene Tasten zurücksetzen, sonst dreht die Kamera weiter oder Tasten klemmen */
+function releaseKeys(){for(const k in keys)keys[k]=false;try{if(document.pointerLockElement)document.exitPointerLock()}catch(_){}}
+addEventListener('blur',releaseKeys);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseKeys()});
+document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&!EGO.on){const k=OPT.keys&&OPT.keys.look;if(k){keys[k]=false;keys[String(k).toLowerCase()]=false}}});
+/* Umschauen: Taste halten (Standard R) und Maus bewegen, ohne Klicken (Mac-Trackpad ohne Mitteltaste); Zeiger wird dabei festgehalten, loslassen = Kamera bleibt stehen */
+addEventListener('mousemove',e=>{if(typeof EGO!=='undefined'&&EGO.on)return;if(!G||!G.running||menuOpen||!kHeld('look'))return;
+  const dx=e.movementX||0,dy=e.movementY||0;if(dx||dy)camRot(-dx*.006*OPT.camRot,dy*.004*OPT.camRot)},true);
 function scrollCam(dt){
   if(EGO.on)return;
   let vx=0,vy=0;const s=700/cam.z*OPT.camSpeed;
