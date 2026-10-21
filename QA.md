@@ -96,6 +96,14 @@ Skripte/Bilder: `/tmp/claude-0/-home-user-epochenkrieg/69c8489a-2fbd-5d9c-8744-c
 - [ ] (kann) KI-Mitte: Zeitalter 2 erst Min. 27 ist `AI_MINT` x `pace` 1,3 (gewollt); nur Balance-Entscheidung, nichts geändert.
 - [x] BEHOBEN (21.10.): „Grünes Flugzeug direkt nach dem Spawn“: Ursache = noch nicht geladene Spät-Modelle (Zeitalter 2+, `EKMODELS.full` false): `buildUnit` fiel auf die olivgrüne Code-Figur (`jetBody`, 0x6b7a56) zurück, bis `loadAll` fertig war und `tag()` neu baute. Mit `__eagerModels` + `loadAll` ist alles korrekt (Bilder `scratchpad/jet/before0.png`, `e30.png`). Fix in `gltfmodels.js` (Hülle um `buildUnit`): solange `!EKMODELS.full` und Stufe >= 2 ist die Rückfall-Figur unsichtbar, danach ersetzt das echte Modell sie. Bilder `jet/lz0.png` (vorher: Code-Flugzeug) → `jet/af0.png` (leer) → `jet/aflate.png` (echtes Modell). Gast-Ego-Schlag: Code geprüft (`ufire` → `execRemote` → `unitStrike(0,…)` nach `flipTeams`, Besitz-/Reichweitenprüfung beim Gastgeber), noch nicht mit zwei Spielern gelaufen.
 
+## Echter Zwei-Seiten-Mehrspielertest `tools/mp-test.js` (21.10.)
+Aufruf: `NODE_PATH=<playwright> node tools/mp-test.js [Bilderordner]` (~5 Min., Software-GL, eigener Port, lokale Lobby per BroadcastChannel, Gastgeber ohne Zeichnen, ohne `__eagerModels`). Letzter Lauf: ALLES OK.
+- [x] (1) Verbindung, Start, Snapshot beim Gast, gleiche Zahl Einheiten/Gebäude, keine Konsolenfehler.
+- [x] (2) Aufstieg 5 auf 6 mit Nationen beider Seiten (Gastgeber `de`, Gast `ru` per echtem `adv` über das Netz); Gast sieht Nation/Zeitalter richtig (Teams vertauscht); Sturm/Bertha/Rekrut/Kosak kommen beim Gast an, keine Fehler in `applySnap`/`execRemote`. Bild `gast_nationen.png`: glTF-Figuren, Teamfarben sichtbar; Feinbeurteilung wegen Software-GL/Kameraausschnitt begrenzt.
+- [x] (3) Nach `EKMODELS.loadAll`: beim Gast alle sichtbaren Einheiten/Gebäude glTF. Objekte ausserhalb des Bildes (z. B. eigenes Hauptlager) bleiben bis zum Hinschauen Code-Modell (gewollt, `o.off`); der Test schwenkt über beide Hauptlager.
+- [x] (4) Gast-`ufire` real über das Netz: Gastgeber wendet Schaden an. Nachladeuhr wird im Test zurückgesetzt, sonst verwirft der Gastgeber den Schlag (gewollt).
+- Kein Programmfehler gefunden, am Spielcode nichts geändert.
+
 ## Mehrspieler-Prüfung Ego-Schlag/Nationen/späte Modelle (21.10.)
 - Gast-`ufire` (Host-Seite, `execRemote` in Playwright/__norender): Schaden wird angewendet (11 bei Speer gegen Speer). Läuft `u.cd` (auch durch automatischen Angriff), verwirft der Host den Schlag still (`unitStrike` gibt false) – gewollt, gleiche Uhr wie im Einzelspieler; kein Fix. Zwei getrennte Seiten (Fake-Peer) nicht aufgebaut: Weg nur über Code geprüft.
 - Nationen (nur Code gelesen, nicht im Lauf): Gast schickt `adv` mit Nation, `nat` steht im Stand, `nfx` wird beim Gast neu berechnet, `enqueue` prüft Nation; kein Fehler gefunden.
