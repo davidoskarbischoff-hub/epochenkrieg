@@ -4850,7 +4850,16 @@
      5
     ],
     "fit": 1,
-    "scale": 1.45
+    "scale": 1.1,
+    "props": [
+     {
+      "file": "archiv/Windmill.glb",
+      "h": 6.6,
+      "x": 1.25,
+      "z": -1.0,
+      "ry": -30
+     }
+    ]
    },
    {
     "file": "neu/Large Building-ppwtREejXg.glb",
@@ -4985,7 +4994,7 @@
      5
     ],
     "fit": 1,
-    "scale": 1.25
+    "scale": 1.1
    },
    {
     "file": "kenney/building-small-d.glb",
@@ -5088,7 +5097,7 @@
       "cmap": true
      }
     ],
-    "scale": 1.5
+    "scale": 1.1
    },
    {
     "file": "neu/building-s.glb",
@@ -5113,7 +5122,7 @@
       "cmap": true
      }
     ],
-    "scale": 1.6
+    "scale": 1.15
    }
   ],
   "barracks": [
