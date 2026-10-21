@@ -47,7 +47,7 @@ EGO.reloadUi=dt=>{const hud=document.getElementById('egohud');if(!hud)return;let
   const e=EGO.e,ud=e&&e.kind==='unit'&&UNITS[e.type],bd=e&&e.kind==='bld'&&BLDS[e.type]&&BLDS[e.type].shoot,now=performance.now();
   if(!EGO.on||!e||!(bd||(EGO.ctl&&ud&&ud.atk>0))){if(el)el.hidden=true;if(EGO.on)EGO.hudTick(hud,now);return}
   if(!el){el=document.createElement('div');el.className='eg-rl';el.innerHTML='<i></i>';hud.appendChild(el)}
-  const cd=bd?bd.cd*(e.spec==='obs'?1.3:1):ud.cd;let f=1;if(NET.client){f=EGO.nextFire>now?1-(EGO.nextFire-now)/(cd*1000):1}else f=e.cd>0?1-e.cd/cd:1;
+  const cd=bd?bd.cd*(e.spec==='obs'?1.3:1):ud.cd;let f=1;if(NET.client){const rem=Math.max(EGO.nextFire>now?EGO.nextFire-now:0,(e.cd||0)*1000);f=rem>0?Math.max(0,1-rem/(cd*1000)):1}else f=e.cd>0?1-e.cd/cd:1;
   el.hidden=false;el.firstChild.style.width=Math.round(Math.max(0,Math.min(1,f))*100)+'%';el.classList.toggle('ready',f>=1);
   if(EGO.flash>0){EGO.flash=0;hud.classList.add('shot');setTimeout(()=>hud.classList.remove('shot'),120)}
   EGO.hudTick(hud,now)};
@@ -99,7 +99,7 @@ EGO.tick=dt=>{EGO.reloadUi(dt);if(!EGO.on||!EGO.ctl||!EGO.e||(typeof menuOpen!==
 /* Kamera aus den Augen (statt camUpdate der freien Kamera) */
 function egoCam(){
   const e=EGO.e,o=e&&R3.reg.get(entKey(e));if(!o||e.dead||!EGO.can(e)){if(e&&e.team===0&&e.kind==='unit'&&e.dead)toast(tr('Deine Einheit ist gefallen.'),'warn');else if(e&&e.kind==='animal'&&!e.dead)toast(tr('Das Tier ist ausser Sicht.'));EGO.stop(e&&e.dead?{x:e.x,y:e.y}:null);return}
-  if(typeof ROOM!=='undefined'&&ROOM.g&&ROOM.g.visible){ROOM.g.visible=false}/* Raum-Foto nicht zeigen: Blick über den Kartenrand = Himmelsfarbe statt Foto */
+  if(typeof ROOM!=='undefined'){if(ROOM.g&&ROOM.g.visible)ROOM.g.visible=false;if(ROOM.board&&ROOM.board.visible)ROOM.board.visible=false;if(ROOM.spot&&ROOM.spot.visible)ROOM.spot.visible=false}/* Raum-Foto nicht zeigen: Blick über den Kartenrand = Himmelsfarbe statt Foto */
   {const A=R3.atmo;r3.scene.background=EGO.bg||(EGO.bg=new THREE.Color());EGO.bg.set(A?A.sky:0x16384f);r3.scene.fog.color.set(A?A.fog:0x9db8c4)}
   const{camera,sun}=r3,S=R3.S,p=o.obj.position,gy=Math.max(0,hAt(e.x,e.y));
   const now=performance.now(),dtm=Math.min(.1,Math.max(.001,(now-(EGO.bt||now))/1000));EGO.bt=now;

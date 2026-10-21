@@ -165,7 +165,7 @@ function camUpdate(){
 }
 /* Spielpunkt (x,y in Pixeln, Höhe z in Pixeln) → Bildschirm. k = Bildschirm-Pixel je Spielpixel genau an diesem Punkt (Tiefe), front = vor der Kamera und im Tiefenbereich */
 const _sc3=new THREE.Vector3();
-function scr(x,y,z){const v=r3.vec,S=R3.S,c=r3.camera;v.set(x/S,hAt(x,y)+(z||0)/S,y/S);_sc3.copy(v).sub(c.position);const e=c.matrixWorld.elements,dep=-(_sc3.x*e[8]+_sc3.y*e[9]+_sc3.z*e[10]);v.project(c);return{x:(v.x+1)/2*VW,y:(1-v.y)/2*VH,front:v.z<1&&dep>0,k:dep>0?VH/(2*Math.tan(R3.FOV*Math.PI/360)*dep)/S:R3.k}}
+function scr(x,y,z){const v=r3.vec,S=R3.S,c=r3.camera;v.set(x/S,hAt(x,y)+(z||0)/S,y/S);_sc3.copy(v).sub(c.position);const e=c.matrixWorld.elements,dep=-(_sc3.x*e[8]+_sc3.y*e[9]+_sc3.z*e[10]);v.project(c);return{x:(v.x+1)/2*VW,y:(1-v.y)/2*VH,front:v.z<1&&dep>(EGO.on?3:0),k:dep>0?VH/(2*Math.tan(c.fov*Math.PI/360)*dep)/S:R3.k}}
 /* Bildschirm → Spielpunkt (Strahl auf das Gelände). Bei steilem Blick wenige Fixpunkt-Schritte, bei flachem Blick Strahlmarsch (Berge verdecken sonst falsch). */
 function toWorld(sx,sy,raw){/* raw: auch ausserhalb der Karte (Kamera, Tisch), sonst auf die Karte begrenzt */
   if(!R3.ok)return{x:cam.x,y:cam.y};

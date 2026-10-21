@@ -272,3 +272,6 @@ Zwei InstancedMesh (max. 1600 je Team-Art), Matrizen pro Bild neu geschrieben (b
 - Offen: Klick per Maus in Playwright löst durch den Zeigerfang einen Blick-Sprung aus (nur Testumgebung), deshalb Schlag per `EGO.act()` geprüft; Mehrspieler `ufire` nur per Code, nicht mit zwei Spielern; Schwung-Animation sieht nur der Gegner (eigene Figur ist ausgeblendet), in Ego gibt es Rückstoß + Blitz; Flugzeug-Ego erst nach Start in der Luft gut (am Boden Gras im Bild).
 - [x] Lore-Knopf: Schienen-Text („2 Loren statt 1, mit Zusatz-Loren höchstens 3“) stimmt jetzt mit `cartWant`.
 - [x] Gegner-Typ „Zufall“, Berater-Regel Gold kaufen (siehe CLAUDE.md).
+
+## Paket E4 (21.10.)
+- Ego: Flackern (Balken nur in jedem 2.-3. Bild) kam vom 2D-`hpBar` der eigenen Figur; GL-Bild war sauber. Kosten der Änderung: keine (eine Bedingung in `scr`). Turm-`cd` im Stand: ein Zahlenfeld je Turm, ändert sich nur beim Nachladen (Delta-freundlich).
