@@ -106,7 +106,8 @@ $('idleBtn').onclick=()=>{if(G&&G.running)selectIdle()};
 /* ---------- UI ---------- */
 function toast(msg,kind){if(NET.cap){NET.cap.push([msg,kind]);return}if(!OPT.toasts&&kind!=='warn')return;const el=document.createElement('div');el.className='toast'+(kind?' '+kind:'');el.textContent=msg;const box=$('toasts');box.appendChild(el);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>{el.style.opacity='0';setTimeout(()=>el.remove(),450)},3200)}
 const costHTML=c=>RES.filter(r=>c[r]).map(r=>`<span class="c ${(G&&G.res[0][r]||0)>=c[r]?'ok':'bad'}" data-r="${r}" data-n="${c[r]}">${ART.icon(r)}${Math.ceil(c[r])}</span>`).join('');
-function actionsFor(s){
+function actionsFor(s){const a=actionsFor0(s);if(s.length&&!EGO.on&&EGO.can(s[0]))a.push({key:'ego',nm:tr('Ego-Ansicht'),sub:tr('Taste {0}: aus den Augen schauen',keyLabel(OPT.keys.ego||'v')),run:()=>EGO.start(s[0])});return a}
+function actionsFor0(s){
   if(!s.length||s[0].team!==0)return[];const f=s[0],acts=[],ep=G.epoch[0];
   if(f.kind==='unit'){
     if(s.some(u=>UNITS[u.type].builds))for(const k of ['house','store','barracks','airfield','farm','mine','derrick','refinery','market','harbor','tower','castle','wall','gate','trench'].filter(k=>BLDS[k].ep<=ep)){const d=BLDS[k];acts.push({key:'b'+k,nm:tr(d.name),cost:d.cost,sub:tr(d.sub),lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>startPlace(k)})}

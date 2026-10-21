@@ -32,7 +32,7 @@ const EN={
   'Alle Arbeiter haben zu tun.':'All workers are busy.',
   'Tipp: Wähle deine Arbeiter aus und schick sie per Rechtsklick zu Beeren oder Bäumen.':'Tip: Select your workers and right-click berries or trees to send them gathering.',
   // Aktionen und Info
-  'Taste Q, dann Ziel':'Key Q, then target','Halt':'Stop','Befehle abbrechen':'Cancel orders','Aufstieg: {0}':'Advance: {0}','ab {0}':'from {0}',
+  'Taste Q, dann Ziel':'Key Q, then target','Halt':'Stop','Ego-Ansicht':'First-person view','Taste {0}: aus den Augen schauen':'Key {0}: look through its eyes','Ego-Ansicht: {0}':'First-person view: {0}','Maus: umschauen · Mausrad: Zoom · Esc oder {0}: zurück':'Mouse: look around · Wheel: zoom · Esc or {0}: back','Wähle eine eigene Einheit, ein Gebäude oder ein sichtbares Tier.':'Select one of your units, a building or a visible animal.','Ego-Ansicht (aus den Augen schauen)':'First-person view (look through the eyes)','Befehle abbrechen':'Cancel orders','Aufstieg: {0}':'Advance: {0}','ab {0}':'from {0}',
   'Gegner':'Enemy','Vorrat':'Supply','Sammelt {0}':'Gathering {0}','Bringt {0} zum Lager':'Carrying {0} to base','trägt {0} {1}':'carrying {0} {1}',
   'Angriff {0} · Reichweite {1}':'Attack {0} · Range {1}','Nahkampf':'Melee','ausgewählt':'selected',
   'Im Bau: {0} %':'Under construction: {0} %','Arbeiter per Rechtsklick zum Bauen schicken':'Right-click to send workers to build',

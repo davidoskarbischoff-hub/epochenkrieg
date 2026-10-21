@@ -16,7 +16,7 @@ function camReset(){cam.tyaw=Math.round(cam.yaw/(2*Math.PI))*2*Math.PI;cam.tpitc
 /* Taste gehalten? (Taste aus den änderbaren Tastenkürzeln) */
 function kHeld(a){const k=OPT.keys[a];return !!k&&!!keys[k]}
 function camSmooth(dt){
-  if(!R3.ok||!VW)return;const wide=typeof ROOM!=='undefined'&&ROOM.wide();
+  if(!R3.ok||!VW||EGO.on)return;const wide=typeof ROOM!=='undefined'&&ROOM.wide();
   if(wide){cam.yaw=cam.tyaw=0;cam.pitch=cam.tpitch=PITCH0;return}
   if(G&&G.running&&!menuOpen){const r=1.7*OPT.camRot*dt,t=1.1*OPT.camRot*dt;
     if(kHeld('rotL'))camRot(-r,0);if(kHeld('rotR'))camRot(r,0);if(kHeld('tiltU'))camRot(0,-t);if(kHeld('tiltD'))camRot(0,t)}
@@ -154,6 +154,7 @@ addEventListener('keydown',e=>{
 });
 addEventListener('keyup',e=>{keys[e.key]=false;keys[e.key.toLowerCase()]=false});
 function scrollCam(dt){
+  if(EGO.on)return;
   let vx=0,vy=0;const s=700/cam.z*OPT.camSpeed;
   if(keys.ArrowLeft||keys.a)vx-=1;if(keys.ArrowRight||keys.d)vx+=1;if(keys.ArrowUp||keys.w)vy-=1;if(keys.ArrowDown||keys.s)vy+=1;
   if(OPT.edgeScroll&&mouse.in&&mouse.type==='mouse'&&!drag&&!mmDrag&&G&&G.running){const m=14;if(mouse.x<m)vx-=1;if(mouse.x>VW-m)vx+=1;if(mouse.y<m)vy-=1;if(mouse.y>VH-m)vy+=1}

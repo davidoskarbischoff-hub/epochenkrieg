@@ -515,3 +515,11 @@ body{--noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' w
 .nat2 .nsp{grid-area:s;display:flex;gap:10px;margin-top:2px}.nat2 .nu{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--gold2)}
 .nat2.sel{border-color:var(--gold1);box-shadow:0 0 14px rgba(201,164,104,.45)}.nat2.dim{opacity:.5}
 @media (max-width:900px){.et{flex-basis:104px}.et .ehq{width:70px;height:70px}.erow{flex-direction:column}.erow h4{margin:0}}
+
+/* Ego-Ansicht (Paket J) */
+#egohud{position:absolute;inset:0;pointer-events:none;z-index:6}
+#egohud[hidden]{display:none}
+#egohud .eg-dot{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 0 0 1px rgba(0,0,0,.4)}
+#egohud .eg-scope{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.42) 100%)}
+#egohud .eg-txt{position:absolute;left:50%;top:calc(var(--topH,60px) + 10px);transform:translateX(-50%);padding:5px 12px;border-radius:6px;background:rgba(20,18,14,.72);color:#f3e2b3;font:600 13px sans-serif;border:1px solid rgba(200,170,110,.6);white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
+body.ego #advisor{display:none}

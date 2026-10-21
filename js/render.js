@@ -113,8 +113,8 @@ function draw(){
   if(!R3.ok){try{r3Init();camUpdate()}catch(err){R3.fail=true;console.error(err);const m=document.getElementById('hint');if(m){m.hidden=false;m.textContent=tr('Die 3D-Grafik (WebGL) wird von diesem Browser oder Gerät nicht unterstützt.')}return}}
   const now=performance.now(),dt=Math.min(.05,Math.max(.001,(now-lastDraw)/1000));lastDraw=now;
   // sichtbarer Ausschnitt der Karte (mit Rand), um nur Nahes zu behandeln
-  const cs=[toWorld(0,0),toWorld(VW,0),toWorld(0,VH),toWorld(VW,VH)],x0=Math.min(...cs.map(c=>c.x))-140,x1=Math.max(...cs.map(c=>c.x))+140,y0=Math.min(...cs.map(c=>c.y))-140,y1=Math.max(...cs.map(c=>c.y))+200;
-  const inV=e=>e.x>x0&&e.x<x1&&e.y>y0&&e.y<y1;R3.view=(typeof ROOM!=='undefined'&&ROOM.wide())?{x0:-300,x1:W+300,y0:-300,y1:H+300}:{x0,x1,y0,y1};
+  const cs=EGO.on&&R3.view?[{x:R3.view.x0+140,y:R3.view.y0+140},{x:R3.view.x1-140,y:R3.view.y1-200}]:[toWorld(0,0),toWorld(VW,0),toWorld(0,VH),toWorld(VW,VH)],x0=Math.min(...cs.map(c=>c.x))-140,x1=Math.max(...cs.map(c=>c.x))+140,y0=Math.min(...cs.map(c=>c.y))-140,y1=Math.max(...cs.map(c=>c.y))+200;
+  const inV=e=>e.x>x0&&e.x<x1&&e.y>y0&&e.y<y1;R3.view=EGO.on&&R3.view?R3.view:(typeof ROOM!=='undefined'&&ROOM.wide())?{x0:-300,x1:W+300,y0:-300,y1:H+300}:{x0,x1,y0,y1};
   const vis=G.ents.filter(e=>!e.dead&&inV(e)&&shown(e)&&(e.kind!=='bld'||e.team!==1||fogVis[fogIdx(e.x,e.y)]===1));
   const ghosts=[...G.mem.values()].filter(m=>inV(m)&&!fogVis[fogIdx(m.x,m.y)]);
   const s=new Set(sel);

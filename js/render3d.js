@@ -150,7 +150,7 @@ function r3Map(){
 
 /* ---------- Kamera und Umrechnung ---------- */
 function camUpdate(){
-  if(!R3.ok||!VW)return;const{camera,sun}=r3,S=R3.S,d=R3.D0/cam.z,tx=cam.x/S,tz=cam.y/S,ty=hAt(cam.x,cam.y);
+  if(!R3.ok||!VW)return;if(EGO.on){egoCam();if(EGO.on)return}if(EGO.on){egoCam();if(EGO.on)return}const{camera,sun}=r3,S=R3.S,d=R3.D0/cam.z,tx=cam.x/S,tz=cam.y/S,ty=hAt(cam.x,cam.y);
   camera.aspect=VW/VH;camera.fov=R3.FOV;camera.near=Math.max(.8,Math.min(2,d*.06));/* ganz nah ran: nichts schneidet in die Kamera */camera.updateProjectionMatrix();
   /* freie Kamera: Blick von (yaw, pitch) auf den Punkt cam.x/cam.y; yaw 0 = Standard (Norden oben), pitch 1,14 = Standard-Neigung */
   const pc=Math.cos(cam.pitch)*d,px=tx+Math.sin(cam.yaw)*pc,pz=tz+Math.cos(cam.yaw)*pc;let py=ty+Math.sin(cam.pitch)*d;
@@ -541,7 +541,7 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   {const V=R3.view,N=R3.nodeV,ck=Math.round(cam.yaw*12)+','+Math.round(cam.pitch*12);if(ck!==R3.camK){R3.camK=ck;R3.nodeT=0}if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
   r3Lod();R3.nodeT-=dt;R3.gsT=(R3.gsT||0)-dt;if(R3.nodeT<=0){R3.nodeT=R3.apBusy?.06:.4;r3Nodes();if(R3.gsT<=0){R3.gsT=.4;r3GrassShade()}else r3GrassView()}else r3GrassView();if(SHK.size)r3Shake(dt)
-  if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);r3Smoke(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
+  if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);if(EGO.on)EGO.hide();r3Smoke(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
   R3.ringN=0;for(const r of rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;
   /* Schattenkarte nur jedes 2. Bild neu (bewegt sich die Kamera, sofort) – halbiert die Schatten-Zeichenarbeit, Unterschied ist nicht zu sehen */
