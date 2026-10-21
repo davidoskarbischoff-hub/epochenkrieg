@@ -245,3 +245,7 @@ Bitte selbst herunterladen und hochladen (nur CC0/CC-BY). Lizenz auf der Seite v
 - [x] **M3 KI-Wirtschaft Fischen:** KI soll primär nicht mit Arbeitern selbst fischen, sondern zuerst Fischerboote/Fischer ausbilden (Hafen); falls Arbeiter-Fischen attraktiver ist (Rate/Kosten messen), Regel anpassen (`aiTick`, `shoreOf`, `SHORE_RATE`).
 - [x] **M4 Berater-Upgrades:** Der Berater upgradet immer alles, auch wenn man gerade angegriffen wird (Upgrades lassen Einheiten ruhen!). Regel: bei Angriff/Gefahr keine Upgrades vorschlagen/auslösen (`advRules`, `startUpgrade`, Auto-Modus).
 - [x] **M5 Rammböcke:** KI-Berater baut viel zu viele Rammböcke (Regel `cn:siege` u. a.); prüfen, ob Rammböcke zu stark sind (`hit()` Belagerung ×1,4, Kosten, Zeit), Mischung/Obergrenze und Werte ausbalancieren, mit Messung (Berater-Auto, mehrere Seeds; Messfalle Siege-Regel beachten).
+
+## Warteschlange (David, 21.10.)
+- Nach Ego-Phase 2: **Paket L2 = Oberfläche nach Entwurf B** (siehe `UI-KONZEPT.md`; in zwei Schritten: 1. Glas-Material + Berater-Sprechblase, 2. Layout B). Entwurf A bleibt als Ansicht gespeichert: `tools/ui-konzept/a.html` + Bilder `tools/ui-konzept/bilder/a-*` (spaeter noch aenderbar).
+- Danach **Paket V = VillagePack** (`models/neu/VillagePack.rar` entpacken, Haeuser neben Nachbarn im Spiel pruefen, nur einsetzen wenn passend; CLAUDE.md-Regeln: nie blind einbauen).
