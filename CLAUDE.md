@@ -293,3 +293,5 @@ Idee für später: echte Nachbearbeitung (SSAO, Bloom mit Render-Target) braucht
 
 ## Ladegröße (Paket D5, 21.10.)
 - `EKMODELS.init` lädt nur noch Modelle für Zeitalter 0–1 sowie Tiere/Natur/Meer/Symbole sofort (25 MB roh statt 50); der Rest (92 Dateien) kommt im Hintergrund nach dem Spielzimmer, Zeitalter für Zeitalter (`EKMODELS.loadAll()`, `.full`, `.lateN`; `window.__eagerModels=true` = alles vorab, nützlich für Tests mit späten Zeitaltern). Fehlt eine Datei noch, greifen `entryFor`/`tag()` wie gehabt. Wer Gebäude/Einheiten später Zeitalter sofort messen will, muss `await EKMODELS.loadAll()` abwarten. Raum-JPGs auf Qualität 92 (−8 MB), Musik 160 kbps (−16 MB). Zahlen in OPTIMIERUNG.md.
+
+- Berater/KI-Wirtschaft (21.10.): `advAnswer` pausiert `army` nur 2 s (sonst 12 s), damit Überschuss in Truppen fließt; `surplus:` greift nur bei knappem Zweitrohstoff, `POPMAX` 100 begrenzt den Verbrauch. KI-Aufstieg Zeitalter 2 frühestens Min. 27 = `AI_MINT`×`pace` (gewollt, ungeändert). Details OPTIMIERUNG.md.

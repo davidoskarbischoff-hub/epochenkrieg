@@ -188,6 +188,6 @@ function advisorTick(){
     advisor.cur=rules.find(r=>r.id===advisor.cur.id);if(advisor.auto&&G.t>=advisor.autoAt)advAnswer(true);return}
   advisor.cur=null;
   if(G.t>=advisor.next&&rules.length){advisor.cur=rules[0];advisor.shown='';advisor.autoAt=G.t+1.2;if(!advisor.auto)sfx('select')}}
-function advAnswer(yes){const c=advisor.cur;if(!c)return;advisor.cur=null;advisor.shown='';advisor.next=G.t+(yes?.8:1.5);advisor.ignore[c.id]=G.t+(c.info?240:yes?12:70);if(yes)c.go();if(yes&&advisor.auto)advisor.note={txt:tr(c.txt,...(c.args||[])),until:G.t+3.5};panelSig='';infoCache='';advisorUI()}
+function advAnswer(yes){const c=advisor.cur;if(!c)return;advisor.cur=null;advisor.shown='';advisor.next=G.t+(yes?.8:1.5);advisor.ignore[c.id]=G.t+(c.info?240:yes?(c.id==='army'?2:12):70);if(yes)c.go();if(yes&&advisor.auto)advisor.note={txt:tr(c.txt,...(c.args||[])),until:G.t+3.5};panelSig='';infoCache='';advisorUI()}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#advisor [data-a]');if(b)advAnswer(b.dataset.a==='y')});
 
