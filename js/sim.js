@@ -4,10 +4,10 @@
 /* ---------- game ---------- */
 let mapSeed=0,mapFresh=false,mapKey='',curMap='coast';
 function newGame(d,reuse,opts){cam.yaw=cam.tyaw=0;cam.pitch=cam.tpitch=1.14;
-  opts=opts||{};startK=opts.size==='S'?.5:opts.size==='M'?.78:1;playF=opts.size==='S'?.62:opts.size==='M'?.84:.9;/* auch gross: schmales Randgebirge statt harter Kartenkante im Meer */if(!opts.mp)setTeamColors('#3d72b8','#b9442f');diff=d;if(opts.aiStyle)aiStyle=opts.aiStyle;if(opts.map)curMap=opts.map;else if(typeof window.__map==='string')curMap=window.__map;
+  opts=opts||{};startK=opts.size==='S'?.5:opts.size==='M'?.78:1;playF=opts.size==='S'?.62:opts.size==='M'?.84:.9;/* auch gross: schmales Randgebirge statt harter Kartenkante im Meer */if(!opts.mp)setTeamColors('#3d72b8','#b9442f');diff=d;if(opts.aiStyle)aiStyle=opts.aiStyle;const AS=aiStyle==='random'?AI_PICK[Math.floor(Math.random()*AI_PICK.length)]:aiStyle;if(opts.map)curMap=opts.map;else if(typeof window.__map==='string')curMap=window.__map;
   /* Karten-Regler (Wasser, Gebirge, Jahreszeit): gelten für diese Karte und bleiben bis zum nächsten Aufruf gemerkt */
   if(opts.water!==undefined)MOPT.water=Math.max(0,Math.min(2,opts.water|0));if(opts.mount!==undefined)MOPT.mount=Math.max(0,Math.min(2,opts.mount|0));if(opts.season!==undefined)MOPT.sel=opts.season;
-  G={late:[],nation:[null,null],nfx:[nationFx(),nationFx()],t:0,ents:[],byId:new Map(),nid:1,res:[{food:200,wood:200,stone:100,iron:0,gold:0,oil:0},{food:200,wood:200,stone:100,iron:0,gold:0,oil:0}],epoch:[0,0],adv:[null,null],jobs:[[],[]],tech:[new Set(),new Set()],rs:[[],[]],tfx:[techFx(new Set()),techFx(new Set())],pop:[0,0],cap:[0,0],speed:1,paused:false,running:false,over:null,overShown:false,proj:[],fx:[],aiT:1,alertT:-99,ping:null,ev:[],alertT1:-99,mem:new Map(),ai:{style:opts.aiStyle||aiStyle,next:DIFF[d].first*AI_STYLES[opts.aiStyle||aiStyle].first,wave:DIFF[d].wave*AI_STYLES[opts.aiStyle||aiStyle].wave,ex:new Uint8Array(FW*FH),seen:new Map(),attack:false,towT:0,shipNext:200,exPt:null},stats:{lost:[0,0],trained:[0,0]}};
+  G={late:[],nation:[null,null],nfx:[nationFx(),nationFx()],t:0,ents:[],byId:new Map(),nid:1,res:[{food:200,wood:200,stone:100,iron:0,gold:0,oil:0},{food:200,wood:200,stone:100,iron:0,gold:0,oil:0}],epoch:[0,0],adv:[null,null],jobs:[[],[]],tech:[new Set(),new Set()],rs:[[],[]],tfx:[techFx(new Set()),techFx(new Set())],pop:[0,0],cap:[0,0],speed:1,paused:false,running:false,over:null,overShown:false,proj:[],fx:[],aiT:1,alertT:-99,ping:null,ev:[],alertT1:-99,mem:new Map(),ai:{style:AS,next:DIFF[d].first*AI_STYLES[AS].first,wave:DIFF[d].wave*AI_STYLES[AS].wave,ex:new Uint8Array(FW*FH),seen:new Map(),attack:false,towT:0,shipNext:200,exPt:null},stats:{lost:[0,0],trained:[0,0]}};
   G.bones=[];sel.clear();placing=null;armed=false;panelSig='';advisor.cur=null;advisor.ignore={};advisor.next=8;advisor.last=-9;if(typeof SND!=='undefined')SND.setEpoch(0);
   const want=opts.seed!==undefined?opts.seed:(typeof window.__seed==='number'?window.__seed:undefined),mkey=curMap+'|'+MOPT.water+MOPT.mount+MOPT.sel,keep=reuse&&mapFresh&&bg&&mapKey===mkey&&want===undefined,seed=keep?mapSeed:(want!==undefined?want:(Math.random()*1e9)|0);mapSeed=seed;mapFresh=true;mapKey=mkey;MOPT.season=seasonOf(MOPT.sel,seed);genTerrain(seed,curMap);navInit();genMap(seed);if(!keep)renderBg(seed);
   if(opts.flip)flipTeams();G.mp=!!opts.mp;if(G.mp)G.speed=opts.speed||1;
@@ -298,6 +298,15 @@ function towerFire(team,id,tid){
   const sd=b.spec==='def',sob=b.spec==='obs';b.manT=G.t+2.5;if(b.cd>0)return false;
   if(Math.hypot(t.x-b.x,t.y-b.y)>d.shoot.rng*(sd?1.3:sob?.8:1))return false;
   b.cd=d.shoot.cd*(sob?1.3:1);sfx('arrow',b);G.proj.push({x:b.x,y:b.y-8,tid:t.id,dmg:d.shoot.atk*(sd?1.8:sob?.7:1)*LVL.atk[b.lvl]*(1+G.tfx[b.team].tower),src:b.id,a:0});return true}
+/* Ego-Ansicht (Phase 3): eigene Einheit schlägt/schießt selbst auf das Ziel im Fadenkreuz. Reichweite, Schaden und Nachladezeit wie im normalen Kampf (hit/cd),
+   Mehrspieler: Gast schickt 'ufire', Gastgeber prüft Besitz (nach flipTeams ist der Gast Team 0). true = Schlag/Schuss ging raus. */
+function unitStrike(team,id,tid){
+  if(NET.client&&team===0){NET.send({c:'ufire',id,tid});return true}
+  const u=G.byId.get(id),t=G.byId.get(tid),d=u&&UNITS[u.type];if(!u||u.kind!=='unit'||u.dead||u.team!==team||u.inm||u.upj||!d||!(d.atk>0)||!t||t.dead||t.team===team||t.inm)return false;
+  if(t.kind!=='unit'&&t.kind!=='animal'&&t.kind!=='bld')return false;if(t.team<0&&t.kind!=='animal')return false;
+  const shooter=d.ranged||d.air;if(t.gar&&!shooter)return false;if(UNITS[t.type]&&UNITS[t.type].air&&!shooter)return false;
+  if(u.cd>0)return false;if(Math.hypot(t.x-u.x,t.y-u.y)-u.r-t.r>d.rng)return false;
+  u.fa=Math.atan2(t.y-u.y,t.x-u.x);u.cd=d.cd;u.swing=G.t;hit(u,t);return true}
 function updBld(b,dt){
   if(!b.built)return;const d=BLDS[b.type];
   if(b.type==='harbor'&&G.tfx[b.team].statfish)G.res[b.team].food+=G.tfx[b.team].statfish*dt*(1+.2*b.lvl);

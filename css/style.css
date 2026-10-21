@@ -535,3 +535,17 @@ body.ego #advisor{display:none}
 #egohud .eg-rl i{display:block;height:100%;width:0;background:#e0a33c}
 #egohud .eg-rl.ready i{background:#8fd35f}
 #egohud.shot::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(255,240,200,.35),transparent 55%)}
+/* Ego Phase 3: HUD (eigenes Leben, Ziel im Fadenkreuz), Treffer-/Wechsel-Blitz */
+#egohud .eg-me{position:absolute;left:50%;transform:translateX(-50%);bottom:190px;min-width:150px;padding:6px 10px;border-radius:8px;background:rgba(20,18,14,.7);color:#f3e2b3;font:600 12px sans-serif}
+#egohud .eg-me[hidden],#egohud .eg-tg[hidden]{display:none}
+#egohud .eg-bar{height:5px;margin-top:4px;border-radius:3px;background:rgba(0,0,0,.5);overflow:hidden}
+#egohud .eg-bar[hidden]{display:none}
+#egohud .eg-bar i{display:block;height:100%;width:100%;background:#8fd35f}
+#egohud .eg-tg{position:absolute;left:50%;top:calc(50% - 74px);transform:translateX(-50%);min-width:130px;padding:4px 10px;border-radius:8px;background:rgba(20,18,14,.62);color:#f3e2b3;font:600 12px sans-serif;text-align:center}
+#egohud .eg-tg span{display:block;font-weight:500;opacity:.85}
+#egohud .eg-tg.foe b{color:#ff9a8a}
+#egohud .eg-tg.foe .eg-bar i{background:#d9503f}
+#egohud .eg-dot.in{background:rgba(255,90,70,.9);width:9px;height:9px;margin:-4.5px}
+#egohud .eg-txt.quiet{opacity:.6}
+#egohud.hurt::before{content:"";position:absolute;inset:0;box-shadow:inset 0 0 90px 20px rgba(200,20,10,.5)}
+#egohud.sw::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.45)}

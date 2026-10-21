@@ -3,7 +3,7 @@
 (()=>{
   let splashDone=false,spSize='L';
   const SIZES_SP=[['S','Klein'],['M','Mittel'],['L','Groß']],DIFFS=[['leicht','Leicht'],['normal','Normal'],['schwer','Schwer']],WILD=[['none','Keine'],['half','Wenige'],['normal','Normal'],['double','Viele']];
-  const AI_ICON={balanced:'⚖',turtle:'🛡',rush:'⚔',eco:'⚒',boom:'▲'};
+  const AI_ICON={balanced:'⚖',turtle:'🛡',rush:'⚔',eco:'⚒',boom:'▲',random:'🎲'};
   const ov=()=>$('overlay');
   const music=()=>{try{if(typeof SND!=='undefined'){SND.init();SND.setEpoch(7)}}catch(_){}}; /* Menümusik: Smetana, Die Moldau (PIECES[7]) */
   /* Hintergrund: Bedienelemente des Spiels ausblenden, Kamera fährt langsam */

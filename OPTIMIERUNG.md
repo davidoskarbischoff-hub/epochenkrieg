@@ -266,3 +266,9 @@ Messskript (nicht im Repo): 8 Bergleute Stufe 5 in einer Mine, 20 min `step(.04)
 
 ## Team-Markierung (21.10.)
 Zwei InstancedMesh (max. 1600 je Team-Art), Matrizen pro Bild neu geschrieben (billig, 2 Zeichenaufrufe statt je Einheit einer). Bildrate nicht gemessen (Software-GL).
+
+## Ego Phase 3 (21.10.)
+- [x] Ego: HUD (eigenes Leben, Ziel mit Name/Leben/Entfernung, roter Punkt in Reichweite), Nachlade-Balken für Einheiten, Schlag/Schuss per Klick/Leertaste (`unitStrike`, Mehrspieler `ufire`), Kopf-Wippen (Option), Rückstoß, Mausempfindlichkeit-Regler, Tab/Umschalt+Tab = nächste/vorherige eigene Einheit, Hinweiszeile, Tod = Ansicht endet sanft am Todesort, Tier außer Sicht = Meldung. Getestet (Software-GL): Bogenschütze trifft Speerträger (Leben 115 -> 101,7, zweiter Schuss während Nachladen abgewiesen), Wippen/Wechsel/Tod/Flugzeug ohne Konsolenfehler.
+- Offen: Klick per Maus in Playwright löst durch den Zeigerfang einen Blick-Sprung aus (nur Testumgebung), deshalb Schlag per `EGO.act()` geprüft; Mehrspieler `ufire` nur per Code, nicht mit zwei Spielern; Schwung-Animation sieht nur der Gegner (eigene Figur ist ausgeblendet), in Ego gibt es Rückstoß + Blitz; Flugzeug-Ego erst nach Start in der Luft gut (am Boden Gras im Bild).
+- [x] Lore-Knopf: Schienen-Text („2 Loren statt 1, mit Zusatz-Loren höchstens 3“) stimmt jetzt mit `cartWant`.
+- [x] Gegner-Typ „Zufall“, Berater-Regel Gold kaufen (siehe CLAUDE.md).
