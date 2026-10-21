@@ -45,3 +45,8 @@ Laut David von itch.io bzw. poly.pizza heruntergeladen. Eingetragen ist, was im 
 | Ordner / Dateien | Quelle | Autor/in | Lizenz | Geändert? |
 |---|---|---|---|---|
 | `neu/fische/` (Dolphin, Shark, Manta ray, Whale, Fish, Fish-XWl86YFtpF, Fish-BEcU9rjiAq; Zip `neu/Animated Fish Bundle-glb.zip`) | „Animated Fish Bundle“, von David hochgeladen (Quelle, Autor und Lizenz stehen nicht in den Dateien, Stil wie Quaternius, vor Veröffentlichung klären) | unbekannt | unbekannt | nein (Wal im Spiel per `tint` blaugrau gefärbt) |
+
+## VillagePack (21.10.2026)
+| Ordner / Dateien | Quelle | Autor/in | Lizenz | Geändert? |
+|---|---|---|---|---|
+| `neu/VillagePack.rar` (nur Archiv, nichts davon im Spiel eingebaut; enthält VillagePack.glb/.fbx/.dae + ColorPalette.png, keine Lizenzdatei) | von David hochgeladen, Quelle nicht angegeben | unbekannt | unbekannt (vor jeder Nutzung klären) | nein |

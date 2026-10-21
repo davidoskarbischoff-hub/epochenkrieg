@@ -16,3 +16,6 @@ Epochenkrieg verwendet **keine Audiodateien**. Jeder Ton wird beim Spielen im Br
 Die Noten sind vereinfachte Eigenbearbeitungen; die Werke selbst sind gemeinfrei. Es werden keine Samples, Soundfonts oder Bibliotheken von Dritten eingebunden.
 
 **Bedienung:** Regler „Musik“ und „Ton“ im Menü, Schalter „Ton an“ im Menü, Taste **M** schaltet alles stumm. Die Einstellungen werden im Browser gespeichert.
+
+## Nachtrag: Musikdateien
+Seit Paket K spielt die Musik aus acht von David bereitgestellten mp3-Dateien in `music/` (Quelle/Lizenz: `music/CREDITS.md`, Lizenz noch zu prüfen). Der Synthesizer-Teil oben bleibt als Rückfall, falls eine Datei fehlt.

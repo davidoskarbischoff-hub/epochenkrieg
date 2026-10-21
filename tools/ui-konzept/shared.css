@@ -1,0 +1,39 @@
+/* Gemeinsame Grundlagen der Mockups: Zeitalter-Farben wie im Spiel (--fr aus style.css), Glas-Material */
+@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap');
+:root{--f-h:'IM Fell English SC',Georgia,serif;--f-ui:'Barlow Semi Condensed','Segoe UI',sans-serif;--s:1;--good:#8fbf63;--warn:#e0a24a;--bad:#d4573f;
+ --fr:#e3b66a;--tint:36,26,18;--ink:#f1e7d3;--ink2:#bfb29a}
+body.big{--s:1.3}
+body[data-ep="0"]{--fr:#c2a574;--tint:52,38,24}
+body[data-ep="6"]{--fr:#aeb78c;--tint:26,32,24}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#111;font-family:var(--f-ui);color:var(--ink);font-size:calc(14px*var(--s))}
+#bg{position:fixed;inset:0;background:#222 center/cover no-repeat}
+button{font:inherit;color:inherit;cursor:pointer}
+img{display:block}
+/* Glas: halbtransparent, Weichzeichner, feine Zeitalter-Linie */
+.glass{background:linear-gradient(rgba(var(--tint),.50),rgba(14,11,8,.58));
+ -webkit-backdrop-filter:blur(14px) saturate(1.25);backdrop-filter:blur(14px) saturate(1.25);
+ border:1px solid color-mix(in srgb,var(--fr) 42%,transparent);border-radius:calc(12px*var(--s));
+ box-shadow:0 6px 22px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.10)}
+.bar{height:6px;border-radius:3px;background:rgba(0,0,0,.45);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--good)}
+.co{display:inline-flex;align-items:center;gap:2px;font-weight:600;font-size:.82em;color:var(--good)}
+.co img{width:calc(14px*var(--s));height:calc(14px*var(--s))}
+.hot{display:inline-block;font-size:.72em;font-weight:700;padding:0 4px;border-radius:3px;background:rgba(0,0,0,.45);color:var(--fr);border:1px solid color-mix(in srgb,var(--fr) 50%,transparent)}
+.tip{position:fixed;left:50%;bottom:calc(6px*var(--s));transform:translateX(-50%);font-size:.7em;opacity:.8;background:rgba(0,0,0,.55);padding:2px 8px;border-radius:6px;z-index:50}
+/* Mini-Karte: Platzhalter-Zeichnung statt der echten Canvas (nur Ansicht) */
+.mm{display:block;width:100%;height:100%;border-radius:calc(8px*var(--s));background:
+ radial-gradient(circle at 30% 70%,#6f9a4a 0 12%,transparent 13%),radial-gradient(circle at 65% 35%,#5e8a47 0 16%,transparent 17%),
+ radial-gradient(circle at 80% 78%,#7a9c52 0 9%,transparent 10%),linear-gradient(#2c5778,#244a68);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.mm::after{content:"";position:absolute;left:14%;top:56%;width:34%;height:30%;border:2px solid #fff;clip-path:polygon(15% 0,85% 0,100% 100%,0 100%);opacity:.8}
+/* Hauptmenü-Ansicht (menu=1) */
+.menuov{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.35);z-index:40}
+.menuov.on{display:grid}
+.menuov .win{width:calc(460px*var(--s));padding:calc(18px*var(--s));}
+.menuov h3{margin:0 0 10px;font:400 1.5em var(--f-h);color:var(--fr)}
+.menuov .row{display:flex;justify-content:space-between;align-items:center;min-height:calc(44px*var(--s));border-bottom:1px solid rgba(255,255,255,.08)}
+.menuov .tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.menuov .tabs b{padding:0 12px;min-height:calc(44px*var(--s));display:grid;place-items:center;border-radius:8px;background:rgba(0,0,0,.3);font-weight:600}
+.menuov .tabs b.on{background:color-mix(in srgb,var(--fr) 30%,transparent);color:#fff}
+.sw{width:calc(46px*var(--s));height:calc(26px*var(--s));border-radius:99px;background:color-mix(in srgb,var(--fr) 60%,#000);position:relative}
+.sw::after{content:"";position:absolute;right:3px;top:3px;width:calc(20px*var(--s));height:calc(20px*var(--s));border-radius:50%;background:#fff}

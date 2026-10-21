@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Konzept A – Schwebende Glas-Konsole</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+/* ===== Variante A: schlanke Leiste oben, schwebende Glas-Karten unten ===== */
+#top{position:absolute;left:calc(8px*var(--s));right:calc(8px*var(--s));top:calc(6px*var(--s));height:calc(44px*var(--s));display:flex;align-items:center;gap:calc(6px*var(--s));padding:0 calc(6px*var(--s));z-index:10}
+.epoch{display:flex;flex-direction:column;justify-content:center;padding:0 calc(12px*var(--s));height:calc(34px*var(--s));border-radius:calc(8px*var(--s));background:color-mix(in srgb,var(--fr) 22%,transparent);border:1px solid color-mix(in srgb,var(--fr) 55%,transparent);white-space:nowrap}
+.epoch b{font:400 1.12em/1 var(--f-h);color:var(--fr);letter-spacing:.02em}
+.epoch small{font-size:.66em;color:var(--warn);line-height:1.1}
+.res{display:flex;align-items:center;gap:calc(4px*var(--s));height:100%;padding:0 calc(7px*var(--s));white-space:nowrap}
+.res img{width:calc(28px*var(--s));height:calc(28px*var(--s))}
+.res b{font:600 1.08em var(--f-ui);font-variant-numeric:tabular-nums;min-width:2.6em}
+.res+.res{border-left:1px solid color-mix(in srgb,var(--fr) 25%,transparent)}
+.res.sep{margin-left:calc(4px*var(--s))}
+.mid{display:flex;flex:1;justify-content:center;min-width:0}
+.ib{width:calc(44px*var(--s));height:calc(44px*var(--s));display:grid;place-items:center;border:0;background:none;border-radius:calc(10px*var(--s));font-size:1.15em;position:relative;flex:none}
+.ib:hover{background:rgba(255,255,255,.1)}
+.ib .n{position:absolute;right:2px;top:2px;min-width:1.5em;height:1.5em;border-radius:99px;background:var(--bad);font-size:.68em;font-weight:700;display:grid;place-items:center}
+.ib small{position:absolute;bottom:0;font-size:.52em;color:var(--ink2);letter-spacing:.03em}
+/* Berater: Pille unter der Leiste, links */
+#adv{position:absolute;left:calc(8px*var(--s));top:calc(56px*var(--s));display:flex;align-items:center;gap:calc(4px*var(--s));padding:0 calc(4px*var(--s)) 0 calc(12px*var(--s));height:calc(44px*var(--s));max-width:calc(560px*var(--s));z-index:9}
+#adv .t{font-size:.95em;line-height:1.15;padding-right:6px}
+#adv .t b{color:var(--fr);font-family:var(--f-h);font-weight:400}
+#adv .yn{flex:none;width:calc(44px*var(--s));height:calc(44px*var(--s));border:0;border-radius:50%;background:none;font-size:1.2em;font-weight:700}
+#adv .yes{color:var(--good)}#adv .no{color:var(--bad)}
+/* Unten: zwei schwebende Karten, dazwischen bleibt das Spielfeld frei */
+#bl{position:absolute;left:calc(8px*var(--s));bottom:calc(8px*var(--s));display:flex;gap:calc(8px*var(--s));align-items:stretch;z-index:10}
+#mapc{position:relative;width:calc(176px*var(--s));height:calc(136px*var(--s));padding:calc(5px*var(--s))}
+#info{width:calc(300px*var(--s));padding:calc(10px*var(--s)) calc(12px*var(--s))}
+#info h2{margin:0;font:400 1.5em/1.1 var(--f-h);color:var(--fr)}
+#info .sub{font-size:.75em;color:var(--ink2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+#info .hpl{display:flex;align-items:center;gap:6px;font-size:.78em;margin-bottom:6px}#info .hpl .bar{flex:1}
+#info p{margin:0;font-size:.88em;color:var(--ink2);line-height:1.3}
+#info .x{position:absolute;right:2px;top:2px;width:calc(44px*var(--s));height:calc(44px*var(--s));border:0;background:none;font-size:1.1em;color:var(--ink2)}
+#info{position:relative}
+#acts{position:absolute;right:calc(8px*var(--s));bottom:calc(8px*var(--s));padding:calc(8px*var(--s));display:grid;grid-template-columns:repeat(3,calc(92px*var(--s)));gap:calc(6px*var(--s));z-index:10}
+.t{}
+.tile{position:relative;height:calc(100px*var(--s));border-radius:calc(9px*var(--s));border:1px solid rgba(255,255,255,.14);background:linear-gradient(rgba(255,255,255,.09),rgba(0,0,0,.22));
+ display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(4px*var(--s)) 2px 2px;text-align:center;gap:1px}
+.tile:hover{border-color:var(--fr);background:linear-gradient(color-mix(in srgb,var(--fr) 25%,transparent),rgba(0,0,0,.2))}
+.tile>img{width:calc(48px*var(--s));height:calc(48px*var(--s));object-fit:contain}
+.tile .nm{font-size:.76em;font-weight:600;line-height:1.05;margin-top:1px}
+.tile .cs{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;line-height:1}
+.tile .hot{position:absolute;left:3px;top:3px}
+</style></head>
+<body>
+<div id="bg"></div>
+<header id="top" class="glass"></header>
+<div id="adv" class="glass"></div>
+<div id="bl"><div id="mapc" class="glass"><div class="mm"></div></div><section id="info" class="glass"></section></div>
+<section id="acts" class="glass"></section>
+<div class="menuov" id="mn"><div class="win glass"><h3>Menü</h3><div class="tabs"><b class="on">Spiel</b><b>Grafik</b><b>Ton</b><b>Steuerung</b></div>
+ <div class="row"><span>Berater</span><i class="sw"></i></div><div class="row"><span>Arbeiter denken mit</span><i class="sw"></i></div><div class="row"><span>Kamera-Drehung</span><span>▬▬▬●▬</span></div><div class="row"><span>Zurück zum Spiel</span><b>Esc</b></div></div></div>
+<div class="tip">Konzept A · Schwebende Glas-Konsole</div>
+<script src="shared.js"></script>
+<script>
+const top$=document.getElementById('top');
+top$.innerHTML=`<div class="epoch"><b>${EPN}</b>${EP===0?'<small>Aufstieg: 14/14 Arbeiter</small>':''}</div>
+ <div class="mid">${RES.map((r,i)=>`<div class="res${r[0]==='pop'?' sep':''}" title="${r[1]}"><img src="${I(r[0])}" alt=""><b>${r[2]}</b></div>`).join('')}</div>
+ <button class="ib" title="Untätige Arbeiter (.)">${img('unit-worker','')}<span class="n">14</span></button>
+ <button class="ib" title="Zeitalter-Baum (T)">${TREE}</button><button class="ib" title="Pause">❚❚</button><button class="ib" title="Tempo"><span>1×</span></button><button class="ib" title="Menü (Esc)">☰</button>`;
+top$.querySelector('.ib img').style.cssText='width:calc(44px*var(--s));height:calc(44px*var(--s));margin:-4px';
+if(ADV)document.getElementById('adv').innerHTML=`<span style="color:var(--fr);font-size:1.2em">★</span><div class="t"><b>Berater</b> · Baue eine Hütte, damit mehr Arbeiter Platz haben <span class="co">${'<img src="'+I('res-wood')+'">60'}</span></div><button class="yn yes" title="Annehmen (Y)">✓</button><button class="yn no" title="Ablehnen (X)">✕</button>`;
+else document.getElementById('adv').hidden=true;
+const info=document.getElementById('info'),acts=document.getElementById('acts');
+if(S){
+ info.innerHTML=`<button class="x">✕</button><h2>${S.name}</h2><div class="sub">${S.sub}</div><div class="hpl"><div class="bar"><i style="width:100%"></i></div>${S.hp[0]} / ${S.hp[1]}</div><p>${S.text}</p>`;
+ acts.innerHTML=S.acts.map(a=>`<button class="tile"><span class="hot">${a[3]}</span>${img(a[1])}<span class="nm">${a[0]}</span><span class="cs">${costHtml(a[2])}</span></button>`).join('');
+}else{info.hidden=true;acts.hidden=true}
+if(MENU)document.getElementById('mn').classList.add('on');
+</script></body></html>

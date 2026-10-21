@@ -33,7 +33,7 @@
   const LOAD_MSG=[[0,'Der Karton wird bereitgestellt …'],[22,'Das Spielbrett wird ausgeklappt …'],[48,'Die Figuren werden aufgestellt …'],[72,'Wälder werden gepflanzt …'],[90,'Die Lampe wird angezündet …']];
   function splash(){
     const o=ov();o.hidden=false;o.className='mmv';bg(true);
-    o.innerHTML=`<div class="mm-splash"><div class="mm-box" id="mmBox"><div class="mm-tray"></div><div class="mm-lid">
+    o.innerHTML=`<div class="mm-splash"><div class="mm-box" id="mmBox"><div class="mm-tray"><div class="mm-in"><div class="mm-sheet"><b>Epochenkrieg</b></div></div><div class="mm-wall f"></div><div class="mm-wall r"></div></div><div class="mm-lid">
         ${titleArt('lid')}<div class="mm-label"><h1 class="mm-logo">Epochenkrieg</h1><p class="mm-tag2">${tr('Das Strategiespiel von der Steinzeit bis zur Neuzeit')}</p></div>
         <div class="mm-foil"><span>${tr('1–4 Spieler')}</span><span>${tr('7 Zeitalter')}</span></div></div></div>
       <div class="mm-load"><div class="mm-bar"><i id="mmBar"></i></div><p class="mm-hint" id="mmHint">${tr(LOAD_MSG[0][1])}</p><p class="mm-by">Daveson ${tr('für')} Deus Vult Infidel</p></div></div>`;
@@ -45,8 +45,13 @@
       let k=0;LOAD_MSG.forEach((m,i)=>{if(p>=m[0])k=i});const h=$('mmHint');
       if(p>=100){if(h)h.textContent=tr('Klicken, um den Karton zu öffnen');o.classList.add('mm-ready')}else if(h&&k!==shown){shown=k;h.textContent=tr(LOAD_MSG[k][1])}
       setTimeout(tick,60)};tick();
-    o.onclick=()=>{if(!o.classList.contains('mm-ready'))return;splashDone=true;o.onclick=null;music();try{sfx('click')}catch(_){}
-      o.classList.add('mm-opening');setTimeout(()=>{main();o.classList.remove('mm-opening')},950)}}
+    /* Öffnen: Deckel hebt ab (CSS-3D, ca. 3 s), Kamera taucht in den Karton, dann Spielzimmer; Klick/Taste überspringt, OPT.intro=false = sofort */
+    let fin=null;const done=()=>{if(!fin)return;if(fin)fin();fin=null;document.removeEventListener('keydown',skip,true);o.classList.remove('mm-opening','mm-diving');main()};
+    const skip=e=>{if(e&&e.type==='keydown'&&['Shift','Control','Alt','Meta'].includes(e.key))return;if(e)e.stopPropagation();done()};
+    o.onclick=()=>{if(fin){done();return}if(!o.classList.contains('mm-ready'))return;splashDone=true;music();try{sfx('click')}catch(_){}
+      if(typeof OPT!=='undefined'&&OPT.intro===false){o.onclick=null;main();return}
+      o.classList.add('mm-opening');const ts=[setTimeout(()=>{try{sfx('click')}catch(_){}},900),setTimeout(()=>o.classList.add('mm-diving'),1500),setTimeout(()=>done(),3200)];
+      fin=()=>ts.forEach(clearTimeout);const f0=fin;fin=()=>{f0()};document.addEventListener('keydown',skip,true)}}
   function main(){
     const o=ov();o.hidden=false;o.className='mmv';bg(true);o.onclick=null;if(G&&!NET.mp)G.running=false; /* alte Partie ruht im Hintergrund */
     const soon=(t,r)=>`<button class="mm-b mm-off" disabled>${tr(t)}<span class="mm-tag soon">${tr('Bald')} · ${r}</span></button>`;

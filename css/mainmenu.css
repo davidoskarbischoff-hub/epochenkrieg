@@ -9,11 +9,12 @@ body.mm #c,body.mm #top,body.mm #panel,body.mm #advisor,body.mm #fps,body.mm #ne
 /* Ladebildschirm: Spielkarton auf dunklem Holztisch */
 html,body{background:#0b0806}
 .mm-splash{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding:16px;animation:mmIn 1s ease;
-  background:radial-gradient(ellipse at 50% 38%,rgba(110,72,38,.55),rgba(30,19,10,.96) 62%,#080504 100%),repeating-linear-gradient(92deg,rgba(255,255,255,.025) 0 2px,transparent 2px 9px),#0b0806}
-#overlay.mmv:has(.mm-splash){background:#0b0806;transition:background 1s ease}
+  background:radial-gradient(ellipse at 50% 42%,rgba(255,206,120,.26),rgba(255,206,120,0) 46%),radial-gradient(ellipse at 50% 120%,rgba(120,60,150,.35),transparent 55%),radial-gradient(ellipse at 15% 0%,rgba(40,120,150,.35),transparent 50%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='46' height='46'%3E%3Cpath d='M23 3L43 23L23 43L3 23Z' fill='none' stroke='%23d9a93c' stroke-opacity='.07'/%3E%3C/svg%3E"),linear-gradient(#10243a,#0a1522 55%,#05080f)}
+#overlay.mmv:has(.mm-splash){background:#05080f;transition:background 1s ease}
 #overlay.mm-opening:has(.mm-splash){background:transparent}
 #overlay.mm-opening .mm-splash{background:transparent;transition:background .9s ease}
-.mm-box{position:relative;width:min(620px,88vw);aspect-ratio:3/2;perspective:1500px;transform-style:preserve-3d;transform:rotateX(14deg) rotateZ(-1.5deg);margin-top:-2vh}
+.mm-box{--d:46px;position:relative;width:min(620px,88vw);aspect-ratio:3/2;perspective:1500px;transform-style:preserve-3d;transform:rotateX(14deg) rotateZ(-1.5deg);margin-top:-2vh}
+.mm-lid{transform:translateZ(var(--d))}
 .mm-tray{position:absolute;inset:0;transform:translateY(16px);border-radius:10px;background:linear-gradient(#2a1b12,#150d08);box-shadow:0 30px 60px rgba(0,0,0,.7),0 0 0 2px #0d0805;transition:opacity .6s ease .35s}
 .mm-lid{position:absolute;inset:0;border-radius:10px;overflow:hidden;background:#17233a;border:2px solid #0a0f1a;
   box-shadow:inset 0 0 0 7px #17233a,inset 0 0 0 9px #c9a24f,inset 0 0 0 12px #17233a,inset 0 0 0 13px rgba(201,162,79,.55),0 14px 0 -2px #0f1626,0 22px 36px rgba(0,0,0,.6);
@@ -33,9 +34,8 @@ html,body{background:#0b0806}
 .mm-load .mm-by{margin-top:10px;font-size:11px;opacity:.6}
 .mm-ready{cursor:pointer}.mm-ready .mm-hint{animation:mmPulse 1.6s ease-in-out infinite;color:var(--gold1)}
 .mm-ready .mm-lid{animation:mmNudge 2.4s ease-in-out infinite}
-.mm-opening .mm-lid{animation:none;transform:translateY(-135%) rotateX(34deg) scale(1.12);opacity:0}
-.mm-opening .mm-tray{opacity:0}.mm-opening .mm-load{opacity:0;transition:opacity .4s}
-@keyframes mmNudge{50%{transform:translateY(-5px)}}
+.mm-opening .mm-load{opacity:0;transition:opacity .4s}
+@keyframes mmNudge{0%,100%{transform:translateZ(var(--d))}50%{transform:translateZ(var(--d)) translateY(-5px)}}
 @keyframes mmIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes mmPulse{50%{opacity:.4}}
 .mm-art.mini{flex:none;position:relative;width:100%;max-width:250px;aspect-ratio:3/2;margin-bottom:18px;border-radius:6px;box-shadow:0 0 0 2px #c9a24f,0 0 0 4px #0c1424,0 8px 20px rgba(0,0,0,.5)}
@@ -120,3 +120,22 @@ body.room .mm-go{position:sticky;bottom:0;padding:12px 0;background:linear-gradi
 body.title-img .mm-lid>*:not(.mm-art){display:none}
 body.title-img .mm-art.lid{inset:0;border-radius:8px;box-shadow:none}
 body.title-img .mm-art.lid .mm-img{object-fit:contain}
+
+/* Intro: Karton mit Seitenwänden, Deckel hebt ab, Kamera taucht hinein */
+.mm-box{transform-style:preserve-3d}
+.mm-tray{transform:none;background:linear-gradient(#2a1b12,#150d08);overflow:visible;transform-style:preserve-3d}
+.mm-in{position:absolute;inset:8px;border-radius:6px;background:radial-gradient(ellipse at 50% 40%,#3a2a1c,#120b07);box-shadow:inset 0 0 30px #000;overflow:hidden}
+.mm-sheet{position:absolute;inset:12% 8%;border-radius:4px;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(90deg,transparent 0 33%,rgba(60,40,10,.25) 33% 33.4%),radial-gradient(ellipse at 50% 50%,#ecd9a8,#c9a96c);box-shadow:0 0 0 2px #7a5a24,0 6px 14px rgba(0,0,0,.6);transform:translateZ(2px)}
+.mm-sheet b{font:600 clamp(18px,3.6vw,34px) Georgia,serif;font-variant:small-caps;letter-spacing:.08em;color:#6b4a1c;opacity:.75}
+.mm-wall{position:absolute;background:linear-gradient(#1c2a46,#0d1424);border:1px solid #0a0f1a;box-shadow:inset 0 0 0 3px #17233a,inset 0 0 0 4px rgba(201,162,79,.5)}
+.mm-wall.f{left:0;width:100%;bottom:0;height:var(--d);transform-origin:50% 100%;transform:rotateX(-90deg)}
+.mm-wall.r{top:0;height:100%;right:0;width:var(--d);transform-origin:100% 50%;transform:rotateY(90deg);background:linear-gradient(90deg,#16203a,#0b1120)}
+.mm-opening .mm-lid{animation:mmLid 1.9s cubic-bezier(.45,0,.35,1) forwards}
+.mm-opening .mm-box{animation:mmBox 3.2s ease-in-out forwards}
+.mm-opening .mm-tray{animation:none;opacity:1;transition:none}
+.mm-opening.mm-diving .mm-box{animation:mmDive 1.7s cubic-bezier(.5,0,.9,.6) forwards}
+#overlay.mm-diving:has(.mm-splash){background:transparent;transition:none}
+@keyframes mmLid{0%{transform:translateZ(var(--d))}30%{transform:translateZ(calc(var(--d) + 90px)) rotateX(-3deg)}70%{opacity:1}100%{transform:translate3d(0,-140%,calc(var(--d) + 240px)) rotateX(55deg) rotateZ(5deg);opacity:0}}
+@keyframes mmBox{0%{transform:rotateX(14deg) rotateZ(-1.5deg)}45%{transform:rotateX(30deg) rotateZ(-1deg) translateY(3%)}100%{transform:rotateX(30deg) rotateZ(-1deg) translateY(3%)}}
+@keyframes mmDive{0%{transform:rotateX(30deg) rotateZ(-1deg) translateY(3%) scale(1);opacity:1}100%{transform:rotateX(70deg) rotateZ(0) translateY(10%) scale(3.4);opacity:0}}
+@media(prefers-reduced-motion:reduce){.mm-opening .mm-lid,.mm-opening .mm-box{animation-duration:.01s}}
