@@ -19,7 +19,7 @@ function frame(ts){
     if(NET.mp&&fd>0&&fd<2000){NetLog.frameMs(fd);NetLog.saverTick(fd)}
     simAdvance(raw);
     if(G&&G.over&&!G.overShown){updateUI();showEnd()}
-    camSmooth(raw);scrollCam(raw);draw();if(OPT.fps){fpsN++;fpsT+=raw;if(fpsT>=.5){const f=document.getElementById('fps');if(f)f.textContent=Math.round(fpsN/fpsT)+' FPS';fpsN=0;fpsT=0}}
+    camSmooth(raw);scrollCam(raw);EGO.tick(raw);draw();if(OPT.fps){fpsN++;fpsT+=raw;if(fpsT>=.5){const f=document.getElementById('fps');if(f)f.textContent=Math.round(fpsN/fpsT)+' FPS';fpsN=0;fpsT=0}}
     uiT+=raw;if(G&&uiT>.15){uiT=0;updateUI()}
     NetLog.refresh();
   }catch(e){NetLog.err('Bild',e)}
