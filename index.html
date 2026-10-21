@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="css/style.css?v=202610102043">
 <link rel="stylesheet" href="css/topbar.css?v=202610102043">
 <link rel="stylesheet" href="css/mainmenu.css?v=202610111200">
+<link rel="stylesheet" href="css/ui2.css?v=202610211800">
 </head>
 <body>
 <div id="app">
@@ -18,7 +19,7 @@
   <div class="tz tl">
     <div class="brand">Epochenkrieg</div>
     <button class="tbtn idle ok" id="idleBtn" data-tt="Untätigen Arbeiter auswählen (.)" title="Untätigen Arbeiter auswählen (.)">Alle Arbeiter beschäftigt</button>
-    <button class="tbtn" id="pauseBtn">Pause</button>
+    <button class="tbtn" id="pauseBtn" data-tt="Pause (Leertaste)" title="Pause (Leertaste)">Pause</button>
     <button class="tbtn" id="treeBtn" data-tt="Zeitalter-Baum (T)" title="Zeitalter-Baum (T)">Baum</button>
     <button class="tbtn" id="speedBtn" data-tt="Spieltempo" title="Spieltempo">Tempo 1×</button>
     <button class="tbtn" id="menuBtn" data-tt="Menü (Esc)" title="Menü (Esc)"><span data-t="Menü">Menü</span> ☰</button>
@@ -50,8 +51,10 @@
     <div id="menu" hidden></div>
   </main>
   <footer id="panel">
-    <section id="info"></section>
-    <section id="acts"></section>
+    <div id="side">
+      <section id="info"></section>
+      <section id="acts"></section>
+    </div>
     <canvas id="mini" aria-label="Minikarte"></canvas>
   </footer>
 </div>

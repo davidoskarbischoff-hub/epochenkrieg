@@ -32,6 +32,7 @@ function renderOptions(){
     +row('Bildschirmrand-Scrollen',tog('oEdge',OPT.edgeScroll),'Maus an den Rand schieben, um die Karte zu bewegen')
     +row('Zoom-Stärke',rng('oZoom',.4,2.5,.1,OPT.zoomSpeed,OPT.zoomSpeed.toFixed(1)+'×'),'Wie stark das Mausrad zoomt')
     +row('Lebensbalken',seg('oHp',[['hurt','Verletzte'],['all','Alle'],['off','Aus']],OPT.hpBars),'Wann Balken über Einheiten und Gebäuden stehen')
+    +row('Oberfläche',seg('oUi',[['new','Neu (Glas, Seitenleiste)'],['classic','Klassisch']],OPT.uiClassic?'classic':'new'),'Neue Oberfläche mit Glas-Look und Seitenleiste oder die klassische Konsole unten')
     +row('Hinweise beim Verweilen',tog('oTips',OPT.tips),'Text erscheint, wenn die Maus kurz auf einem Symbol liegt')
     +row('Meldungen',tog('oToasts',OPT.toasts),'Kleine Texte am Rand (Warnungen bleiben immer)')
     +row('Wildtiere (nächstes Spiel)',seg('oWild',[['none','Keine'],['half','Wenige'],['normal','Normal'],['double','Viele']],wildAmt()),'Wie viele wilde Tiere auf der Karte leben')
@@ -77,7 +78,7 @@ function renderOptions(){
   bind('oEdge',e=>e.onchange=()=>optSet('edgeScroll',e.checked));
   bind('oRot',e=>e.oninput=()=>{optSet('camRot',+e.value);q('oRoto').textContent=(+e.value).toFixed(1)+'×'});
   bind('oZoom',e=>e.oninput=()=>{optSet('zoomSpeed',+e.value);q('oZoomo').textContent=(+e.value).toFixed(1)+'×'});
-  segB('oHp',v=>optSet('hpBars',v));bind('oTips',e=>e.onchange=()=>optSet('tips',e.checked));bind('oToasts',e=>e.onchange=()=>optSet('toasts',e.checked));
+  segB('oUi',v=>{optSet('uiClassic',v==='classic');panelSig='';infoCache='';if(G)updateUI()});segB('oHp',v=>optSet('hpBars',v));bind('oTips',e=>e.onchange=()=>optSet('tips',e.checked));bind('oToasts',e=>e.onchange=()=>optSet('toasts',e.checked));
   segB('oLang',v=>{applyLang(v);renderOptions()});
   segB('oWild',v=>{try{localStorage.setItem('ek-wild',v)}catch(_){}renderOptions()});
   document.querySelectorAll('.kmbtn').forEach(b=>b.onclick=()=>{b.textContent=tr('Taste drücken …');b.classList.add('wait');
@@ -133,6 +134,9 @@ function actionsFor0(s){
   return acts;
 }
 let curActs=[],infoCache='';
+/* Tastenschild auf Aktionen: kommt aus den (änderbaren) Tastenkürzeln KEYDEF */
+const ACT_KEYS={am:'attack',exp:'explore',rage:'rage',form:'form',ego:'ego'};
+function actKey(k){const a=ACT_KEYS[k];if(!a||!OPT.keys[a]||(!ui2()&&k!=='am'&&k!=='exp'))return'';return keyLabel(OPT.keys[a])}
 $('acts').addEventListener('click',e=>{const b=e.target.closest('.act');if(!b||!G||!G.running)return;const a=curActs[+b.dataset.i];if(!a)return;if(a.lock){toast(tr('Erst ab der {0} verfügbar.',a.lock));sfx('error');return}if(a.need){toast(a.need);sfx('error');return}sfx('click');a.run()});
 $('info').addEventListener('pointerdown',e=>{if(!G||!G.running)return;const q=e.target.closest('[data-q]');if(q){const b=selection()[0];if(b&&b.team===0)cancelQueue(b,+q.dataset.q);return}if(e.target.closest('[data-clear]')){sel.clear();panelSig='';return}const tb=e.target.closest('[data-tech]');if(tb){startResearch(0,tb.dataset.tech);infoCache='';panelSig='';return}const ub=e.target.closest('[data-upg]');if(ub){startUpgrade(0,ub.dataset.upg);infoCache='';panelSig=''}});
 function techBlock(e){
@@ -143,6 +147,8 @@ function techBlock(e){
     else{const ok=afford(0,t.cost);h+=`<div class="ur"><span class="un"><b class="tn">${tr(t.name)}</b><small>${tr(t.desc)}</small></span><span class="uc">${costHTML(t.cost)}<small>${t.time} s</small></span><button class="ub ${ok?'ok':'bad'}" data-tech="${t.id}">${tr('Erforschen')}</button></div>`}}
   const done=ts.filter(t=>own.has(t.id));if(done.length)h+=`<div class="line upd">✔ ${done.map(t=>tr(t.name)).join(' · ')}</div>`;
   return h+'</div>'}
+/* Kopfbild in der Seitenleiste (nur neue Oberfläche): Rendering des echten Modells */
+function hdIcon(e){if(!ui2()||typeof ICON3==='undefined'||(e.kind!=='unit'&&e.kind!=='bld'))return'';try{const u=ICON3.thing(e.kind,e.type);return u?`<img class="hic" src="${u}" alt="">`:''}catch(_){return''}}
 function infoHTML(s){
   const clr='<button class="x" data-clear aria-label="'+tr('Auswahl aufheben')+'">×</button>';
   if(!s.length)return '<p class="muted">'+tr('Linksklick oder Rahmen ziehen wählt aus. Rechtsklick gibt Befehle: bewegen, sammeln, bauen, angreifen. Doppelklick wählt alle gleichen Einheiten im Bild.')+'</p>';
@@ -151,7 +157,7 @@ function infoHTML(s){
   if(e.kind==='animal'){const d=ANIMALS[e.type];return `<div class="ih"><h2>${nameOf(e)}</h2><span class="tag">${tr('Wildtier')}</span>${clr}</div><div class="hpw"><div class="hp"><span style="width:${Math.max(0,e.hp/e.maxHp*100).toFixed(0)}%"></span></div>${Math.ceil(e.hp)} / ${e.maxHp}</div><div class="line"><em>${tr(d.info)}</em></div>${d.food?`<div class="line">${tr('Jagdbeute')}: <b>${d.food}</b> ${rn('food')}</div>`:''}<div class="line"><em>${d.agg?tr('Angriff {0}',d.atk):tr('Rechtsklick mit Einheiten zum Jagen')}</em></div>`}
   const tag=e.team===1?'<span class="tag enemy">'+tr('Gegner')+'</span>':e.team===0?'<span class="tag">'+tr(EPOCHS[G.epoch[0]].name)+'</span>':'';
   const lv=e.kind==='node'?'':`<span class="tag" style="color:${LVLC[e.lvl]};border-color:${LVLC[e.lvl]}">${tr('Stufe {0}',LVLN[e.lvl])}</span>`;
-  let h=`<div class="ih"><h2>${nameOf(e)}</h2>${tag}${lv}${clr}</div>`;
+  let h=`<div class="ih">${hdIcon(e)}<h2>${nameOf(e)}</h2>${tag}${lv}${clr}</div>`;
   if(e.kind==='node')return h+`<div class="line">${tr('Vorrat')}: <b>${Math.ceil(e.amount)}</b> ${rn(e.rt)}</div>`;
   h+=`<div class="hpw"><div class="hp"><span style="width:${Math.max(0,e.hp/e.maxHp*100).toFixed(0)}%"></span></div>${Math.ceil(e.hp)} / ${e.maxHp}</div>`;
   if(e.kind==='unit'){const d=UNITS[e.type];let st=tr(STATE[e.state]||'');if(e.state==='gather')st=tr('Sammelt {0}',rn(e.rtype||e.ctype||'food'));if(e.state==='return')st=tr('Bringt {0} zum Lager',rn(e.ctype));
@@ -186,11 +192,12 @@ function updateUI(){
   if(document.body.dataset.ep!==String(G.epoch[0]))document.body.dataset.ep=G.epoch[0];
   $('epoch').innerHTML=tr(EPOCHS[G.epoch[0]].name)+(G.adv[0]?`<span class="prog">→ ${tr(EPOCHS[G.epoch[0]+1].name)} ${Math.floor(G.adv[0].t/G.adv[0].time*100)} %</span>`:'');
   const ub=$('upgbar'),js=G.jobs[0],rs0=G.rs[0];ub.hidden=true;if(false){const h=js.map(j=>{const pc=Math.floor(j.t/j.time*100);return `<div class="uj"><span>${tr('Upgrade')}: ${j.label} → ${tr('Stufe {0}',LVLN[j.to])} · ${pc} %</span><div><i style="width:${pc}%"></i></div></div>`}).join('')+rs0.map(r=>{const pc=Math.floor(r.t/r.time*100);return `<div class="uj tech"><span>${tr('Forschung')}: ${tr(TECH[r.id].name)} · ${pc} %</span><div><i style="width:${pc}%"></i></div></div>`}).join('');if(h!==ub._h){ub._h=h;ub.innerHTML=h}}
-  const idle=G.ents.filter(e=>!e.dead&&e.team===0&&e.kind==='unit'&&UNITS[e.type].gather&&e.state==='idle').length;const ib=$('idleBtn');ib.textContent=idle===0?tr('Alle Arbeiter beschäftigt'):idle===1?tr('1 untätiger Arbeiter'):tr('{0} untätige Arbeiter',idle);ib.classList.toggle('alert',idle>0);ib.classList.toggle('ok',idle===0);
+  const idle=G.ents.filter(e=>!e.dead&&e.team===0&&e.kind==='unit'&&UNITS[e.type].gather&&e.state==='idle').length;const ib=$('idleBtn');ib.textContent=idle===0?tr('Alle Arbeiter beschäftigt'):idle===1?tr('1 untätiger Arbeiter'):tr('{0} untätige Arbeiter',idle);ib.classList.toggle('alert',idle>0);ib.classList.toggle('ok',idle===0);ib.dataset.n=idle;
+  {const sb=$('speedBtn'),pb=$('pauseBtn');sb.dataset.sp=G.speed;pb.dataset.on=G.paused?1:0;const ep=G.epoch[0];if(ib.dataset.ico!==String(ep)&&typeof ICON3!=='undefined'){const u=ICON3.thing('unit','worker');if(u){ib.style.setProperty('--ico','url('+u+')');ib.dataset.ico=ep}}}
   advisorTick();advisorUI();$('pauseBtn').hidden=!!G.mp;$('speedBtn').hidden=!!G.mp;
-  const s=selection();
+  const s=selection();document.body.classList.toggle('has-sel',s.length>0);
   const sig=s.map(e=>e.id+(e.built?'b':'')).join(',')+'|'+G.epoch[0]+'|'+(G.adv[0]?1:0)+G.jobs[0].length+'|'+pending(0).n+'|'+G.tech[0].size+'|'+G.rs[0].length;
-  if(sig!==panelSig){panelSig=sig;curActs=actionsFor(s);$('acts').innerHTML=curActs.map((a,i)=>`<button class="act" data-i="${i}">${actIcon(a)}${({am:'Q',exp:'E'})[a.key]?`<kbd>${({am:'Q',exp:'E'})[a.key]}</kbd>`:''}<span class="nm">${a.nm}</span>${a.cost?`<span class="cost">${costHTML(a.cost)}</span>`:''}${a.lock?`<span class="sub">${tr('ab {0}',a.lock)}</span>`:a.sub?`<span class="sub">${a.sub}</span>`:''}</button>`).join('')}
+  if(sig!==panelSig){panelSig=sig;curActs=actionsFor(s);$('acts').innerHTML=curActs.map((a,i)=>`<button class="act" data-i="${i}">${actIcon(a)}${actKey(a.key)?`<kbd>${actKey(a.key)}</kbd>`:''}<span class="nm">${a.nm}</span>${a.cost?`<span class="cost">${costHTML(a.cost)}</span>`:''}${a.lock?`<span class="sub">${tr('ab {0}',a.lock)}</span>`:a.sub?`<span class="sub">${a.sub}</span>`:''}</button>`).join('')}
   $('acts').querySelectorAll('.act').forEach(b=>{const a=curActs[+b.dataset.i];if(!a)return;b.classList.toggle('locked',!!a.lock||!!a.need||!!(a.adv&&G.adv[0])||!!(a.key==='adv'&&G.jobs[0].length));b.classList.toggle('poor',!!a.cost&&!afford(0,a.cost));b.querySelectorAll('.c').forEach(ch=>{const ok=(G.res[0][ch.dataset.r]||0)>=+ch.dataset.n;ch.classList.toggle('ok',ok);ch.classList.toggle('bad',!ok)})});
   const ih=infoHTML(s);if(ih!==infoCache){infoCache=ih;$('info').innerHTML=ih}
   const hint=$('hint');
@@ -249,7 +256,8 @@ function unitTip(k){const d=UNITS[k];if(!d)return'';const e=Math.min(6,G.epoch[0
   const hide=()=>{clearTimeout(timer);timer=null;tip.hidden=true;cur=null};
   document.addEventListener('mouseover',e=>{const el=e.target.closest&&e.target.closest('[data-tt],[data-tip],.act');if(el===cur)return;hide();if(!el)return;cur=el;if(el.title)el.title='';
     timer=setTimeout(()=>{if(!OPT.tips)return;const c=content(el);if(!c||!document.body.contains(el)){return}tip.innerHTML=`<b>${c.h}</b>${c.t?`<p>${c.t}</p>`:''}${c.c?`<div class="tc">${c.c}</div>`:''}`;tip.hidden=false;
-      const r=el.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let x=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2)),y=r.bottom+8;if(y+h>innerHeight-8)y=r.top-h-8;tip.style.left=x+'px';tip.style.top=Math.max(8,y)+'px'},650)});
+      const r=el.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let x=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2)),y=r.bottom+8;if(y+h>innerHeight-8)y=r.top-h-8;
+      if(el.closest('#side')&&ui2()){x=r.left-w-10;y=Math.min(r.top,innerHeight-h-8);if(x<8){x=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2));y=r.top-h-8<8?r.bottom+8:r.top-h-8}}else if(el.closest('#mini')){x=r.right+10;y=r.bottom-h}tip.style.left=x+'px';tip.style.top=Math.max(8,y)+'px'},650)});
   document.addEventListener('mousedown',hide);document.addEventListener('mouseout',e=>{if(!e.relatedTarget)hide()});}
 
 /* ---------- Zeitalter-Baum: alle Zeitalter in einer Reihe, nach der Industriezeit verzweigt er sich in Nationen (Kaiserreiche | Demokratien) ---------- */

@@ -25,13 +25,17 @@ function camSmooth(dt){
   camUpdate();const F=freeCenter(),a=toWorld(F.x,F.y,true),f=1-Math.exp(-Math.min(dt,.1)/.09);
   cam.yaw+=ey*f;cam.pitch+=ep*f;camUpdate();const b=toWorld(F.x,F.y,true);cam.x+=a.x-b.x;cam.y+=a.y-b.y;clampCam()}
 /* Verdeckte Höhen: obere Leiste und Befehlskonsole liegen über der Karte. Werte kommen aus dem DOM (nie festverdrahtet), werden alle 0,4 s und bei Grössenänderung neu gelesen. */
-const UIINS={t:0,b:0,at:-1e9};
+const UIINS={t:0,b:0,r:0,at:-1e9};
 function uiInsets(force){const now=performance.now();if(!force&&now-UIINS.at<400)return UIINS;UIINS.at=now;
   const tp=document.getElementById('top'),pn=document.getElementById('panel'),hid=el=>!el||getComputedStyle(el).display==='none'||getComputedStyle(el).visibility==='hidden';
   let t=hid(tp)?0:tp.offsetHeight,b=hid(pn)?0:pn.offsetHeight;if(document.body.classList.contains('mm')){t=0;b=0}
-  if(VH){t=Math.min(t,VH*.3);b=Math.min(b,VH*.5)}UIINS.t=t;UIINS.b=b;return UIINS}
+  let r=0;
+  /* Neue Oberfläche: #panel ist display:contents (Höhe 0); die Seitenleiste (rechts, bei schmalem Fenster eine Schublade unten) nimmt Platz weg */
+  if(document.body.classList.contains('ui2')){const sd=document.getElementById('side');if(sd&&!hid(sd)){const q=sd.getBoundingClientRect();if(q.width>0&&q.height>0){if(q.width>VW*.6)b=Math.max(b,VH-q.top);else r=Math.max(0,VW-q.left)}}
+    const bt=document.querySelector('#top .tl');if(bt){const w=Math.ceil(bt.getBoundingClientRect().width)+'px';if(UIINS.bw!==w){UIINS.bw=w;requestAnimationFrame(()=>document.body.style.setProperty('--btnsW',w))}}}
+  if(VH){t=Math.min(t,VH*.3);b=Math.min(b,VH*.5)}if(VW)r=Math.min(r,VW*.4);UIINS.t=t;UIINS.b=b;UIINS.r=r;return UIINS}
 /* Mittelpunkt der freien Fläche (zwischen Leiste und Konsole) in Bildschirmpunkten */
-function freeCenter(){const u=uiInsets();return{x:VW/2,y:(u.t+VH-u.b)/2}}
+function freeCenter(){const u=uiInsets();return{x:(VW-u.r)/2,y:(u.t+VH-u.b)/2}}
 /* Begrenzung = die ganze Brettfläche (auch bei kleinen Karten mit Randgebirge: so ist der echte Brettrand immer erreichbar) */
 function playRect(){return{x0:0,x1:W,y0:0,y1:H}}
 /* Der Mittelpunkt der freien Fläche darf über jede Kartenkante hinaus, bis zum Überlauf (wächst mit dem Zoom: halbe sichtbare Breite/Höhe × 0,4).
@@ -41,12 +45,12 @@ function clampCam(){
   if(wide||!R3.ok||!VW){cam.x=Math.max(0,Math.min(W,cam.x));cam.y=Math.max(0,Math.min(H,cam.y));camUpdate();return}
   const F=freeCenter(),u=UIINS,B=playRect();camUpdate();
   for(let i=0;i<3;i++){
-    const c=toWorld(F.x,F.y,true),hx0=toWorld(VW,F.y,true),hx1=toWorld(0,F.y,true),hy0=toWorld(F.x,VH-u.b,true),hy1=toWorld(F.x,u.t,true),lim=R3.D0/cam.z*R3.S*.9,hx=Math.min(lim,Math.hypot(hx0.x-hx1.x,hx0.y-hx1.y)/2),hy=Math.min(lim,Math.hypot(hy0.x-hy1.x,hy0.y-hy1.y)/2),
+    const c=toWorld(F.x,F.y,true),hx0=toWorld(VW-u.r,F.y,true),hx1=toWorld(0,F.y,true),hy0=toWorld(F.x,VH-u.b,true),hy1=toWorld(F.x,u.t,true),lim=R3.D0/cam.z*R3.S*.9,hx=Math.min(lim,Math.hypot(hx0.x-hx1.x,hx0.y-hx1.y)/2),hy=Math.min(lim,Math.hypot(hy0.x-hy1.x,hy0.y-hy1.y)/2),
       ok=typeof ROOM!=='undefined'&&ROOM.on?.4:.2/* ohne Spielzimmer nur ein schmaler Rand (dahinter ist nur Meer) */,ox=hx*ok,oy=hy*ok,nx=Math.max(B.x0-ox,Math.min(B.x1+ox,c.x)),ny=Math.max(B.y0-oy,Math.min(B.y1+oy,c.y));
     if(Math.abs(nx-c.x)<.5&&Math.abs(ny-c.y)<.5)break;
     cam.x+=nx-c.x;cam.y+=ny-c.y;camUpdate()}
 }
-if(window.ResizeObserver){const ro=new ResizeObserver(()=>{uiInsets(true);if(G&&G.running)clampCam()});for(const id of['top','panel']){const el=document.getElementById(id);if(el)ro.observe(el)}}
+if(window.ResizeObserver){let roQ=0;const ro=new ResizeObserver(()=>{if(roQ)return;roQ=requestAnimationFrame(()=>{roQ=0;uiInsets(true);if(G&&G.running)clampCam()})});for(const id of['top','panel','side']){const el=document.getElementById(id);if(el)ro.observe(el)}const tl=document.querySelector('#top .tl');if(tl)ro.observe(tl);}
 /* Ziel in die Mitte der freien Fläche bringen (nicht in die Fenstermitte, die teils unter der Konsole liegt) */
 function centerOn(x,y){cam.x=x;cam.y=y;if(R3.ok&&VW&&!(typeof ROOM!=='undefined'&&ROOM.wide())){camUpdate();const F=freeCenter(),c=toWorld(F.x,F.y,true);cam.x+=x-c.x;cam.y+=y-c.y}clampCam()}
 function evPos(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}

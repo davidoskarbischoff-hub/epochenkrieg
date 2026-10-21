@@ -33,7 +33,7 @@ const SKIN=(()=>{
     if(col===last)return;last=col;const s=build(col),st=b.style;
     st.setProperty('--orn-edge',s.edge);st.setProperty('--orn-sm',s.sm);st.setProperty('--orn-c1',s.c1);st.setProperty('--orn-c2',s.c2);st.setProperty('--orn-c3',s.c3);st.setProperty('--orn-c4',s.c4)}
   function fit(){const t=document.getElementById('top');if(t)document.body.style.setProperty('--topH',(t.offsetHeight+4)+'px')}
-  function init(){apply();fit();try{new ResizeObserver(fit).observe(document.getElementById('top'))}catch(_){addEventListener('resize',fit)}try{new MutationObserver(apply).observe(document.body,{attributes:true,attributeFilter:['data-ep']})}catch(_){}}
+  function init(){apply();fit();try{new ResizeObserver(()=>requestAnimationFrame(fit)).observe(document.getElementById('top'))}catch(_){addEventListener('resize',fit)}try{new MutationObserver(apply).observe(document.body,{attributes:true,attributeFilter:['data-ep']})}catch(_){}}
   return{apply,init}
 })();
 SKIN.init();
