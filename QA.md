@@ -66,3 +66,18 @@ Bekannte Grenzen (Release 3): Fischernetze, Galeere, Bohrturm/Raffinerie/Beton-H
 - [x] (21.10. behoben, Text korrigiert) Schienen kaufen bei bereits 2 Zusatz-Loren bringt keine Lore mehr (nur Tempo), Knopftext verspricht „eine zweite Lore“.
 - [x] (21.10. Meldung „Das Tier ist ausser Sicht.“) Ego-Reh: Ansicht endet von selbst, sobald das Tier aus dem sichtbaren Bereich läuft (gewollt wegen Nebel, aber ohne Meldung).
 - Bildrate Software-GL ~1 fps, Unterschied Aus/Dezent/Deutlich nicht messbar; Rechenaufwand der Ringe gering (2 InstancedMesh).
+
+## Zwei-Fenster-Mehrspielertest neue Befehle (2026-10-21)
+Aufbau: zwei Playwright-Seiten, lokaler BroadcastChannel (`Lobby.open()` + „Lokal testen“, `?join=local:CODE`), Software-GL, eigener Port, Skripte im Scratch-Ordner (`mpq/t1.js` Logik ohne Zeichnen, `t2.js`/`t5.js` mit Zeichnen, Gastgeber ohne Zeichnen). Bilder: `/tmp/claude-0/-home-user-epochenkrieg/69c8489a-2fbd-5d9c-8744-c05459ace21d/scratchpad/mpq/` (`host_scene.png`, `guest_scene2.png`, `guest_ego.png`).
+- [x] `cart2`: Gast kauft Lore, Gastgeber zieht 100 Holz + 40 Eisen ab, Stand beim Gast gleich, `xc` und `Loren x/3` kommen an, Maximum 3 (2 Zusatzkäufe) greift, die 3 Loren fahren auf beiden Seiten an gleicher Stelle.
+- [x] `tspec`: Ausbau Wehrturm bezahlt (120/140/60) auf beiden Seiten gleich, Leben ×1,5, zweiter Ausbau am selben Turm abgelehnt.
+- [x] `tfire`/`ufire`: Schuss/Schlag kommt an, Nachladezeit wird vom Gastgeber erzwungen (zweiter Aufruf sofort = abgelehnt), zu weites Ziel abgelehnt.
+- [x] Gast darf nichts Fremdes steuern: `buyCart`, `buildSpec`, `towerFire`, `unitStrike`, `cmd` auf Objekte des Gastgebers bleiben ohne Wirkung (Kosten, Ausbau, Lebenspunkte, Befehle unverändert); Ego-Start auf Gegner/Nebel-Tier = `false`; Tab wechselt nur durch eigene Einheiten.
+- [x] Team-Markierung: Gast sieht eigene Einheiten mit Kreis + grünem Rahmen, Gegner mit Raute + rotem Rahmen, Teamfarben sind auf beiden Bildschirmen dieselben (Gast rot, Gastgeber blau); Minikarte stimmt.
+- [x] Keine KI/Berater im MP (`aiT` bleibt stehen, `advisor.cur` leer), Gegner-Typ „Zufall“ ohne Wirkung; Umschauen R / Zurücksetzen N wirken nur lokal, Gastgeber-Kamera unberührt.
+- [x] 3+ Spielminuten (Gastgeber 5×): gleiche Zahl Einheiten/Gebäude, Position/Team/Ausbau/`xc` gleich, Rohstoffe gleich, keine Konsolenfehler. (3 Lebenspunkt-Abweichungen = Übertragungsverzug, kein Dauerfehler.)
+- [x] BEHOBEN: Gast sah beim Minenlager immer „0 / 800“ (`b.st` fehlte im Stand) → Feld `sk` in `encodeSnap`, `applySnap` setzt `e.st` (mp.js). Gemessen: Gast 340 bei Gastgeber 340.
+- [x] BEHOBEN: Ego-Ansicht zeigte große weiße/gelbe Scheiben (Auswahl- und Teamringe nahe am Auge), auch im Einzelspiel → in Ego keine Ringe (`r3TeamMarks`/`r3Ring`, render3d.js).
+- [ ] sollte: Ego-Ansicht zeigt oben einen dunklen Kasten mit rotem Band (Raum/Brett-Rahmen über dem Horizont, im Einzelspiel genauso, `guest_ego.png`); im Ego-Modus Raumgeometrie ausblenden.
+- [ ] Beobachtung (kein Fehler): Der Gast wartet im Ego auf eigene Nachladezeit (`EGO.nextFire`), der Gastgeber entscheidet; bei langsamem Gastgeber (Software-GL ~0,15× Echtzeit) wirkt Ego-Laufen/Schiessen verzögert. In Echtzeit nicht gemessen (Software-GL zu langsam), dort nur Befehlsankunft belegt.
+- [ ] offen: `b.cd` (Turm-Nachladen) steht nicht im Stand; Nachlade-Balken des Gasts läuft nach eigener Uhr, nicht nach dem Turm.

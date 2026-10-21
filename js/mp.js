@@ -16,7 +16,7 @@ function encodeSnap(){
   const U=[],B=[],N=[],A=[],rel=v=>v&&G.t-v<1?r1(G.t-v):-1;
   for(const e of G.ents){if(e.dead)continue;
     if(e.kind==='unit')U.push({i:e.id,ty:e.type,m:e.team,x:r1(e.x),y:r1(e.y),a:Math.round(e.fa*100)/100,h:Math.round(e.hp),H:e.maxHp,l:e.lvl,s:e.state,c:r1(e.carry||0),ct:e.ctype||0,rt:e.rtype||0,td:e.tid||0,sw:rel(e.swing),ga:rel(e.gat),mv:rel(e.mvT),u:e.upj?1:0,cd:r1(e.cd||0),q:e.team===0&&e.q&&e.q.length?e.q:0,lp:e.loop?1:0,gr:e.gar||0,im:e.inm||0});
-    else if(e.kind==='bld')B.push({i:e.id,ty:e.type,m:e.team,x:r1(e.x),y:r1(e.y),h:Math.round(e.hp),H:e.maxHp,l:e.lvl,b:e.built?1:0,p:Math.round(e.prog*1000)/1000,an:e.ang||0,sp:e.spec||0,em:e.empty||0,xc:e.xc||0,or:e.ore||0,pc:e.pc||0,u:e.upj?1:0,qu:e.team===0?e.queue.map(q=>({type:q.type,tech:q.tech,t:r1(q.t),blocked:q.blocked?1:0})):0,r:e.team===0&&e.rally?e.rally:0});
+    else if(e.kind==='bld')B.push({i:e.id,ty:e.type,m:e.team,x:r1(e.x),y:r1(e.y),h:Math.round(e.hp),H:e.maxHp,l:e.lvl,b:e.built?1:0,p:Math.round(e.prog*1000)/1000,an:e.ang||0,sp:e.spec||0,em:e.empty||0,xc:e.xc||0,sk:e.type==='mine'?Math.round(mineStock(e)):0,or:e.ore||0,pc:e.pc||0,u:e.upj?1:0,qu:e.team===0?e.queue.map(q=>({type:q.type,tech:q.tech,t:r1(q.t),blocked:q.blocked?1:0})):0,r:e.team===0&&e.rally?e.rally:0});
     else if(e.kind==='animal')A.push({i:e.id,ty:e.type,x:r1(e.x),y:r1(e.y),a:Math.round(e.fa*100)/100,h:Math.round(e.hp),s:e.state,sw:rel(e.swing),mv:rel(e.mvT)});
     else if(e.kind==='node'&&(e.amount<e.maxAmt-.5||e.snapLow)){N.push([e.id,Math.round(e.amount)]);e.snapLow=e.amount<e.maxAmt-.5}}
   return{t:r1(G.t),over:G.over,res:G.res.map(r=>({food:Math.floor(r.food),wood:Math.floor(r.wood),stone:Math.floor(r.stone),iron:Math.floor(r.iron),gold:Math.floor(r.gold||0),oil:Math.floor(r.oil||0)})),epoch:G.epoch.slice(),nat:G.nation.slice(),
@@ -49,7 +49,7 @@ function applySnap(s){
     if(r.ty&&e.type!==r.ty)e.type=r.ty;e._rec=r;e.team=r.m;e.tx=r.x;e.ty=r.y;e.fa=r.a;e.hp=r.h;e.maxHp=r.H;e.lvl=r.l;e.state=r.s;e.carry=r.c;e.ctype=r.ct||null;e.rtype=r.rt||null;e.tid=r.td||null;
     e.swing=r.sw>=0?G.t-r.sw:undefined;e.gat=r.ga>=0?G.t-r.ga:undefined;e.mvT=r.mv>=0?G.t-r.mv:undefined;e.upj=r.u?{}:null;e.cd=r.cd;e.gar=r.gr||undefined;e.inm=r.im||undefined;e.q=r.q||[];e.loop=r.lp?[{}]:null}
   for(let r of s.B){seen.add(r.i);let e0=G.byId.get(r.i);r=mergeRec(e0,r);if(r._d)continue;let e=e0;if(!e||e.dead){e=addBld(r.ty,r.m,r.x,r.y,!!r.b,r.i)}
-    e._rec=r;e.team=r.m;e.x=r.x;e.y=r.y;e.hp=r.h;e.maxHp=r.H;e.lvl=r.l;e.built=!!r.b;e.prog=r.p;e.ang=r.an;e.spec=r.sp||undefined;e.empty=r.em||0;e.xc=r.xc||0;e.ore=r.or||undefined;e.pc=r.pc||undefined;e.upj=r.u?{}:null;e.queue=r.qu||[];e.rally=r.r||null}
+    e._rec=r;e.team=r.m;e.x=r.x;e.y=r.y;e.hp=r.h;e.maxHp=r.H;e.lvl=r.l;e.built=!!r.b;e.prog=r.p;e.ang=r.an;e.spec=r.sp||undefined;e.empty=r.em||0;e.xc=r.xc||0;e.st=r.sk?{all:r.sk}:undefined;e.ore=r.or||undefined;e.pc=r.pc||undefined;e.upj=r.u?{}:null;e.queue=r.qu||[];e.rally=r.r||null}
   for(let r of s.A||[]){seen.add(r.i);let e0=G.byId.get(r.i);r=mergeRec(e0,r);if(r._d)continue;let e=e0;if(!e||e.dead)e=addAnimal(r.ty,r.x,r.y,r.i);e._rec=r;e.tx=r.x;e.ty=r.y;e.fa=r.a;e.hp=r.h;e.state=r.s;e.swing=r.sw>=0?G.t-r.sw:undefined;e.mvT=r.mv>=0?G.t-r.mv:undefined}
   if(s.d){for(const id of s.X||[]){const e=G.byId.get(id);if(e&&!e.dead)removeEnt(e)}}
   else for(const e of G.ents)if(!e.dead&&(e.kind==='unit'||e.kind==='bld'||e.kind==='animal')&&!seen.has(e.id))removeEnt(e);
