@@ -108,3 +108,6 @@ Aufruf: `NODE_PATH=<playwright> node tools/mp-test.js [Bilderordner]` (~5 Min., 
 - Gast-`ufire` (Host-Seite, `execRemote` in Playwright/__norender): Schaden wird angewendet (11 bei Speer gegen Speer). Läuft `u.cd` (auch durch automatischen Angriff), verwirft der Host den Schlag still (`unitStrike` gibt false) – gewollt, gleiche Uhr wie im Einzelspieler; kein Fix. Zwei getrennte Seiten (Fake-Peer) nicht aufgebaut: Weg nur über Code geprüft.
 - Nationen (nur Code gelesen, nicht im Lauf): Gast schickt `adv` mit Nation, `nat` steht im Stand, `nfx` wird beim Gast neu berechnet, `enqueue` prüft Nation; kein Fehler gefunden.
 - Späte Modelle: `entryFor` filtert auf geladene Dateien, also ändert sich `tag()` beim Nachladen und `r3Sync` baut jede Einheit/jedes Gebäude neu (auch unverändert stehende). Unsichtbar nur Code-Figur Lvl>=2 bis `EKMODELS.full`. Nicht im Lauf geprüft.
+
+## Meshopt-Modelle (21.10.)
+- 213 benutzte .glb mit Meshopt komprimiert (48,8 -> 21,9 MB). Struktur und Namen identisch, Kontaktbogen und Spielszene unverändert, keine Konsolenfehler. Nicht geprüft: Animation im Dauerlauf (nur Standbild), Desktop-App. Sieht eine Figur nach dem Laden verzerrt aus: Datei aus Git zurückholen und `tools/meshopt/pack.mjs` prüfen.
