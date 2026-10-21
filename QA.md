@@ -59,3 +59,10 @@ Bekannte Grenzen (Release 3): Fischernetze, Galeere, Bohrturm/Raffinerie/Beton-H
 - [ ] (sollte) Musketier Ep. 4 und Gewehrschütze Ep. 5 tragen dasselbe moderne Zielfernrohr-Gewehr wie Ep. 6 – keine erkennbare Waffenentwicklung, Muskete wirkt anachronistisch.
 - [ ] (schön wäre) Bogenreiter/Ritter Ep. 5: Reiter sitzt klein auf dem Pferd (Grössenverhältnis prüfen); Späher Ep. 6 auf Motorrad hat keinen Helm.
 - Geprüft ok: alle 63 gültigen Linien×Zeitalter laden (`EKMODELS.failed` leer), Teamfarbe blau/rot erkennbar, Waffen in rechter Hand, Blickrichtung im Kampf zum Gegner, Konsole ohne Fehler, ~250–280 Draw-Calls bei 12 Kämpfern.
+
+## Prüfung Pakete Team-Markierung / Loren / Liquid Glass / Ego (2026-10-21)
+- [x] (sollte, behoben) Umschauen-Taste R: kein Zurücksetzen bei Fensterwechsel/Esc/Zeigerfang-Verlust, Kamera drehte weiter bzw. Tasten klemmten → `releaseKeys` + `blur`/`visibilitychange`/`pointerlockchange` in input.js. Geprüft: R+Maus dreht, nach Loslassen/Blur/Lock-Verlust 0, N setzt zurück.
+- Geprüft ok: Team-Markierung (Kreis eigene, Raute Gegner) in Wüste, Winter, Boote, Flieger, 90 Einheiten lesbar (Bilder qa/…/tm_*.png im Scratch-Ordner); Loren 1–3 (Schienen + Knopf nie > 3, Info „Loren x / 3“, 3 Loren fahren), Berater-Regel cart2 vorhanden (Rang niedrig), `cart2`/`tfire` über execRemote mit Besitzprüfung; Liquid Glass 1920×1080 bis 390×844 ohne Seiten-Scroll, Chips einheitlich hoch; Berater Auto ohne Haken/X; Ego Boot/Kriegsschiff/Reh/Turm (Nachlade-Balken, Treffer), Esc beendet.
+- [ ] (schön wäre) Schienen kaufen bei bereits 2 Zusatz-Loren bringt keine Lore mehr (nur Tempo), Knopftext verspricht „eine zweite Lore“.
+- [ ] (schön wäre) Ego-Reh: Ansicht endet von selbst, sobald das Tier aus dem sichtbaren Bereich läuft (gewollt wegen Nebel, aber ohne Meldung).
+- Bildrate Software-GL ~1 fps, Unterschied Aus/Dezent/Deutlich nicht messbar; Rechenaufwand der Ringe gering (2 InstancedMesh).

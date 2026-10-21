@@ -158,6 +158,11 @@ addEventListener('keydown',e=>{
   if(e.key.startsWith('Arrow'))e.preventDefault();
 });
 addEventListener('keyup',e=>{keys[e.key]=false;keys[e.key.toLowerCase()]=false;if(kA(e)==='look'&&document.pointerLockElement===cv&&!EGO.on)try{document.exitPointerLock()}catch(_){}});
+/* Fokusverlust / Zeigerfang verloren (Esc, Fensterwechsel): gehaltene Tasten zurücksetzen, sonst dreht die Kamera weiter oder Tasten klemmen */
+function releaseKeys(){for(const k in keys)keys[k]=false;try{if(document.pointerLockElement)document.exitPointerLock()}catch(_){}}
+addEventListener('blur',releaseKeys);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseKeys()});
+document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&!EGO.on){const k=OPT.keys&&OPT.keys.look;if(k){keys[k]=false;keys[String(k).toLowerCase()]=false}}});
 /* Umschauen: Taste halten (Standard R) und Maus bewegen, ohne Klicken (Mac-Trackpad ohne Mitteltaste); Zeiger wird dabei festgehalten, loslassen = Kamera bleibt stehen */
 addEventListener('mousemove',e=>{if(typeof EGO!=='undefined'&&EGO.on)return;if(!G||!G.running||menuOpen||!kHeld('look'))return;
   const dx=e.movementX||0,dy=e.movementY||0;if(dx||dy)camRot(-dx*.006*OPT.camRot,dy*.004*OPT.camRot)},true);
