@@ -30,7 +30,14 @@ EGO.ui=()=>{let el=document.getElementById('egohud');
 EGO.scopeOn=()=>EGO.tower||EGO.zoom>2.2;
 EGO.txt=()=>{const el=document.querySelector('#egohud .eg-txt');if(!el||!EGO.e)return;const e=EGO.e,nm=e.kind==='bld'?(BLDS[e.type]&&BLDS[e.type].name)||e.type:e.kind==='unit'?(UNITS[e.type]&&UNITS[e.type].name)||e.type:(ANIMALS[e.type]&&ANIMALS[e.type].name)||e.type;
   const hud=document.getElementById('egohud');if(hud)hud.classList.toggle('scope',EGO.scopeOn());
-  el.textContent=tr('Ego-Ansicht: {0}',tr(nm))+' · '+(EGO.ctl?tr('WASD: gehen · Maus: umschauen · Klick/Leertaste: angreifen/sammeln · Rad: Zoom · Esc oder {0}: zurück',keyLabel(OPT.keys.ego||'v')):tr('Maus: umschauen · Mausrad: Zoom · Esc oder {0}: zurück',keyLabel(OPT.keys.ego||'v')))+(EGO.zoom>1.05?' · ×'+EGO.zoom.toFixed(1):'')};
+  el.textContent=tr('Ego-Ansicht: {0}',tr(nm))+' · '+(EGO.tower?tr('Klick/Leertaste: Turm feuert · Maus: umschauen · Mausrad: Zoom · Esc oder {0}: zurück',keyLabel(OPT.keys.ego||'v')):EGO.ctl?tr('WASD: gehen · Maus: umschauen · Klick/Leertaste: angreifen/sammeln · Rad: Zoom · Esc oder {0}: zurück',keyLabel(OPT.keys.ego||'v')):tr('Maus: umschauen · Mausrad: Zoom · Esc oder {0}: zurück',keyLabel(OPT.keys.ego||'v')))+(EGO.zoom>1.05?' · ×'+EGO.zoom.toFixed(1):'')};
+/* Nachlade-Anzeige im Turm (#egohud .eg-rl): Balken füllt sich, solange der Turm nachlädt */
+EGO.reloadUi=dt=>{const hud=document.getElementById('egohud');if(!hud)return;let el=hud.querySelector('.eg-rl');
+  if(!EGO.on||!EGO.tower||!EGO.e||EGO.e.kind!=='bld'){if(el)el.hidden=true;return}
+  if(!el){el=document.createElement('div');el.className='eg-rl';el.innerHTML='<i></i>';hud.appendChild(el)}
+  const b=EGO.e,cd=BLDS[b.type].shoot.cd*(b.spec==='obs'?1.3:1);let f=1;if(NET.client){f=EGO.nextFire>performance.now()?1-(EGO.nextFire-performance.now())/(cd*1000):1}else f=b.cd>0?1-b.cd/cd:1;
+  el.hidden=false;el.firstChild.style.width=Math.round(Math.max(0,Math.min(1,f))*100)+'%';el.classList.toggle('ready',f>=1);
+  if(EGO.flash>0){EGO.flash=0;hud.classList.add('shot');setTimeout(()=>hud.classList.remove('shot'),120)}};
 /* Befehl wie vom Spieler: nur diese Einheit auswählen, command() (Wegfindung, Kollision, im Mehrspieler 'cmd' mit Wächter) */
 EGO.order=(x,y,t)=>{const e=EGO.e;if(!e||!EGO.ctl||e.dead)return;if(!(sel.size===1&&sel.has(e.id))){sel.clear();sel.add(e.id)}
   NET.tgtSet=true;NET.tgt=t||null;try{command(x,y,false)}finally{NET.tgtSet=false;NET.tgt=null}};
@@ -38,14 +45,22 @@ EGO.order=(x,y,t)=>{const e=EGO.e;if(!e||!EGO.ctl||e.dead)return;if(!(sel.size==
 EGO.go=(f,r)=>{const e=EGO.e;if(!e)return;let dx=Math.sin(EGO.yaw)*f-Math.cos(EGO.yaw)*r,dy=Math.cos(EGO.yaw)*f+Math.sin(EGO.yaw)*r;const l=Math.hypot(dx,dy);
   if(!l){EGO.order(e.x,e.y,null);EGO.mv=null;return}const L=70;EGO.order(e.x+dx/l*L,e.y+dy/l*L,null);EGO.mv=[f,r];EGO.mvT=0};
 /* anvisiertes Ziel: kleinster Winkel zur Blickrichtung (nur sichtbare Dinge, kein Nebel-Spähen) */
-EGO.aim=()=>{const e=EGO.e,o=e&&R3.reg.get(entKey(e));if(!o)return null;const cp=Math.cos(EGO.pitch),dir=[cp*Math.sin(EGO.yaw),Math.sin(EGO.pitch),cp*Math.cos(EGO.yaw)],S=R3.S,wk=!!UNITS[e.type].gather,ey=Math.max(o.obj.position.y,hAt(e.x,e.y))+EGO.eye;let best=null,ba=.16/Math.sqrt(EGO.zoom);
+EGO.aim=()=>{const e=EGO.e,o=e&&R3.reg.get(entKey(e));if(!o)return null;const cp=Math.cos(EGO.pitch),dir=[cp*Math.sin(EGO.yaw),Math.sin(EGO.pitch),cp*Math.cos(EGO.yaw)],S=R3.S,wk=!!(UNITS[e.type]||{}).gather,ey=Math.max(o.obj.position.y,hAt(e.x,e.y))+EGO.eye;let best=null,ba=.16/Math.sqrt(EGO.zoom);
   for(const t of G.ents){if(t.dead||t===e||!shown(t))continue;
     const ok=t.kind==='node'?(wk&&nodeKnown(t)&&nodeEpochOk(t,0)):(t.team===1&&(t.kind==='unit'||t.kind==='bld')||t.kind==='animal');if(!ok)continue;
     const vx=t.x/S-o.obj.position.x,vz=t.y/S-o.obj.position.z,vy=Math.max(0,hAt(t.x,t.y))+1.2-ey,d=Math.hypot(vx,vy,vz);if(d<.1||d*S>360)continue;
-    const a=Math.acos(Math.max(-1,Math.min(1,(vx*dir[0]+vy*dir[1]+vz*dir[2])/d)));const ar=Math.atan((t.r||8)/S/d);if(a-ar<ba){ba=a-ar;best=t}}
+    const a=Math.acos(Math.max(-1,Math.min(1,(vx*dir[0]+vy*dir[1]+vz*dir[2])/d)));const ar=Math.atan((t.r||8)/S/d);if(a-ar<ba&&EGO.clear(o.obj.position.x,ey,o.obj.position.z,t.x/S,vy+ey,t.y/S)){ba=a-ar;best=t}}
   return best};
-EGO.act=()=>{if(!EGO.ctl)return;const t=EGO.aim();if(t)EGO.order(t.x,t.y,t);else toast(tr('Kein Ziel im Fadenkreuz.'),'warn')};
-EGO.tick=dt=>{if(!EGO.on||!EGO.ctl||!EGO.e||(typeof menuOpen!=='undefined'&&menuOpen))return;
+/* einfacher Sichttest: Gelände (hAt) zwischen Auge und Ziel darf die Sichtlinie nicht überragen (Berge/Hügel verdecken) */
+EGO.clear=(x0,y0,z0,x1,y1,z1)=>{for(let i=1;i<8;i++){const f=i/8,gx=(x0+(x1-x0)*f)*R3.S,gz=(z0+(z1-z0)*f)*R3.S;if(Math.max(0,hAt(gx,gz))>y0+(y1-y0)*f+.15)return false}return true};
+EGO.act=()=>{if(EGO.tower&&EGO.e&&EGO.e.kind==='bld'){EGO.shoot();return}if(!EGO.ctl)return;const t=EGO.aim();if(t)EGO.order(t.x,t.y,t);else toast(tr('Kein Ziel im Fadenkreuz.'),'warn')};
+/* Turm: Schuss auf das Ziel im Fadenkreuz (nur Feinde/Tiere; gleiche Sichtprüfung wie die Zielwahl). Nachladen = b.cd des Turms. */
+EGO.aimFoe=()=>{const t=EGO.aim();return t&&(t.kind==='unit'||t.kind==='animal'||t.kind==='bld')&&t.team!==0?t:null};
+EGO.shoot=()=>{const b=EGO.e;if(!b||b.kind!=='bld'||!BLDS[b.type].shoot)return;const t=EGO.aimFoe();
+  if(!t){toast(tr('Kein Ziel im Fadenkreuz.'),'warn');return}
+  if(NET.client){b.manT=G.t+2.5;if(!(EGO.nextFire>performance.now())){EGO.nextFire=performance.now()+BLDS[b.type].shoot.cd*1000;towerFire(0,b.id,t.id);EGO.flash=1}return}
+  if(towerFire(0,b.id,t.id))EGO.flash=1;else if(b.cd>0)EGO.flash=EGO.flash||0;else toast(tr('Ziel ausser Reichweite.'),'warn')};
+EGO.tick=dt=>{EGO.reloadUi(dt);if(!EGO.on||!EGO.ctl||!EGO.e||(typeof menuOpen!=='undefined'&&menuOpen))return;
   const f=(keys.w||keys.ArrowUp?1:0)-(keys.s||keys.ArrowDown?1:0),r=(keys.d||keys.ArrowRight?1:0)-(keys.a||keys.ArrowLeft?1:0);
   if(f||r){EGO.mvT-=dt;const ch=!EGO.mv||EGO.mv[0]!==f||EGO.mv[1]!==r;if(ch||EGO.mvT<=0||EGO.yawSent===undefined||Math.abs(EGO.yaw-EGO.yawSent)>.12){EGO.go(f,r);EGO.mvT=.25;EGO.yawSent=EGO.yaw}}
   else if(EGO.mv){EGO.go(0,0)}};
@@ -70,7 +85,7 @@ EGO.hide=()=>{const o=EGO.e&&R3.reg.get(entKey(EGO.e));if(o)o.obj.visible=false}
 /* Eingabe: Fang-Listener (Capture), damit die normale Maus-/Tastensteuerung nicht mitläuft */
 const _egoStop=e=>{e.stopImmediatePropagation();e.preventDefault()};
 cv.addEventListener('pointerdown',e=>{if(!EGO.on)return;_egoStop(e);EGO.drag={x:e.clientX,y:e.clientY};EGO.dn={x:e.clientX,y:e.clientY};try{if(!document.pointerLockElement&&cv.requestPointerLock)cv.requestPointerLock()}catch(_){}},true);
-cv.addEventListener('pointerup',e=>{if(!EGO.on)return;_egoStop(e);const d=EGO.drag;EGO.drag=null;if(EGO.ctl&&e.button===0&&(!d||!EGO.dn||Math.hypot(e.clientX-EGO.dn.x,e.clientY-EGO.dn.y)<5))EGO.act()},true);
+cv.addEventListener('pointerup',e=>{if(!EGO.on)return;_egoStop(e);const d=EGO.drag;EGO.drag=null;if((EGO.ctl||EGO.tower)&&e.button===0&&(!d||!EGO.dn||Math.hypot(e.clientX-EGO.dn.x,e.clientY-EGO.dn.y)<5))EGO.act()},true);
 cv.addEventListener('pointermove',e=>{if(!EGO.on)return;e.stopImmediatePropagation();
   let dx=0,dy=0;if(document.pointerLockElement){dx=e.movementX||0;dy=e.movementY||0}else if(EGO.drag){dx=e.clientX-EGO.drag.x;dy=e.clientY-EGO.drag.y;EGO.drag={x:e.clientX,y:e.clientY}}
   if(dx||dy){const k=.0042*OPT.camRot/Math.sqrt(EGO.zoom);EGO.yaw-=dx*k;EGO.pitch=Math.max(-1.35,Math.min(1.35,EGO.pitch-dy*k))}},true);
@@ -79,7 +94,7 @@ cv.addEventListener('contextmenu',e=>{if(EGO.on)_egoStop(e)},true);
 addEventListener('keydown',e=>{
   if(!G||!G.running)return;
   if(EGO.on&&(e.key==='Escape'||kA(e)==='ego')){e.stopImmediatePropagation();e.preventDefault();EGO.stop();return}
-  if(EGO.on&&EGO.ctl&&(e.code==='Space'||e.key===' ')){e.stopImmediatePropagation();e.preventDefault();if(!e.repeat)EGO.act();return}
+  if(EGO.on&&(EGO.ctl||EGO.tower)&&(e.code==='Space'||e.key===' ')){e.stopImmediatePropagation();e.preventDefault();if(!e.repeat)EGO.act();return}
   if(!EGO.on&&kA(e)==='ego'&&!menuOpen&&!e.ctrlKey&&!e.metaKey&&!e.altKey){const t=e.target&&e.target.tagName;if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;e.stopImmediatePropagation();EGO.toggle()}},true);
 /* Partie beendet / Objekt verschwunden: Ego-Ansicht verlassen */
 setInterval(()=>{if(EGO.on&&(!G||!G.running||!EGO.e||EGO.e.dead))EGO.stop()},400);

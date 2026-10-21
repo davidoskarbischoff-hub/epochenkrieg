@@ -29,10 +29,11 @@ function renderOptions(){
   let body='';
   if(optTab==='game')body=row('Kamera-Geschwindigkeit',rng('oCam',.4,2.2,.1,OPT.camSpeed,OPT.camSpeed.toFixed(1)+'×'),'Wie schnell die Karte mit Tasten und Bildschirmrand wandert')
     +row('Kamera-Drehung',rng('oRot',.3,2.5,.1,OPT.camRot,OPT.camRot.toFixed(1)+'×'),'Wie schnell sich die Kamera beim Drehen und Neigen bewegt')
+    +row('Kamera zurücksetzen','<button id="oCamR" type="button" class="kmbtn">'+tr('Zurücksetzen')+'</button>','Drehung und Neigung auf Standard. Umschauen: Taste halten (Standard R) und die Maus bewegen')
     +row('Bildschirmrand-Scrollen',tog('oEdge',OPT.edgeScroll),'Maus an den Rand schieben, um die Karte zu bewegen')
     +row('Zoom-Stärke',rng('oZoom',.4,2.5,.1,OPT.zoomSpeed,OPT.zoomSpeed.toFixed(1)+'×'),'Wie stark das Mausrad zoomt')
     +row('Lebensbalken',seg('oHp',[['hurt','Verletzte'],['all','Alle'],['off','Aus']],OPT.hpBars),'Wann Balken über Einheiten und Gebäuden stehen')
-    +row('Oberfläche',seg('oUi',[['new','Neu (Glas, Seitenleiste)'],['classic','Klassisch']],OPT.uiClassic?'classic':'new'),'Neue Oberfläche mit Glas-Look und Seitenleiste oder die klassische Konsole unten')
+    +row('Oberfläche',seg('oUi',[['new','Liquid Glass'],['classic','Klassisch']],OPT.uiClassic?'classic':'new'),'Liquid-Glass-Oberfläche (Glasflächen, Seitenleiste) oder die klassische Konsole unten')
     +row('Hinweise beim Verweilen',tog('oTips',OPT.tips),'Text erscheint, wenn die Maus kurz auf einem Symbol liegt')
     +row('Meldungen',tog('oToasts',OPT.toasts),'Kleine Texte am Rand (Warnungen bleiben immer)')
     +row('Wildtiere (nächstes Spiel)',seg('oWild',[['none','Keine'],['half','Wenige'],['normal','Normal'],['double','Viele']],wildAmt()),'Wie viele wilde Tiere auf der Karte leben')
@@ -75,6 +76,7 @@ function renderOptions(){
   const q=id=>document.getElementById(id),bind=(id,fn)=>{const e=q(id);if(e)fn(e)};
   const segB=(id,fn)=>bind(id,e=>e.querySelectorAll('button').forEach(b=>b.onclick=()=>{fn(b.dataset.v);e.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
   bind('oCam',e=>e.oninput=()=>{optSet('camSpeed',+e.value);q('oCamo').textContent=(+e.value).toFixed(1)+'×'});
+  bind('oCamR',e=>e.onclick=()=>camReset());
   bind('oEdge',e=>e.onchange=()=>optSet('edgeScroll',e.checked));
   bind('oRot',e=>e.oninput=()=>{optSet('camRot',+e.value);q('oRoto').textContent=(+e.value).toFixed(1)+'×'});
   bind('oZoom',e=>e.oninput=()=>{optSet('zoomSpeed',+e.value);q('oZoomo').textContent=(+e.value).toFixed(1)+'×'});

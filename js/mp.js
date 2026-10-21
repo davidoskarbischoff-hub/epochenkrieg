@@ -75,6 +75,7 @@ function execRemote(m){
       case'cmd':NET.tgtSet=true;NET.tgt=m.tid?get(m.tid):null;command(m.x,m.y,!!m.append);break;
       case'amove':attackMove(m.x,m.y,!!m.append);break;
       case'rage':useRage(0,(m.ids||[]).slice(0,80));break;
+      case'tfire':towerFire(0,m.id,m.tid);break;
       case'trade':if(RES.includes(m.rt)&&m.rt!=='gold')trade(0,m.rt,m.dir==='buy'?'buy':'sell');break;
       case'place':placing=m.type;wallAng=typeof m.ang==='number'?m.ang:null;if(BLDS[m.type]&&BLDS[m.type].ep<=G.epoch[0])tryPlace(m.x,m.y,!!m.keep);break;
       /* Mauerlinie des Gastes: Endpunkte sind bei ihm schon eingerastet, jedes Stück wird hier noch einmal geprüft und bezahlt */

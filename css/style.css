@@ -528,3 +528,10 @@ body{--noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' w
 #egohud.scope .eg-cross{display:block;-webkit-mask:radial-gradient(circle,transparent 10px,#000 11px);mask:radial-gradient(circle,transparent 10px,#000 11px)}
 #egohud.scope .eg-dot{display:none}
 body.ego #advisor{display:none}
+
+/* Ego im Turm: Nachlade-Anzeige und Mündungsblitz */
+#egohud .eg-rl{position:absolute;left:50%;top:calc(50% + 44px);width:120px;height:6px;margin-left:-60px;border-radius:4px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.35);overflow:hidden}
+#egohud .eg-rl[hidden]{display:none}
+#egohud .eg-rl i{display:block;height:100%;width:0;background:#e0a33c}
+#egohud .eg-rl.ready i{background:#8fd35f}
+#egohud.shot::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(255,240,200,.35),transparent 55%)}

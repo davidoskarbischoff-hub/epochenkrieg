@@ -289,10 +289,19 @@ function damage(t,amt,src){
 }
 function kill(e){if(e.dead)return;e.dead=true;if(e.type==='farm')for(const n of G.ents)if(n.type==='field'&&n.farm===e.id)n.dead=true;if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea&&e.type!=='field'))navStamp(e,-1);if(e.kind==='unit'||e.kind==='animal')sfx('die',e);else if(e.kind==='bld')sfx('crumble',e);sel.delete(e.id);if(e.kind==='unit')G.stats.lost[e.team]++;
   if(e.type==='hq'&&!G.over)G.over=e.team===0?'lose':'win';}
+/* Ego-Ansicht im Turm: der Spieler feuert selbst (Schaden, Reichweite, Nachladezeit wie die Automatik; solange er zielt, pausiert die Auto-Wahl).
+   Gibt true zurück, wenn ein Schuss fiel. Mehrspieler: Gast schickt 'tfire', Gastgeber prüft Besitz (nach flipTeams ist der Gast Team 0). */
+function towerFire(team,id,tid){
+  if(NET.client&&team===0){NET.send({c:'tfire',id,tid});return true}
+  const b=G.byId.get(id),t=G.byId.get(tid),d=b&&BLDS[b.type];if(!b||b.dead||b.team!==team||!b.built||!d||!d.shoot||!t||t.dead||t.team===team||t.inm)return false;
+  if(t.kind!=='unit'&&t.kind!=='animal'&&t.kind!=='bld')return false;if(t.team<0&&t.kind!=='animal')return false;
+  const sd=b.spec==='def',sob=b.spec==='obs';b.manT=G.t+2.5;if(b.cd>0)return false;
+  if(Math.hypot(t.x-b.x,t.y-b.y)>d.shoot.rng*(sd?1.3:sob?.8:1))return false;
+  b.cd=d.shoot.cd*(sob?1.3:1);sfx('arrow',b);G.proj.push({x:b.x,y:b.y-8,tid:t.id,dmg:d.shoot.atk*(sd?1.8:sob?.7:1)*LVL.atk[b.lvl]*(1+G.tfx[b.team].tower),src:b.id,a:0});return true}
 function updBld(b,dt){
   if(!b.built)return;const d=BLDS[b.type];
   if(b.type==='harbor'&&G.tfx[b.team].statfish)G.res[b.team].food+=G.tfx[b.team].statfish*dt*(1+.2*b.lvl);
-  if(d.shoot){const sd=b.spec==='def',sob=b.spec==='obs';b.cd=Math.max(0,b.cd-dt);if(b.cd<=0){const t=findEnemy(b,d.shoot.rng*(sd?1.3:sob?.8:1),true);if(t){b.cd=d.shoot.cd*(sob?1.3:1);sfx('arrow',b);G.proj.push({x:b.x,y:b.y-8,tid:t.id,dmg:d.shoot.atk*(sd?1.8:sob?.7:1)*LVL.atk[b.lvl]*(1+G.tfx[b.team].tower),src:b.id,a:0})}}}
+  if(d.shoot){const sd=b.spec==='def',sob=b.spec==='obs';b.cd=Math.max(0,b.cd-dt);if(b.cd<=0&&!(b.manT>G.t)){const t=findEnemy(b,d.shoot.rng*(sd?1.3:sob?.8:1),true);if(t){b.cd=d.shoot.cd*(sob?1.3:1);sfx('arrow',b);G.proj.push({x:b.x,y:b.y-8,tid:t.id,dmg:d.shoot.atk*(sd?1.8:sob?.7:1)*LVL.atk[b.lvl]*(1+G.tfx[b.team].tower),src:b.id,a:0})}}}
   if(b.queue.length&&b.queue[0].tech){const q=b.queue[0],T=TECH[q.tech]; /* Forschung in der Warteschlange: Kosten werden während der Forschung abgebucht */
     if(G.tech[b.team].has(q.tech)){b.queue.shift()}else{const f=Math.min(dt,T.time-q.t)/T.time,c={};for(const r in T.cost)c[r]=T.cost[r]*f;
       if(afford(b.team,c)){q.blocked=false;pay(b.team,c);q.paid=(q.paid||0)+f;q.t+=dt;if(q.t>=T.time){b.queue.shift();G.tech[b.team].add(q.tech);techRefresh(b.team);if(b.team===0){panelSig='';infoCache='';sfx('epoch');toast(tr('Erforscht: {0}',tr(T.name)),'good')}}}else q.blocked=true}}
