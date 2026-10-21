@@ -290,3 +290,6 @@ Idee für später: echte Nachbearbeitung (SSAO, Bloom mit Render-Target) braucht
 - Gegner-Typ „Zufall“ (`AI_STYLES.random`, `AI_PICK`): `newGame` würfelt per Math.random einen echten Typ (Karte unberührt), `aiStyle` bleibt „random“. Berater-Regel `gbuy:` (Markt, Gold ≥ 1200, ein Rohstoff < 350: 100 davon mit Gold kaufen).
 
 - Paket E4 (21.10.): Ego-Kasten oben = riesiger Lebensbalken (`#c`, 2D) einer Figur nahe am Auge, nicht der Raum; `scr()` (render3d.js) liefert in Ego `front` erst bei Tiefe > 3 und rechnet `k` mit `camera.fov`; `egoCam` blendet zusätzlich `ROOM.board`/Lampe aus. Turm-Nachladen `b.cd` im Mehrspieler-Stand (Feld `cd` bei Bld, `r1` gerundet), Gast-Ego-Balken = max(eigene Uhr, `e.cd`).
+
+## Ladegröße (Paket D5, 21.10.)
+- `EKMODELS.init` lädt nur noch Modelle für Zeitalter 0–1 sowie Tiere/Natur/Meer/Symbole sofort (25 MB roh statt 50); der Rest (92 Dateien) kommt im Hintergrund nach dem Spielzimmer, Zeitalter für Zeitalter (`EKMODELS.loadAll()`, `.full`, `.lateN`; `window.__eagerModels=true` = alles vorab, nützlich für Tests mit späten Zeitaltern). Fehlt eine Datei noch, greifen `entryFor`/`tag()` wie gehabt. Wer Gebäude/Einheiten später Zeitalter sofort messen will, muss `await EKMODELS.loadAll()` abwarten. Raum-JPGs auf Qualität 92 (−8 MB), Musik 160 kbps (−16 MB). Zahlen in OPTIMIERUNG.md.

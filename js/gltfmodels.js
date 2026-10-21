@@ -520,10 +520,27 @@ const EKMODELS=(()=>{
     const want=new Set();if(manifest.ual)want.add(manifest.ual);for(const x of Object.values(manifest.icons||{}))if(x&&x.file)want.add(x.file);for(const x of Object.values(manifest.wprops||{}))if(x&&x.file)want.add(x.file);for(const sn of Object.keys(manifest.sea||{}))for(const f of(manifest.sea[sn].files||[]))want.add(f);for(const sn of Object.keys(manifest.sea||{}))for(const x of manifest.sea[sn].extra||[])want.add(x.file);for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x&&x.file&&!x.off&&!x.when){want.add(x.file);for(const f of x.vary||[])want.add(typeof f==='string'?f:f.file);for(const v of x.variants||[]){if(v.file)want.add(v.file);for(const pr of v.props||[])if(pr&&pr.file)want.add(pr.file)}if(x.hand&&x.hand.file)want.add(x.hand.file);if(x.left&&x.left.file)want.add(x.left.file);if(x.work)for(const w of Object.values(x.work)){if(w.tool&&w.tool.file)want.add(w.tool.file);if(w.net&&w.net.file)want.add(w.net.file)}if(x.extra&&x.extra.file)want.add(x.extra.file);for(const l of Object.values(x.load||{}))if(l&&l.file)want.add(l.file);for(const pr of(x.props||[]).concat(x.extras||[],x.wear||[]))if(pr&&pr.file)want.add(pr.file)}
     const cm=new Set();for(const s of['units','buildings','animals','nodes'])for(const en of Object.values(manifest[s]||{}))for(const x of Array.isArray(en)?en:[en])if(x){if(x.cmap)cm.add(x.cmap);for(const pr of x.props||[])if(pr&&typeof pr.cmap==='string')cm.add(pr.cmap)}
     await Promise.all([...cm].map(cmapLoad));
-    await Promise.all([...want].map(async f=>{try{files.set(f,await loader.loadAsync('models/'+f))}catch(err){failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}}));
+    /* Gestaffeltes Laden (Paket D5): Dateien, die erst ab Zeitalter 2 gebraucht werden (frühestes Zeitalter aller Einträge, die sie nutzen), laden erst nach dem Menü im Hintergrund,
+       in Zeitalter-Reihenfolge. Fehlt eine Datei noch, greift entryFor/tag() wie bisher (nächstes geladenes Zeitalter bzw. kurz Code-Modell) und die Figur baut sich nach dem Laden neu.
+       Test/Notfall: window.__eagerModels=true oder EKMODELS.loadAll(). */
+    const minEp=new Map(),note=(f,ep)=>{if(typeof f==='string'&&ep<(minEp.has(f)?minEp.get(f):99))minEp.set(f,ep)};
+    const epOf=(sec,k)=>{try{const d=sec==='units'?UNITS[k]:BLDS[k];const e=d&&d.ep;return e>=9?1:(e|0)}catch(_){return 0}};
+    const walkF=(x,ep)=>{if(typeof x==='string'){if(/\.(glb|gltf)$/i.test(x))note(x,ep)}else if(Array.isArray(x))x.forEach(v=>walkF(v,ep));else if(x&&typeof x==='object'&&!x.off)for(const[k,v]of Object.entries(x))if(k[0]!=='_')walkF(v,ep)};
+    for(const sec of Object.keys(manifest)){if(sec[0]==='_'||sec==='cmap')continue;
+      if(sec==='units'||sec==='buildings'){for(const[k,en]of Object.entries(manifest[sec]))for(const x of Array.isArray(en)?en:[en])if(x&&!x.off&&!x.when)walkF(x,x.epochs&&x.epochs.length?Math.min(...x.epochs):epOf(sec,k))}
+      else if(sec==='nodes'||sec==='animals'){for(const en of Object.values(manifest[sec]))for(const x of Array.isArray(en)?en:[en])if(x&&!x.off&&!x.when)walkF(x,0)}
+      else walkF(manifest[sec],0)}
+    const lateF=[...want].filter(f=>(minEp.has(f)?minEp.get(f):0)>=2);const late=new Set(window.__eagerModels?[]:lateF);
+    const getF=async f=>{try{files.set(f,await loader.loadAsync('models/'+f))}catch(err){failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}};
+    await Promise.all([...want].filter(f=>!late.has(f)).map(getF));
     try{for(const gl of files.values())dedupTex(gl)}catch(err){console.warn('dedupTex',err)}
     pCache.clear();R.ready=true;R.ver++;/* Einheiten/Gebäude/Tiere: Signaturen ändern sich über tag() von selbst; Bäume/Felsen: Instanzen neu aufbauen */try{if(typeof r3!=='undefined'&&r3.scene&&typeof G!=='undefined'&&G&&G.ents&&G.ents.length)r3NodesInit()}catch(_){}
-    try{if(typeof ICON3!=='undefined'){ICON3.clear();document.querySelectorAll('[data-ic]').forEach(el=>{el.innerHTML=ART.icon(el.dataset.ic)})}}catch(_){}}
+    try{if(typeof ICON3!=='undefined'){ICON3.clear();document.querySelectorAll('[data-ic]').forEach(el=>{el.innerHTML=ART.icon(el.dataset.ic)})}}catch(_){}
+    /* Rest im Hintergrund: erst wenn das Spielzimmer fertig ist (oder nach 25 s), dann Zeitalter für Zeitalter */
+    R.lateN=late.size;R.loadAll=()=>{if(R.allP)return R.allP;R.allP=(async()=>{const by=new Map();for(const f of late){if(files.has(f))continue;const e=minEp.get(f);(by.get(e)||by.set(e,[]).get(e)).push(f)}
+      for(const e of [...by.keys()].sort((a,b)=>a-b)){await Promise.all(by.get(e).map(getF));pCache.clear();R.ver++;try{if(typeof ICON3!=='undefined'){ICON3.clear();document.querySelectorAll('[data-ic]').forEach(el=>{el.innerHTML=ART.icon(el.dataset.ic)})}}catch(_){}}
+      R.full=true})();return R.allP};
+    if(!late.size)R.full=true;else{const t0=performance.now(),go=()=>{if((typeof ROOM!=='undefined'&&ROOM.ready)||performance.now()-t0>25000)R.loadAll();else setTimeout(go,500)};setTimeout(go,500)}}
   /* Nachladen nach Bedarf: Natur-Modelle mit "when" im Manifest (z. B. "autumn", "winter", "pal:desert" oder eine Liste davon) werden erst geladen, wenn die Karte
      diese Jahreszeit/Farbwelt hat. tags = ['autumn','pal:desert']; Rückgabe: Zahl neu geladener Dateien (dann Instanzen neu aufbauen). */
   const loadingF=new Map();
