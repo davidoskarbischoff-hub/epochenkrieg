@@ -555,7 +555,7 @@ const EKMODELS=(()=>{
 })();
 /* Modelle in die Bau-Funktionen einhängen (Rückfall auf die Code-Modelle, wenn nichts passt) */
 (()=>{const origU=buildUnit,origB=buildBld;window.origBuildUnit=origU;
-  buildUnit=function(u){const r=EKMODELS.makeUnit(u,origU);if(r){M3.curId=u.id;return r}return origU(u)};
+  buildUnit=function(u){const r=EKMODELS.makeUnit(u,origU);if(r){M3.curId=u.id;return r}const c=origU(u);/* Spät-Modelle (Zeitalter 2+) laden noch: die Code-Figur (olivgrünes Flugzeug usw.) nicht zeigen, sie wird per tag() ersetzt, sobald das echte Modell da ist */if(EKMODELS.ready&&!EKMODELS.full&&(u.lvl||0)>=2&&c&&c.g)c.g.visible=false;return c};
   const origA=buildAnimal;buildAnimal=function(e){const r=EKMODELS.makeUnit(e,origA,'animal');return r||origA(e)};
   buildBld=function(type,R,ep,team,sp){const g=EKMODELS.makeBld(type,R,ep,team,origB,sp,M3.curId);if(g)return g;const c=origB(type,R,ep,team);if(!window.__noMerge)try{EKMODELS.mergeStatic([c],c,{skip:c.userData.flags||[]})}catch(err){console.warn('mergeStatic Code-Gebäude',err)}return c};
 })();
