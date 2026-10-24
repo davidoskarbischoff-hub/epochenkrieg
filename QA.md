@@ -115,3 +115,5 @@ Aufruf: `NODE_PATH=<playwright> node tools/mp-test.js [Bilderordner]` (~5 Min., 
 - 24.10. Marine: Panzerschiff aufgewertet, KI-Flottenangriff erst ab 3 Schiffen, Boote sperren unerreichbare Fischgründe teamweit (Details OPTIMIERUNG.md). Offen: Kriegsschiffe vs. Küste nur im Gefecht ohne Landung gemessen, Landungen (Transport) gibt es nicht.
 
 - KI-Taktik Schwer (Rückzug/Sammlerjagd) nur per Selbstspiel gemessen, nicht im Fenster angesehen; Wirkung klein und verrauscht (siehe OPTIMIERUNG.md).
+
+- Moves 24.10.: Schlag-Takt, Zucken, Jog geprüft per Bildfolge; Bogenschützen spannen nicht sichtbar (nur Gun_Shoot-Clip).

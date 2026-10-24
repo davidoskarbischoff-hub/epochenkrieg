@@ -484,13 +484,16 @@ function r3Unit(o,e,h,dt,t){
     else if(moving&&!rig.gltf)y+=Math.abs(s)*.07*(rig.horse?1.6:1);
     if(rig.loads)for(const k in rig.loads)rig.loads[k].visible=e.carry>0&&e.ctype===k;
     if(rig.gltf){
+      /* Treffer-Reaktion (auch für glTF-Figuren): Leben gesunken → o.fl; kurzer Rückstoss (unten) + Zuck-Clip (animate, nicht mitten im eigenen Schlag) */
+      if(o.hp===undefined)o.hp=e.hp;if(e.hp<o.hp-.5&&G.t-(o.hitAt||-9)>.35){o.fl=.3;o.hitAt=G.t}o.hp=e.hp;o.fl=Math.max(0,(o.fl||0)-dt);
       const kd=wkKind(e),near=cam.z>=.8,hunt=!!rig.wp&&near&&kd==='hunt'&&e.state==='attack'&&!moving&&d.gather&&G.t-(e.swing||-9)<2.6;/* Arbeiter jagt mit dem Speer */
-      const wantW=!hunt&&((e.state==='attack'&&G.t-(e.swing||-9)<1)||(!moving&&G.t-(e.healT||-9)<.6))?'attack':(work||build||hunt)?'work':moving?'walk':'idle';
+      const swA=G.t-(e.swing||-9),wind=e.state==='attack'&&!moving&&e.cd>0&&e.cd<.55&&d.cd>.6;/* Ausholen schon vor dem Schlag (Takt = Abklingzeit) */
+      const wantW=!hunt&&((e.state==='attack'&&(swA<1||wind))||(!moving&&G.t-(e.healT||-9)<.6))?'attack':(work||build||hunt)?'work':moving?'walk':'idle';
       const wp=rig.wp&&near?wkPhase(o,e,kd,dt,wantW,hunt,d):null;if(wantW!=='work')o.pg=undefined;
       /* Fernsicht: kleine Figuren (unter ~30 Pixel Höhe, weit herausgezoomt) rechnen ihr Skelett nur jedes 2. (unter ~18 Pixel jedes 3.) Bild, versetzt nach Nummer, mit der angesammelten Zeit; bei Wechsel der Tätigkeit sofort */
       const thr=R3.k*25<18?3:R3.k*25<30?2:1;o.ad=(o.ad||0)+dt;
       if(thr<2||o.lw!==wantW||(R3.fn+e.id)%thr===0||o.ad>.12){const adt=o.ad;o.ad=0;o.lw=wantW;
-      EKMODELS.animate(rig,wantW,adt,moving?Math.max(.6,d.spd/60):1,kd,{v:moving?d.spd*(e.spk||1)*(e.rage>G.t?RAGE.spd:1)/10/(obj.scale.x||1):0,hit:o.fl>.2,fight:(e.state==='attack'||e.state==='amove')&&!d.gather&&e.type!=='worker',
+      EKMODELS.animate(rig,wantW,adt,moving?Math.max(.6,d.spd/60):1,kd,{v:moving?d.spd*(e.spk||1)*(e.rage>G.t?RAGE.spd:1)/10/(obj.scale.x||1):0,hit:o.fl>.2&&!(swA<.45||wind),atk:wantW==='attack'&&e.state==='attack'?{s:swA,cd:e.cd||0,per:d.cd}:null,fight:(e.state==='attack'||e.state==='amove')&&!d.gather&&e.type!=='worker',
         near,ph:wp?wp.ph:undefined,n:o.wn||0,cv:e.carry>0&&e.state==='return',ct:e.ctype})}
       e._wi=!!(wp&&rig.wp.cur&&(kd==='chop'||kd==='mine'));/* Späne kommen dann vom Aufprall (r3Impact), nicht vom Takt in render.js */
       if(wp&&wp.imp)r3Impact(o,e,kd,rig);
@@ -512,7 +515,9 @@ function r3Unit(o,e,h,dt,t){
       if(rig.tool){const k=build?'build':(e.state==='gather'||e.state==='return'||work)?e.rtype:null;rig.tool(k==='food'&&e.carry>0&&e.state==='return'?null:k);if(rig.sack){rig.sack.visible=e.carry>0&&e.state!=='gather'||e.carry>4;rig.sack.scale.setScalar(.6+Math.min(1,e.carry/CARRY)*.6)}}
     }
   }
-  obj.position.set(e.x/S+(o.sh?Math.cos(e.fa)*o.sh:0),y,e.y/S+(o.sh?Math.sin(e.fa)*o.sh:0));obj.rotation.y=o.yaw;
+  /* Rückstoss beim Treffer: Figur weicht kurz nach hinten (nur Darstellung), schnell hin, weich zurück */
+  const rc=rig.gltf&&o.fl>0&&!rig.ship&&!d.siege?Math.sin(Math.min(1,o.fl/.3)*Math.PI)*(rig.horse?.16:.26):0;
+  obj.position.set(e.x/S+(o.sh?Math.cos(e.fa)*o.sh:0)-Math.cos(e.fa)*rc,y,e.y/S+(o.sh?Math.sin(e.fa)*o.sh:0)-Math.sin(e.fa)*rc);obj.rotation.y=o.yaw;
 }
 function r3Animal(o,e,h,dt,t){const S=R3.S,rig=o.rig,moving=G.t-(e.mvT||-9)<.2;let dy=-e.fa-o.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));o.yaw+=dy*Math.min(1,dt*10);if(moving)o.ph+=dt*(6+UNITS_A(e).spd*.05);const s=Math.sin(o.ph);
   if(rig.gltf){EKMODELS.animate(rig,e.state==='graze'?'work':(e.swing&&G.t-e.swing<.8)?'attack':moving?'walk':'idle',dt,moving?1.4:1);if(!rig.mixer)rig.g.rotation.z=moving?Math.sin(o.ph)*.06:0}
