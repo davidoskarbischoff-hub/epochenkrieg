@@ -98,7 +98,7 @@ function renderOptions(){
   bind('oWar',e=>e.onchange=()=>optSet('combatMusic',e.checked));bind('oVoice',e=>e.onchange=()=>optSet('voices',e.checked));
   bind('advChk',e=>e.onchange=()=>{advOn=e.checked;try{localStorage.setItem('ek-advisor',advOn?'1':'0')}catch(_){}if(!advOn)advisor.cur=null});
   bind('oAuto',e=>e.onchange=()=>{advisor.auto=e.checked;advisor.autoAt=(G?G.t:0)+2});
-  segB('oStrat',v=>{advisor.strat=v;advisor.ignore={};advisor.cur=null;advisor.next=0;advisor.reacted=null});
+  segB('oStrat',v=>{advSetStrat(v)});
   bind('gdChk',e=>e.onchange=()=>{guardOn=e.checked;try{localStorage.setItem('ek-guard',guardOn?'1':'0')}catch(_){}});
   bind('abChk',e=>e.onchange=()=>{autoBuildOn=e.checked;try{localStorage.setItem('ek-autobuild2',autoBuildOn?'1':'0')}catch(_){}});
   segB('oAiS',v=>{aiStyle=v});segB('oDiff',v=>{diff=v});

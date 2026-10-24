@@ -346,3 +346,5 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 - [ ] **Info-Knopf („i") an Einheiten und Gebäuden:** Kleines i im Info-Feld öffnet ein Fenster mit Geschwindigkeit, Leben, Angriff, Reichweite, Angriffstempo, Rüstung/Klasse (`cls`, Gegenstücke `CTR`), Kosten, Ausbildungszeit, Stufe (`lvl`). Die Hinweise `unitTip` (ui.js) liefern schon einen Teil; Werte stufenabhängig über `LVL`/Technologien (`G.tfx`) berechnen, nicht nur Grundwerte.
 
 - Moves 24.10.: Kampf-Animationen im Takt, Rückstoss, Jog beim Angriffsmarsch (siehe OPTIMIERUNG.md). Offen: Bogen-Spannen (kein Clip), Sterbe-Überblendung.
+
+- [x] Fischerboote wählen Schwärme nach Weg zum Hafen und Menge (`boatPick`), Berater-Angriffsplan (Chip „Angreifen“).

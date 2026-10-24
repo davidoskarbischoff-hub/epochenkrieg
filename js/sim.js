@@ -181,6 +181,24 @@ function nearestNode(rt,x,y,max,u,free){const naval=!!(u&&UNITS[u.type].naval);l
 /* Standplatz am Baum/Strauch: jeder Arbeiter bekommt eine eigene Seite (nach u.id), bevorzugt zur Abgabestelle hin; so hängen sie nicht dicht an dicht an einer Stelle. Nur Darstellung/Weg, die Rate bleibt gleich */
 function treeSpot(u,n){if(u.tsId===n.id)return u.tsP;u.tsId=n.id;u.tsP=null;const dp=nearestDrop(u.team,n.x,n.y,false,n.rt),b0=dp?Math.atan2(dp.y-n.y,dp.x-n.x):Math.atan2(u.y-n.y,u.x-n.x),rr=n.r+u.r+2;
   for(const o of[((u.id%3)-1)*1.15,((u.id%3)-1)*1.15+.6,-.6,0,2.4,-2.4,3.14]){const a=b0+o,x=n.x+Math.cos(a)*rr,y=n.y+Math.sin(a)*rr;if(x>2&&y>2&&navOpen(navCell(x,y),false)){u.tsP={x,y};break}}return u.tsP}
+/* Fischerboote: Schwarm nach Kosten pro Ladung wählen (Weg zum Hafen hin und zurück + Fangzeit), Boote verteilen sich (voller/besetzter Schwarm kostet extra), Mengen-Gewicht, unerreichbare (G.nbad/u.bad) übersprungen.
+   from = Punkt, von dem aus gefahren wird (Boot). Gibt den Schwarm oder null. */
+function boatPick(u,cur){const d=UNITS[u.type],gc=GATHER.food,carry=gc.carry*(1+G.tfx[u.team].carry+G.tfx[u.team].bcarry),spd=d.spd;let best=null,bs=1e9,nearD=1e9,allD=1e9;const cand=[];
+  for(const e of G.solids){if(e.kind!=='node'||e.dead||!e.sea||!seaOk(u,e,true)||!minedBy(u.team,e)||!canGather(u,e)||!nodeEpochOk(e,u.team))continue;
+    if(u.team===0&&!G.mp&&!nodeKnown(e))continue;if(u.bad&&u.bad[e.id]&&G.t-u.bad[e.id]<40)continue;
+    if(G.nbad){const nb=G.nbad[u.team+':'+e.id];if(nb&&G.t-nb.t<nb.p)continue}
+    const dB=Math.hypot(e.x-u.x,e.y-u.y);if(dB>1100)continue;const dp=nearestDrop(u.team,e.x,e.y,true,'food');if(!dp)continue;const dD=Math.hypot(e.x-dp.x,e.y-dp.y);
+    if(dD<allD)allD=dD;if(e.regen&&e.amount<30)continue; /* leergefischt: zählt nur als „näher Schwarm“, wird nicht angefahren */
+    const nd=NODES[e.type],load=(G.load[e.id]||0)-(u.tid===e.id&&u.state==='gather'?1:0),full=load>=nd.cap;
+    const rate=.85*gc.rate*(nd.gm||1)*(1+G.tfx[u.team].gather+G.tfx[u.team].bgather),fish=carry/rate*spd; /* Fangzeit in Fahrstrecke umgerechnet */
+    const trip=2*dD+dB*.5+fish,got=Math.max(1,Math.min(carry,e.amount-6)); /* Fahrt je Nahrung: ein fast leerer Schwarm bringt nur eine Teilladung */
+    let sc=trip*(carry/got)+load*15+(full?120:0);
+    cand.push({e,sc,dD,full});if(!full&&dD<nearD)nearD=dD}
+  for(const c of cand){if(!c.full&&c.dD>nearD+360&&(NODES[c.e.type].gm||1)<=1.3)continue; /* kein weiter Schwarm, solange ein naher frei ist */
+    if(c.dD>allD*3+300&&allD<1e9)continue; /* nicht quer über die Karte fahren (nur gerade leergefischte nahe Schwärme zählen als nah) */
+    if(c.sc<bs){bs=c.sc;best=c.e}}
+  if(cur&&best&&cur.id!==best.id){const c0=cand.find(c=>c.e.id===cur.id);if(c0&&!c0.full&&c0.sc<=bs*1.15+20)return cur} /* beim bisherigen bleiben, wenn der Gewinn klein ist */
+  return best}
 function nearestDrop(t,x,y,naval,rt,land){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='bld'||e.team!==t||!e.built||e.dead||(land&&e.type==='harbor'))continue;if(rt==='oil'?!BLDS[e.type].dropOil:!BLDS[e.type].drop)continue;if(naval&&e.type!=='harbor')continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
 function findEnemy(s,rad,unitsOnly){let best=null,bd=1e9;for(const e of G.ents){if(e.dead||e.team===s.team)continue;if(e.inm)continue;if(e.team<0&&!(e.kind==='animal'&&e.state==='chase'))continue;if(unitsOnly&&e.kind!=='unit'&&e.kind!=='animal')continue;if(e.gar&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;if(UNITS[e.type]&&UNITS[e.type].air&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;const d=Math.hypot(e.x-s.x,e.y-s.y)-e.r-s.r;if(d>rad)continue;const sc=d+(e.kind==='bld'?80:0);if(sc<bd){bd=sc;best=e}}return best}
 const reach=(u,t)=>dist(u,t)<=u.r+t.r+5;
@@ -241,7 +259,7 @@ function updUnit(u,dt){
     if(gap<=d.rng){u.fa=Math.atan2(t.y-u.y,t.x-u.x);if(u.cd<=0){u.cd=d.cd;u.swing=G.t;hit(u,t)}}
     else moveToward(u,t.x,t.y,dt,t.id);break}
   case 'gather':{let n=get(u.tid);if(n&&n.regen&&n.amount<6)n=null;
-    if(!n){const sr=d.naval?1100:350;/* Fischschwärme liegen verstreut: Boote suchen weiter */n=nearestNode(u.rtype,u.x,u.y,sr,u,true)||nearestNode(u.rtype,u.x,u.y,sr,u);if(!n){if(u.carry>0)u.state='return';else{u.state='idle';u.rtype=null}break}u.tid=n.id}
+    if(!n){const sr=d.naval?1100:350;/* Fischschwärme liegen verstreut: Boote suchen weiter */if(d.naval){n=boatPick(u);if(n&&u.carry>0&&Math.hypot(n.x-u.x,n.y-u.y)>220)n=null /* Teilladung: nur weiterfischen, wenn der nächste Schwarm nah ist, sonst erst abliefern */}else n=nearestNode(u.rtype,u.x,u.y,sr,u,true)||nearestNode(u.rtype,u.x,u.y,sr,u);if(!n){if(u.carry>0)u.state='return';else{u.state='idle';u.rtype=null}break}u.tid=n.id}
     if(MINE_RT[n.rt]==='mine'&&!d.naval&&canGather(u,n)){const m=mineOf(u.team,n);if(m){u.state='mine';u.tid=m.id;u.pf=null;u.carry=0}else{u.state='idle';u.tid=null}break}
     if(u.carry>0&&u.ctype!==n.rt)u.carry=0;
     const gc=GATHER[n.rt];
@@ -252,12 +270,12 @@ function updUnit(u,dt){
     if(fs?Math.hypot(u.x-fs.x,u.y-fs.y)<(shore?9:6):reach(u,n)){u.fa=fs&&!shore&&n.type==='field'?u.id%6.283:Math.atan2(n.y-u.y,n.x-u.x);const fr=G.t-(u.gat||-9)>.4;u.gat=G.t;if(fr)u.gt=u.gl=gcyc(n);if((u.gt=(u.gt||0)-dt)<=0){u.gt=u.gl=gcyc(n);sfx(n.rt==='wood'?'chop':n.rt==='stone'||n.rt==='iron'||n.rt==='gold'?'mine':'pick',u);if(Math.random()<.22)sfx('grunt',u)}const rate=gRate(u,n)*(shore?SHORE_RATE:1);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;const sd=NODES[n.type].side;if(sd)for(const k in sd)(u.byp||(u.byp={}))[k]=(u.byp[k]||0)+amt*sd[k]; /* Wal: Tran = Öl als Nebenprodukt */if(n.amount<=0.001){if(n.regen)n.amount=0;else kill(n)}if(u.carry>=cap)u.state='return'}
     else{
       // Absprache: ist der Baum/Busch schon voll besetzt, ein freies Vorkommen in der Nähe suchen
-      if((G.load[n.id]||0)>NODES[n.type].cap&&G.t-(u.rs||0)>1.5){u.rs=G.t;const alt=nearestNode(u.rtype||n.rt,u.x,u.y,350,u,true);if(alt&&alt.id!==n.id){G.load[n.id]--;G.load[alt.id]=(G.load[alt.id]||0)+1;u.tid=alt.id;u.pf=null;n=alt}}
+      if((G.load[n.id]||0)>NODES[n.type].cap&&G.t-(u.rs||0)>1.5){u.rs=G.t;const alt=d.naval?boatPick(u,n):nearestNode(u.rtype||n.rt,u.x,u.y,350,u,true);if(alt&&alt.id!==n.id){G.load[n.id]--;G.load[alt.id]=(G.load[alt.id]||0)+1;u.tid=alt.id;u.pf=null;n=alt}}
       moveToward(u,fs?fs.x:n.x,fs?fs.y:n.y,dt,n.id);
       if(u.pf&&u.pf.fail){(u.bad||(u.bad={}))[n.id]=G.t;if(d.naval){const nb=G.nbad||(G.nbad={}),k=u.team+':'+n.id,o=nb[k];nb[k]={t:G.t,p:Math.min(480,o?o.p*2:60)}}u.tid=null;u.pf=null}}
     break}
   case 'return':{const dp=nearestDrop(u.team,u.x,u.y,!!d.naval,u.ctype);if(!dp||!u.ctype){u.state='idle';break}
-    if(reach(u,dp)){G.res[u.team][u.ctype]+=u.carry;if(u.byp){for(const k in u.byp)G.res[u.team][k]=(G.res[u.team][k]||0)+u.byp[k];u.byp=null}if(u.team===0)sfx('drop',u);u.carry=0;if(!(u.q&&u.q.length&&nextOrder(u)))u.state='gather'}else moveToward(u,dp.x,dp.y,dt,dp.id);break}
+    if(reach(u,dp)){G.res[u.team][u.ctype]+=u.carry;if(u.byp){for(const k in u.byp)G.res[u.team][k]=(G.res[u.team][k]||0)+u.byp[k];u.byp=null}if(u.team===0)sfx('drop',u);u.carry=0;if(!(u.q&&u.q.length&&nextOrder(u))){u.state='gather';if(d.naval){const cn=get(u.tid),nb=boatPick(u,cn&&!cn.dead?cn:null);if(nb&&nb.id!==u.tid){u.tid=nb.id;u.pf=null}}}}else moveToward(u,dp.x,dp.y,dt,dp.id);break}
   case 'build':{const b=get(u.tid);
     if(b&&b.built&&u.rep&&b.hp<b.maxHp-1){ /* Reparatur: kostenlos, etwas langsamer als Bauen */
       if(reach(u,b)){u.fa=Math.atan2(b.y-u.y,b.x-u.x);const fr=G.t-(u.gat||-9)>.4;u.gat=G.t;if(fr)u.bt=u.bl=.55;if((u.bt=(u.bt||0)-dt)<=0){u.bt=u.bl=bcyc(u);sfx('hammer',u)}b.hp=Math.min(b.maxHp,b.hp+dt*b.maxHp/((BLDS[b.type].time||60)*2.2))}else moveToward(u,b.x,b.y,dt,b.id);break}
