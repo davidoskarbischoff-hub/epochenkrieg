@@ -52,7 +52,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Wegfindung (A*), Festhänge-Erkennung, Arbeiter verteilen sich auf Bäume; Bäume stehen weiter auseinander
 - [x] Fischquellen (Fische, Delfine ab Stufe II, Wale ab Stufe III), Hafen am Ufer, Fischerboote, Kriegsschiffe (Bronzezeit)
 - [x] Seegefechte gemessen und balanciert (Panzerschiff, KI-Flotte ab 3 Schiffen, 24.10.)
-- [ ] Landungen/Truppentransport gibt es noch nicht, Küstenverteidigung nur Turm
+- [x] Truppentransport über Wasser (24.10.): Landtruppen steigen per Rechtsklick auf ein eigenes Schiff ein (Fischerboot 4, Kriegsschiff 6, Galeone/Panzerschiff 8), Schiff fährt per Rechtsklick aufs Land zum nächsten Ufer und lädt dort aus (Knopf „Ausladen“). Offen: KI nutzt keine Landungen, Küstenverteidigung nur Turm, keine Anzeige der Ladung am Schiff selbst
 - [x] Gegner-KI nutzt Wasser noch nicht (kein Hafen, keine Boote)
 - [ ] Brücken über tiefes Wasser
 

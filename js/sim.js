@@ -42,7 +42,7 @@ function frontLine(){
   if(G.mp)return;const hq=G.ents.find(e=>e.type==='hq'&&e.team===0&&!e.dead);if(!hq)return;
   const ang=Math.atan2(H/2-hq.y,W/2-hq.x),dx=Math.cos(ang),dy=Math.sin(ang);let D=150;
   for(const e of G.ents){if(e.dead||e.team!==0||!(e.type==='worker'||(e.kind==='bld'&&e.built)))continue;D=Math.max(D,(e.x-hq.x)*dx+(e.y-hq.y)*dy+(e.kind==='bld'?90:70))}
-  D=Math.min(D,760);const us=G.ents.filter(u=>!u.dead&&u.team===0&&u.kind==='unit'&&u.state==='idle'&&!u.manual&&!u.upj&&!(u.q&&u.q.length)&&!UNITS[u.type].gather&&!UNITS[u.type].passive&&!UNITS[u.type].naval&&u.type!=='scout');
+  D=Math.min(D,760);const us=G.ents.filter(u=>!u.dead&&u.team===0&&u.kind==='unit'&&u.state==='idle'&&!u.inm&&!u.manual&&!u.upj&&!(u.q&&u.q.length)&&!UNITS[u.type].gather&&!UNITS[u.type].passive&&!UNITS[u.type].naval&&u.type!=='scout');
   us.forEach((u,i)=>{const row=Math.floor(i/8),col=i%8-3.5,sx=hq.x+dx*(D-row*26)-dy*col*30,sy=hq.y+dy*(D-row*26)+dx*col*30;
     if(Math.hypot(u.x-sx,u.y-sy)>70&&validSpot(sx,sy,u.r)){u.state='move';u.dest={x:sx,y:sy};u.amove=null;u.pf=null}})}
 /* Truppen denken mit (E3): Truppen im Leerlauf (kein Spielerbefehl) schützen die Arbeiter vor gefährlichen Wildtieren in der Nähe von Arbeitern und Wirtschaftsgebäuden
@@ -213,6 +213,7 @@ function pickExplore(u){const g=exGrid(u.team),naval=!!UNITS[u.type].naval;let b
 function updUnit(u,dt){
   const d=UNITS[u.type];u.cd=Math.max(0,u.cd-dt);u.px=u.x;u.py=u.y;
   if(u.type==='cart'&&u.state!=='haul'&&u.state!=='move')u.state='haul';
+  if(u.inb){boardTick(u);return}
   if(u.inm&&u.state!=='mine'){const b=G.byId.get(u.inm);u.inm=null;if(b){u.x=b.x;u.y=b.y+b.r+8}} /* anderer Befehl: Bergmann kommt aus der Mine (sonst bliebe er unsichtbar) */
   if(u.state==='idle'&&u.loop&&!(u.q&&u.q.length)){u.q=u.loop.map(o=>({...o}))}
   if(u.state==='idle'&&u.q&&u.q.length)nextOrder(u);
@@ -252,7 +253,8 @@ function updUnit(u,dt){
       break}
     const g=exGrid(u.team);if(!u.ex||G.t>u.ex.until||g[u.ex.i]){u.ex=pickExplore(u);if(!u.ex){if(d.naval){u.state='idle'}else{u.exPh='enemy';u.pf=null}break}u.ex.until=G.t+45;u.pf=null}
     const done=moveToward(u,u.ex.x,u.ex.y,dt);if(u.pf&&u.pf.fail){(u.badEx||(u.badEx={}))[u.ex.i]=G.t;u.ex=null;u.pf=null}else if(done)u.ex=null;break}
-  case 'move':if(moveToward(u,u.dest.x,u.dest.y,dt))u.state='idle';break;
+  case 'move':if(moveToward(u,u.dest.x,u.dest.y,dt)){u.state='idle';if(u.unl){u.unl=false;if(Math.hypot(u.x-u.dest.x,u.y-u.dest.y)<45)unloadShip(u.team,u.id);else if(u.team===0&&cargoOf(u)){toast(tr('Dorthin findet das Schiff keinen Wasserweg.'),'warn');sfx('error')}}}break;
+  case 'board':boardGo(u,dt);break;
   case 'amove':{const t=((u.ft=(u.ft||0)-dt)<=0)?(u.ft=.2+Math.random()*.1,findEnemy(u,140)):null;if(t){u.tid=t.id;u.state='attack';break}if(moveToward(u,u.amove.x,u.amove.y,dt)){u.state='idle';u.amove=null}break}
   case 'attack':{if(u.gd&&(G.t>u.gd.until||Math.hypot(u.x-u.gd.x,u.y-u.gd.y)>GUARD_LEASH)){u.state='idle';u.gd=null;u.tid=null;break}const t=get(u.tid);if(!t||t.team===u.team||(t.team<0&&t.kind!=='animal')){u.state=u.amove?'amove':'idle';break}
     const gap=dist(u,t)-u.r-t.r;
@@ -406,6 +408,52 @@ function minersIn(b){let n=0;for(const e of G.ents)if(e.inm===b.id&&!e.dead)n++;
 function mineOf(team,n){let best=null,bd=1e9;for(const b of G.ents){if(b.kind!=='bld'||b.type!=='mine'||!b.built||b.dead||b.team!==team)continue;const d=Math.hypot(b.x-n.x,b.y-n.y);if(d<n.r+b.r+8&&!b.empty&&minersIn(b)<MINE_CAP&&d<bd){bd=d;best=b}}return best}
 function mineNode(b,u){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='node'||e.dead||MINE_RT[e.rt]!=='mine'||e.amount<=0||!canGather(u,e)||(u.team===0&&!nodeKnown(e)))continue;const d=Math.hypot(e.x-b.x,e.y-b.y);if(d<e.r+b.r+8&&d<bd){bd=d;best=e}}return best}
 function mineOut(u){const b=u.inm&&G.byId.get(u.inm);if(u.inm){u.x=b?b.x:u.x;u.y=(b?b.y+b.r+8:u.y+20)}u.inm=null;u.state='idle';u.tid=null;u.pf=null}
+/* ---------- Truppentransport über Wasser ----------
+   Schiffe mit UNITS[..].cap nehmen Landtruppen auf (Rechtsklick auf das Schiff am Ufer): Passagiere haben u.inb = Schiff-ID, u.inm (unsichtbar/unantastbar wie in Minen)
+   und den Zustand 'aboard', ihre Position folgt dem Schiff. Rechtsklick des Schiffs auf Land = zum nächsten Ufer fahren und dort ausladen; Knopf "Ausladen".
+   Geht das Schiff unter: Passagiere werden am nächsten Land abgesetzt (bis 150 px), sonst ertrinken sie. Die KI nutzt den Transport nicht. */
+const BOARD_R=30,UNLOAD_R=130,SINK_R=150;
+const boardable=u=>u.kind==='unit'&&!u.inb&&!u.upj&&(()=>{const d=UNITS[u.type];return !d.naval&&!d.air&&u.type!=='cart'})();
+const cargoOf=s=>{let n=0;for(const e of G.ents)if(e.inb===s.id&&!e.dead)n++;return n};
+/* freie Landfelder (begehbar, kein Gebäude) um (x,y) in wachsenden Ringen, höchstens n Stück */
+function landSpots(x,y,rad,n){const out=[];if(n<=0)return out;
+  for(let r=8;r<=rad&&out.length<n;r+=7){const k=Math.max(8,Math.floor(Math.PI*2*r/14));
+    for(let i=0;i<k&&out.length<n;i++){const a=i/k*Math.PI*2+r*.37,px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;
+      if(px<12||py<12||px>W-12||py>H-12||terrAt(px,py)!==2||!navOpen(navCell(px,py),false))continue;
+      if(out.some(o=>Math.hypot(o.x-px,o.y-py)<13))continue;out.push({x:px,y:py})}}
+  return out}
+/* Wasserpunkt am Ufer nahe (x,y), wo ein Schiff anlegen kann (freies tiefes/flaches Wasser); null = kein Ufer in 160 px */
+function coastWater(x,y){let best=null,bd=1e9;
+  for(let r=0;r<=160;r+=10){const k=r?Math.max(8,Math.floor(Math.PI*2*r/10)):1;
+    for(let i=0;i<k;i++){const a=i/k*Math.PI*2,px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;if(px<10||py<10||px>W-10||py>H-10||!terrOk(px,py,true)||!navOpen(navCell(px,py),true))continue;
+      /* nur Wasser, das ans Land grenzt (kleiner Abstand zum Land), sonst legt das Schiff draussen an */
+      let near=false;for(const [dx,dy] of[[14,0],[-14,0],[0,14],[0,-14]])if(terrAt(px+dx,py+dy)===2){near=true;break}
+      if(!near)continue;const d=Math.hypot(px-x,py-y);if(d<bd){bd=d;best={x:px,y:py}}}
+    if(best)break}
+  return best}
+function boardTick(u){ /* Passagier: folgt dem Schiff; Schiff weg -> an Land retten oder ertrinken */
+  const s=G.byId.get(u.inb);
+  if(s&&!s.dead&&s.team===u.team){u.x=s.x;u.y=s.y;u.state='aboard';u.inm=s.id;return}
+  const sps=landSpots(u.x,u.y,SINK_R,6),sp=sps.length?sps[u.id%sps.length]:null;
+  if(sp){u.inb=null;u.inm=null;u.x=sp.x;u.y=sp.y;u.state='idle';u.pf=null;u.manual=true;if(u.team===0)toast(tr('Das Schiff ist gesunken, die Truppen konnten sich an Land retten.'),'warn')}
+  else{u.inb=null;u.inm=null;if(u.team===0&&G.t-(G.sinkMsg||-9)>3){G.sinkMsg=G.t;toast(tr('Das Schiff ist gesunken, die Ladung ist ertrunken.'),'warn')}kill(u)}}
+/* Landtruppe läuft zum Schiff und steigt ein */
+function boardGo(u,dt){const s=get(u.tid);
+  if(!s||s.dead||s.team!==u.team||!UNITS[s.type].cap){u.state='idle';return}
+  if(Math.hypot(u.x-s.x,u.y-s.y)<=u.r+s.r+BOARD_R){
+    if(cargoOf(s)>=UNITS[s.type].cap){if(u.team===0)toast(tr('Das Schiff ist voll.'),'warn');u.state='idle';return}
+    u.inb=s.id;u.inm=s.id;u.state='aboard';u.pf=null;u.q=[];u.loop=null;u.x=s.x;u.y=s.y;sel.delete(u.id);if(u.team===0){panelSig='';sfx('order')}return}
+  if(moveToward(u,s.x,s.y,dt,s.id)&&Math.hypot(u.x-s.x,u.y-s.y)>u.r+s.r+BOARD_R+40){u.state='idle';if(u.team===0)toast(tr('Das Schiff liegt zu weit vom Ufer entfernt.'),'warn')}}
+/* Ausladen: alle Passagiere an die nächsten freien Landfelder um das Schiff setzen */
+function unloadShip(team,id,msg){
+  if(NET.client&&team===0){NET.send({c:'unload',id});return true}
+  const s=G.byId.get(id);if(!s||s.dead||s.kind!=='unit'||s.team!==team||!UNITS[s.type].cap)return false;
+  const ps=G.ents.filter(e=>e.inb===s.id&&!e.dead);if(!ps.length)return false;
+  const sp=landSpots(s.x,s.y,UNLOAD_R,ps.length);
+  if(!sp.length){if(msg&&team===0){toast(tr('Hier ist kein Land zum Ausladen in der Nähe.'),'warn');sfx('error')}return false}
+  ps.slice(0,sp.length).forEach((u,i)=>{u.inb=null;u.inm=null;u.x=sp[i].x;u.y=sp[i].y;u.state='idle';u.pf=null;u.manual=true});
+  if(team===0){panelSig='';sfx('order');if(ps.length>sp.length)toast(tr('Nicht alle Truppen fanden Platz an Land.'),'warn')}
+  return true}
 function mineRelease(team,id){if(NET.client&&team===0){NET.send({c:'unmine',id});return}for(const e of G.ents)if(e.inm===id&&e.team===team&&!e.dead)mineOut(e)}
 const cartWant=b=>Math.min(CART_MAX,(b.spec==='rails'?2:1)+(b.xc||0));
 function buyCart(team,id){if(NET.client&&team===0){NET.send({c:'cart2',id});return true}const b=G.byId.get(id);if(!b||b.dead||b.team!==team||b.type!=='mine'||!b.built||b.empty||cartWant(b)>=CART_MAX||!pay(team,CART_COST))return false;b.xc=(b.xc||0)+1;b.cartT=0;if(team===0)sfx('built',b);return true}

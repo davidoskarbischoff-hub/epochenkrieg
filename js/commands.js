@@ -2,7 +2,7 @@
    (Teil des Spiels; alle game-Dateien teilen sich die globalen Namen, Ladereihenfolge siehe index.html.) */
 'use strict';
 /* ---------- player commands ---------- */
-function selection(){const a=[];for(const id of sel){const e=G.byId.get(id);if(e&&!e.dead)a.push(e)}return a}
+function selection(){const a=[];for(const id of sel){const e=G.byId.get(id);if(e&&!e.dead&&!e.inm)a.push(e)}return a}
 function ownSel(){return selection().filter(e=>e.team===0)}
 /* Was liegt an dieser Stelle? sp = Bildschirmpunkt (Maus): trifft die sichtbare Figur samt Höhe; ohne sp zählt nur der Bodenpunkt (x,y). */
 function entityAt(x,y,sp){
@@ -24,9 +24,10 @@ function toggleLoopSel(){let n=0,tog=0;ownSel().forEach(u=>{if(u.kind!=='unit')r
   if(tog===1)toast(tr('Befehlskette wird wiederholt (Patrouille). Taste L beendet sie.'));else if(tog===-1)toast(tr('Schleife beendet.'));else toast(tr('Dafür braucht es mindestens zwei Wegpunkte (Umschalt + Rechtsklick).'))}
 function clearChainSel(){let n=0;ownSel().forEach(u=>{if(u.kind==='unit'&&((u.q&&u.q.length)||u.loop)){u.q=[];u.loop=null;n++}});if(n)toast(tr('Befehlskette gelöscht.'));return n>0}
 /* ---------- Befehlsketten: Umschalt + Befehl hängt den Auftrag hinten an ---------- */
-function applyOrder(u,o){u.pf=null;if(u.inm&&o.t!=='mine')mineOut(u);if(u.gar&&o.t!=='garrison'){u.gar=null;u.y+=14}
+function applyOrder(u,o){if(u.inb)return;u.pf=null;u.unl=false;if(u.inm&&o.t!=='mine')mineOut(u);if(u.gar&&o.t!=='garrison'){u.gar=null;u.y+=14}
   switch(o.t){
-    case'move':u.state='move';u.dest={x:o.x,y:o.y};u.amove=null;break;
+    case'move':u.state='move';u.dest={x:o.x,y:o.y};u.amove=null;u.unl=!!o.unl;break;
+    case'board':u.state='board';u.tid=o.tid;u.amove=null;break;
     case'amove':u.state='amove';u.amove={x:o.x,y:o.y};break;
     case'gather':u.state='gather';u.tid=o.tid;u.rtype=o.rt;u.amove=null;break;
     case'build':u.state='build';u.tid=o.tid;u.rep=!!o.rep;u.prev=null;break;
@@ -34,7 +35,7 @@ function applyOrder(u,o){u.pf=null;if(u.inm&&o.t!=='mine')mineOut(u);if(u.gar&&o
     case'garrison':u.state='garrison';u.tid=o.tid;u.amove=null;break;
     case'mine':u.state='mine';u.tid=o.tid;u.amove=null;break;
     case'return':u.state='return';break}}
-function orderValid(o){if(o.t==='build'){const b=get(o.tid);return !!b&&(!b.built||(o.rep&&b.hp<b.maxHp-1))}if(o.t==='gather'||o.t==='attack'||o.t==='garrison')return !!get(o.tid);return true}
+function orderValid(o){if(o.t==='build'){const b=get(o.tid);return !!b&&(!b.built||(o.rep&&b.hp<b.maxHp-1))}if(o.t==='gather'||o.t==='attack'||o.t==='garrison'||o.t==='board')return !!get(o.tid);return true}
 function giveOrder(u,o,append){
   if(u.team===0)u.manual=true;
   if(!append)u.loop=null;
@@ -64,6 +65,8 @@ function command(wx,wy,append,sp){
     if(t&&t.kind==='node'&&UNITS[u.type].gather&&(!!t.sea===!!UNITS[u.type].naval||(t.sea&&!UNITS[u.type].naval&&shoreOf(t)))&&!minedBy(0,t)){if(!u.mineMsg||G.t-u.mineMsg>4){u.mineMsg=G.t;toast(tr(MINE_RT[t.rt]==='derrick'?'Für {0} brauchst du einen fertigen Bohrturm in der Nähe.':'Für {0} brauchst du eine fertige Mine in der Nähe.',rn(t.rt)));sfx('error')}}
     else if(t&&t.kind==='node'&&UNITS[u.type].gather&&(!!t.sea===!!UNITS[u.type].naval||(t.sea&&!UNITS[u.type].naval&&shoreOf(t)))){const tg=(spread&&spread.get(u.id))||t;giveOrder(u,{t:'gather',tid:tg.id,rt:tg.rt},append)}
     else if(t&&(t.team===1||t.kind==='animal')&&u.type!=='scout'){giveOrder(u,{t:'attack',tid:t.id},append)}
+    else if(t&&t.team===0&&t.kind==='unit'&&t.id!==u.id&&UNITS[t.type].cap&&boardable(u)){giveOrder(u,{t:'board',tid:t.id},append)}
+    else if(!t&&UNITS[u.type].naval&&UNITS[u.type].cap&&terrAt(wx,wy)===2){const cw=coastWater(wx,wy);if(cw)giveOrder(u,{t:'move',x:cw.x,y:cw.y,unl:true},append);else if(!u.mineMsg||G.t-u.mineMsg>4){u.mineMsg=G.t;toast(tr('Dort gibt es kein Ufer in der Nähe, an dem das Schiff anlegen kann.'),'warn');sfx('error')}}
     else if(t&&t.team===0&&t.kind==='bld'&&!t.built&&UNITS[u.type].builds){giveOrder(u,{t:'build',tid:t.id},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&t.built&&(t.type==='wall'||t.type==='tower')&&UNITS[u.type].ranged&&!UNITS[u.type].siege&&!UNITS[u.type].air&&!UNITS[u.type].builds){giveOrder(u,{t:'garrison',tid:t.id},append)}
     else if(t&&t.team===0&&t.kind==='bld'&&t.built&&t.type==='mine'&&UNITS[u.type].builds&&t.hp>=t.maxHp-1){giveOrder(u,{t:'mine',tid:t.id},append)}
