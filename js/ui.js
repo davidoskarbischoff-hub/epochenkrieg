@@ -13,13 +13,13 @@ let optTab='game';
 function renderMenu(){
   const m=$('menu');
   m.innerHTML=`<div class="gm"><div class="gm-frame"><div class="gm-crest">⚔</div><h1 class="gm-title">Epochenkrieg</h1><div class="gm-sub">${tr('Pause')}</div><div class="gm-rule"></div>
-  <nav class="gm-nav"><button class="go" id="mResume">${tr('Spiel fortsetzen')}</button>${SAVE.can()?`<button id="mSave">${tr('Speichern')}</button>`:''}${SAVE.info()&&!NET.mp?`<button id="mLoad">${tr('Laden')}<small class="sv-ts">${SAVE.label()}</small></button>`:''}<button id="mOpt">${tr('Optionen')}</button><button id="mMulti">${tr('Mehrspieler')}</button>${window.EK_APP?`<button id="mUpd">${tr('Nach Updates suchen')}</button>`:''}<button id="mNew">${tr('Neues Spiel')}</button></nav>
+  <nav class="gm-nav"><button class="go" id="mResume">${tr('Spiel fortsetzen')}</button>${SAVE.can()?`<button id="mSave">${tr('Speichern')}</button>`:''}${!NET.mp?`<button id="mLoad">${tr('Laden')}${SAVE.info()?`<small class="sv-ts">${SAVE.label()}</small>`:''}</button>`:''}<button id="mOpt">${tr('Optionen')}</button><button id="mMulti">${tr('Mehrspieler')}</button>${window.EK_APP?`<button id="mUpd">${tr('Nach Updates suchen')}</button>`:''}<button id="mNew">${tr('Neues Spiel')}</button></nav>
   <div class="gm-foot">${versionLabel()} · ${tr('Tipp')}: M = ${tr('Ton')}, F = ${tr('Kampfrausch')}, Esc = ${tr('Menü')}</div></div></div>`;
   $('mResume').onclick=toggleMenu;$('mOpt').onclick=renderOptions;
   const up=$('mUpd');if(up)up.onclick=()=>{window.EK_APP.checkForUpdates();toggleMenu()};
   $('mNew').onclick=()=>{toggleMenu();showStart()};
-  const sv=$('mSave');if(sv)sv.onclick=async()=>{if(await SAVE.save())renderMenu()};
-  const ld=$('mLoad');if(ld)ld.onclick=async()=>{const d=await SAVE.read();if(!d)return;toggleMenu();try{SAVE.apply(d)}catch(e){console.error(e);toast(tr('Spielstand ist beschädigt.'),'warn')}};
+  const sv=$('mSave');if(sv)sv.onclick=()=>SAVE.panel({save:true,done:()=>{if(!$('menu').hidden)toggleMenu()}});
+  const ld=$('mLoad');if(ld)ld.onclick=()=>SAVE.panel({save:SAVE.can(),done:()=>{if(!$('menu').hidden)toggleMenu()}});
   $('mMulti').onclick=()=>{toggleMenu();if(window.Lobby)Lobby.open()};
 }
 function renderOptions(){
@@ -33,6 +33,7 @@ function renderOptions(){
     +row('Kamera-Drehung',rng('oRot',.3,2.5,.1,OPT.camRot,OPT.camRot.toFixed(1)+'×'),'Wie schnell sich die Kamera beim Drehen und Neigen bewegt')
     +row('Ego: Mausempfindlichkeit',rng('oEgoS',.3,2.5,.1,OPT.egoSens,OPT.egoSens.toFixed(1)+'×'),'Wie schnell sich der Blick in der Ego-Ansicht dreht')
     +row('Ego: Kopf-Wippen',tog('oEgoB',OPT.egoBob),'Die Kamera wippt leicht, wenn die Figur läuft')
+    +row('Auto-Speichern',tog('oAuto',OPT.autosave!==false),'Alle 5 Spielminuten in den Platz „Automatisch“ speichern (nur Einzelspieler)')
     +row('Kamera zurücksetzen','<button id="oCamR" type="button" class="kmbtn">'+tr('Zurücksetzen')+'</button>','Drehung und Neigung auf Standard. Umschauen: Taste halten (Standard R) und die Maus bewegen')
     +row('Bildschirmrand-Scrollen',tog('oEdge',OPT.edgeScroll),'Maus an den Rand schieben, um die Karte zu bewegen')
     +row('Zoom-Stärke',rng('oZoom',.4,2.5,.1,OPT.zoomSpeed,OPT.zoomSpeed.toFixed(1)+'×'),'Wie stark das Mausrad zoomt')
@@ -93,7 +94,7 @@ function renderOptions(){
   document.querySelectorAll('.kmbtn').forEach(b=>b.onclick=()=>{b.textContent=tr('Taste drücken …');b.classList.add('wait');
     const h=ev=>{ev.preventDefault();ev.stopPropagation();removeEventListener('keydown',h,true);if(ev.key!=='Escape'&&ev.key!=='Shift'&&ev.key!=='Control'&&ev.key!=='Alt'&&ev.key!=='Meta'){keySet(b.dataset.a,ev.key.length===1?ev.key.toLowerCase():ev.key)}renderOptions()};addEventListener('keydown',h,true)});
   bind('kmReset',e=>e.onclick=()=>{keysReset();renderOptions()});
-  segB('oGfx',v=>setGfx(+v));bind('oShadow',e=>e.onchange=()=>optSet('shadows',e.checked));bind('oGrass',e=>e.onchange=()=>optSet('grass',e.checked));bind('oBloom',e=>e.onchange=()=>optSet('bloom',e.checked));bind('oCloud',e=>e.onchange=()=>optSet('cloudShade',e.checked));bind('oWeather',e=>e.onchange=()=>optSet('weather',e.checked));bind('oRoom',e=>e.onchange=()=>{optSet('room',e.checked);if(typeof ROOM!=='undefined'){if(!ROOM.g&&e.checked)ROOM.init();else ROOM.apply()}});bind('oIntro',e=>e.onchange=()=>optSet('intro',e.checked));bind('oRoomSt',e=>e.onchange=()=>{optSet('roomStudio',e.checked);if(typeof ROOM!=='undefined')ROOM.setBg()});bind('oGrade',e=>e.onchange=()=>optSet('grade',e.checked));bind('oFps',e=>e.onchange=()=>optSet('fps',e.checked));
+  segB('oGfx',v=>setGfx(+v));bind('oShadow',e=>e.onchange=()=>optSet('shadows',e.checked));bind('oGrass',e=>e.onchange=()=>optSet('grass',e.checked));bind('oBloom',e=>e.onchange=()=>optSet('bloom',e.checked));bind('oCloud',e=>e.onchange=()=>optSet('cloudShade',e.checked));bind('oWeather',e=>e.onchange=()=>optSet('weather',e.checked));bind('oRoom',e=>e.onchange=()=>{optSet('room',e.checked);if(typeof ROOM!=='undefined'){if(!ROOM.g&&e.checked)ROOM.init();else ROOM.apply()}});bind('oIntro',e=>e.onchange=()=>optSet('intro',e.checked));bind('oAuto',e=>e.onchange=()=>optSet('autosave',e.checked));bind('oRoomSt',e=>e.onchange=()=>{optSet('roomStudio',e.checked);if(typeof ROOM!=='undefined')ROOM.setBg()});bind('oGrade',e=>e.onchange=()=>optSet('grade',e.checked));bind('oFps',e=>e.onchange=()=>optSet('fps',e.checked));
   bind('oMute',e=>e.onchange=()=>SND.setMute(!e.checked));
   bind('mv',e=>e.oninput=()=>{SND.init();SND.setMusic(e.value/100);q('mvo').textContent=pc(SND.music)});
   bind('sv',e=>{e.oninput=()=>{SND.init();SND.setSfx(e.value/100);q('svo').textContent=pc(SND.sfx)};e.onchange=()=>SND.play('select')});
