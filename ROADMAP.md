@@ -113,7 +113,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Code aufgeteilt (state/map/sim/ai/commands/input/mp/advisor/render/ui/main)
 - [x] Optik: weiche Küsten, Sandstrand und Brandung, Gras mit Korn/Blumen/Steinchen, Küstenschatten, Licht von links oben
 - [x] Partikel: Rauch (Hütten, Hauptlager), Feuer bei beschädigten Gebäuden, Staub, Funken im Kampf, Späne beim Sammeln, Kielwasser
-- [ ] Nächste Optik-Ideen: Tag/Nacht-Licht, Wolkenschatten, bessere Schatten, Wasser-Animation
+- [ ] Nächste Optik-Ideen: Tag/Nacht-Licht, bessere Schatten, Wasserglanz (Wolkenschatten erledigt 24.10., Option Grafik; Wellen nur sanfter)
 - [ ] Später: echte 3D-Modelle oder vorgerenderte Bilder, Spielserver, Steam
 
 ## Plan nach dem 3D-Test (Stil ist entschieden: 3D mit Three.js, siehe 3dtest.html / js/test3d.js)

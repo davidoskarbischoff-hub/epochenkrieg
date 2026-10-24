@@ -46,6 +46,7 @@ function renderOptions(){
     +row('Farbfilter',tog('oGrade',OPT.grade),'Etwas kräftigerer Kontrast und kräftigere Farben')
     +row('Team-Markierung',seg('oTm',[['off','Aus'],['soft','Dezent'],['strong','Deutlich']],OPT.teamMark),'Ring unter Einheiten und Gebäuden in Teamfarbe (eigene Kreis, Gegner Raute) und Lebensbalken nach Team')
     +row('Leuchten (Bloom)',tog('oBloom',OPT.bloom),'Helle Stellen strahlen weich nach – kostet etwas Leistung')
+    +row('Wolkenschatten',tog('oCloud',OPT.cloudShade),'Weiche Schatten ziehen langsam über das Gelände – nur Optik, aus bei Grafik Niedrig')
     +row('Wetter (Laub, Schnee)',tog('oWeather',OPT.weather),'Fallende Blätter im Herbst, Blütenblätter im Frühling, Schnee im Winter – nur Optik')
     +row('Spielzimmer',tog('oRoom',OPT.room),'Karte liegt als Brett auf einem Schreibtisch in einer Werkstatt')
     +row('Intro-Animation',tog('oIntro',OPT.intro!==false),'Der Spielkarton öffnet sich beim Start; Klick oder Taste überspringt')
@@ -90,7 +91,7 @@ function renderOptions(){
   document.querySelectorAll('.kmbtn').forEach(b=>b.onclick=()=>{b.textContent=tr('Taste drücken …');b.classList.add('wait');
     const h=ev=>{ev.preventDefault();ev.stopPropagation();removeEventListener('keydown',h,true);if(ev.key!=='Escape'&&ev.key!=='Shift'&&ev.key!=='Control'&&ev.key!=='Alt'&&ev.key!=='Meta'){keySet(b.dataset.a,ev.key.length===1?ev.key.toLowerCase():ev.key)}renderOptions()};addEventListener('keydown',h,true)});
   bind('kmReset',e=>e.onclick=()=>{keysReset();renderOptions()});
-  segB('oGfx',v=>setGfx(+v));bind('oShadow',e=>e.onchange=()=>optSet('shadows',e.checked));bind('oGrass',e=>e.onchange=()=>optSet('grass',e.checked));bind('oBloom',e=>e.onchange=()=>optSet('bloom',e.checked));bind('oWeather',e=>e.onchange=()=>optSet('weather',e.checked));bind('oRoom',e=>e.onchange=()=>{optSet('room',e.checked);if(typeof ROOM!=='undefined'){if(!ROOM.g&&e.checked)ROOM.init();else ROOM.apply()}});bind('oIntro',e=>e.onchange=()=>optSet('intro',e.checked));bind('oRoomSt',e=>e.onchange=()=>{optSet('roomStudio',e.checked);if(typeof ROOM!=='undefined')ROOM.setBg()});bind('oGrade',e=>e.onchange=()=>optSet('grade',e.checked));bind('oFps',e=>e.onchange=()=>optSet('fps',e.checked));
+  segB('oGfx',v=>setGfx(+v));bind('oShadow',e=>e.onchange=()=>optSet('shadows',e.checked));bind('oGrass',e=>e.onchange=()=>optSet('grass',e.checked));bind('oBloom',e=>e.onchange=()=>optSet('bloom',e.checked));bind('oCloud',e=>e.onchange=()=>optSet('cloudShade',e.checked));bind('oWeather',e=>e.onchange=()=>optSet('weather',e.checked));bind('oRoom',e=>e.onchange=()=>{optSet('room',e.checked);if(typeof ROOM!=='undefined'){if(!ROOM.g&&e.checked)ROOM.init();else ROOM.apply()}});bind('oIntro',e=>e.onchange=()=>optSet('intro',e.checked));bind('oRoomSt',e=>e.onchange=()=>{optSet('roomStudio',e.checked);if(typeof ROOM!=='undefined')ROOM.setBg()});bind('oGrade',e=>e.onchange=()=>optSet('grade',e.checked));bind('oFps',e=>e.onchange=()=>optSet('fps',e.checked));
   bind('oMute',e=>e.onchange=()=>SND.setMute(!e.checked));
   bind('mv',e=>e.oninput=()=>{SND.init();SND.setMusic(e.value/100);q('mvo').textContent=pc(SND.music)});
   bind('sv',e=>{e.oninput=()=>{SND.init();SND.setSfx(e.value/100);q('svo').textContent=pc(SND.sfx)};e.onchange=()=>SND.play('select')});

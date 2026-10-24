@@ -300,3 +300,7 @@ Messung: Playwright, `index.html` über lokalen Server, Netzwerk-Log aller Antwo
 - Nicht geprüft: Desktop-App (WASM im Decoder ist eingebettet), Mehrspieler (unberührt).
 
 - Meshopt-Korrektur (24.10.): Komprimierte statische Modelle (Bäume, Büsche, Felsen, Gebäude, Props) zeigten im Spiel falsche Büsche/Bäume (Position quantisiert, Knoten-Transform wird beim Instanzieren nicht beachtet). Alle Dateien ohne Skelett (175) sind wieder die unkomprimierten Originale; nur Figuren mit Skelett (38) bleiben komprimiert. Lehre: Meshopt-Packen nur mit unquantisierter Position oder nach Test der Instanz-Pfade (`nodeParts`, `r3Multi`).
+
+## Wolkenschatten (24.10.)
+- `CLOUD` (render3d.js): Terrain-Material mischt per `onBeforeCompile` einen langsam ziehenden Rauschschatten ein (Wellenlänge ~300 px, Tempo ~2 px/s, bis ca. 20 % dunkler, weiche Kanten). Option `OPT.cloudShade` (Menü Grafik, DE/EN), aus bei Grafik Niedrig (`GQ[..].cloud`), Sparmodus, `R3.slow` und Eis. Nur Optik, keine Zusatzgeometrie: Aufrufe 259–261 / Dreiecke 390 000 mit und ohne (Software-GL, FPS-Wert dort nicht aussagekräftig, ~0,5). Wellen: Verschiebung mit sanftem Pendeln (`sin`), keine neue Ebene (zusätzliche Glanz-Ebene getestet, im Bild nicht erkennbar besser, deshalb weggelassen).
+- Bilder: scratchpad `c0.png` (aus) / `c1.png` (an).

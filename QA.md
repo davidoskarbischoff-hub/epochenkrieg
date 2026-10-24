@@ -111,3 +111,4 @@ Aufruf: `NODE_PATH=<playwright> node tools/mp-test.js [Bilderordner]` (~5 Min., 
 
 ## Meshopt-Modelle (21.10.)
 - 213 benutzte .glb mit Meshopt komprimiert (48,8 -> 21,9 MB). Struktur und Namen identisch, Kontaktbogen und Spielszene unverändert, keine Konsolenfehler. Nicht geprüft: Animation im Dauerlauf (nur Standbild), Desktop-App. Sieht eine Figur nach dem Laden verzerrt aus: Datei aus Git zurückholen und `tools/meshopt/pack.mjs` prüfen.
+- 24.10. Wolkenschatten (Option Grafik): Software-GL-Bild geprüft, Echtzeit-FPS auf echter GPU noch offen.
