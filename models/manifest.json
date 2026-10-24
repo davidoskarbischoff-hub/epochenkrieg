@@ -3546,12 +3546,19 @@
   "warship": {
    "file": "neu/Viking_boat.glb",
    "len": 6.5,
-   "yaw": 90
+   "yaw": 90,
+   "tint": {
+    "White": "team",
+    "Red": "team"
+   }
   },
   "galleon": {
    "file": "neu/Sail_ship.glb",
    "len": 9.5,
-   "yaw": 90
+   "yaw": 90,
+   "tint": {
+    "Fabric": "team"
+   }
   },
   "catapult": {
    "file": "neu/siege-catapult.glb",
