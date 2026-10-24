@@ -186,9 +186,15 @@ function aiTick(){
     if(ai.attack){
       if(army.length<Math.max(3,ai.wave*.35)){ai.attack=false;ai.next=G.t+70;const a=Math.atan2(H/2-hq.y,W/2-hq.x);for(const m of army){m.state='amove';m.amove={x:hq.x+Math.cos(a)*170,y:hq.y+Math.sin(a)*170}}}
       else{
+        if(diff==='schwer'){ /* Schwer: schwer verletzte Einheiten ziehen sich zurück, Wellen jagen zuerst Sammler am Rand */
+          for(const m of army){if(m.rt>G.t){continue}if(m.hp<m.maxHp*.25&&(m.state==='attack'||m.state==='amove')&&army.length>3){m.rt=G.t+14;m.state='amove';m.amove={x:hq.x+(Math.random()-.5)*80,y:hq.y+(Math.random()-.5)*80}}}
+          const fight=army.filter(m=>!(m.rt>G.t)),c=fight.length?fight.reduce((s,m)=>({x:s.x+m.x/fight.length,y:s.y+m.y/fight.length}),{x:0,y:0}):null;
+          if(c&&G.t>=(ai.wkT||0)){ai.wkT=G.t+3;let wb=null,wd=420;for(const s of ai.seen.values()){if(s.kind!=='unit')continue;const o=get(s.id);if(!o||o.dead||!UNITS[o.type].gather)continue;const d=Math.hypot(o.x-c.x,o.y-c.y);if(d<wd){wd=d;wb=o}}
+            if(wb)for(const m of fight.slice(0,Math.ceil(fight.length*.6))){if(m.state!=='attack'){m.state='attack';m.tid=wb.id}}}
+        }
         let pt=tgt;
         if(!pt){if(!ai.exPt||ai.ex[ai.exPt.i]){const c=army.reduce((s,m)=>({x:s.x+m.x/army.length,y:s.y+m.y/army.length}),{x:0,y:0});ai.exPt=pickExplore({x:c.x,y:c.y,team:1,type:'club'})}pt=ai.exPt}
-        if(pt)for(const m of army){if(m.state==='attack')continue;if(m.state==='idle'||!m.amove||Math.hypot(m.amove.x-pt.x,m.amove.y-pt.y)>200){m.amove={x:pt.x+(Math.random()-.5)*80,y:pt.y+(Math.random()-.5)*80};m.state='amove'}}
+        if(pt)for(const m of army){if(m.state==='attack'||m.rt>G.t)continue;if(m.state==='idle'||!m.amove||Math.hypot(m.amove.x-pt.x,m.amove.y-pt.y)>200){m.amove={x:pt.x+(Math.random()-.5)*80,y:pt.y+(Math.random()-.5)*80};m.state='amove'}}
       }
     }
   }

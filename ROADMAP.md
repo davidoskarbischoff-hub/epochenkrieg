@@ -21,7 +21,7 @@
 - [ ] Armbrust-Modell für den Armbrustschützen besorgen (trägt noch Bogen)
 - [x] Truppen/KI hängen fest auf grossen Karten: Entfernungsfeld bei langen Wegen, Neusuche nach Abdrängen, Gleiten am Ufer (Ankunft 386→441 von 448, Festhänge-Auslöser 6836→231, KI-Stillstand 5–26 %→<1 %)
 - [x] Boote zu unerreichbaren Fischgründen (teamweite Sperre, 24.10.)
-- [ ] Wegfindung: Dinos/Tiere blockieren Pässe
+- [x] Wegfindung: Dinos/Tiere blockieren Pässe – geprüft: auf Gebirgspass-Karten (3 Grössen x 4 Seeds) kam jede Sechsergruppe ans Ziel (36-139 s), keine hängt fest; Tiere am Weg töten teils Einzelne (gewollt), keine Änderung nötig
 ## Ideen für die nächsten Schritte
 Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortieren.
 
@@ -97,7 +97,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 
 ### Mittel
 - [ ] Bessere Wegfindung um Gebäude und Wälder
-- [ ] Klügere KI (gezielte Angriffe auf Arbeiter, Rückzug)
+- [x] Klügere KI (gezielte Angriffe auf Arbeiter, Rückzug) – nur Schwer (Paket KI-T, aiTick); Normal und Leicht unverändert
 - [x] Technologien und Upgrades pro Epoche
 - [ ] Spielstand speichern
 - [ ] Mehrere KI-Gegner (bis 4 Spieler, Teams)

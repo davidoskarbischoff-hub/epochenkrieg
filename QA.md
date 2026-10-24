@@ -113,3 +113,5 @@ Aufruf: `NODE_PATH=<playwright> node tools/mp-test.js [Bilderordner]` (~5 Min., 
 - 213 benutzte .glb mit Meshopt komprimiert (48,8 -> 21,9 MB). Struktur und Namen identisch, Kontaktbogen und Spielszene unverändert, keine Konsolenfehler. Nicht geprüft: Animation im Dauerlauf (nur Standbild), Desktop-App. Sieht eine Figur nach dem Laden verzerrt aus: Datei aus Git zurückholen und `tools/meshopt/pack.mjs` prüfen.
 - 24.10. Wolkenschatten (Option Grafik): Software-GL-Bild geprüft, Echtzeit-FPS auf echter GPU noch offen.
 - 24.10. Marine: Panzerschiff aufgewertet, KI-Flottenangriff erst ab 3 Schiffen, Boote sperren unerreichbare Fischgründe teamweit (Details OPTIMIERUNG.md). Offen: Kriegsschiffe vs. Küste nur im Gefecht ohne Landung gemessen, Landungen (Transport) gibt es nicht.
+
+- KI-Taktik Schwer (Rückzug/Sammlerjagd) nur per Selbstspiel gemessen, nicht im Fenster angesehen; Wirkung klein und verrauscht (siehe OPTIMIERUNG.md).
