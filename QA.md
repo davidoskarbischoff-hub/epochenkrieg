@@ -145,3 +145,10 @@ Bilder (Scratch): `scratchpad/qa2/a1_*.png` (Berater), `a2_shot*.png` (Ego-Turm)
 - [x] Obere Kapsel Tempo 1/2/3/5 und Pause (beide Oberflächen): Symbole unterscheidbar, Aktivfeld golden, Pause zeigt Play-Dreieck; Kapselbreite springt nicht (38/38 px neu, 78/68 px klassisch).
 - [ ] (schön wäre) Tempo-5-Symbol („>>>|“) wirkt gedrängt, ähnlich einem „Zum Ende“-Knopf.
 - [x] Wolkenschatten (Tempo 5, Zoom 0,32/0,8, Grafik Hoch): Muster wandert (Verhältnis an/aus 0,8 bis 1,04, Änderung zwischen Bildern im Mittel 6 %), nicht zu dunkel, aber im normalen Zoom nur sehr dezent. Beachten: Die Wolkenzeit hängt an der echten Uhr (nicht an Spieltempo/Pause), Wolken ziehen auch in der Pause weiter. Unter Software-GL bleiben sie aus (`R3.slow`).
+
+## QA-Lauf 2026-10-24 (Truppentransport, boatPick, Angriffsplan)
+- Ok, gemessen (Playwright, Software-GL, Seed 5, Küste): 3 Keulenträger steigen ins Fischerboot (alle `aboard`, `cargoOf`=3), `unloadShip` setzt alle auf Land (terrAt 2), erneutes Einsteigen klappt; Schiff stirbt am Ufer -> alle 3 an Land gerettet; Schiff stirbt im tiefen Wasser ohne Land in 160 px -> Passagier ertrinkt (tot). Bild: Boot mit Passagieren am Ufer, Truppen an Land sichtbar.
+- boatPick: Hafen + Boot, Steinzeit: wählt Fischschwarm (536 px) statt der nahen Delfine (451 px, erst ab Stufe 3 erlaubt, korrekt); Boot fischt (Ladung steigt, Nahrung +15 in 80 s).
+- Angriffsplan-Chip: neben den Taktik-Chips vorhanden, getrennt von „Angriff“, Klick setzt `advisor.atk`, `aria-pressed=true`, Berater meldet „Noch nichts vom Gegner gesehen – Späher losschicken.“ Keine Konsolenfehler.
+- Prüfungen: `node --check` aller js/*.js ok, `modell-luecken.js` nur cannon/trench/derrick, manifest.json gültig. Keine Mängel gefunden, kein Code geändert (MP unberührt, kein mp-test nötig).
+- Beobachtet (schön wäre): Fischerboot bringt in der Steinzeit mit einem Schwarm wenig Nahrung je Minute (kleine Ladung 4 nach 80 s Messung, kein Fehler). Rendertest in Software-GL nur mit ~1 Bild/10 s möglich, Echtzeit-Animation des Einsteigens nicht im Bild geprüft (Zustände per `step()` geprüft).
