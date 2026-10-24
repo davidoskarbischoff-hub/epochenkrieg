@@ -483,6 +483,9 @@ const EKMODELS=(()=>{
   /* Animationen pro Bild: passenden Clip wählen, weich überblenden */
   function natOf(rig,wrap,n){const a=rig.acts[n],ft=findBone(rig.natRoot,/^foot\.?l$|^FootL$/i);if(!a||!ft)return;const ck=rig.natKey+'|'+a.getClip().name;let v=natCache.get(ck);
     if(v===undefined){const D=a.getClip().duration;rig.mixer.stopAllAction();a.reset().play();let mn=1e9,mx=-1e9;const p=new THREE.Vector3();for(let i=0;i<=24;i++){rig.mixer.setTime(D*i/24);wrap.updateMatrixWorld(true);ft.getWorldPosition(p);mn=Math.min(mn,p.x);mx=Math.max(mx,p.x)}a.stop();v=D>0?(mx-mn)*2/D:0;natCache.set(ck,v);rig.mixer.stopAllAction();rig.mixer.setTime(0);const f=rig.acts.idle;if(f){f.reset().play();rig.cur='idle'}}if(v>.2)rig.nat[n]=v}
+  /* Zeitpunkt des Treffers im Angriffs-Clip (Sekunden ab Clip-Anfang, gemessen am schnellsten Handweg nach vorn) */
+  const ATK_IMPACT={Sword_Slash:.37,Punch_Right:.3,Gun_Shoot:.16};
+  function atkImpact(name,D){const n=String(name).replace(/^.*[|:]/,'');return ATK_IMPACT[n]!==undefined?ATK_IMPACT[n]:D*.4}
   function animate(rig,want,dt,speedScale,kind,opt){
     if(rig.rider){const r=rig.rider,pose=k=>{if(r.push)r.push.forEach((b,i)=>{b.rotation[r.pushAx||'x']+=(r.pushA||1.1)*(r.pushM&&i?-1:1)*k});if(r.sit)r.sit.forEach((b,i)=>{b.rotation.x-=1.35*k;b.rotation.z+=(i?-.35:.35)*k});if(r.shin)r.shin.forEach(b=>{b.rotation.x+=1.3*k})};if(r.posed)pose(-1);
       /* Fischerboot: der Ruderer dreht sich zur Bordwand (net.turn, Seite je Boot) und hält das Netz ins Wasser */const rf=r.net&&want==='work'&&kind==='fish';
@@ -492,19 +495,24 @@ const EKMODELS=(()=>{
     if(rig.wtools){for(const kd in rig.wtools)rig.wtools[kd].visible=(want==='work'&&kind===kd);if(rig.hand)rig.hand.visible=!(want==='work'&&rig.wtools[kind])}
     const wkey=want==='work'&&kind&&rig.acts['w:'+kind]?'w:'+kind:null;
     if(want==='idle'&&!rig.acts.idle&&rig.cur){rig.acts[rig.cur].fadeOut(.2);rig.cur=null}if(want==='idle'&&!rig.acts.idle){rig.mixer.update(dt*(speedScale||1));return}
-    const fight=opt&&opt.fight,chain={attack:['attack','idle'],work:['work','idle'],walk:fight?['run','walk','idle']:(opt&&opt.v&&rig.nat&&rig.nat.walk&&rig.acts.jog&&!opt.push&&opt.v>rig.nat.walk*1.7?['jog','walk','idle']:['walk','idle']),idle:fight?['ready','idle']:['idle']};let w=wkey||(chain[want]||['idle']).find(n=>rig.acts[n])||null;
+    const fight=opt&&opt.fight,chain={attack:['attack','idle'],work:['work','idle'],walk:fight?['run','jog','walk','idle']:(opt&&opt.v&&rig.nat&&rig.nat.walk&&rig.acts.jog&&!opt.push&&opt.v>rig.nat.walk*1.7?['jog','walk','idle']:['walk','idle']),idle:fight?['ready','idle']:['idle']};let w=wkey||(chain[want]||['idle']).find(n=>rig.acts[n])||null;
     /* Treffer: kurz Hit_Chest/Hit_Head überblenden (nicht neu starten, solange es läuft; danach 1,5 s Pause), dann zurück zum gewünschten Clip */
     if(rig.hitCd>0)rig.hitCd-=dt;if(rig.hitT>0){rig.hitT-=dt;if(rig.hitT>0)w='hit'}
     else if(opt&&opt.hit&&rig.hits&&!(rig.hitCd>0)){const a=rig.hits[(rig.hitN=(rig.hitN||0)+1)%rig.hits.length];rig.acts.hit=a;a.timeScale=1.3;rig.hitT=Math.min(.7,a.getClip().duration/1.3*.85);rig.hitCd=rig.hitT+1.5;const p=rig.cur&&rig.acts[rig.cur];a.reset().fadeIn(.08).play();if(p&&p!==a)p.fadeOut(.08);rig.cur='hit';w='hit'}
     /* gleicher Clip unter zwei Namen (z. B. Fischen = Idle) ist dieselbe Aktion: nicht ein- und zugleich ausblenden (sonst Gewicht 0 = Grundhaltung) */
     if(w&&rig.cur!==w){const a=rig.acts[w],p=rig.cur&&rig.acts[rig.cur];if(a!==p){const hd=rig.hold&&rig.hold[w],ph=rig.hold&&rig.hold[rig.cur];
       /* Knien (Beeren): hinknien ab hd.from, danach halten; beim Aufstehen den Rest des Clips (Aufrichten) überblenden */
-      a.reset().fadeIn(hd?hd.fade:.2).play();if(hd){a.time=hd.from;a.timeScale=hd.rate}
+      a.reset().fadeIn(hd?hd.fade:.2).play();if(hd){a.time=hd.from;a.timeScale=hd.rate}else if(w==='idle'||w==='walk'||w==='ready'||w==='jog'||w==='run'){const D=a.getClip().duration;if(rig.off===undefined)rig.off=Math.random();if(D>0)a.time=(rig.off*D)%D}/* Gleichtakt vermeiden: jede Figur startet Idle/Gehen an einer anderen Stelle des Clips */
       if(p){if(ph){p.timeScale=ph.outRate;p.time=ph.out;p.fadeOut(ph.outFade)}else p.fadeOut(.2)}}rig.cur=w}
     {const hd=rig.hold&&rig.hold[rig.cur],a=hd&&rig.acts[rig.cur];if(a&&a.timeScale>0&&a.time>=hd.at&&a.time<hd.out-.2){a.time=hd.at;a.timeScale=0}}
     if(rig.bend&&rig.bendP){rig.bend.rotation.x-=rig.bendP;rig.bendP=0}if(rig.net&&rig.net.on){rig.net.sv.forEach(([b,q])=>b.quaternion.copy(q));rig.net.on=0}
     /* Lauf-Tempo an die echte Geschwindigkeit koppeln (opt.v = Welteinheiten je Spielsekunde), weich nachgeführt */
     let ss=speedScale||1;if(opt&&opt.v&&rig.nat&&rig.nat[w]){const tsc=Math.max(.6,Math.min(1.9,opt.v/rig.nat[w]));rig.tsc=rig.tsc?rig.tsc+(tsc-rig.tsc)*Math.min(1,dt*6):tsc;ss=rig.tsc}
+    /* Schlag im Takt: Clip so einstellen, dass der Treffer-Moment (ATK_IMPACT) mit dem Schaden zusammenfällt – Ausholen vor dem Schlag, Nachschwung danach, dazwischen Bereitschaft */
+    const aa=w==='attack'&&opt&&opt.atk&&rig.acts.attack;if(aa){const A=rig.acts.attack,D=A.getClip().duration,imp=Math.min(D*.9,atkImpact(A.getClip().name,D)),a=opt.atk;
+      let tt=0;if(a.s>=0&&a.s<D-imp)tt=imp+a.s;else if(a.cd<imp)tt=imp-a.cd;else tt=Math.min(.05,D);
+      A.paused=false;A.timeScale=0;A.time=Math.max(0,Math.min(D-.001,tt));rig.atkSync=1}
+    else if(rig.atkSync){rig.atkSync=0;const A=rig.acts.attack;if(A)A.timeScale=1}
     rig.mixer.update(dt*ss);
     if(rig.wp&&opt)WPOSE.run(rig,want,kind,dt,opt);
     /* Beeren pflücken / Fischen: Oberkörper nach vorn beugen (nach der Animation aufgesetzt), beim Fischen danach Netz-Pose */

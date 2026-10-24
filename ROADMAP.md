@@ -20,7 +20,8 @@
 - [x] Krieger-Linien mit einem Grundkörper (Adventurer) durch alle Zeitalter, Teamfarbe ab Mittelalter, Brustpanzer/Stahlhelm als echte Modelle (`wear`)
 - [ ] Armbrust-Modell für den Armbrustschützen besorgen (trägt noch Bogen)
 - [x] Truppen/KI hängen fest auf grossen Karten: Entfernungsfeld bei langen Wegen, Neusuche nach Abdrängen, Gleiten am Ufer (Ankunft 386→441 von 448, Festhänge-Auslöser 6836→231, KI-Stillstand 5–26 %→<1 %)
-- [ ] Wegfindung: Boote zu unerreichbaren Fischgründen suchen immer wieder (Kosten), Dinos/Tiere blockieren Pässe
+- [x] Boote zu unerreichbaren Fischgründen (teamweite Sperre, 24.10.)
+- [x] Wegfindung: Dinos/Tiere blockieren Pässe – geprüft: auf Gebirgspass-Karten (3 Grössen x 4 Seeds) kam jede Sechsergruppe ans Ziel (36-139 s), keine hängt fest; Tiere am Weg töten teils Einzelne (gewollt), keine Änderung nötig
 ## Ideen für die nächsten Schritte
 Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortieren.
 
@@ -50,7 +51,8 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Karte größer (3600×2400) mit Land und Wasser: tiefes Wasser (nur für Schiffe), flaches Wasser (auch für Truppen), Küste mit Strand
 - [x] Wegfindung (A*), Festhänge-Erkennung, Arbeiter verteilen sich auf Bäume; Bäume stehen weiter auseinander
 - [x] Fischquellen (Fische, Delfine ab Stufe II, Wale ab Stufe III), Hafen am Ufer, Fischerboote, Kriegsschiffe (Bronzezeit)
-- [ ] Seegefechte und Landungen testen und balancen (Kriegsschiffe, Küstenverteidigung)
+- [x] Seegefechte gemessen und balanciert (Panzerschiff, KI-Flotte ab 3 Schiffen, 24.10.)
+- [ ] Landungen/Truppentransport gibt es noch nicht, Küstenverteidigung nur Turm
 - [x] Gegner-KI nutzt Wasser noch nicht (kein Hafen, keine Boote)
 - [ ] Brücken über tiefes Wasser
 
@@ -67,7 +69,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 
 - [x] Nebel und Gebietsrand mit weichen Kanten
 - [x] Zwei neue Zeitalter: Mittelalter (Ritter, Armbrustschütze, Galeone, Burg; Musik: Greensleeves) und Neuzeit (Musketier, Kanone; Musik: Ode an die Freude)
-- [ ] Neue Epochen balancen (Kosten, Aufstiegszeit, Einheitenwerte) und weitere Gebäude/Technologien
+- [ ] Neue Epochen balancen (Kosten, Aufstiegszeit, Einheitenwerte) und weitere Gebäude/Technologien (24.10.: Einheitenwerte Z3-Z6 und Aufstiegszeiten gemessen, keine Epoche auffällig)
 - [x] Mauern und Belagerung (Rammbock, Katapult) fürs Mittelalter
 
 - [x] Technologien pro Gebäude (Hauptlager, Hafen, Kaserne, Türme): ein bis zwei pro Epoche, nur aktuelle sieht man; Truppen müssen erst freigeschaltet werden (z. B. Speerbau, Eisenschmiede, Reiterei, Schießpulver)
@@ -77,7 +79,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Mauern (ab Mittelalter), Rammbock und Katapult (Technologie Belagerungswerkstatt)
 - [x] Befehlsketten: Taste L = Schleife (Patrouille), Rücktaste = Kette löschen
 - [x] Gebäude im neuen Grafikstil mit Material je Epoche; Einheiten zeigen ihre Stufe (Umhang, Schulterschmuck, Kamm, Schimmer)
-- [ ] Balancing nach Testspielen: Technologie-Kosten, Belagerer, Marine, KI-Tempo
+- [ ] Balancing nach Testspielen: Technologie-Kosten, Belagerer, Marine, KI-Tempo (24.10.: Truppen Z3-Z6 per Duell-Messung angeglichen, Technologie-Kosten und Marine noch offen)
 - [ ] Brücken über tiefes Wasser
 - [x] Mehrspieler für zwei Spieler: Lobby mit Einladungslink, Kartenwahl, Seitenwahl; Gastgeber rechnet, Gast schickt Befehle (WebRTC über PeerJS, oder zwei Tabs lokal)
 - [x] Vier Karten: Küste und Landzunge, Festland, Bergland (Berge, Klippen, Hafen nur an Lücken), Große Bucht; Auswahl auch im Einzelspiel
@@ -95,7 +97,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 
 ### Mittel
 - [ ] Bessere Wegfindung um Gebäude und Wälder
-- [ ] Klügere KI (gezielte Angriffe auf Arbeiter, Rückzug)
+- [x] Klügere KI (gezielte Angriffe auf Arbeiter, Rückzug) – nur Schwer (Paket KI-T, aiTick); Normal und Leicht unverändert
 - [x] Technologien und Upgrades pro Epoche
 - [ ] Spielstand speichern
 - [ ] Mehrere KI-Gegner (bis 4 Spieler, Teams)
@@ -113,7 +115,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Code aufgeteilt (state/map/sim/ai/commands/input/mp/advisor/render/ui/main)
 - [x] Optik: weiche Küsten, Sandstrand und Brandung, Gras mit Korn/Blumen/Steinchen, Küstenschatten, Licht von links oben
 - [x] Partikel: Rauch (Hütten, Hauptlager), Feuer bei beschädigten Gebäuden, Staub, Funken im Kampf, Späne beim Sammeln, Kielwasser
-- [ ] Nächste Optik-Ideen: Tag/Nacht-Licht, Wolkenschatten, bessere Schatten, Wasser-Animation
+- [ ] Nächste Optik-Ideen: Tag/Nacht-Licht, bessere Schatten, Wasserglanz (Wolkenschatten erledigt 24.10., Option Grafik; Wellen nur sanfter)
 - [ ] Später: echte 3D-Modelle oder vorgerenderte Bilder, Spielserver, Steam
 
 ## Plan nach dem 3D-Test (Stil ist entschieden: 3D mit Three.js, siehe 3dtest.html / js/test3d.js)
@@ -342,3 +344,5 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 ## Idee von David: Reichweite und Einheiten-Info (18.10., später)
 - [ ] **Reichweiten-Anzeige:** Beim Anklicken von Truppen erscheint ein Ring mit ihrer Trefferreichweite (`rng` in `UNITS`): Bogenschützen, Kanonen, Katapulte usw.; bei mehreren Einheiten die jeweiligen Ringe oder der Ring der gewählten Gruppe. Ring in Teamfarbe, dezent, nur für die eigene Auswahl (auch für Gebäude mit `shoot`, z. B. Türme). Einen Mindestabstand für Belagerungswaffen (Kanone, Haubitze, Katapult) gibt es im Spiel noch nicht: erst als Spielregel in `data.js`/`sim.js` einführen (`minRng`), dann inneren Ring zeichnen; Mehrspieler: nur Anzeige, die Regel wirkt im Gastgeber.
 - [ ] **Info-Knopf („i") an Einheiten und Gebäuden:** Kleines i im Info-Feld öffnet ein Fenster mit Geschwindigkeit, Leben, Angriff, Reichweite, Angriffstempo, Rüstung/Klasse (`cls`, Gegenstücke `CTR`), Kosten, Ausbildungszeit, Stufe (`lvl`). Die Hinweise `unitTip` (ui.js) liefern schon einen Teil; Werte stufenabhängig über `LVL`/Technologien (`G.tfx`) berechnen, nicht nur Grundwerte.
+
+- Moves 24.10.: Kampf-Animationen im Takt, Rückstoss, Jog beim Angriffsmarsch (siehe OPTIMIERUNG.md). Offen: Bogen-Spannen (kein Clip), Sterbe-Überblendung.

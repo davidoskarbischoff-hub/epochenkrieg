@@ -34,7 +34,7 @@ function r3Revive(full){if(!R3.ok)return;try{
   if(full&&R3.es){const old=M3.env,pm=new THREE.PMREMGenerator(r3.rd),t=pm.fromScene(R3.es,.04).texture;pm.dispose();M3.env=t;r3.scene.environment=t;r3.scene.traverse(o=>{if(!o.isMesh)return;for(const m of[].concat(o.material))if(m&&m.envMap===old){m.envMap=t;m.needsUpdate=true}})}
   r3.rd.setSize(Math.max(1,VW)+1,Math.max(1,VH),false);r3Resize();R3.bloomOff=0}catch(e){console.warn('revive',e)}}
 /* Grafikqualität (Menü): 0 Niedrig, 1 Mittel, 2 Hoch (Standard), 3 Ultra – unterscheiden sich sichtbar in Schärfe, Schatten, Gras, Leuchten und Rauch */
-const GQ=[{n:'Niedrig',pr:.7,sh:1024,grass:.25,bloom:0,smoke:0,rad:1},{n:'Mittel',pr:1,sh:1024,grass:.6,bloom:0,smoke:1,rad:1.5},{n:'Hoch',pr:1.5,sh:2048,grass:1,bloom:1,smoke:1,rad:2.5},{n:'Ultra',pr:2.2,sh:4096,grass:1.7,bloom:1,smoke:1,rad:4}];
+const GQ=[{n:'Niedrig',pr:.7,sh:1024,grass:.25,bloom:0,smoke:0,rad:1,cloud:0},{n:'Mittel',pr:1,sh:1024,grass:.6,bloom:0,smoke:1,rad:1.5,cloud:1},{n:'Hoch',pr:1.5,sh:2048,grass:1,bloom:1,smoke:1,rad:2.5,cloud:1},{n:'Ultra',pr:2.2,sh:4096,grass:1.7,bloom:1,smoke:1,rad:4,cloud:1}];
 let gfxQ=2;try{const q=localStorage.getItem('ek-gfx2');if(q!==null)gfxQ=Math.max(0,Math.min(3,+q||0));else{const o=localStorage.getItem('ek-gfx');if(o!==null)gfxQ=Math.max(0,Math.min(3,(+o||0)+1))}}catch(_){}
 function setGfx(q,temp){const old=gfxQ;gfxQ=q;try{r3.scene.traverse(o=>{if(o.userData&&o.userData.veg)o.castShadow=q>=2})}catch(_){}if(!temp)try{localStorage.setItem('ek-gfx2',q)}catch(_){}if(!R3.ok)return;const g=GQ[q],sz=Math.min(g.sh,r3.maxTex);if(r3.sun.shadow.mapSize.x!==sz){r3.sun.shadow.mapSize.set(sz,sz);if(r3.sun.shadow.map){r3.sun.shadow.map.dispose();r3.sun.shadow.map=null}}
   r3.sun.shadow.radius=g.rad;r3Resize();if(typeof optApply==='function')optApply();if(GQ[old].grass!==g.grass&&r3.i_tuft&&typeof W!=='undefined')r3Grass()}
@@ -127,9 +127,9 @@ function r3Map(){
     r3.waveTex=wc}
   const tm=new THREE.MeshStandardMaterial({map:tex,vertexColors:true,roughness:1,metalness:0,bumpMap:r3.detail,bumpScale:.45});
   /* großflächige Helligkeits-/Farbschwankung im Boden (bricht die gleichförmigen Flächen auf), per Shader-Zusatz */
-  tm.onBeforeCompile=sh=>{sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vWp;').replace('#include <begin_vertex>','#include <begin_vertex>\nvWp=(modelMatrix*vec4(position,1.0)).xyz;');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vWp;\nfloat h21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\nfloat vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}')
-      .replace('#include <map_fragment>','#include <map_fragment>\n{float n=vn(vWp.xz*0.035)*0.55+vn(vWp.xz*0.11)*0.3+vn(vWp.xz*0.4)*0.15;float k=0.86+0.3*n;diffuseColor.rgb*=vec3(k*1.02,k,k*0.97);}')};
+  tm.onBeforeCompile=sh=>{sh.uniforms.uCT=CLOUD.t;sh.uniforms.uCK=CLOUD.k;sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vWp;').replace('#include <begin_vertex>','#include <begin_vertex>\nvWp=(modelMatrix*vec4(position,1.0)).xyz;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uCT;uniform float uCK;\nvarying vec3 vWp;\nfloat h21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}\nfloat vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);}')
+      .replace('#include <map_fragment>','#include <map_fragment>\n{float n=vn(vWp.xz*0.035)*0.55+vn(vWp.xz*0.11)*0.3+vn(vWp.xz*0.4)*0.15;float k=0.86+0.3*n;diffuseColor.rgb*=vec3(k*1.02,k,k*0.97);if(uCK>0.0){vec2 cp=vWp.xz*0.0032+vec2(uCT*0.0022,uCT*0.0009);float c=vn(cp)*0.7+vn(cp*2.3+7.0)*0.3;float cs=smoothstep(0.47,0.6,c);diffuseColor.rgb*=1.0-uCK*cs*vec3(0.5,0.45,0.35);}}')};
   const mesh=r3Chunks(g,NX,NZ,tm);mesh.children.forEach(c=>c.receiveShadow=true);scene.add(mesh);r3.terrain=mesh;
   if(r3.waves)for(const w of r3.waves)scene.remove(w);r3.waves=[];
   for(const[sp,rep,op]of[[1,SX/9,.32],[-1,SX/5.3,.22]]){const wt=new THREE.CanvasTexture(r3.waveTex);wt.wrapS=wt.wrapT=THREE.RepeatWrapping;wt.repeat.set(rep,rep*SZ/SX);const wm=new THREE.Mesh(new THREE.PlaneGeometry(SX,SZ).rotateX(-Math.PI/2).translate(SX/2,0,SZ/2),new THREE.MeshBasicMaterial({map:wt,transparent:true,opacity:op,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));wm.position.y=-.34;wm.renderOrder=1;wm.userData.sp=sp;wm.userData.op0=op;scene.add(wm);r3.waves.push(wm)}
@@ -182,6 +182,7 @@ function toWorld(sx,sy,raw){/* raw: auch ausserhalb der Karte (Kamera, Tisch), s
 
 /* Wind: Bäume, Büsche und Gras wiegen sich (Vertex-Shader-Zusatz; Ausschlag wächst mit der Höhe, jede Instanz hat eine andere Phase) */
 const WIND={value:0};
+const CLOUD={t:{value:0},k:{value:0}};/* Wolkenschatten: Zeit, Stärke (0 = aus) */
 function windify(mat,amp){mat.customProgramCacheKey=()=>"wind"+amp;/* eigener Programm-Schlüssel je Ausschlag (sonst teilen sich gleiche Materialien das zuerst übersetzte Programm) */mat.onBeforeCompile=sh=>{sh.uniforms.uWind=WIND;
   sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nuniform float uWind;').replace('#include <begin_vertex>',`#include <begin_vertex>
   #ifdef USE_INSTANCING
@@ -483,13 +484,16 @@ function r3Unit(o,e,h,dt,t){
     else if(moving&&!rig.gltf)y+=Math.abs(s)*.07*(rig.horse?1.6:1);
     if(rig.loads)for(const k in rig.loads)rig.loads[k].visible=e.carry>0&&e.ctype===k;
     if(rig.gltf){
+      /* Treffer-Reaktion (auch für glTF-Figuren): Leben gesunken → o.fl; kurzer Rückstoss (unten) + Zuck-Clip (animate, nicht mitten im eigenen Schlag) */
+      if(o.hp===undefined)o.hp=e.hp;if(e.hp<o.hp-.5&&G.t-(o.hitAt||-9)>.35){o.fl=.3;o.hitAt=G.t}o.hp=e.hp;o.fl=Math.max(0,(o.fl||0)-dt);
       const kd=wkKind(e),near=cam.z>=.8,hunt=!!rig.wp&&near&&kd==='hunt'&&e.state==='attack'&&!moving&&d.gather&&G.t-(e.swing||-9)<2.6;/* Arbeiter jagt mit dem Speer */
-      const wantW=!hunt&&((e.state==='attack'&&G.t-(e.swing||-9)<1)||(!moving&&G.t-(e.healT||-9)<.6))?'attack':(work||build||hunt)?'work':moving?'walk':'idle';
+      const swA=G.t-(e.swing||-9),wind=e.state==='attack'&&!moving&&e.cd>0&&e.cd<.55&&d.cd>.6;/* Ausholen schon vor dem Schlag (Takt = Abklingzeit) */
+      const wantW=!hunt&&((e.state==='attack'&&(swA<1||wind))||(!moving&&G.t-(e.healT||-9)<.6))?'attack':(work||build||hunt)?'work':moving?'walk':'idle';
       const wp=rig.wp&&near?wkPhase(o,e,kd,dt,wantW,hunt,d):null;if(wantW!=='work')o.pg=undefined;
       /* Fernsicht: kleine Figuren (unter ~30 Pixel Höhe, weit herausgezoomt) rechnen ihr Skelett nur jedes 2. (unter ~18 Pixel jedes 3.) Bild, versetzt nach Nummer, mit der angesammelten Zeit; bei Wechsel der Tätigkeit sofort */
       const thr=R3.k*25<18?3:R3.k*25<30?2:1;o.ad=(o.ad||0)+dt;
       if(thr<2||o.lw!==wantW||(R3.fn+e.id)%thr===0||o.ad>.12){const adt=o.ad;o.ad=0;o.lw=wantW;
-      EKMODELS.animate(rig,wantW,adt,moving?Math.max(.6,d.spd/60):1,kd,{v:moving?d.spd*(e.spk||1)*(e.rage>G.t?RAGE.spd:1)/10/(obj.scale.x||1):0,hit:o.fl>.2,fight:(e.state==='attack'||e.state==='amove')&&!d.gather&&e.type!=='worker',
+      EKMODELS.animate(rig,wantW,adt,moving?Math.max(.6,d.spd/60):1,kd,{v:moving?d.spd*(e.spk||1)*(e.rage>G.t?RAGE.spd:1)/10/(obj.scale.x||1):0,hit:o.fl>.2&&!(swA<.45||wind),atk:wantW==='attack'&&e.state==='attack'?{s:swA,cd:e.cd||0,per:d.cd}:null,fight:(e.state==='attack'||e.state==='amove')&&!d.gather&&e.type!=='worker',
         near,ph:wp?wp.ph:undefined,n:o.wn||0,cv:e.carry>0&&e.state==='return',ct:e.ctype})}
       e._wi=!!(wp&&rig.wp.cur&&(kd==='chop'||kd==='mine'));/* Späne kommen dann vom Aufprall (r3Impact), nicht vom Takt in render.js */
       if(wp&&wp.imp)r3Impact(o,e,kd,rig);
@@ -511,7 +515,9 @@ function r3Unit(o,e,h,dt,t){
       if(rig.tool){const k=build?'build':(e.state==='gather'||e.state==='return'||work)?e.rtype:null;rig.tool(k==='food'&&e.carry>0&&e.state==='return'?null:k);if(rig.sack){rig.sack.visible=e.carry>0&&e.state!=='gather'||e.carry>4;rig.sack.scale.setScalar(.6+Math.min(1,e.carry/CARRY)*.6)}}
     }
   }
-  obj.position.set(e.x/S+(o.sh?Math.cos(e.fa)*o.sh:0),y,e.y/S+(o.sh?Math.sin(e.fa)*o.sh:0));obj.rotation.y=o.yaw;
+  /* Rückstoss beim Treffer: Figur weicht kurz nach hinten (nur Darstellung), schnell hin, weich zurück */
+  const rc=rig.gltf&&o.fl>0&&!rig.ship&&!d.siege?Math.sin(Math.min(1,o.fl/.3)*Math.PI)*(rig.horse?.16:.26):0;
+  obj.position.set(e.x/S+(o.sh?Math.cos(e.fa)*o.sh:0)-Math.cos(e.fa)*rc,y,e.y/S+(o.sh?Math.sin(e.fa)*o.sh:0)-Math.sin(e.fa)*rc);obj.rotation.y=o.yaw;
 }
 function r3Animal(o,e,h,dt,t){const S=R3.S,rig=o.rig,moving=G.t-(e.mvT||-9)<.2;let dy=-e.fa-o.yaw;dy=Math.atan2(Math.sin(dy),Math.cos(dy));o.yaw+=dy*Math.min(1,dt*10);if(moving)o.ph+=dt*(6+UNITS_A(e).spd*.05);const s=Math.sin(o.ph);
   if(rig.gltf){EKMODELS.animate(rig,e.state==='graze'?'work':(e.swing&&G.t-e.swing<.8)?'attack':moving?'walk':'idle',dt,moving?1.4:1);if(!rig.mixer)rig.g.rotation.z=moving?Math.sin(o.ph)*.06:0}
@@ -542,11 +548,11 @@ function r3Ghost(type,x,y,ok){
 function r3Dyn(dt){if(!(dt>0)||dt>.5)return;R3.dyn=R3.dyn||1;R3.dynA=(R3.dynA||1/60)*.95+dt*.05;R3.dynT=(R3.dynT||0)+dt;if(R3.dynT<1.5)return;R3.dynT=0;
   const f=1/R3.dynA,old=R3.dyn;if(f<38&&R3.dyn>.5)R3.dyn=Math.max(.5,R3.dyn-.1);else if(f>55&&R3.dyn<1)R3.dyn=Math.min(1,R3.dyn+.05);if(R3.dyn!==old)r3Resize();R3.slow=f<30}
 function r3Frame(list,rings,dt){r3Dyn(dt);
-  const t=(performance.now()-R3.t0)/1000;WIND.value=t;
+  const t=(performance.now()-R3.t0)/1000;WIND.value=t;CLOUD.t.value=t;CLOUD.k.value=(OPT.cloudShade&&GQ[gfxQ].cloud&&!R3.saverOn&&!R3.slow&&!(R3.ice>.5))?.8:0;
   if(R3.bgRef!==bg||R3.gRef!==G)r3Map();
   camUpdate();
   if(r3.foam)r3.foam.material.opacity=(.42+.3*Math.sin(t*1.4)+.1*Math.sin(t*3.1))*(1-(R3.ice||0)*.8);
-  for(const w of r3.waves){w.material.opacity=w.userData.op0*(1-(R3.ice||0)*.72);const m=w.material.map;m.offset.x=(t*.012*w.userData.sp)%1;m.offset.y=(t*.007)%1}
+  for(const w of r3.waves){w.material.opacity=w.userData.op0*(1-(R3.ice||0)*.72);const m=w.material.map;m.offset.x=(t*.012*w.userData.sp+.012*Math.sin(t*.35+w.userData.sp*3))%1;m.offset.y=(t*.007+.01*Math.sin(t*.27+w.userData.sp))%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   {const V=R3.view,N=R3.nodeV,ck=Math.round(cam.yaw*12)+','+Math.round(cam.pitch*12);if(ck!==R3.camK){R3.camK=ck;R3.nodeT=0}if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
   r3Lod();R3.nodeT-=dt;R3.gsT=(R3.gsT||0)-dt;if(R3.nodeT<=0){R3.nodeT=R3.apBusy?.06:.4;r3Nodes();if(R3.gsT<=0){R3.gsT=.4;r3GrassShade()}else r3GrassView()}else r3GrassView();if(SHK.size)r3Shake(dt)
