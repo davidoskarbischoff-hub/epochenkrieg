@@ -206,3 +206,16 @@ body.ui2 #menu .gm-frame::before,body.ui2 #menu .gm-frame::after,body.ui2 #tree 
   body.ui2 #app #hint{max-width:calc(100% - 16px);bottom:calc(var(--miniH) + 14px*var(--u))}
   body.ui2 #app #fps{left:calc(var(--miniW) + 14px*var(--u))}
 }
+
+/* Liquid Glass 2 (24.10.): obere rechte Knöpfe als EINE Glaskapsel statt einzelner Ringe */
+body.ui2 #app #top .tl{gap:calc(2px*var(--u));padding:calc(4px*var(--u));border-radius:99px;background:var(--glass);border:1px solid var(--rim);box-shadow:var(--glassS)}
+body.ui2 #app #top .tl .tbtn{width:calc(38px*var(--u));height:calc(38px*var(--u));border:0;background:transparent;box-shadow:none;outline:0}
+body.ui2 #app #top .tl .tbtn:hover{background:rgba(255,255,255,.16);box-shadow:none;border:0}
+body.ui2 #app #top .tl .tbtn:active{background:rgba(255,255,255,.26)}
+body.ui2 #app #top .tl #idleBtn.ok,body.ui2 #app #top .tl #idleBtn.alert{border:0;box-shadow:none}
+body.ui2 #app #top .tl #idleBtn::before{width:calc(32px*var(--u));height:calc(32px*var(--u))}
+body.ui2 #app #top .tl #idleBtn.alert{background:rgba(224,83,60,.28)}
+body.ui2 #app #top .tl #pauseBtn[data-on="1"]{border:0;background:rgba(255,196,80,.30)}
+body.ui2 #app #top .tl #speedBtn{border:0;box-shadow:none;width:auto;min-width:calc(38px*var(--u));padding:0 calc(8px*var(--u))}
+body.ui2 #app #top .tl #speedBtn[data-sp="1"]::before{opacity:.8}
+body.ui2 #app #top .tl #speedBtn:not([data-sp="1"]){background:color-mix(in srgb,var(--fr) 30%,transparent)}
