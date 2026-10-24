@@ -166,7 +166,7 @@ function advRules(){
   return rules}
 function advisorUI(){
   const el=$('advisor');if(!el)return;/* Auto an: keine Blase mit Haken/X (Auto führt selbst aus), nur eine ruhige Zeile mit der letzten Meldung (~3,5 s) */
-  const c=advisor.auto?null:advisor.cur,nt=advisor.auto&&advisor.note&&advisor.note.until>G.t?advisor.note:null;
+  const c=advisor.auto?null:advisor.cur,nt=null; /* Auto an: gar keine Meldung zeigen (David 24.10.) */
   if(!advOn||!G||!G.running||menuOpen||G.mp){el.hidden=true;advisor.shown='';return}
   el.hidden=false;
   if(advisor.o2===undefined){advisor.o2=1;if(ui2())advisor.open=false} // neue Oberfläche: Berater startet als kleine Pille

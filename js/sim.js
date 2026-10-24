@@ -127,7 +127,7 @@ function step(dt){
   for(let t=0;t<2;t++){const js=G.jobs[t];if(!js.length)continue;for(const j of js){j.t+=dt;if(j.t>=j.time){j.done=true;for(const id of j.ids){const e=G.byId.get(id);if(e&&!e.dead){e.upj=null;levelUp(e,j.to)}}if(t===0){panelSig='';infoCache='';sfx('epoch');toast(tr('Upgrade fertig: {0}',j.label),'good')}}}G.jobs[t]=js.filter(j=>!j.done)}
   G.rs=[[],[]];for(const b of G.ents)if(b.kind==='bld'&&!b.dead&&b.team>=0&&b.queue)b.queue.forEach((q,k)=>{if(q.tech)G.rs[b.team].push({id:q.tech,t:q.t,time:TECH[q.tech].time,q:k>0,b:b.id})}); /* Ansicht der laufenden/wartenden Forschung */
   for(let t=0;t<2;t++){const a=G.adv[t];if(!a)continue;a.t+=dt;if(a.t>=a.time){G.epoch[t]++;G.adv[t]=null;panelSig='';if(t===1&&!G.mp){applyLevels(1);grantAiTechs(1)}if(t===0){sfx('epoch');if(typeof SND!=='undefined')SND.setEpoch(G.epoch[0])}if(t===0)toast(tr('{0} erreicht! Neue Einheiten und Gebäude verfügbar.',tr(EPOCHS[G.epoch[0]].name)),'good');else toast(tr('Der Gegner hat die {0} erreicht.',tr(EPOCHS[G.epoch[1]].name)),'warn')}}
-  for(const p of G.proj){const t=get(p.tid);if(!t){p.dead=true;continue}const dx=t.x-p.x,dy=t.y-p.y,d=Math.hypot(dx,dy),s=380*dt;p.a=Math.atan2(dy,dx);if(d<=s+t.r*.5){damage(t,p.dmg,get(p.src));if(p.sp){for(const o of G.ents)if(o!==t&&!o.dead&&o.kind==='unit'&&o.team===t.team&&Math.hypot(o.x-t.x,o.y-t.y)<p.sp)damage(o,p.dmg*.5,get(p.src))}p.dead=true}else{p.x+=dx/d*s;p.y+=dy/d*s}}
+  for(const p of G.proj){if(p.free){const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy),s=380*dt;p.a=Math.atan2(dy,dx);if(d<=s){const src=get(p.src);let h=null,hd=22;for(const o of G.ents){if(o.dead||o.inm||o.team===(src?src.team:0)||(o.kind!=='unit'&&o.kind!=='animal'&&o.kind!=='bld')||(o.team<0&&o.kind!=='animal'))continue;const q=Math.hypot(o.x-p.tx,o.y-p.ty)-(o.r||8)*.5;if(q<hd){hd=q;h=o}}if(h)damage(h,p.dmg,src);p.dead=true}else{p.x+=dx/d*s;p.y+=dy/d*s}continue}const t=get(p.tid);if(!t){p.dead=true;continue}const dx=t.x-p.x,dy=t.y-p.y,d=Math.hypot(dx,dy),s=380*dt;p.a=Math.atan2(dy,dx);if(d<=s+t.r*.5){damage(t,p.dmg,get(p.src));if(p.sp){for(const o of G.ents)if(o!==t&&!o.dead&&o.kind==='unit'&&o.team===t.team&&Math.hypot(o.x-t.x,o.y-t.y)<p.sp)damage(o,p.dmg*.5,get(p.src))}p.dead=true}else{p.x+=dx/d*s;p.y+=dy/d*s}}
   G.proj=G.proj.filter(p=>!p.dead);
   separate();
   fogT+=dt;if(fogT>=.2){fogT=0;fogUpdate()}
@@ -292,8 +292,13 @@ function kill(e){if(e.dead)return;e.dead=true;if(e.type==='farm')for(const n of 
   if(e.type==='hq'&&!G.over)G.over=e.team===0?'lose':'win';}
 /* Ego-Ansicht im Turm: der Spieler feuert selbst (Schaden, Reichweite, Nachladezeit wie die Automatik; solange er zielt, pausiert die Auto-Wahl).
    Gibt true zurück, wenn ein Schuss fiel. Mehrspieler: Gast schickt 'tfire', Gastgeber prüft Besitz (nach flipTeams ist der Gast Team 0). */
-function towerFire(team,id,tid){
-  if(NET.client&&team===0){NET.send({c:'tfire',id,tid});return true}
+function towerFire(team,id,tid,tx,ty){
+  if(NET.client&&team===0){NET.send({c:'tfire',id,tid,tx,ty});return true}
+  if(!tid&&tx!==undefined){/* freier Schuss in Blickrichtung (Ego-Turm): Pfeil fliegt zum Zielpunkt, trifft den ersten Feind dort */
+    const b=G.byId.get(id),d=b&&BLDS[b.type];if(!b||b.dead||b.team!==team||!b.built||!d||!d.shoot)return false;
+    const sd=b.spec==='def',sob=b.spec==='obs';b.manT=G.t+2.5;if(b.cd>0)return false;
+    const R=d.shoot.rng*(sd?1.3:sob?.8:1),dx=tx-b.x,dy=ty-b.y,dd=Math.hypot(dx,dy)||1,k=Math.min(1,R/dd);
+    b.cd=d.shoot.cd*(sob?1.3:1);sfx('arrow',b);G.proj.push({x:b.x,y:b.y-8,tx:b.x+dx*k,ty:b.y+dy*k,free:1,dmg:d.shoot.atk*(sd?1.8:sob?.7:1)*LVL.atk[b.lvl]*(1+G.tfx[b.team].tower),src:b.id,a:Math.atan2(dy,dx)});return true}
   const b=G.byId.get(id),t=G.byId.get(tid),d=b&&BLDS[b.type];if(!b||b.dead||b.team!==team||!b.built||!d||!d.shoot||!t||t.dead||t.team===team||t.inm)return false;
   if(t.kind!=='unit'&&t.kind!=='animal'&&t.kind!=='bld')return false;if(t.team<0&&t.kind!=='animal')return false;
   const sd=b.spec==='def',sob=b.spec==='obs';b.manT=G.t+2.5;if(b.cd>0)return false;
