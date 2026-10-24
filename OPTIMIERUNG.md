@@ -373,3 +373,7 @@ Messung: Playwright, `index.html` über lokalen Server, Netzwerk-Log aller Antwo
 ## Spielstand speichern (24.10., Paket S2)
 - Auto-Speichern ohne Ruckler: Zeit für `snapshot()` + `JSON.stringify` im Browser (Software-Rendering, Küste L, 214 Einheiten, 60 Gebäude, 1697 Entitäten, Datei 463 KB): 6-13 ms (Mittel ~8 ms), kleine Partie (S, 256 KB) 3-8 ms. Das Schreiben in IndexedDB läuft danach asynchron. Auslösung per `setTimeout(0)` nach dem Spielschritt, nie im Mehrspieler, nie in der Pause. Laden: Lesen 7 ms, `apply` ~5,8 s (davon fast alles `newGame` = Karte neu erzeugen, wie bisher).
 - Messfalle: In dieser Testumgebung stürzt die Seite mit den Standard-Argumenten (`--use-gl=swiftshader`) oder bei vielen gleichzeitigen Modell-Anfragen (`ERR_INSUFFICIENT_RESOURCES`) ab. Brauchbar: `--use-angle=swiftshader --use-gl=angle`, Ordner models/music/sounds per `route.abort()` sperren, WebGL per `getContext`-Ersatz abschalten, Seite bis `__ek` da ist neu laden. `tools/mp-test.js` lief damit nicht durch (Absturz der Seite beim Laden, nicht am Spielstand-Code).
+
+## Oberfläche schmal (24.10.)
+- Klassisch ≤ 560 px: kleinere Schrift/Knöpfe, versteckte Rohstoff-Fächer (Eisen/Gold/Öl) entfallen, Rohstoff-Tafel läuft bei Bedarf seitlich (ohne Scrollleiste). Tempo-5-Symbol in `ui2.css` neu gezeichnet.
+- Testtipp: Spiel für Bilder ohne Menü starten per `newGame(...)`, `G.running=true`, Overlay `#overlay` verstecken, `body.mm` entfernen; Optionen `room:false,intro:false` in `ek-opt` beschleunigen das Laden stark.

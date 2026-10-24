@@ -152,3 +152,10 @@ Bilder (Scratch): `scratchpad/qa2/a1_*.png` (Berater), `a2_shot*.png` (Ego-Turm)
 - Angriffsplan-Chip: neben den Taktik-Chips vorhanden, getrennt von „Angriff“, Klick setzt `advisor.atk`, `aria-pressed=true`, Berater meldet „Noch nichts vom Gegner gesehen – Späher losschicken.“ Keine Konsolenfehler.
 - Prüfungen: `node --check` aller js/*.js ok, `modell-luecken.js` nur cannon/trench/derrick, manifest.json gültig. Keine Mängel gefunden, kein Code geändert (MP unberührt, kein mp-test nötig).
 - Beobachtet (schön wäre): Fischerboot bringt in der Steinzeit mit einem Schwarm wenig Nahrung je Minute (kleine Ladung 4 nach 80 s Messung, kein Fehler). Rendertest in Software-GL nur mit ~1 Bild/10 s möglich, Echtzeit-Animation des Einsteigens nicht im Bild geprüft (Zustände per `step()` geprüft).
+
+## Prüfung Oberfläche schmal / Spielstand-Fenster (2026-10-24)
+- [x] Spielstand-Fenster (`SAVE.panel`) und Pausemenü im laufenden Spiel bei 1280, 900 und 400 px, Deutsch und Englisch: Fenster liegt ganz im Bild (400 px: 16–384), kein seitlicher Überlauf, Texte lesbar. Kein Fehler nötig.
+- [x] Klassische Oberfläche bei 400 px: obere Leiste lief über (Seitenbreite 502 px, Menü-Knopf rechts abgeschnitten, Rohstoff-Tafel links raus). Behoben in `css/topbar.css` (Block „≤ 560 px“). Jetzt Seitenbreite 400 px.
+- [x] Neue Oberfläche, Tempo-5-Symbol: drei Pfeile plus Strich standen gedrängt, `css/ui2.css` entzerrt (schmalere Pfeile, mehr Abstand).
+- Mehrspieler-Test `tools/mp-test.js`: ALLES OK (Host/Gast 1206 Objekte, Zeitalter 6, ufire/tfire).
+- Offen (schön wäre): bei 400 px ist das Pausemenü hinter dem Spielstand-Fenster nur grob sichtbar; Fenster mit belegtem Platz (Laden/Export/Löschen nebeneinander) nur im Quelltext, nicht im Bild geprüft.

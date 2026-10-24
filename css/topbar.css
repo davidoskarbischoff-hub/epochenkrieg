@@ -82,3 +82,18 @@ body.menu-open #panel{display:none!important}
 #info .upg .ur .ub{align-self:stretch;padding:3px 6px;font-size:11.5px;border-radius:4px;margin:0}
 #info .upg .ur.run{border-color:rgba(127,178,232,.5)}
 #info .upg .ur.all{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between}
+
+/* Sehr schmale Fenster (Handy, ≤ 560 px): Knöpfe schrumpfen, Rohstoff-Tafel passt in die Breite und läuft notfalls seitlich (kein Überlauf der Seite) */
+@media (max-width:560px){
+  body{--tbf:9.5px;--epf:11.5px;--rsf:10.5px;--rsi:15px;--rsb:4px;--slot:2.2em}
+  #top .tl{gap:3px;padding:0 3px}
+  #top .tbtn{padding:0 5px;min-width:0}
+  #idleBtn{min-width:0;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;max-width:9.5em}
+  #pauseBtn,#speedBtn{min-width:0}
+  #top #epoch{padding:0 calc(var(--epf)*.9)}
+  #top #epoch::before,#top #epoch::after{display:none}
+  #top .tr{max-width:calc(100vw - 6px);overflow-x:auto;scrollbar-width:none;justify-content:flex-start}
+  #top .tr::-webkit-scrollbar{display:none}
+  #top .tr .res{padding:0 4px;gap:2px}
+  #top .tr .res[hidden]{display:none!important}
+}
