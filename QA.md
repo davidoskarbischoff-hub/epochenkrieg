@@ -128,3 +128,5 @@ Bilder: `qa/bilder/era0.png`, `era3.png`, `era6.png`, `ui640.png`, `seq_sword.pn
 - [x] Balancing Truppen Z3-Z6 (24.10., messbasiert, Details OPTIMIERUNG.md): hbow, Flugzeuge, Bomber vs Gebäude, Renault, Mark I, Doughboy, Bertha angepasst; mp-test ALLES OK, `node --check` ok, Lücken nur cannon/trench/derrick. Nicht im Spiel mit Menschen getestet (nur headless).
 
 - Flugzeuge/Bodenfeuer (24.10.): `AA_GUN` in `hit()` (sim.js) kürzt Gewehr-/MG-Schaden gegen Flugzeuge (x0,4/x0,3); kostengleich plane-mg -0,04, plane-rifle -0,14. Bei neuen `gun:true`-Einheiten oder Flak daran denken. Zahlen in OPTIMIERUNG.md.
+
+- Rehe am Strand (24.10.): Flucht-Richtungswahl verbessert (siehe OPTIMIERUNG.md); falls David weiter "stuck" meldet: Karte/Seed und Ort (cam.x/y) erfragen.
