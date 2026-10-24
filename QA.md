@@ -117,3 +117,10 @@ Aufruf: `NODE_PATH=<playwright> node tools/mp-test.js [Bilderordner]` (~5 Min., 
 - KI-Taktik Schwer (Rückzug/Sammlerjagd) nur per Selbstspiel gemessen, nicht im Fenster angesehen; Wirkung klein und verrauscht (siehe OPTIMIERUNG.md).
 
 - Moves 24.10.: Schlag-Takt, Zucken, Jog geprüft per Bildfolge; Bogenschützen spannen nicht sichtbar (nur Gun_Shoot-Clip).
+
+## Durchspiel-Audit nach den Änderungen vom 24.10. (2026-10-24)
+Bilder: `qa/bilder/era0.png`, `era3.png`, `era6.png`, `ui640.png`, `seq_sword.png`, `seq_knight.png`.
+- [x] Bäume/Büsche/Felsen/Erze/Gebäude Zeitalter 0/3/6 ohne dunkle Quadrate, richtige Größe (Stein, Eisen, Gold geprüft; Öl ist bewusst tiefschwarz). `EKMODELS.failed` leer, mp-test (tools/mp-test.js) ALLES OK, `node --check` aller js/ und tools/ ok, Lücken nur cannon/trench/derrick.
+- [x] (sollte, behoben 24.10.) Obere Glaskapsel bei <= 640 px füllte die ganze Zeile (leere Glasleiste links der Knöpfe, `flex:1 0 100%` in css/ui2.css). Jetzt Zeilenumbruch über `#top::before` und Kapsel nur so breit wie die Knöpfe. Kein Überlappen mit Chips bei 1100/900/700/640/480/360 px gemessen. Netzstatus (`#netbadge`) wurde nur bei 1100 px per Test sichtbar gemessen (dort links neben der Kapsel, ohne Überlappung), bei <= 900 px nicht im Bild geprüft (Anzeige existiert nur im Mehrspieler).
+- [ ] (schön wäre) Wolkenschatten: Umschalten an/aus ohne Fehler, aber im Standbild (pausiert, 1100 px) kein Unterschied erkennbar; im laufenden Spiel nicht beurteilt.
+- [ ] (schön wäre) Bogenschütze: Gun_Shoot zeigt zwischen den Schüssen fast dieselbe Haltung (Schreitpose), Schuss nur kurz erkennbar; Schwert und Reiter (Attack_Kick, Pferd streckt Hinterbeine) laufen sauber im Takt, Start- und Endhaltung der Clips passen (Pop 0,2 bis 0,5 rad Summe), keine Verdrehung, Clip bleibt `attack`.
