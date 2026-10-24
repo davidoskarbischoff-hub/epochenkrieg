@@ -3,7 +3,11 @@
 'use strict';
 /* ---------- Berater: macht Vorschläge, die man annehmen oder ablehnen kann ---------- */
 let advOn=true;try{advOn=localStorage.getItem('ek-advisor')!=='0'}catch(_){}
-const advisor={cur:null,ignore:{},next:0,last:-9,shown:'',strat:'balanced',intel:null,open:true,auto:false,autoAt:0};
+const advisor={cur:null,ignore:{},next:0,last:-9,shown:'',strat:'balanced',intel:null,open:true,auto:false,autoAt:0,atk:false};
+/* Angriffsplan (Chip „Angreifen“ oder Taktik „Angriff“): Truppen aufbauen, Ziel suchen (Späher), dann angreifen */
+function advSetStrat(k){advisor.strat=k;advisor.atk=(k==='rush');advisor.reacted=null;advisor.ignore={};advisor.cur=null;advisor.next=0;advisor.last=-9}
+function advSetAtk(on){advisor.atk=on;advisor.ignore={};advisor.cur=null;advisor.next=0;advisor.last=-9}
+const ADV_ATK_KEYS={explore:.7,scout:.75,attack:.8,army:.9,barracks:.9,barracks2:.95,house:.6};
 /* Taktiken des Beraters: wk = Arbeiterziel je Epoche, mil = Truppenziel, atk = ab so vielen Truppen Angriff, tow = Türme, barW = ab so vielen Arbeitern Kaserne, w = Reihenfolge der Vorschläge (kleiner = früher) */
 const STRATS={
   balanced:{name:'Ausgewogen',desc:'Von allem etwas',wk:[18,28,38,48,54,56,58],mil:ep=>10+ep*8,atk:ep=>ep<4?99:10+ep*8,tow:()=>1,barW:6,bar2:20,hs:5,w:{}},
@@ -64,19 +68,20 @@ function advIdle(){
   for(const u of G.ents){if(u.dead||u.team!==0||u.kind!=='unit'||!UNITS[u.type].gather||u.state!=='idle'||u.upj)continue;
     const order=UNITS[u.type].naval?['food']:[need,'food','wood','food'];
     const rt0=order[i++%order.length];
-    for(const rt of [rt0,'wood','food']){if(!UNITS[u.type].naval&&!canGather(u,rt))continue;const n=nearestNode(rt,u.x,u.y,900,u,true)||nearestNode(rt,u.x,u.y,900,u);if(n){u.state='gather';u.tid=n.id;u.rtype=rt;u.pf=null;break}}}
+    for(const rt of [rt0,'wood','food']){if(!UNITS[u.type].naval&&!canGather(u,rt))continue;const n=(UNITS[u.type].naval&&boatPick(u))||nearestNode(rt,u.x,u.y,900,u,true)||nearestNode(rt,u.x,u.y,900,u);if(n){u.state='gather';u.tid=n.id;u.rtype=rt;u.pf=null;break}}}
   sfx('order')}
 function shiftWorkers(from,to,n){let k=0;for(const w of G.ents){if(k>=n)break;if(w.dead||w.team!==0||w.type!=='worker'||w.rtype!==from||(w.state!=='gather'&&w.state!=='mine')||w.upj||!canGather(w,to))continue;const nd=nearestNode(to,w.x,w.y,900,w,true)||nearestNode(to,w.x,w.y,900,w);if(nd){if(w.inm)mineOut(w);w.state='gather';w.tid=nd.id;w.rtype=to;w.pf=null;w.carry=0;k++}}sfx('order')}
 function sendArmy(tx,ty){const us=G.ents.filter(u=>!u.dead&&u.team===0&&u.kind==='unit'&&!UNITS[u.type].passive&&!UNITS[u.type].naval&&!u.upj);const cols=Math.ceil(Math.sqrt(us.length)||1);us.forEach((u,i)=>giveOrder(u,{t:'amove',x:tx+(i%cols-(cols-1)/2)*20,y:ty+(Math.floor(i/cols)-(cols-1)/2)*20},false));fxMark(tx,ty,'attack');sfx('order')}
 /* Reihenfolge der Vorschläge: kleiner = wichtiger (Verteidigung 0, Mangel/Untätige 1, ...) */
-function advKey(r){const S=STRATS[advisor.strat]||STRATS.balanced,bw=S.w||{},base={defend:0,low:0.5,idle:1,adv:1.5,demo:1.8,surplus:2.1,balance:2,explore:3,in:4},k=r.id.split(':')[0];return bw[k]!==undefined?bw[k]:base[k]!==undefined?base[k]:5}
+function advKey(r){const S=STRATS[advisor.strat]||STRATS.balanced,bw=S.w||{},base={defend:0,low:0.5,idle:1,adv:1.5,demo:1.8,surplus:2.1,balance:2,explore:3,in:4},k=r.id.split(':')[0];if(advisor.atk&&ADV_ATK_KEYS[k]!==undefined)return ADV_ATK_KEYS[k];return bw[k]!==undefined?bw[k]:base[k]!==undefined?base[k]:5}
 let ADV_SIEGE_CAP=true;
 function advRules(){
   const ep=G.epoch[0],R=G.res[0],hq=G.ents.find(e=>e.type==='hq'&&e.team===0&&!e.dead);if(!hq||!hq.built)return[];
   const mine=G.ents.filter(e=>!e.dead&&e.team===0),has=t=>mine.filter(e=>e.type===t);
   const workers=has('worker'),idle=mine.filter(e=>e.kind==='unit'&&UNITS[e.type].gather&&e.state==='idle'&&!e.upj);
   const queuedW=hq.queue.filter(q=>q.type==='worker').length,rules=[],push=r=>rules.push(r);
-  const bars=has('barracks'),mil=mine.filter(e=>e.kind==='unit'&&!UNITS[e.type].passive&&!UNITS[e.type].naval).length,S=STRATS[advisor.strat]||STRATS.balanced,I=advIntel();advisor.intel=I;
+  const atkMode=advisor.atk,bars=has('barracks'),mil=mine.filter(e=>e.kind==='unit'&&!UNITS[e.type].passive&&!UNITS[e.type].naval).length,S=STRATS[advisor.strat]||STRATS.balanced,I=advIntel();advisor.intel=I;
+  const atkN=atkMode?Math.max(8,Math.min(S.atk(ep),8+ep*3)):S.atk(ep); /* Angriffsplan: ab so vielen Truppen losschlagen */
   // Gefahr: Feinde in der Nähe der Siedlung
   const blds0=mine.filter(e=>e.kind==='bld');
   const foes=G.ents.filter(e=>!e.dead&&e.team===1&&e.kind==='unit'&&shown(e)&&blds0.some(b=>dist(b,e)<320));
@@ -85,7 +90,7 @@ function advRules(){
   if(foes.length){const c=foes.reduce((a,e)=>({x:a.x+e.x/foes.length,y:a.y+e.y/foes.length}),{x:0,y:0});if(mil>0)push({id:'defend',txt:'Angriff! {0} Feinde bei deiner Siedlung – alle Truppen zur Verteidigung schicken',args:[foes.length],go:()=>{sendArmy(c.x,c.y)}})}
   if(G.pop[0]>=G.cap[0]-S.hs&&G.cap[0]<POPMAX&&!mine.some(e=>e.type==='house'&&!e.built)&&afford(0,BLDS.house.cost)&&advFindSpot('house'))
     push({id:'house',txt:'eine Hütte bauen (die Bevölkerungsgrenze ist fast erreicht)',cost:BLDS.house.cost,go:()=>advBuild('house')});
-  if(has('scout').some(u=>u.state==='idle'&&!u.upj))push({id:'explore',txt:'die Späher automatisch erkunden lassen',go:()=>{has('scout').forEach(u=>{if(u.state==='idle'){u.state='explore';u.ex=null}});sfx('order')}});
+  if(has('scout').some(u=>u.state==='idle'&&!u.upj))push({id:'explore',txt:atkMode&&!G.mem.size?'Angriffsplan: Das Ziel ist unbekannt – die Späher erkunden lassen, um den Gegner zu finden':'die Späher automatisch erkunden lassen',go:()=>{has('scout').forEach(u=>{if(u.state==='idle'){u.state='explore';u.ex=null}});sfx('order')}});
   if(idle.length)push(idle.length===1?{id:'idle',txt:'eine untätige Einheit an die Arbeit schicken',go:advIdle}:{id:'idle',txt:'{0} untätige Einheiten an die Arbeit schicken',args:[idle.length],go:advIdle});
   if(workers.length+queuedW<Math.max(S.wk[ep],wkNeed(ep))&&hq.queue.length<2&&G.pop[0]<G.cap[0]&&afford(0,UNITS.worker.cost))
     push({id:'worker',txt:'einen Arbeiter ausbilden',cost:UNITS.worker.cost,go:()=>enqueue(hq,'worker',0)&&(panelSig='')});
@@ -95,7 +100,7 @@ function advRules(){
     if(afford(0,pd.cost)&&pd.groups.length>1)push({id:'upg:all',txt:'alles auf Stufe {0} upgraden',args:[LVLN[ep]],cost:pd.cost,go:()=>startUpgrade(0,'all')});
     else if(gs[0])push({id:'upg:'+gs[0].key,txt:'{0} auf Stufe {1} upgraden',args:[tr(gs[0].nm),LVLN[ep]],cost:gs[0].cost,go:()=>startUpgrade(0,gs[0].key)})}
   if(ep<EPOCHS.length-1&&!G.adv[0]&&!pd.n&&!G.jobs[0].length&&afford(0,EPOCHS[ep].cost))push({id:'adv',txt:'in die {0} aufsteigen',args:[tr(EPOCHS[ep+1].name)],cost:EPOCHS[ep].cost,go:()=>advance(0)});
-  if(!bars.length&&workers.length>=S.barW&&afford(0,BLDS.barracks.cost)&&advFindSpot('barracks'))push({id:'barracks',txt:'eine Kaserne bauen, um Truppen auszubilden',cost:BLDS.barracks.cost,go:()=>advBuild('barracks')});
+  if(!bars.length&&workers.length>=(atkMode?Math.min(S.barW,5):S.barW)&&afford(0,BLDS.barracks.cost)&&advFindSpot('barracks'))push({id:'barracks',txt:'eine Kaserne bauen, um Truppen auszubilden',cost:BLDS.barracks.cost,go:()=>advBuild('barracks')});
   if(ep>=(advisor.strat==='turtle'?0:1)&&has('tower').length<S.tow(ep)&&workers.length>=8&&afford(0,BLDS.tower.cost)&&advFindSpot('tower'))push({id:'tower',txt:'einen Wachturm bauen, um Land zu erobern und zu überblicken',cost:BLDS.tower.cost,go:()=>advBuild('tower')});
   if(!has('harbor').length&&workers.length>=9&&afford(0,BLDS.harbor.cost)&&advFish().length&&advFindSpot('harbor',1))push({id:'harbor',txt:'einen Hafen bauen, um Fische zu fangen',cost:BLDS.harbor.cost,go:()=>advBuild('harbor',advFindSpot('harbor',1))});
   if(ep>=1&&workers.length>=8&&has('farm').length<Math.min(2+ep,5)&&R.food<420&&afford(0,BLDS.farm.cost)&&advFindSpot('farm')&&!mine.some(e=>e.type==='farm'&&!e.built))push({id:'farm',txt:'ein Feld anlegen (Nahrung, die nie ausgeht)',cost:BLDS.farm.cost,go:()=>advBuild('farm')});
@@ -111,13 +116,13 @@ function advRules(){
   if(has('market').some(b=>b.built)&&R.gold>=Math.max(1200,TRADE.lot*TRADE.buy*4)){const rt=['food','wood','stone','iron'].filter(x=>ep>=(RES_EP[x]||0)&&R[x]<350).sort((x,y)=>R[x]-R[y])[0];if(rt)push({id:'gbuy:'+rt,txt:'100 {0} auf dem Markt mit Gold kaufen (viel Gold im Lager, {0} ist knapp)',args:[rn(rt)],go:()=>{if(!trade(0,rt,'buy'))toast(tr('Nicht genug Rohstoffe.'),'warn')}})}
   if(has('market').some(b=>b.built)&&R.gold<200){const rt=['food','wood','stone'].find(x=>R[x]>(x==='stone'?450:800));if(rt)push({id:'trade:'+rt,txt:'100 {0} auf dem Markt gegen Gold tauschen (Vorrat ist groß)',args:[rn(rt)],go:()=>{trade(0,rt,'sell');sfx('click')}})}
   const ub=bars.find(b=>b.built&&b.queue.length<(R.food>350&&R.wood>250?2:1));
-  if(ub&&mil<S.mil(ep)){const t=Object.keys(UNITS).filter(k=>UNITS[k].from==='barracks'&&uOk(k,ep)&&!UNITS[k].siege&&!UNITS[k].passive&&(!UNITS[k].tech||G.tech[0].has(UNITS[k].tech))).sort((a,b)=>UNITS[b].ep-UNITS[a].ep).find(k=>afford(0,UNITS[k].cost));if(t)push({id:'army',txt:'{0} ausbilden',args:[tr(UNITS[t].name)],cost:UNITS[t].cost,go:()=>enqueue(ub,t,0)&&(panelSig='')})}
+  if(ub&&mil<(atkMode?Math.max(S.mil(ep),atkN):S.mil(ep))){const t=Object.keys(UNITS).filter(k=>UNITS[k].from==='barracks'&&uOk(k,ep)&&!UNITS[k].siege&&!UNITS[k].passive&&(!UNITS[k].tech||G.tech[0].has(UNITS[k].tech))).sort((a,b)=>UNITS[b].ep-UNITS[a].ep).find(k=>afford(0,UNITS[k].cost));if(t)push({id:'army',txt:'{0} ausbilden',args:[tr(UNITS[t].name)],cost:UNITS[t].cost,go:()=>enqueue(ub,t,0)&&(panelSig='')})}
   {const have=new Set([...G.tech[0],...G.rs[0].map(r=>r.id)]);const cand=TECHS.filter(t=>t.ep<=ep&&!have.has(t.id)&&afford(0,t.cost)&&mine.some(e=>e.kind==='bld'&&e.built&&(e.type===t.bld||(t.blds&&t.blds.includes(e.type)))));
     const prefer=cand.find(t=>t.bld==='barracks'&&bars.length&&!t.fx.ratk&&!t.fx.matk&&!t.fx.hp)||cand.find(t=>t.bld==='hq')||cand[0];
     if(prefer&&!G.rs[0].length&&workers.length>=6)push({id:'tech:'+prefer.id,txt:'die Technologie {0} erforschen',args:[tr(prefer.name)],cost:prefer.cost,go:()=>startResearch(0,prefer.id)})}
   // Angriff, wenn die Armee groß genug ist und ein Ziel bekannt ist
   {const known=[...G.mem.values()];const tgt=known.find(m=>m.type==='hq')||known.sort((a,b)=>dist(a,hq)-dist(b,hq))[0];
-    if(tgt&&mil>=S.atk(ep)&&!foes.length)push({id:'attack',txt:'mit {0} Truppen das gegnerische {1} angreifen',args:[mil,tr(BLDS[tgt.type].name)],go:()=>sendArmy(tgt.x,tgt.y)})}
+    if(tgt&&mil>=atkN&&!foes.length)push({id:'attack',txt:'mit {0} Truppen das gegnerische {1} angreifen',args:[mil,tr(BLDS[tgt.type].name)],go:()=>sendArmy(tgt.x,tgt.y)});}
   // Rohstoffmangel: für den nächsten Aufstieg fehlt eine Ressource, aber kaum jemand sammelt sie
   if(ep<EPOCHS.length-1&&workers.length>=8){const goal=EPOCHS[ep].cost;
     for(const rt of RES){const need=goal[rt]||0;if(!need||R[rt]>=need)continue;const on=workers.filter(w=>w.rtype===rt&&((w.state==='gather'||w.state==='mine')||w.state==='return')).length;if(on>=5||!workers.some(w=>canGather(w,rt)))continue;
@@ -145,9 +150,9 @@ function advRules(){
       if(far.length>=3){const cx=far.reduce((s,w)=>s+G.byId.get(w.tid).x,0)/far.length,cy=far.reduce((s,w)=>s+G.byId.get(w.tid).y,0)/far.length;
         let spot=null;for(let d=30;d<=110&&!spot;d+=14)for(let k=0;k<24&&!spot;k++){const a=k*.2618,x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d;if(!placeBlock('store',x,y)&&!mine.some(e=>e.kind==='bld'&&BLDS[e.type].drop&&Math.hypot(e.x-x,e.y-y)<170)&&!mine.some(e=>e.kind==='bld'&&Math.hypot(e.x-x,e.y-y)-e.r-BLDS.store.r<30))spot={x,y}}
         if(spot)push({id:'store',txt:'ein Lager nahe dem Wald bauen, damit die Holzfäller kürzere Wege haben',cost:BLDS.store.cost,go:()=>{if(!pay(0,BLDS.store.cost)){toast(missing(0,BLDS.store.cost)+'.');return false}const b=addBld('store',0,spot.x,spot.y,false);const ws=far.slice(0,2);ws.forEach(w=>{w.state='build';w.tid=b.id;w.pf=null});sfx('click');return true}})}}}
-  if(G.t>40&&!has('scout').length&&hq.queue.length<2&&afford(0,UNITS.scout.cost))push({id:'scout',txt:'einen Späher ausbilden, um die Karte zu erkunden',cost:UNITS.scout.cost,go:()=>enqueue(hq,'scout',0)&&(panelSig='')});
+  if((G.t>40||atkMode)&&!has('scout').length&&hq.queue.length<2&&afford(0,UNITS.scout.cost))push({id:'scout',txt:atkMode&&!G.mem.size?'Angriffsplan: Das Ziel ist unbekannt – zuerst einen Späher ausbilden, der den Gegner sucht':'einen Späher ausbilden, um die Karte zu erkunden',cost:UNITS.scout.cost,go:()=>enqueue(hq,'scout',0)&&(panelSig='')});
   // zweite Kaserne bei Angriffstaktik
-  if(bars.length===1&&bars[0].built&&workers.length>=S.bar2&&afford(0,BLDS.barracks.cost)&&advFindSpot('barracks'))push({id:'barracks2',txt:'eine zweite Kaserne bauen, um mehr Truppen gleichzeitig auszubilden',cost:BLDS.barracks.cost,go:()=>advBuild('barracks')});
+  if(bars.length===1&&bars[0].built&&workers.length>=(atkMode?Math.min(S.bar2,10):S.bar2)&&afford(0,BLDS.barracks.cost)&&advFindSpot('barracks'))push({id:'barracks2',txt:'eine zweite Kaserne bauen, um mehr Truppen gleichzeitig auszubilden',cost:BLDS.barracks.cost,go:()=>advBuild('barracks')});
   // Erkenntnisse über den Gegner
   if(I.known||I.vis){
     const trainable=ks=>{const b=bars.find(b=>b.built&&b.queue.length<2);if(!b)return null;const t=ks.find(k=>UNITS[k]&&UNITS[k].ep<=ep&&(!UNITS[k].tech||G.tech[0].has(UNITS[k].tech))&&afford(0,UNITS[k].cost));return t?{b,t}:null};
@@ -166,18 +171,18 @@ function advRules(){
   return rules}
 function advisorUI(){
   const el=$('advisor');if(!el)return;/* Auto an: keine Blase mit Haken/X (Auto führt selbst aus), nur eine ruhige Zeile mit der letzten Meldung (~3,5 s) */
-  const c=advisor.auto?null:advisor.cur,nt=advisor.auto&&advisor.note&&advisor.note.until>G.t?advisor.note:null;
+  const c=advisor.auto?null:advisor.cur,nt=null; /* Auto an: gar keine Meldung zeigen (David 24.10.) */
   if(!advOn||!G||!G.running||menuOpen||G.mp){el.hidden=true;advisor.shown='';return}
   el.hidden=false;
   if(advisor.o2===undefined){advisor.o2=1;if(ui2())advisor.open=false} // neue Oberfläche: Berater startet als kleine Pille
   const I=advisor.intel||advIntel();
-  const chips=Object.entries(STRATS).map(([k,v])=>`<button class="st" data-st="${k}" aria-pressed="${k===advisor.strat}" title="${tr(v.desc)}">${tr(v.name)}</button>`).join('');
+  const chips=Object.entries(STRATS).map(([k,v])=>`<button class="st" data-st="${k}" aria-pressed="${k===advisor.strat}" title="${tr(v.desc)}">${tr(v.name)}</button>`).join('')+`<button class="st" data-ad="atk" aria-pressed="${advisor.atk}" title="${tr('Angriffsplan: Truppen aufbauen, Späher suchen den Gegner, dann der Angriff')}">${tr('Angriffsplan')}</button>`;
   const open_=advisor.open?`<div class="sts" role="group" aria-label="${tr('Taktik')}">${chips}</div><p class="intel">${advIntelText(I)}</p>`:'';
   /* Neue Oberfläche: Sprechblase/Pille mit runden Ja/Nein-Knöpfen (Y/X bleiben) */
   const html=ui2()?`<div class="bb${c?' has':''}"><span class="av">★</span><div class="bm">${c?`<p>${tr(c.txt,...(c.args||[]))}</p>${c.cost?`<div class="ac">${costHTML(c.cost)}</div>`:''}`:`<p class="idl">${nt?nt.txt:tr('Berater')}</p>`}</div>${c?`<button class="yn yes" data-a="y" title="${tr('Annehmen (Y)')}" aria-label="${tr('Annehmen (Y)')}">✓</button><button class="yn no" data-a="n" title="${tr('Ablehnen (X)')}" aria-label="${tr('Ablehnen (X)')}">✕</button>`:''}<button class="auto" data-ad="auto" aria-pressed="${advisor.auto}" title="${tr('Auto-Modus: Vorschläge werden nach 2 Sekunden automatisch angenommen')}">${tr('Auto')} ${advisor.auto?tr('an'):tr('aus')}</button><button class="x" data-ad="tog" title="${advisor.open?tr('Einklappen'):tr('Aufklappen')}" aria-label="${advisor.open?tr('Einklappen'):tr('Aufklappen')}">${advisor.open?'–':'+'}</button></div>${open_}`:
   `<div class="ah"><span class="ai">★</span><b>${tr('Berater')}</b><button class="auto" data-ad="auto" aria-pressed="${advisor.auto}" title="${tr('Auto-Modus: Vorschläge werden nach 2 Sekunden automatisch angenommen')}">${tr('Auto')} ${advisor.auto?tr('an'):tr('aus')}</button><button class="x" data-ad="tog" title="${tr('Einklappen')}">${advisor.open?'–':'+'}</button></div>`+(advisor.open?`<div class="sts" role="group" aria-label="${tr('Taktik')}">${chips}</div><p class="intel">${advIntelText(I)}</p>`:'')+(nt?`<p class="intel">${nt.txt}</p>`:'')+(c?`<p>${tr('Dein Berater schlägt vor:')} <b>${tr(c.txt,...(c.args||[]))}</b></p>${c.cost?`<div class="ac">${costHTML(c.cost)}</div>`:''}<div class="ab"><button class="ub ok" data-a="y">${tr('Annehmen')} (Y)</button><button class="ub bad" data-a="n">${tr('Ablehnen')} (X)</button></div>`:'');
   if(html!==advisor.shown){advisor.shown=html;el.innerHTML=html}}
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#advisor [data-st],#advisor [data-ad]');if(!t)return;if(t.dataset.st){advisor.strat=t.dataset.st;advisor.ignore={};advisor.cur=null;advisor.next=0;advisor.last=-9;toast(tr('Taktik: {0}',tr(STRATS[advisor.strat].name)),'good');sfx('click')}else if(t.dataset.ad==='auto'){advisor.auto=!advisor.auto;advisor.autoAt=G.t+2;toast(advisor.auto?tr('Auto-Modus an: Der Berater handelt selbst.'):tr('Auto-Modus aus.'),'good')}else advisor.open=!advisor.open;advisor.shown='';advisorUI()});
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#advisor [data-st],#advisor [data-ad]');if(!t)return;if(t.dataset.st){advSetStrat(t.dataset.st);toast(tr('Taktik: {0}',tr(STRATS[advisor.strat].name)),'good');sfx('click')}else if(t.dataset.ad==='atk'){advSetAtk(!advisor.atk);toast(advisor.atk?tr('Angriffsplan an: Der Berater baut Truppen auf, sucht den Gegner und greift an.'):tr('Angriffsplan aus.'),'good');sfx('click')}else if(t.dataset.ad==='auto'){advisor.auto=!advisor.auto;advisor.autoAt=G.t+2;toast(advisor.auto?tr('Auto-Modus an: Der Berater handelt selbst.'):tr('Auto-Modus aus.'),'good')}else advisor.open=!advisor.open;advisor.shown='';advisorUI()});
 function advisorTick(){
   if(!G||!G.running||G.over)return;if(G.mp){advisor.cur=null;return}
   if(!advOn){advisor.cur=null;return}

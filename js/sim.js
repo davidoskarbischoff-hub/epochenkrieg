@@ -42,7 +42,7 @@ function frontLine(){
   if(G.mp)return;const hq=G.ents.find(e=>e.type==='hq'&&e.team===0&&!e.dead);if(!hq)return;
   const ang=Math.atan2(H/2-hq.y,W/2-hq.x),dx=Math.cos(ang),dy=Math.sin(ang);let D=150;
   for(const e of G.ents){if(e.dead||e.team!==0||!(e.type==='worker'||(e.kind==='bld'&&e.built)))continue;D=Math.max(D,(e.x-hq.x)*dx+(e.y-hq.y)*dy+(e.kind==='bld'?90:70))}
-  D=Math.min(D,760);const us=G.ents.filter(u=>!u.dead&&u.team===0&&u.kind==='unit'&&u.state==='idle'&&!u.manual&&!u.upj&&!(u.q&&u.q.length)&&!UNITS[u.type].gather&&!UNITS[u.type].passive&&!UNITS[u.type].naval&&u.type!=='scout');
+  D=Math.min(D,760);const us=G.ents.filter(u=>!u.dead&&u.team===0&&u.kind==='unit'&&u.state==='idle'&&!u.inm&&!u.manual&&!u.upj&&!(u.q&&u.q.length)&&!UNITS[u.type].gather&&!UNITS[u.type].passive&&!UNITS[u.type].naval&&u.type!=='scout');
   us.forEach((u,i)=>{const row=Math.floor(i/8),col=i%8-3.5,sx=hq.x+dx*(D-row*26)-dy*col*30,sy=hq.y+dy*(D-row*26)+dx*col*30;
     if(Math.hypot(u.x-sx,u.y-sy)>70&&validSpot(sx,sy,u.r)){u.state='move';u.dest={x:sx,y:sy};u.amove=null;u.pf=null}})}
 /* Truppen denken mit (E3): Truppen im Leerlauf (kein Spielerbefehl) schützen die Arbeiter vor gefährlichen Wildtieren in der Nähe von Arbeitern und Wirtschaftsgebäuden
@@ -127,7 +127,7 @@ function step(dt){
   for(let t=0;t<2;t++){const js=G.jobs[t];if(!js.length)continue;for(const j of js){j.t+=dt;if(j.t>=j.time){j.done=true;for(const id of j.ids){const e=G.byId.get(id);if(e&&!e.dead){e.upj=null;levelUp(e,j.to)}}if(t===0){panelSig='';infoCache='';sfx('epoch');toast(tr('Upgrade fertig: {0}',j.label),'good')}}}G.jobs[t]=js.filter(j=>!j.done)}
   G.rs=[[],[]];for(const b of G.ents)if(b.kind==='bld'&&!b.dead&&b.team>=0&&b.queue)b.queue.forEach((q,k)=>{if(q.tech)G.rs[b.team].push({id:q.tech,t:q.t,time:TECH[q.tech].time,q:k>0,b:b.id})}); /* Ansicht der laufenden/wartenden Forschung */
   for(let t=0;t<2;t++){const a=G.adv[t];if(!a)continue;a.t+=dt;if(a.t>=a.time){G.epoch[t]++;G.adv[t]=null;panelSig='';if(t===1&&!G.mp){applyLevels(1);grantAiTechs(1)}if(t===0){sfx('epoch');if(typeof SND!=='undefined')SND.setEpoch(G.epoch[0])}if(t===0)toast(tr('{0} erreicht! Neue Einheiten und Gebäude verfügbar.',tr(EPOCHS[G.epoch[0]].name)),'good');else toast(tr('Der Gegner hat die {0} erreicht.',tr(EPOCHS[G.epoch[1]].name)),'warn')}}
-  for(const p of G.proj){const t=get(p.tid);if(!t){p.dead=true;continue}const dx=t.x-p.x,dy=t.y-p.y,d=Math.hypot(dx,dy),s=380*dt;p.a=Math.atan2(dy,dx);if(d<=s+t.r*.5){damage(t,p.dmg,get(p.src));if(p.sp){for(const o of G.ents)if(o!==t&&!o.dead&&o.kind==='unit'&&o.team===t.team&&Math.hypot(o.x-t.x,o.y-t.y)<p.sp)damage(o,p.dmg*.5,get(p.src))}p.dead=true}else{p.x+=dx/d*s;p.y+=dy/d*s}}
+  for(const p of G.proj){if(p.free){const dx=p.tx-p.x,dy=p.ty-p.y,d=Math.hypot(dx,dy),s=380*dt;p.a=Math.atan2(dy,dx);if(d<=s){const src=get(p.src);let h=null,hd=22;for(const o of G.ents){if(o.dead||o.inm||o.team===(src?src.team:0)||(o.kind!=='unit'&&o.kind!=='animal'&&o.kind!=='bld')||(o.team<0&&o.kind!=='animal'))continue;const q=Math.hypot(o.x-p.tx,o.y-p.ty)-(o.r||8)*.5;if(q<hd){hd=q;h=o}}if(h)damage(h,p.dmg,src);p.dead=true}else{p.x+=dx/d*s;p.y+=dy/d*s}continue}const t=get(p.tid);if(!t){p.dead=true;continue}const dx=t.x-p.x,dy=t.y-p.y,d=Math.hypot(dx,dy),s=380*dt;p.a=Math.atan2(dy,dx);if(d<=s+t.r*.5){damage(t,p.dmg,get(p.src));if(p.sp){for(const o of G.ents)if(o!==t&&!o.dead&&o.kind==='unit'&&o.team===t.team&&Math.hypot(o.x-t.x,o.y-t.y)<p.sp)damage(o,p.dmg*.5,get(p.src))}p.dead=true}else{p.x+=dx/d*s;p.y+=dy/d*s}}
   G.proj=G.proj.filter(p=>!p.dead);
   separate();
   fogT+=dt;if(fogT>=.2){fogT=0;fogUpdate()}
@@ -181,6 +181,24 @@ function nearestNode(rt,x,y,max,u,free){const naval=!!(u&&UNITS[u.type].naval);l
 /* Standplatz am Baum/Strauch: jeder Arbeiter bekommt eine eigene Seite (nach u.id), bevorzugt zur Abgabestelle hin; so hängen sie nicht dicht an dicht an einer Stelle. Nur Darstellung/Weg, die Rate bleibt gleich */
 function treeSpot(u,n){if(u.tsId===n.id)return u.tsP;u.tsId=n.id;u.tsP=null;const dp=nearestDrop(u.team,n.x,n.y,false,n.rt),b0=dp?Math.atan2(dp.y-n.y,dp.x-n.x):Math.atan2(u.y-n.y,u.x-n.x),rr=n.r+u.r+2;
   for(const o of[((u.id%3)-1)*1.15,((u.id%3)-1)*1.15+.6,-.6,0,2.4,-2.4,3.14]){const a=b0+o,x=n.x+Math.cos(a)*rr,y=n.y+Math.sin(a)*rr;if(x>2&&y>2&&navOpen(navCell(x,y),false)){u.tsP={x,y};break}}return u.tsP}
+/* Fischerboote: Schwarm nach Kosten pro Ladung wählen (Weg zum Hafen hin und zurück + Fangzeit), Boote verteilen sich (voller/besetzter Schwarm kostet extra), Mengen-Gewicht, unerreichbare (G.nbad/u.bad) übersprungen.
+   from = Punkt, von dem aus gefahren wird (Boot). Gibt den Schwarm oder null. */
+function boatPick(u,cur){const d=UNITS[u.type],gc=GATHER.food,carry=gc.carry*(1+G.tfx[u.team].carry+G.tfx[u.team].bcarry),spd=d.spd;let best=null,bs=1e9,nearD=1e9,allD=1e9;const cand=[];
+  for(const e of G.solids){if(e.kind!=='node'||e.dead||!e.sea||!seaOk(u,e,true)||!minedBy(u.team,e)||!canGather(u,e)||!nodeEpochOk(e,u.team))continue;
+    if(u.team===0&&!G.mp&&!nodeKnown(e))continue;if(u.bad&&u.bad[e.id]&&G.t-u.bad[e.id]<40)continue;
+    if(G.nbad){const nb=G.nbad[u.team+':'+e.id];if(nb&&G.t-nb.t<nb.p)continue}
+    const dB=Math.hypot(e.x-u.x,e.y-u.y);if(dB>1100)continue;const dp=nearestDrop(u.team,e.x,e.y,true,'food');if(!dp)continue;const dD=Math.hypot(e.x-dp.x,e.y-dp.y);
+    if(dD<allD)allD=dD;if(e.regen&&e.amount<30)continue; /* leergefischt: zählt nur als „näher Schwarm“, wird nicht angefahren */
+    const nd=NODES[e.type],load=(G.load[e.id]||0)-(u.tid===e.id&&u.state==='gather'?1:0),full=load>=nd.cap;
+    const rate=.85*gc.rate*(nd.gm||1)*(1+G.tfx[u.team].gather+G.tfx[u.team].bgather),fish=carry/rate*spd; /* Fangzeit in Fahrstrecke umgerechnet */
+    const trip=2*dD+dB*.5+fish,got=Math.max(1,Math.min(carry,e.amount-6)); /* Fahrt je Nahrung: ein fast leerer Schwarm bringt nur eine Teilladung */
+    let sc=trip*(carry/got)+load*15+(full?120:0);
+    cand.push({e,sc,dD,full});if(!full&&dD<nearD)nearD=dD}
+  for(const c of cand){if(!c.full&&c.dD>nearD+360&&(NODES[c.e.type].gm||1)<=1.3)continue; /* kein weiter Schwarm, solange ein naher frei ist */
+    if(c.dD>allD*3+300&&allD<1e9)continue; /* nicht quer über die Karte fahren (nur gerade leergefischte nahe Schwärme zählen als nah) */
+    if(c.sc<bs){bs=c.sc;best=c.e}}
+  if(cur&&best&&cur.id!==best.id){const c0=cand.find(c=>c.e.id===cur.id);if(c0&&!c0.full&&c0.sc<=bs*1.15+20)return cur} /* beim bisherigen bleiben, wenn der Gewinn klein ist */
+  return best}
 function nearestDrop(t,x,y,naval,rt,land){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='bld'||e.team!==t||!e.built||e.dead||(land&&e.type==='harbor'))continue;if(rt==='oil'?!BLDS[e.type].dropOil:!BLDS[e.type].drop)continue;if(naval&&e.type!=='harbor')continue;const d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e}}return best}
 function findEnemy(s,rad,unitsOnly){let best=null,bd=1e9;for(const e of G.ents){if(e.dead||e.team===s.team)continue;if(e.inm)continue;if(e.team<0&&!(e.kind==='animal'&&e.state==='chase'))continue;if(unitsOnly&&e.kind!=='unit'&&e.kind!=='animal')continue;if(e.gar&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;if(UNITS[e.type]&&UNITS[e.type].air&&!(UNITS[s.type]&&(UNITS[s.type].ranged||UNITS[s.type].air)))continue;const d=Math.hypot(e.x-s.x,e.y-s.y)-e.r-s.r;if(d>rad)continue;const sc=d+(e.kind==='bld'?80:0);if(sc<bd){bd=sc;best=e}}return best}
 const reach=(u,t)=>dist(u,t)<=u.r+t.r+5;
@@ -195,6 +213,7 @@ function pickExplore(u){const g=exGrid(u.team),naval=!!UNITS[u.type].naval;let b
 function updUnit(u,dt){
   const d=UNITS[u.type];u.cd=Math.max(0,u.cd-dt);u.px=u.x;u.py=u.y;
   if(u.type==='cart'&&u.state!=='haul'&&u.state!=='move')u.state='haul';
+  if(u.inb){boardTick(u);return}
   if(u.inm&&u.state!=='mine'){const b=G.byId.get(u.inm);u.inm=null;if(b){u.x=b.x;u.y=b.y+b.r+8}} /* anderer Befehl: Bergmann kommt aus der Mine (sonst bliebe er unsichtbar) */
   if(u.state==='idle'&&u.loop&&!(u.q&&u.q.length)){u.q=u.loop.map(o=>({...o}))}
   if(u.state==='idle'&&u.q&&u.q.length)nextOrder(u);
@@ -234,14 +253,15 @@ function updUnit(u,dt){
       break}
     const g=exGrid(u.team);if(!u.ex||G.t>u.ex.until||g[u.ex.i]){u.ex=pickExplore(u);if(!u.ex){if(d.naval){u.state='idle'}else{u.exPh='enemy';u.pf=null}break}u.ex.until=G.t+45;u.pf=null}
     const done=moveToward(u,u.ex.x,u.ex.y,dt);if(u.pf&&u.pf.fail){(u.badEx||(u.badEx={}))[u.ex.i]=G.t;u.ex=null;u.pf=null}else if(done)u.ex=null;break}
-  case 'move':if(moveToward(u,u.dest.x,u.dest.y,dt))u.state='idle';break;
+  case 'move':if(moveToward(u,u.dest.x,u.dest.y,dt)){u.state='idle';if(u.unl){u.unl=false;if(Math.hypot(u.x-u.dest.x,u.y-u.dest.y)<45)unloadShip(u.team,u.id);else if(u.team===0&&cargoOf(u)){toast(tr('Dorthin findet das Schiff keinen Wasserweg.'),'warn');sfx('error')}}}break;
+  case 'board':boardGo(u,dt);break;
   case 'amove':{const t=((u.ft=(u.ft||0)-dt)<=0)?(u.ft=.2+Math.random()*.1,findEnemy(u,140)):null;if(t){u.tid=t.id;u.state='attack';break}if(moveToward(u,u.amove.x,u.amove.y,dt)){u.state='idle';u.amove=null}break}
   case 'attack':{if(u.gd&&(G.t>u.gd.until||Math.hypot(u.x-u.gd.x,u.y-u.gd.y)>GUARD_LEASH)){u.state='idle';u.gd=null;u.tid=null;break}const t=get(u.tid);if(!t||t.team===u.team||(t.team<0&&t.kind!=='animal')){u.state=u.amove?'amove':'idle';break}
     const gap=dist(u,t)-u.r-t.r;
     if(gap<=d.rng){u.fa=Math.atan2(t.y-u.y,t.x-u.x);if(u.cd<=0){u.cd=d.cd;u.swing=G.t;hit(u,t)}}
     else moveToward(u,t.x,t.y,dt,t.id);break}
   case 'gather':{let n=get(u.tid);if(n&&n.regen&&n.amount<6)n=null;
-    if(!n){const sr=d.naval?1100:350;/* Fischschwärme liegen verstreut: Boote suchen weiter */n=nearestNode(u.rtype,u.x,u.y,sr,u,true)||nearestNode(u.rtype,u.x,u.y,sr,u);if(!n){if(u.carry>0)u.state='return';else{u.state='idle';u.rtype=null}break}u.tid=n.id}
+    if(!n){const sr=d.naval?1100:350;/* Fischschwärme liegen verstreut: Boote suchen weiter */if(d.naval){n=boatPick(u);if(n&&u.carry>0&&Math.hypot(n.x-u.x,n.y-u.y)>220)n=null /* Teilladung: nur weiterfischen, wenn der nächste Schwarm nah ist, sonst erst abliefern */}else n=nearestNode(u.rtype,u.x,u.y,sr,u,true)||nearestNode(u.rtype,u.x,u.y,sr,u);if(!n){if(u.carry>0)u.state='return';else{u.state='idle';u.rtype=null}break}u.tid=n.id}
     if(MINE_RT[n.rt]==='mine'&&!d.naval&&canGather(u,n)){const m=mineOf(u.team,n);if(m){u.state='mine';u.tid=m.id;u.pf=null;u.carry=0}else{u.state='idle';u.tid=null}break}
     if(u.carry>0&&u.ctype!==n.rt)u.carry=0;
     const gc=GATHER[n.rt];
@@ -252,12 +272,12 @@ function updUnit(u,dt){
     if(fs?Math.hypot(u.x-fs.x,u.y-fs.y)<(shore?9:6):reach(u,n)){u.fa=fs&&!shore&&n.type==='field'?u.id%6.283:Math.atan2(n.y-u.y,n.x-u.x);const fr=G.t-(u.gat||-9)>.4;u.gat=G.t;if(fr)u.gt=u.gl=gcyc(n);if((u.gt=(u.gt||0)-dt)<=0){u.gt=u.gl=gcyc(n);sfx(n.rt==='wood'?'chop':n.rt==='stone'||n.rt==='iron'||n.rt==='gold'?'mine':'pick',u);if(Math.random()<.22)sfx('grunt',u)}const rate=gRate(u,n)*(shore?SHORE_RATE:1);const amt=Math.min(rate*dt,n.amount);u.carry+=amt;u.ctype=n.rt;n.amount-=amt;const sd=NODES[n.type].side;if(sd)for(const k in sd)(u.byp||(u.byp={}))[k]=(u.byp[k]||0)+amt*sd[k]; /* Wal: Tran = Öl als Nebenprodukt */if(n.amount<=0.001){if(n.regen)n.amount=0;else kill(n)}if(u.carry>=cap)u.state='return'}
     else{
       // Absprache: ist der Baum/Busch schon voll besetzt, ein freies Vorkommen in der Nähe suchen
-      if((G.load[n.id]||0)>NODES[n.type].cap&&G.t-(u.rs||0)>1.5){u.rs=G.t;const alt=nearestNode(u.rtype||n.rt,u.x,u.y,350,u,true);if(alt&&alt.id!==n.id){G.load[n.id]--;G.load[alt.id]=(G.load[alt.id]||0)+1;u.tid=alt.id;u.pf=null;n=alt}}
+      if((G.load[n.id]||0)>NODES[n.type].cap&&G.t-(u.rs||0)>1.5){u.rs=G.t;const alt=d.naval?boatPick(u,n):nearestNode(u.rtype||n.rt,u.x,u.y,350,u,true);if(alt&&alt.id!==n.id){G.load[n.id]--;G.load[alt.id]=(G.load[alt.id]||0)+1;u.tid=alt.id;u.pf=null;n=alt}}
       moveToward(u,fs?fs.x:n.x,fs?fs.y:n.y,dt,n.id);
       if(u.pf&&u.pf.fail){(u.bad||(u.bad={}))[n.id]=G.t;if(d.naval){const nb=G.nbad||(G.nbad={}),k=u.team+':'+n.id,o=nb[k];nb[k]={t:G.t,p:Math.min(480,o?o.p*2:60)}}u.tid=null;u.pf=null}}
     break}
   case 'return':{const dp=nearestDrop(u.team,u.x,u.y,!!d.naval,u.ctype);if(!dp||!u.ctype){u.state='idle';break}
-    if(reach(u,dp)){G.res[u.team][u.ctype]+=u.carry;if(u.byp){for(const k in u.byp)G.res[u.team][k]=(G.res[u.team][k]||0)+u.byp[k];u.byp=null}if(u.team===0)sfx('drop',u);u.carry=0;if(!(u.q&&u.q.length&&nextOrder(u)))u.state='gather'}else moveToward(u,dp.x,dp.y,dt,dp.id);break}
+    if(reach(u,dp)){G.res[u.team][u.ctype]+=u.carry;if(u.byp){for(const k in u.byp)G.res[u.team][k]=(G.res[u.team][k]||0)+u.byp[k];u.byp=null}if(u.team===0)sfx('drop',u);u.carry=0;if(!(u.q&&u.q.length&&nextOrder(u))){u.state='gather';if(d.naval){const cn=get(u.tid),nb=boatPick(u,cn&&!cn.dead?cn:null);if(nb&&nb.id!==u.tid){u.tid=nb.id;u.pf=null}}}}else moveToward(u,dp.x,dp.y,dt,dp.id);break}
   case 'build':{const b=get(u.tid);
     if(b&&b.built&&u.rep&&b.hp<b.maxHp-1){ /* Reparatur: kostenlos, etwas langsamer als Bauen */
       if(reach(u,b)){u.fa=Math.atan2(b.y-u.y,b.x-u.x);const fr=G.t-(u.gat||-9)>.4;u.gat=G.t;if(fr)u.bt=u.bl=.55;if((u.bt=(u.bt||0)-dt)<=0){u.bt=u.bl=bcyc(u);sfx('hammer',u)}b.hp=Math.min(b.maxHp,b.hp+dt*b.maxHp/((BLDS[b.type].time||60)*2.2))}else moveToward(u,b.x,b.y,dt,b.id);break}
@@ -270,7 +290,8 @@ function updUnit(u,dt){
 /* Takt der Hiebe beim Sammeln/Bauen (nur Geräusch und Bewegung der Figur, die Menge hängt nur an gRate*dt): Holz 1,2 s, Beeren 2,1 s, Feld 1,5 s, Fisch/Rest ~1 s; Bauen 3 kurze Schläge + Pause */
 function gcyc(n){return(n.sea?.85:n.type==='field'?1.5:n.type==='bush'?2.1:n.rt==='wood'?1.2:1.1)*(.92+Math.random()*.16)}
 function bcyc(u){u.bn=((u.bn||0)+1)%4;return u.bn===0?1.15:.55}
-function hit(u,t){const d=UNITS[u.type];if(!u.yl||G.t-u.yl>25){u.yl=G.t;if(Math.random()<.5)sfx('yell',u)}sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);/* Gebäude: Fusstruppen kratzen nur (Nahkampf .25, Fernkampf .1), Belagerungswaffen zerstören (×1,4) */const mult=(t.kind==='bld'?(d.siege?1.4:d.bomber?1:d.ranged?.1:.25):(d.siege&&!d.ranged?.35:1))*(1+(d.ranged?G.tfx[u.team].ratk:G.tfx[u.team].matk))*(d.cls==='siege'?1+G.nfx[u.team].art:1)*(t.kind==='unit'?((CTR[d.cls]||{})[UNITS[t.type].cls]||1)*(d.gun&&UNITS[t.type].cls==='cav'?1.3:1):1)*(u.rage>G.t?RAGE.dmg:1)*(u.am||1);
+/* Bodenfeuer (gun:true) gegen Flugzeuge: Gewehre schwächer, MG (schnelle Garbe) etwas weniger */const AA_GUN={rng:.4,mg:.3};
+function hit(u,t){const d=UNITS[u.type];if(!u.yl||G.t-u.yl>25){u.yl=G.t;if(Math.random()<.5)sfx('yell',u)}sfx(d.siege?'boom':d.gun?'shot':d.ranged?'arrow':'hit',u);/* Gebäude: Fusstruppen kratzen nur (Nahkampf .25, Fernkampf .1), Belagerungswaffen zerstören (×1,4) */const mult=(t.kind==='bld'?(d.siege?1.4:d.bomber?1:d.ranged?.1:.25):(d.siege&&!d.ranged?.35:1))*(1+(d.ranged?G.tfx[u.team].ratk:G.tfx[u.team].matk))*(d.cls==='siege'?1+G.nfx[u.team].art:1)*(t.kind==='unit'?((CTR[d.cls]||{})[UNITS[t.type].cls]||1)*(d.gun&&UNITS[t.type].cls==='cav'?1.3:1):1)*(t.kind==='unit'&&d.gun&&!d.air&&UNITS[t.type].air?(u.type==='mg'?AA_GUN.mg:AA_GUN.rng):1)*(u.rage>G.t?RAGE.dmg:1)*(u.am||1);
   if(d.ranged)G.proj.push({x:u.x,y:u.y,tid:t.id,dmg:d.atk*mult*LVL.atk[u.lvl],src:u.id,a:0,big:!!d.siege,gun:!!d.gun,sp:d.splash||0});else damage(t,d.atk*mult*LVL.atk[u.lvl],u)}
 function damage(t,amt,src){
   if(t.kind==='unit'&&G.ents.some(b=>b.kind==='bld'&&b.type==='trench'&&b.built&&!b.dead&&b.team===t.team&&Math.hypot(b.x-t.x,b.y-t.y)<30))amt*=.65;
@@ -291,8 +312,13 @@ function kill(e){if(e.dead)return;e.dead=true;if(e.type==='farm')for(const n of 
   if(e.type==='hq'&&!G.over)G.over=e.team===0?'lose':'win';}
 /* Ego-Ansicht im Turm: der Spieler feuert selbst (Schaden, Reichweite, Nachladezeit wie die Automatik; solange er zielt, pausiert die Auto-Wahl).
    Gibt true zurück, wenn ein Schuss fiel. Mehrspieler: Gast schickt 'tfire', Gastgeber prüft Besitz (nach flipTeams ist der Gast Team 0). */
-function towerFire(team,id,tid){
-  if(NET.client&&team===0){NET.send({c:'tfire',id,tid});return true}
+function towerFire(team,id,tid,tx,ty){
+  if(NET.client&&team===0){NET.send({c:'tfire',id,tid,tx,ty});return true}
+  if(!tid&&tx!==undefined){/* freier Schuss in Blickrichtung (Ego-Turm): Pfeil fliegt zum Zielpunkt, trifft den ersten Feind dort */
+    const b=G.byId.get(id),d=b&&BLDS[b.type];if(!b||b.dead||b.team!==team||!b.built||!d||!d.shoot)return false;
+    const sd=b.spec==='def',sob=b.spec==='obs';b.manT=G.t+2.5;if(b.cd>0)return false;
+    const R=d.shoot.rng*(sd?1.3:sob?.8:1),dx=tx-b.x,dy=ty-b.y,dd=Math.hypot(dx,dy)||1,k=Math.min(1,R/dd);
+    b.cd=d.shoot.cd*(sob?1.3:1);sfx('arrow',b);G.proj.push({x:b.x,y:b.y-8,tx:b.x+dx*k,ty:b.y+dy*k,free:1,dmg:d.shoot.atk*(sd?1.8:sob?.7:1)*LVL.atk[b.lvl]*(1+G.tfx[b.team].tower),src:b.id,a:Math.atan2(dy,dx)});return true}
   const b=G.byId.get(id),t=G.byId.get(tid),d=b&&BLDS[b.type];if(!b||b.dead||b.team!==team||!b.built||!d||!d.shoot||!t||t.dead||t.team===team||t.inm)return false;
   if(t.kind!=='unit'&&t.kind!=='animal'&&t.kind!=='bld')return false;if(t.team<0&&t.kind!=='animal')return false;
   const sd=b.spec==='def',sob=b.spec==='obs';b.manT=G.t+2.5;if(b.cd>0)return false;
@@ -382,6 +408,52 @@ function minersIn(b){let n=0;for(const e of G.ents)if(e.inm===b.id&&!e.dead)n++;
 function mineOf(team,n){let best=null,bd=1e9;for(const b of G.ents){if(b.kind!=='bld'||b.type!=='mine'||!b.built||b.dead||b.team!==team)continue;const d=Math.hypot(b.x-n.x,b.y-n.y);if(d<n.r+b.r+8&&!b.empty&&minersIn(b)<MINE_CAP&&d<bd){bd=d;best=b}}return best}
 function mineNode(b,u){let best=null,bd=1e9;for(const e of G.solids){if(e.kind!=='node'||e.dead||MINE_RT[e.rt]!=='mine'||e.amount<=0||!canGather(u,e)||(u.team===0&&!nodeKnown(e)))continue;const d=Math.hypot(e.x-b.x,e.y-b.y);if(d<e.r+b.r+8&&d<bd){bd=d;best=e}}return best}
 function mineOut(u){const b=u.inm&&G.byId.get(u.inm);if(u.inm){u.x=b?b.x:u.x;u.y=(b?b.y+b.r+8:u.y+20)}u.inm=null;u.state='idle';u.tid=null;u.pf=null}
+/* ---------- Truppentransport über Wasser ----------
+   Schiffe mit UNITS[..].cap nehmen Landtruppen auf (Rechtsklick auf das Schiff am Ufer): Passagiere haben u.inb = Schiff-ID, u.inm (unsichtbar/unantastbar wie in Minen)
+   und den Zustand 'aboard', ihre Position folgt dem Schiff. Rechtsklick des Schiffs auf Land = zum nächsten Ufer fahren und dort ausladen; Knopf "Ausladen".
+   Geht das Schiff unter: Passagiere werden am nächsten Land abgesetzt (bis 150 px), sonst ertrinken sie. Die KI nutzt den Transport nicht. */
+const BOARD_R=30,UNLOAD_R=130,SINK_R=150;
+const boardable=u=>u.kind==='unit'&&!u.inb&&!u.upj&&(()=>{const d=UNITS[u.type];return !d.naval&&!d.air&&u.type!=='cart'})();
+const cargoOf=s=>{let n=0;for(const e of G.ents)if(e.inb===s.id&&!e.dead)n++;return n};
+/* freie Landfelder (begehbar, kein Gebäude) um (x,y) in wachsenden Ringen, höchstens n Stück */
+function landSpots(x,y,rad,n){const out=[];if(n<=0)return out;
+  for(let r=8;r<=rad&&out.length<n;r+=7){const k=Math.max(8,Math.floor(Math.PI*2*r/14));
+    for(let i=0;i<k&&out.length<n;i++){const a=i/k*Math.PI*2+r*.37,px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;
+      if(px<12||py<12||px>W-12||py>H-12||terrAt(px,py)!==2||!navOpen(navCell(px,py),false))continue;
+      if(out.some(o=>Math.hypot(o.x-px,o.y-py)<13))continue;out.push({x:px,y:py})}}
+  return out}
+/* Wasserpunkt am Ufer nahe (x,y), wo ein Schiff anlegen kann (freies tiefes/flaches Wasser); null = kein Ufer in 160 px */
+function coastWater(x,y){let best=null,bd=1e9;
+  for(let r=0;r<=160;r+=10){const k=r?Math.max(8,Math.floor(Math.PI*2*r/10)):1;
+    for(let i=0;i<k;i++){const a=i/k*Math.PI*2,px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;if(px<10||py<10||px>W-10||py>H-10||!terrOk(px,py,true)||!navOpen(navCell(px,py),true))continue;
+      /* nur Wasser, das ans Land grenzt (kleiner Abstand zum Land), sonst legt das Schiff draussen an */
+      let near=false;for(const [dx,dy] of[[14,0],[-14,0],[0,14],[0,-14]])if(terrAt(px+dx,py+dy)===2){near=true;break}
+      if(!near)continue;const d=Math.hypot(px-x,py-y);if(d<bd){bd=d;best={x:px,y:py}}}
+    if(best)break}
+  return best}
+function boardTick(u){ /* Passagier: folgt dem Schiff; Schiff weg -> an Land retten oder ertrinken */
+  const s=G.byId.get(u.inb);
+  if(s&&!s.dead&&s.team===u.team){u.x=s.x;u.y=s.y;u.state='aboard';u.inm=s.id;return}
+  const sps=landSpots(u.x,u.y,SINK_R,6),sp=sps.length?sps[u.id%sps.length]:null;
+  if(sp){u.inb=null;u.inm=null;u.x=sp.x;u.y=sp.y;u.state='idle';u.pf=null;u.manual=true;if(u.team===0)toast(tr('Das Schiff ist gesunken, die Truppen konnten sich an Land retten.'),'warn')}
+  else{u.inb=null;u.inm=null;if(u.team===0&&G.t-(G.sinkMsg||-9)>3){G.sinkMsg=G.t;toast(tr('Das Schiff ist gesunken, die Ladung ist ertrunken.'),'warn')}kill(u)}}
+/* Landtruppe läuft zum Schiff und steigt ein */
+function boardGo(u,dt){const s=get(u.tid);
+  if(!s||s.dead||s.team!==u.team||!UNITS[s.type].cap){u.state='idle';return}
+  if(Math.hypot(u.x-s.x,u.y-s.y)<=u.r+s.r+BOARD_R){
+    if(cargoOf(s)>=UNITS[s.type].cap){if(u.team===0)toast(tr('Das Schiff ist voll.'),'warn');u.state='idle';return}
+    u.inb=s.id;u.inm=s.id;u.state='aboard';u.pf=null;u.q=[];u.loop=null;u.x=s.x;u.y=s.y;sel.delete(u.id);if(u.team===0){panelSig='';sfx('order')}return}
+  if(moveToward(u,s.x,s.y,dt,s.id)&&Math.hypot(u.x-s.x,u.y-s.y)>u.r+s.r+BOARD_R+40){u.state='idle';if(u.team===0)toast(tr('Das Schiff liegt zu weit vom Ufer entfernt.'),'warn')}}
+/* Ausladen: alle Passagiere an die nächsten freien Landfelder um das Schiff setzen */
+function unloadShip(team,id,msg){
+  if(NET.client&&team===0){NET.send({c:'unload',id});return true}
+  const s=G.byId.get(id);if(!s||s.dead||s.kind!=='unit'||s.team!==team||!UNITS[s.type].cap)return false;
+  const ps=G.ents.filter(e=>e.inb===s.id&&!e.dead);if(!ps.length)return false;
+  const sp=landSpots(s.x,s.y,UNLOAD_R,ps.length);
+  if(!sp.length){if(msg&&team===0){toast(tr('Hier ist kein Land zum Ausladen in der Nähe.'),'warn');sfx('error')}return false}
+  ps.slice(0,sp.length).forEach((u,i)=>{u.inb=null;u.inm=null;u.x=sp[i].x;u.y=sp[i].y;u.state='idle';u.pf=null;u.manual=true});
+  if(team===0){panelSig='';sfx('order');if(ps.length>sp.length)toast(tr('Nicht alle Truppen fanden Platz an Land.'),'warn')}
+  return true}
 function mineRelease(team,id){if(NET.client&&team===0){NET.send({c:'unmine',id});return}for(const e of G.ents)if(e.inm===id&&e.team===team&&!e.dead)mineOut(e)}
 const cartWant=b=>Math.min(CART_MAX,(b.spec==='rails'?2:1)+(b.xc||0));
 function buyCart(team,id){if(NET.client&&team===0){NET.send({c:'cart2',id});return true}const b=G.byId.get(id);if(!b||b.dead||b.team!==team||b.type!=='mine'||!b.built||b.empty||cartWant(b)>=CART_MAX||!pay(team,CART_COST))return false;b.xc=(b.xc||0)+1;b.cartT=0;if(team===0)sfx('built',b);return true}
@@ -454,16 +526,20 @@ function updAnimal(a,dt){
     if(best){
       if(d.agg){if(a.state!=='chase'&&a.state!=='return'&&!(G.t<(a.noChase||0))&&best.kind==='unit'&&bd<d.agg&&!(d.ambush&&(G.t<(a.rest||0)||crocGroup(a,best,d)))&&Math.hypot(a.home.x-best.x,a.home.y-best.y)<d.leash){a.tid=best.id;a.state='chase';a.cgt=0;sfx('growl',a);
         if(d.pack)for(const o of G.ents)if(o.kind==='animal'&&o.type===a.type&&!o.dead&&o!==a&&o.state!=='chase'&&Math.hypot(o.x-a.x,o.y-a.y)<240){o.tid=best.id;o.state='chase'}}}
-      else if(bd<d.flee*(a.state==='flee'?1.35:1)/* Flucht endet erst etwas weiter weg: kein Hin und Her am Rand */){if(a.state!=='flee')sfx('deer',a);a.state='flee';a.thr={x:best.x,y:best.y};a.until=G.t+2.5}}}
+      else if(G.t>=(a.nofl||0)&&bd<d.flee*(a.state==='flee'?1.35:1)/* Flucht endet erst etwas weiter weg: kein Hin und Her am Rand */){if(a.state!=='flee')sfx('deer',a);a.state='flee';/* Gefahrenpunkt = Mitte aller nahen Bedrohungen (nicht nur die nächste), sonst läuft das Tier vom einen weg und dem anderen in die Arme */let sx=best.x,sy=best.y,sn=1;for(const o of a.nb||[]){if(o!==best&&Math.hypot(o.x-a.x,o.y-a.y)-o.r<d.flee*1.35){sx+=o.x;sy+=o.y;sn++}}a.thr={x:sx/sn,y:sy/sn};a.until=G.t+2.5}}}
   switch(a.state){
   case'idle':a.wt-=dt;if(a.wt<=0){const okc=d.water?1:2;let wp=null;for(let k=0;k<10&&!wp;k++){const ang=Math.random()*6.283,r=(.3+Math.random()*.7)*d.roam*(d.agg?1:1.8),x=a.home.x+Math.cos(ang)*r,y=a.home.y+Math.sin(ang)*r;if(terrAt(x,y)===okc&&navDyn[navCell(x,y)]===0&&!(a.nb&&a.nb.some(o=>Math.hypot(o.x-x,o.y-y)-o.r<d.flee+35))/* Ziel nie in der Scheuchzone von Gebäuden/Einheiten */&&terrAt((x+a.x)/2,(y+a.y)/2)===okc&&navDyn[navCell((x+a.x)/2,(y+a.y)/2)]===0)wp={x,y}}if(wp){a.wp=wp;a.state='wander';a.stk=0}else a.wt=1+Math.random()*2}break;
   case'wander':if(animalMove(a,a.wp.x,a.wp.y,dt,d.spd*.35)||a.stk>.6){a.state='idle';a.wt=2+Math.random()*5;a.stk=0}break;
   case'flee':{const t=a.thr||{x:a.x,y:a.y};if(G.t>a.until){a.state='idle';a.wt=1;a.home={x:a.x,y:a.y};a.fgo=null;break}
     /* Fluchtrichtung nur alle ~1,2 s neu wählen: weg von der Gefahr, aber nur über begehbares Land (Ufer/Fels/Hindernisse prüfen) – sonst pendelt das Tier */
     if(!a.fgo||G.t>(a.fT||0)||Math.hypot(a.fgo.x-a.x,a.fgo.y-a.y)<12){const okc=d.water?1:2,base=Math.atan2(a.y-t.y,a.x-t.x);let pick=null;
-      for(const k of[0,1,-1,2,-2,3,-3,4,-4]){const an=base+k*.4,cx=Math.cos(an),cy=Math.sin(an);let ok=true;for(const L of[25,50,80,110])if(terrAt(a.x+cx*L,a.y+cy*L)!==okc||navDyn[navCell(a.x+cx*L,a.y+cy*L)]!==0){ok=false;break}if(ok){pick={x:a.x+cx*110,y:a.y+cy*110};break}}
+      /* je Richtung die freie Laufstrecke (bis 110 px) messen und die beste wählen: Gewicht = Länge, Richtung weg von der Gefahr zählt mehr. So findet das Tier auch in engen/gebogenen Uferstreifen einen Weg (früher: nur Richtungen mit 110 px ganz frei, sonst Stehenbleiben) */
+      let bs=0;for(const k of[0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6,8]){const an=base+k*.4,cx=Math.cos(an),cy=Math.sin(an);let n=0;for(const L of[20,40,60,80,100,120]){if(terrAt(a.x+cx*L,a.y+cy*L)!==okc||navDyn[navCell(a.x+cx*L,a.y+cy*L)]!==0)break;n=L}
+        if(n<40)continue;const sc=n*(1.3+Math.cos(k*.4))-(a.fbad&&Math.hypot(a.fbad.x-(a.x+cx*n),a.fbad.y-(a.y+cy*n))<30?60:0);if(sc>bs){bs=sc;pick={x:a.x+cx*n,y:a.y+cy*n}}}
+      /* kam das Tier seit dem letzten Versuch kaum voran, den alten Zielpunkt meiden */
+      if(a.fpos&&Math.hypot(a.fpos.x-a.x,a.fpos.y-a.y)<12&&a.fgo)a.fbad=a.fgo;a.fpos={x:a.x,y:a.y};
       a.fgo=pick;a.fT=G.t+1.2}
-    if(a.fgo)animalMove(a,a.fgo.x,a.fgo.y,dt,d.spd);else{a.until=Math.min(a.until,G.t+.3)/* eingekesselt: stehen bleiben */}break}
+    if(a.fgo)animalMove(a,a.fgo.x,a.fgo.y,dt,d.spd);else{a.until=Math.min(a.until,G.t+.3);a.nofl=G.t+3/* eingekesselt: 3 s nicht erneut fliehen, sonst friert das Tier im Flucht-Zustand ein */}break}
   case'chase':{if(a.bt===undefined)a.bt=0;const t=get(a.tid);if(!t||Math.hypot(a.home.x-a.x,a.home.y-a.y)>d.leash||Math.hypot(t.x-a.x,t.y-a.y)>d.agg*2.4){a.state='return';a.tid=null;a.stk=0;a.noChase=G.t+10;break}
     const gap=Math.hypot(t.x-a.x,t.y-a.y)-a.r-t.r;
     if(gap<=d.rng){a.fa=Math.atan2(t.y-a.y,t.x-a.x);if(a.cd<=0){a.cd=d.cd;a.swing=G.t;sfx('hit',a);damage(t,d.atk,a);if(d.ambush&&(++a.bt>=d.ambush.bites||a.hp<a.maxHp*.4)){a.state='return';a.tid=null;a.stk=0;a.bt=0;a.rest=G.t+d.ambush.rest}}}

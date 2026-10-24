@@ -211,6 +211,9 @@ Idee für später: echte Nachbearbeitung (SSAO, Bloom mit Render-Target) braucht
 - Aufprall (`r3Impact`): Späne am Stamm/Fels, Baum wackelt (`SHK`/`r3Shake`, ändert die Instanz-Matrix des Baums). Die Figur rückt beim Holzfällen/Pflücken bis auf Griffweite an den Baum/Strauch heran (`o.sh`, nur Darstellung, Spielposition bleibt). Rechenbudget `WPOSE.max` Figuren je Bild, nur bei Zoom ≥ 0,8; ca. 0,085 ms je Figur und Bild.
 - Grenzen: Fischen mit dem Netz unverändert (eigene Haltung `netPose`); Bergleute arbeiten unsichtbar in der Mine (Haltung `mine` nur für Öl/Sonderfälle); Finger greifen nicht um den Stiel; Soldaten-Animationen unverändert.
 
+## Truppentransport (24.10.)
+- Schiffe mit `cap` nehmen Landtruppen auf (`u.inb`/`u.inm`/Zustand `aboard`, `boardGo`, `boardTick`, `unloadShip`, `coastWater`, `landSpots` in sim.js; Rechtsklick auf Schiff = einsteigen, Schiff + Rechtsklick aufs Land = zum Ufer fahren und ausladen, Knopf „Ausladen“). Mehrspieler: `ib` im Stand, `case'unload'`. Untergehendes Schiff: Ladung wird bei Land in 150 px abgesetzt, sonst ertrinkt sie. KI nutzt es nicht. Details OPTIMIERUNG.md.
+
 ## Paket B (19.10.): Tiere, Meer, Ufer
 - Ufer weich: `shoreField(pred)`/`shoreAt` (nav.js) für Gelände (`r3Map`), Schaum und `renderBg`-Maske, nur Darstellung. Tiere: `updAnimal` meidet Scheuchzonen (`a.nb`), Flucht mit Hysterese und begehbarer Richtung (`a.fgo`), Jagd gibt auf (`a.noChase`). Wal Grösse 12 (Manifest `sea.whale`), `NODES.whale.r` 24. Delfin/Wal haben kein echtes Modell (nur Fisch/Hai getönt), siehe OPTIMIERUNG.md.
 ## Paket A (18.10.): Zoom/Kamera, Vorkommen nach Zeitalter, Eisen/Gold, KI-Hafen, KI-Türme

@@ -4,7 +4,7 @@
    Verbindung lokal über BroadcastChannel (Lobby „Lokal testen“, ?join=local:CODE).
    Prüft: (1) Verbindung/Start/Snapshot/Konsole, (2) Aufstieg Zeitalter 6 mit Nationen beider Seiten,
    Nationen-Einheiten drüben sichtbar (Bilder), (3) Spät-Modelle nach EKMODELS.loadAll alle glTF,
-   (4) Gast-Ego-Schlag 'ufire' über das Netz. Ergebnis: Zeilen OK/FEHLER, Exitcode 1 bei Fehler. */
+   (4) Gast-Ego-Schlag 'ufire' über das Netz, (5) Gast-Turm-Freischuss 'tfire'. Ergebnis: Zeilen OK/FEHLER, Exitcode 1 bei Fehler. */
 const http=require('http'),fs=require('fs'),path=require('path');
 const {chromium}=require('playwright');
 const ROOT=path.resolve(__dirname,'..'),OUT=path.resolve(process.argv[2]||'/tmp/mp-test');fs.mkdirSync(OUT,{recursive:true});
@@ -78,6 +78,15 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));const T0=Date.now(),P=s=>consol
   sent+=await g.evaluate(i=>{const calls=[];const o=NET.send;NET.send=m=>{calls.push(m.c);return o(m)};try{unitStrike(0,i.a,i.f)}catch(e){calls.push('ERR '+e.message)}NET.send=o;return calls.join(',')+';'},e4);
   await sleep(2500);hp1=await h.evaluate(i=>G.byId.get(i.f).hp,e4)}
  rep("(4) Gast-Ego-Schlag 'ufire' über das Netz trifft",sent.includes('ufire')&&hp1<hp0,`gesendet=${sent} hp ${hp0}->${hp1}`);
+ /* (5) Gast-Turm-Freischuss 'tfire' mit Zielpunkt (Ego-Wachturm ohne Ziel): Pfeil entsteht auf dem Gastgeber, trifft den Feind am Zielpunkt */
+ const e5=await h.evaluate(()=>{const E=__ek,G=E.G;const hq=G.ents.find(e=>e.type==='hq'&&e.team===1);const t=E.addBld('tower',1,hq.x-260,hq.y+300,true);t.built=true;t.cd=0;t.manT=G.t+30;/* keine Auto-Schüsse */
+  const f=E.addUnit('spear',0,t.x+90,t.y);f.hp=f.maxHp=100000;f.state='idle';return{t:t.id,f:f.id,fx:f.x,fy:f.y}});
+ await sleep(2500);
+ const q0=await h.evaluate(i=>G.byId.get(i.f).hp,e5);let s5='',q1=q0;
+ for(let k=0;k<3&&q1>=q0;k++){await h.evaluate(i=>{const t=G.byId.get(i.t);t.cd=0;t.manT=G.t+30;const f=G.byId.get(i.f);f.x=i.fx;f.y=i.fy},e5);
+  s5+=await g.evaluate(i=>{const calls=[];const o=NET.send;NET.send=m=>{calls.push(m.c+(m.tx!==undefined?'@'+m.tx+','+m.ty:''));return o(m)};try{towerFire(0,i.t,0,i.fx,i.fy)}catch(e){calls.push('ERR '+e.message)}NET.send=o;return calls.join(',')+';'},e5);
+  await sleep(2500);q1=await h.evaluate(i=>G.byId.get(i.f).hp,e5)}
+ rep("(5) Gast-Turm-Freischuss 'tfire' über das Netz trifft",s5.includes('tfire@')&&q1<q0,`gesendet=${s5} hp ${q0}->${q1}`);
  rep('(4) keine Konsolenfehler insgesamt',errs.length===0,errs.slice(0,4).join(' | '));
  await b.close();srv.close();
  console.log(res.every(Boolean)?'ALLES OK':'FEHLER VORHANDEN');process.exit(res.every(Boolean)?0:1);

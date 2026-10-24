@@ -102,7 +102,7 @@ cv.addEventListener('pointerup',e=>{
   if(d.pan||d.rot)return;
   if(d.touch){if(!d.moved)tap(p);return}
   if(d.box){const x0=Math.min(d.sx,p.x),x1=Math.max(d.sx,p.x),y0=Math.min(d.sy,p.y),y1=Math.max(d.sy,p.y);
-    const us=G.ents.filter(u=>{if(u.dead||u.kind!=='unit'||u.team!==0)return false;const q=scr(u.x,u.y,entH(u)*.45);return q.x>=x0&&q.x<=x1&&q.y>=y0&&q.y<=y1});
+    const us=G.ents.filter(u=>{if(u.dead||u.inm||u.kind!=='unit'||u.team!==0)return false;const q=scr(u.x,u.y,entH(u)*.45);return q.x>=x0&&q.x<=x1&&q.y>=y0&&q.y<=y1});
     if(!d.shift)sel.clear();us.forEach(u=>sel.add(u.id));panelSig='';return}
   clickSelect(p,d.shift);
 });

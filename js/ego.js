@@ -13,6 +13,7 @@ EGO.attach=(e,o)=>{const bb=new THREE.Box3().setFromObject(o.obj),h=Math.max(.8,
 EGO.start=e=>{
   if(EGO.on||!EGO.can(e))return false;const o=R3.reg.get(entKey(e));if(!o)return false;
   EGO.attach(e,o);
+  if(EGO.tower&&!G.mp&&G.speed!==1){EGO.speedBack=G.speed;G.speed=1;try{uiRefresh&&uiRefresh()}catch(_){}} /* Turm: Tempo 1, beim Verlassen zurück (David 24.10.) */
   EGO.zoom=1;EGO.pitch=EGO.tower?-.12:0;EGO.hintT=performance.now()+8000;
   EGO.yaw=e.fa!==undefined&&e.kind!=='bld'?Math.PI/2-e.fa:cam.yaw+Math.PI;
   EGO.saved={x:cam.x,y:cam.y,z:cam.z,yaw:cam.yaw,pitch:cam.pitch,tyaw:cam.tyaw,tpitch:cam.tpitch};
@@ -21,6 +22,7 @@ EGO.start=e=>{
   panelSig='';return true};
 EGO.stop=(pos)=>{
   if(!EGO.on)return;EGO.on=false;document.body.classList.remove('ego');const s=EGO.saved;
+  if(EGO.speedBack){if(!G.mp)G.speed=EGO.speedBack;EGO.speedBack=0}
   if(s){Object.assign(cam,{x:s.x,y:s.y,z:s.z,yaw:s.yaw,pitch:s.pitch,tyaw:s.tyaw,tpitch:s.tpitch})}
   if(EGO.mv&&EGO.e&&!EGO.e.dead)EGO.go(0,0);const o=EGO.e&&R3.reg.get(entKey(EGO.e));if(o)o.obj.visible=true;EGO.e=null;EGO.tgt=null;EGO.ctl=false;EGO.mv=null;if(typeof ROOM!=='undefined'&&ROOM.apply)ROOM.apply();
   try{if(document.pointerLockElement)document.exitPointerLock()}catch(_){}
@@ -88,8 +90,12 @@ EGO.strike=t=>{const e=EGO.e,d=UNITS[e.type],now=performance.now();
 EGO.fx=d=>{EGO.flash=1;EGO.kick=1;EGO.kickK=(d.ranged||d.air)?-.5:1};
 /* Turm: Schuss auf das Ziel im Fadenkreuz (nur Feinde/Tiere; gleiche Sichtprüfung wie die Zielwahl). Nachladen = b.cd des Turms. */
 EGO.aimFoe=()=>{const t=EGO.aim();return t&&(t.kind==='unit'||t.kind==='animal'||t.kind==='bld')&&t.team!==0?t:null};
+EGO.aimPoint=()=>{const e=EGO.e,o=e&&R3.reg.get(entKey(e));if(!o)return null;const cp=Math.cos(EGO.pitch),dx=cp*Math.sin(EGO.yaw),dy=Math.sin(EGO.pitch),dz=cp*Math.cos(EGO.yaw),S=R3.S;let x=o.obj.position.x,y=Math.max(o.obj.position.y,hAt(e.x,e.y))+EGO.eye,z=o.obj.position.z;
+  for(let i=0;i<120;i++){x+=dx*.5;y+=dy*.5;z+=dz*.5;if(Math.max(0,hAt(x*S,z*S))>y)break}return{x:x*S,y:z*S}};
 EGO.shoot=()=>{const b=EGO.e;if(!b||b.kind!=='bld'||!BLDS[b.type].shoot)return;const t=EGO.aimFoe();
-  if(!t){toast(tr('Kein Ziel im Fadenkreuz.'),'warn');return}
+  if(!t){/* kein Ziel im Fadenkreuz: trotzdem schiessen, Pfeil fliegt in Blickrichtung */const P=EGO.aimPoint();if(!P)return;
+    if(NET.client){b.manT=G.t+2.5;if(!(EGO.nextFire>performance.now())){EGO.nextFire=performance.now()+BLDS[b.type].shoot.cd*1000;towerFire(0,b.id,0,P.x,P.y);EGO.flash=1}return}
+    if(towerFire(0,b.id,0,P.x,P.y))EGO.flash=1;return}
   if(NET.client){b.manT=G.t+2.5;if(!(EGO.nextFire>performance.now())){EGO.nextFire=performance.now()+BLDS[b.type].shoot.cd*1000;towerFire(0,b.id,t.id);EGO.flash=1}return}
   if(towerFire(0,b.id,t.id))EGO.flash=1;else if(b.cd>0)EGO.flash=EGO.flash||0;else toast(tr('Ziel ausser Reichweite.'),'warn')};
 EGO.tick=dt=>{EGO.reloadUi(dt);if(!EGO.on||!EGO.ctl||!EGO.e||(typeof menuOpen!=='undefined'&&menuOpen))return;

@@ -98,7 +98,7 @@ function renderOptions(){
   bind('oWar',e=>e.onchange=()=>optSet('combatMusic',e.checked));bind('oVoice',e=>e.onchange=()=>optSet('voices',e.checked));
   bind('advChk',e=>e.onchange=()=>{advOn=e.checked;try{localStorage.setItem('ek-advisor',advOn?'1':'0')}catch(_){}if(!advOn)advisor.cur=null});
   bind('oAuto',e=>e.onchange=()=>{advisor.auto=e.checked;advisor.autoAt=(G?G.t:0)+2});
-  segB('oStrat',v=>{advisor.strat=v;advisor.ignore={};advisor.cur=null;advisor.next=0;advisor.reacted=null});
+  segB('oStrat',v=>{advSetStrat(v)});
   bind('gdChk',e=>e.onchange=()=>{guardOn=e.checked;try{localStorage.setItem('ek-guard',guardOn?'1':'0')}catch(_){}});
   bind('abChk',e=>e.onchange=()=>{autoBuildOn=e.checked;try{localStorage.setItem('ek-autobuild2',autoBuildOn?'1':'0')}catch(_){}});
   segB('oAiS',v=>{aiStyle=v});segB('oDiff',v=>{diff=v});
@@ -123,6 +123,7 @@ function actionsFor0(s){
     if(s.filter(u=>u.kind==='unit'&&!UNITS[u.type].gather).length>1)acts.push({key:'form',nm:tr('Formation: {0}',tr(FORMS[curForm])),sub:tr('Taste G wechselt: Linie, Keil, Kolonne, Karree, Kreis'),run:()=>{curForm=(curForm+1)%FORMS.length;panelSig='';toast(tr('Formation: {0}',tr(FORMS[curForm])),'good')}});
     if(s.some(u=>u.kind==='unit'&&!UNITS[u.type].passive&&!UNITS[u.type].naval))acts.push({key:'rage',nm:tr('Kampfrausch'),sub:tr('Taste F: mehr Schaden und Tempo für {0} s',RAGE.dur),run:()=>{const ids=s.filter(u=>u.kind==='unit').map(u=>u.id);if(NET.client)NET.send({c:'rage',ids});else if(!useRage(0,ids))toast(tr('Kampfrausch lädt noch.'),'warn')}});
     if(s.some(u=>u.type==='scout'))acts.push({key:'exp',nm:tr('Erkunden'),sub:tr('Taste E: automatisch'),run:()=>{if(NET.client)NET.send({c:'explore',ids:s.map(u=>u.id)});else doExplore()}});
+    {const sh=s.filter(u=>u.kind==='unit'&&UNITS[u.type].cap);if(sh.length){const n=sh.reduce((a,u)=>a+cargoOf(u),0),cp=sh.reduce((a,u)=>a+UNITS[u.type].cap,0);acts.push({key:'unload',nm:tr('Ausladen'),sub:n?tr('Ladung {0} von {1}: Truppen an Land setzen',n,cp):tr('Leer. Landtruppen: Rechtsklick auf das Schiff. Schiff: Rechtsklick aufs Land'),run:()=>{sh.forEach(u=>unloadShip(0,u.id,true));panelSig=''}})}}
     acts.push({key:'stop',nm:tr('Halt'),sub:tr('Befehle abbrechen'),run:()=>{if(NET.client){NET.send({c:'halt',ids:s.map(u=>u.id)});return}s.forEach(u=>{if(u.kind==='unit'){u.state='idle';u.amove=null;u.q=[];u.loop=null;u.manual=true}})}});
     return acts;
   }
@@ -205,7 +206,7 @@ function updateUI(){
   {const sb=$('speedBtn'),pb=$('pauseBtn');sb.dataset.sp=G.speed;pb.dataset.on=G.paused?1:0;const ep=G.epoch[0];if(ib.dataset.ico!==String(ep)&&typeof ICON3!=='undefined'){const u=ICON3.thing('unit','worker');if(u){ib.style.setProperty('--ico','url('+u+')');ib.dataset.ico=ep}}}
   advisorTick();advisorUI();$('pauseBtn').hidden=!!G.mp;$('speedBtn').hidden=!!G.mp;
   const s=selection();document.body.classList.toggle('has-sel',s.length>0);
-  const sig=s.map(e=>e.id+(e.built?'b':'')).join(',')+'|'+G.epoch[0]+'|'+(G.adv[0]?1:0)+G.jobs[0].length+'|'+pending(0).n+'|'+G.tech[0].size+'|'+G.rs[0].length+'|v'+(typeof EKMODELS!=='undefined'?EKMODELS.ver:0);
+  const sig=s.map(e=>e.id+(e.built?'b':'')).join(',')+'|'+G.epoch[0]+'|'+(G.adv[0]?1:0)+G.jobs[0].length+'|'+pending(0).n+'|'+G.tech[0].size+'|'+G.rs[0].length+'|c'+s.reduce((a,e)=>a+(e.kind==='unit'&&UNITS[e.type].cap?cargoOf(e):0),0)+'|v'+(typeof EKMODELS!=='undefined'?EKMODELS.ver:0);
   if(sig!==panelSig){panelSig=sig;curActs=actionsFor(s);$('acts').innerHTML=curActs.map((a,i)=>`<button class="act" data-i="${i}">${actIcon(a)}${actKey(a.key)?`<kbd>${actKey(a.key)}</kbd>`:''}<span class="nm">${a.nm}</span>${a.cost?`<span class="cost">${costHTML(a.cost)}</span>`:''}${a.lock?`<span class="sub">${tr('ab {0}',a.lock)}</span>`:a.sub?`<span class="sub">${a.sub}</span>`:''}</button>`).join('')}
   $('acts').querySelectorAll('.act').forEach(b=>{const a=curActs[+b.dataset.i];if(!a)return;b.classList.toggle('locked',!!a.lock||!!a.need||!!(a.adv&&G.adv[0])||!!(a.key==='adv'&&G.jobs[0].length));b.classList.toggle('poor',!!a.cost&&!afford(0,a.cost));b.querySelectorAll('.c').forEach(ch=>{const ok=(G.res[0][ch.dataset.r]||0)>=+ch.dataset.n;ch.classList.toggle('ok',ok);ch.classList.toggle('bad',!ok)})});
   const ih=infoHTML(s);if(ih!==infoCache){infoCache=ih;$('info').innerHTML=ih}
@@ -257,7 +258,7 @@ const CLSN={inf:'Nahkämpfer',spear:'Speerträger',rng:'Fernkämpfer',cav:'Reite
 function unitTip(k){const d=UNITS[k];if(!d)return'';const e=Math.min(6,G.epoch[0]),m=v=>Math.round(v*LVL.hp[e]);
   const st=[tr('Leben {0}',m(d.hp)),d.heal?tr('Heilt {0}/s',d.heal):d.atk?tr('Angriff {0}',Math.round(d.atk*LVL.atk[e])):null,d.rng>30?tr('Reichweite {0}',d.rng):null,tr('Tempo {0}',d.spd)].filter(Boolean).join(' · ');
   const good=Object.keys(CTR[d.cls]||{}).map(c=>tr(CLSN[c]||c)).join(', ');
-  return '<br>'+[d.gather&&!d.naval?tr(UROLE.wk):d.naval&&d.gather?tr('Fischt auf dem Wasser und bringt Nahrung zum Hafen.'):tr(UROLE[d.cls]||''),st,good?tr('Stark gegen: {0}',good):''].filter(Boolean).join('<br>')}
+  return '<br>'+[d.gather&&!d.naval?tr(UROLE.wk):d.naval&&d.gather?tr('Fischt auf dem Wasser und bringt Nahrung zum Hafen.'):tr(UROLE[d.cls]||''),st,good?tr('Stark gegen: {0}',good):'',d.air&&!d.bomber?tr('Gewehre und MG treffen Flugzeuge nur mit 30-40 % Wirkung.'):''].filter(Boolean).join('<br>')}
 {const tip=document.createElement('div');tip.id='tip';tip.hidden=true;document.body.appendChild(tip);let timer=null,cur=null;
   const content=el=>{
     if(el.classList&&el.classList.contains('act')){const a=curActs[+el.dataset.i];if(!a)return null;return{h:a.nm,t:[a.sub,a.need,a.lock&&tr('Erst ab der {0} verfügbar.',a.lock)].filter(Boolean).join(' · ')+(a.unit?unitTip(a.unit):''),c:a.cost?costHTML(a.cost):''}}

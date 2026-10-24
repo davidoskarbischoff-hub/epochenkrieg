@@ -145,7 +145,15 @@ function draw(){
     const pts=[];if(cur)pts.push(cur);for(const o of u.q){const q=ordPos(o);if(q)pts.push(q)}
     ctx.setLineDash([5,5]);ctx.strokeStyle='rgba(243,212,138,.75)';ctx.lineWidth=1.4;groundLine([u,...pts]);ctx.setLineDash([]);
     pts.forEach((q,i)=>atGround(q.x,q.y,0,()=>{ctx.font='bold 9px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='rgba(33,26,19,.92)';ctx.strokeStyle='#f3d48a';ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(0,0,7,0,6.283);ctx.fill();ctx.stroke();ctx.fillStyle='#f3d48a';ctx.fillText(String(i+1),0,.5)}))}}
-  for(const p of G.proj){const q=scr(p.x,p.y,16);if(!q.front)continue;const k=q.k;ctx.strokeStyle='#2a2119';ctx.lineWidth=1.4;
+  for(const p of G.proj){
+    /* Ego-Turm: eigener Freischuss als lange helle Spur, die aus Augenhöhe zum Zielpunkt abfällt (sonst nur ein 7-px-Strich in 1,6 Höhe = von hinten unsichtbar) */
+    const egT=EGO.on&&EGO.e&&p.free&&p.src===EGO.e.id,sb=egT?G.byId.get(p.src):null;
+    if(sb){const t0=Math.hypot(p.tx-sb.x,p.ty-sb.y)||1,S=R3.S,ea=Math.max(0,hAt(sb.x,sb.y))+EGO.eye-.5,ta=hAt(p.tx,p.ty)+.3,L=34,cx=Math.cos(p.a),cy=Math.sin(p.a);
+      const zAt=(x,y)=>{const f=Math.max(0,Math.min(1,Math.hypot(x-sb.x,y-sb.y)/t0));return Math.max(4,(ea*(1-f)+ta*f-hAt(x,y))*S)};/* Höhe über Grund: gerade Linie vom Auge zum Zielpunkt */
+      const q=scr(p.x,p.y,zAt(p.x,p.y));if(!q.front)continue;const a=scr(p.x-cx*L,p.y-cy*L,zAt(p.x-cx*L,p.y-cy*L));
+      ctx.lineCap='round';ctx.strokeStyle='rgba(30,22,14,.85)';ctx.lineWidth=4.2;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(q.x,q.y);ctx.stroke();
+      ctx.strokeStyle='#fff0c0';ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(q.x,q.y);ctx.stroke();ctx.lineCap='butt';continue}
+    const q=scr(p.x,p.y,16);if(!q.front)continue;const k=q.k;ctx.strokeStyle='#2a2119';ctx.lineWidth=1.4;
     if(p.big||p.gun){ctx.fillStyle=p.big?'#2b2b30':'#46464c';ctx.beginPath();ctx.arc(q.x,q.y,(p.big?4.2:2)*k,0,6.283);ctx.fill();continue}
     const a=scr(p.x-Math.cos(p.a)*7,p.y-Math.sin(p.a)*7,16);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(q.x,q.y);ctx.stroke()}
   for(const e of vis){if(e.kind==='unit')ovUnit(e);else if(e.kind==='bld')ovBld(e)}
