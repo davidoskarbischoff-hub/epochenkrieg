@@ -257,7 +257,7 @@ const CLSN={inf:'Nahkämpfer',spear:'Speerträger',rng:'Fernkämpfer',cav:'Reite
 function unitTip(k){const d=UNITS[k];if(!d)return'';const e=Math.min(6,G.epoch[0]),m=v=>Math.round(v*LVL.hp[e]);
   const st=[tr('Leben {0}',m(d.hp)),d.heal?tr('Heilt {0}/s',d.heal):d.atk?tr('Angriff {0}',Math.round(d.atk*LVL.atk[e])):null,d.rng>30?tr('Reichweite {0}',d.rng):null,tr('Tempo {0}',d.spd)].filter(Boolean).join(' · ');
   const good=Object.keys(CTR[d.cls]||{}).map(c=>tr(CLSN[c]||c)).join(', ');
-  return '<br>'+[d.gather&&!d.naval?tr(UROLE.wk):d.naval&&d.gather?tr('Fischt auf dem Wasser und bringt Nahrung zum Hafen.'):tr(UROLE[d.cls]||''),st,good?tr('Stark gegen: {0}',good):''].filter(Boolean).join('<br>')}
+  return '<br>'+[d.gather&&!d.naval?tr(UROLE.wk):d.naval&&d.gather?tr('Fischt auf dem Wasser und bringt Nahrung zum Hafen.'):tr(UROLE[d.cls]||''),st,good?tr('Stark gegen: {0}',good):'',d.air&&!d.bomber?tr('Gewehre und MG treffen Flugzeuge nur mit 30-40 % Wirkung.'):''].filter(Boolean).join('<br>')}
 {const tip=document.createElement('div');tip.id='tip';tip.hidden=true;document.body.appendChild(tip);let timer=null,cur=null;
   const content=el=>{
     if(el.classList&&el.classList.contains('act')){const a=curActs[+el.dataset.i];if(!a)return null;return{h:a.nm,t:[a.sub,a.need,a.lock&&tr('Erst ab der {0} verfügbar.',a.lock)].filter(Boolean).join(' · ')+(a.unit?unitTip(a.unit):''),c:a.cost?costHTML(a.cost):''}}

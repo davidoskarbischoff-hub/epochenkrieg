@@ -126,3 +126,5 @@ Bilder: `qa/bilder/era0.png`, `era3.png`, `era6.png`, `ui640.png`, `seq_sword.pn
 - [ ] (schön wäre) Bogenschütze: Gun_Shoot zeigt zwischen den Schüssen fast dieselbe Haltung (Schreitpose), Schuss nur kurz erkennbar; Schwert und Reiter (Attack_Kick, Pferd streckt Hinterbeine) laufen sauber im Takt, Start- und Endhaltung der Clips passen (Pop 0,2 bis 0,5 rad Summe), keine Verdrehung, Clip bleibt `attack`.
 
 - [x] Balancing Truppen Z3-Z6 (24.10., messbasiert, Details OPTIMIERUNG.md): hbow, Flugzeuge, Bomber vs Gebäude, Renault, Mark I, Doughboy, Bertha angepasst; mp-test ALLES OK, `node --check` ok, Lücken nur cannon/trench/derrick. Nicht im Spiel mit Menschen getestet (nur headless).
+
+- Flugzeuge/Bodenfeuer (24.10.): `AA_GUN` in `hit()` (sim.js) kürzt Gewehr-/MG-Schaden gegen Flugzeuge (x0,4/x0,3); kostengleich plane-mg -0,04, plane-rifle -0,14. Bei neuen `gun:true`-Einheiten oder Flak daran denken. Zahlen in OPTIMIERUNG.md.

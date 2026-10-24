@@ -329,3 +329,21 @@ Messung: Playwright, `index.html` über lokalen Server, Netzwerk-Log aller Antwo
   - Dicke Bertha (2140): brauchte 33 s für eine Kaserne (Tank 8 s, Škoda 15 s): Schaden 175 -> 200, 25 s (Kosten unverändert; mit Kostensenkung würde die Gruppengrösse von 1 auf 2 springen).
 - Nur beobachtet, nicht geändert: Haubitze/Škoda/Bertha verlieren Feldschlachten gegen Gruppen (-0,4 bis -0,6), das ist ihre Rolle (Gebäude); Rekrut (75, Russland) Rang 1-2 im Kostengleichstand wegen Masse (Lanchester), aber Bevölkerungsgrenze und Ausbildung begrenzen ihn im Spiel; Ritter in Z3-Z5 stärkster Nahkämpfer (+0,3), nur der Speer kontert ihn (ab Z5 gibt es keinen Speer mehr, Z5-Ritter schlägt Gewehr +0,15, verliert gegen Panzer -0,2); Panzer (1280) verliert gegen kostengleiche Gewehr-/Infanterie-Gruppen (-0,3), gewinnt aber Gebäude 8 s und gegen MG/Kosak; Schwert und Speer in Z3 liegen bei ±0,1.
 - Aufstiegszeiten Berater-Auto (Küste M, Zeitalter 1-5 in Minuten, Seeds 11/23, 50 min): Seed 11 9,2/16,6/24,5/33,0/42,0 (vorher = nachher), Seed 23 7,9/15,7/21,6/30,5/35,8 (nachher 30,3); Abstände 7-9 Minuten, keine auffällige Epoche, Aufstieg Z6 liegt jenseits der 50 Minuten (~51). Nichts angepasst. Siegzeit des Beraters: Seed 11 >50 min -> 34,5; Seed 23 35,9 -> 44,9 (Streuung durch geänderte Zufallsfolge, im Mittel ~40 min vorher wie nachher).
+
+- Jagdflugzeuge gegen Bodenfeuer (24.10.): Flugzeuge verloren kostengleich klar gegen MG/Gewehr. `hit()` (sim.js): `AA_GUN` = Schaden von Bodenwaffen mit `gun:true` gegen Flugzeuge, Gewehr-Linien x0,4, MG x0,3 (MG feuert viele Schüsse, daher stärker gekürzt). Nur Flugzeuge als Ziel; Jäger gegen Jäger, Bomber, Panzer, Nahkämpfer unverändert. Tooltip (`unitTip`) und EN-Text ergänzt. Messung (Zeitalter 6, Budget 3000, Rang = Lebensanteil-Vorsprung der Flugzeuge, vorher -> nachher; 1v1 in Klammern):
+
+  | Paarung (kostengleich) | vorher | nachher | 1v1 vorher -> nachher |
+  |---|---|---|---|
+  | plane - mg (4v7) | -0,81 | -0,04 | -0,01 -> 0,69 |
+  | plane - rifle (4v8) | -0,72 | -0,14 | 0,23 -> 0,69 |
+  | zero - rifle | -0,63 | -0,19 | 0,36 -> 0,75 |
+  | fighter - mg | -0,60 | +0,44 | 0,31 -> 0,79 |
+  | plane - rekrut (4v40) | -0,77 | -0,27 | 0,97 -> 0,99 |
+  | plane - tank | -0,63 | -0,57 | -0,82 (gleich) |
+  | plane - howitzer | +0,49 | +0,45 | |
+  | plane - sturm | +0,36 | +0,50 | |
+  | plane - kosak | +0,30 | +0,30 | |
+  | plane - plane | -0,11 | +0,19 (Streuung, Spiegelduell) | |
+  | bomber - plane | -0,79 | -0,79 | |
+
+  Grenzen: im Einzelduell sind Flugzeuge jetzt klar stark, kostengleich ausgeglichen. Fighter (USA, bessere Werte) etwas über dem Ziel (+0,44). Berater-Auto erreicht Zeitalter 6 erst nach ~50 min, die Siegzeit hängt davon nicht ab (nicht neu gemessen).

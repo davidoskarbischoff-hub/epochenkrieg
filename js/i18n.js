@@ -251,6 +251,7 @@ const EN={
 ,'Reichweite {0}':'Range {0}'
 ,'Tempo {0}':'Speed {0}'
 ,'Stark gegen: {0}':'Strong against: {0}'
+,'Gewehre und MG treffen Flugzeuge nur mit 30-40 % Wirkung.':'Rifles and machine guns hit aircraft at only 30-40 % effect.'
 ,'Fischt auf dem Wasser und bringt Nahrung zum Hafen.':'Fishes on the water and brings food to the harbor.'
 ,'Dafür braucht es ein größeres Boot (Stufe {0}) für {1}.':'You need a bigger boat (level {0}) for {1}.',
 'Seenplatte':'Lake District','Viele Seen und Teiche mit Inseln, Fische im Binnenland':'Many lakes and ponds with islands, fish inland'
