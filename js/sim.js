@@ -11,6 +11,7 @@ function newGame(d,reuse,opts){cam.yaw=cam.tyaw=0;cam.pitch=cam.tpitch=1.14;
   G.bones=[];sel.clear();placing=null;armed=false;panelSig='';advisor.cur=null;advisor.ignore={};advisor.next=8;advisor.last=-9;if(typeof SND!=='undefined')SND.setEpoch(0);
   const want=opts.seed!==undefined?opts.seed:(typeof window.__seed==='number'?window.__seed:undefined),mkey=curMap+'|'+MOPT.water+MOPT.mount+MOPT.sel,keep=reuse&&mapFresh&&bg&&mapKey===mkey&&want===undefined,seed=keep?mapSeed:(want!==undefined?want:(Math.random()*1e9)|0);mapSeed=seed;mapFresh=true;mapKey=mkey;MOPT.season=seasonOf(MOPT.sel,seed);genTerrain(seed,curMap);navInit();genMap(seed);if(!keep)renderBg(seed);
   if(opts.flip)flipTeams();G.mp=!!opts.mp;if(G.mp)G.speed=opts.speed||1;
+  G.sv={map:curMap,size:opts.size,seed,water:MOPT.water,mount:MOPT.mount,season:MOPT.sel};/* für Spielstand speichern (savegame.js) */
   G.solids=G.ents.filter(e=>e.kind!=='unit');recount();fogReset();
   const hq=G.ents.find(e=>e.type==='hq'&&e.team===0);centerOn(hq.x+120,hq.y-80);
   $('pauseBtn').textContent=tr('Pause');$('speedBtn').textContent=tr('Tempo {0}×',1);

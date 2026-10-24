@@ -45,7 +45,7 @@ const EN={
   'Pausiert · Leertaste setzt fort':'Paused · Space resumes',
   'Im Bau':'Under construction','Kein Bauarbeiter!':'No builder!',
   // Menü
-  'Musik':'Music','Ton':'Sound','Lautstärke':'Volume','Sprache':'Language','Spiel fortsetzen':'Resume game','Neues Spiel':'New game','Einstellungen':'Settings',
+  'Musik':'Music','Ton':'Sound','Lautstärke':'Volume','Sprache':'Language','Spiel fortsetzen':'Resume game','Speichern':'Save','Laden':'Load','Spielstand laden':'Load saved game','Spielstand gespeichert.':'Game saved.','Spielstand geladen.':'Game loaded.','Kein Spielstand vorhanden.':'No saved game found.','Spielstand ist beschädigt.':'Saved game is damaged.','Spielstand passt nicht zu dieser Version.':'Saved game does not match this version.','Speichern fehlgeschlagen.':'Saving failed.','Gespeichert werden kann nur im laufenden Einzelspieler.':'Saving only works in a running single-player game.','Neues Spiel':'New game','Einstellungen':'Settings',
   // Start und Ende
   'Prototyp · Echtzeitstrategie · 1 gegen 1':'Prototype · Real-time strategy · 1 vs 1',
   'Führe deinen Stamm durch sechs Zeitalter. Sammle Nahrung, Holz und Stein, baue deine Siedlung aus und zerstöre das Hauptlager des Gegners, bevor er deins erreicht.':'Lead your tribe through six ages. Gather food, wood and stone, expand your settlement and destroy the enemy town center before he reaches yours.',

@@ -13,11 +13,13 @@ let optTab='game';
 function renderMenu(){
   const m=$('menu');
   m.innerHTML=`<div class="gm"><div class="gm-frame"><div class="gm-crest">⚔</div><h1 class="gm-title">Epochenkrieg</h1><div class="gm-sub">${tr('Pause')}</div><div class="gm-rule"></div>
-  <nav class="gm-nav"><button class="go" id="mResume">${tr('Spiel fortsetzen')}</button><button id="mOpt">${tr('Optionen')}</button><button id="mMulti">${tr('Mehrspieler')}</button>${window.EK_APP?`<button id="mUpd">${tr('Nach Updates suchen')}</button>`:''}<button id="mNew">${tr('Neues Spiel')}</button></nav>
+  <nav class="gm-nav"><button class="go" id="mResume">${tr('Spiel fortsetzen')}</button>${SAVE.can()?`<button id="mSave">${tr('Speichern')}</button>`:''}${SAVE.info()&&!NET.mp?`<button id="mLoad">${tr('Laden')}<small class="sv-ts">${SAVE.label()}</small></button>`:''}<button id="mOpt">${tr('Optionen')}</button><button id="mMulti">${tr('Mehrspieler')}</button>${window.EK_APP?`<button id="mUpd">${tr('Nach Updates suchen')}</button>`:''}<button id="mNew">${tr('Neues Spiel')}</button></nav>
   <div class="gm-foot">${versionLabel()} · ${tr('Tipp')}: M = ${tr('Ton')}, F = ${tr('Kampfrausch')}, Esc = ${tr('Menü')}</div></div></div>`;
   $('mResume').onclick=toggleMenu;$('mOpt').onclick=renderOptions;
   const up=$('mUpd');if(up)up.onclick=()=>{window.EK_APP.checkForUpdates();toggleMenu()};
   $('mNew').onclick=()=>{toggleMenu();showStart()};
+  const sv=$('mSave');if(sv)sv.onclick=async()=>{if(await SAVE.save())renderMenu()};
+  const ld=$('mLoad');if(ld)ld.onclick=async()=>{const d=await SAVE.read();if(!d)return;toggleMenu();try{SAVE.apply(d)}catch(e){console.error(e);toast(tr('Spielstand ist beschädigt.'),'warn')}};
   $('mMulti').onclick=()=>{toggleMenu();if(window.Lobby)Lobby.open()};
 }
 function renderOptions(){

@@ -57,12 +57,15 @@
     const soon=(t,r)=>`<button class="mm-b mm-off" disabled>${tr(t)}<span class="mm-tag soon">${tr('Bald')} · ${r}</span></button>`;
     o.innerHTML=`<div class="mm-side">${titleArt('mini')}<h1 class="mm-logo sm">Epochenkrieg</h1><p class="mm-by">Daveson ${tr('für')} Deus Vult Infidel</p>
       <nav class="mm-nav"><button class="mm-b mm-main" id="mmSp">${tr('Einzelspieler')}</button>
+      ${window.SAVE&&SAVE.info()?`<button class="mm-b" id="mmLoad">${tr('Spielstand laden')}<small class="sv-ts">${SAVE.label()}</small></button>`:''}
       <button class="mm-b" id="mmMp">${tr('Mehrspieler')}<span class="mm-tag beta">Beta</span></button>
       ${soon('Tutorial','Release 3')}${soon('Story','Release 4')}
       <button class="mm-b" id="mmOpt">${tr('Einstellungen')}</button><button class="mm-b" id="mmCred">${tr('Mitwirkende')}</button></nav>
       <div class="mm-foot"><div class="mm-lang">${['de','en'].map(l=>`<button data-l="${l}" aria-pressed="${l===LANG}">${l==='de'?'Deutsch':'English'}</button>`).join('')}</div><small>${versionLabel()}</small></div></div>`;
     loadTitle(o);
     $('mmSp').onclick=()=>{sfx('click');single()};
+    const mld=$('mmLoad');if(mld)mld.onclick=async()=>{sfx('click');const d=await SAVE.read();if(!d)return;music();MPV.stop();bg(false);o.className='';
+      try{SAVE.apply(d);if(typeof ROOM!=='undefined')ROOM.pkey=null;o.hidden=true}catch(e){console.error(e);toast(tr('Spielstand ist beschädigt.'),'warn')}};
     $('mmMp').onclick=()=>{music();if(window.Lobby){bg(false);Lobby.open()}};
     $('mmOpt').onclick=()=>openOpt('game');$('mmCred').onclick=()=>openOpt('cred');
     o.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{applyLang(b.dataset.l);main()})}

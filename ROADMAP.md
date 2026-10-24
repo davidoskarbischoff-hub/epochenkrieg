@@ -88,7 +88,8 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Mehrspieler: Berater und Pause im Mehrspieler; verzögerungsfreie Vorhersage für den Gast
 - [x] Karten: Zufallsauswahl („Zufällige Karte“, „Neu würfeln“) und mehr Kartenarten (jetzt 13)
 - [ ] Karten: Höhenstufen (Plateaus mit Rampen), Brücken
-- [ ] Spielstand speichern, Kartengröße wählbar, mehrere KI-Gegner/Teams
+- [x] Spielstand speichern (24.10., nur Einzelspieler, siehe Paket S in CLAUDE.md)
+- [ ] Mehrere KI-Gegner/Teams (Kartengröße ist schon wählbar)
 
 ### Einfach
 - [ ] Sounds nach dem Testspielen feinjustieren
@@ -99,7 +100,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Bessere Wegfindung um Gebäude und Wälder
 - [x] Klügere KI (gezielte Angriffe auf Arbeiter, Rückzug) – nur Schwer (Paket KI-T, aiTick); Normal und Leicht unverändert
 - [x] Technologien und Upgrades pro Epoche
-- [ ] Spielstand speichern
+- [x] Spielstand speichern/laden: ein Schnellspeicher-Platz (Menü „Speichern“/„Laden“, auch auf der Hauptseite). Offen: mehrere Plätze, Auto-Speichern, Export als Datei, Mehrspieler
 - [ ] Mehrere KI-Gegner (bis 4 Spieler, Teams)
 
 ### Später / schwer

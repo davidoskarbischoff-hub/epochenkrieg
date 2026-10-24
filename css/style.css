@@ -549,3 +549,6 @@ body.ego #advisor{display:none}
 #egohud .eg-txt.quiet{opacity:.6}
 #egohud.hurt::before{content:"";position:absolute;inset:0;box-shadow:inset 0 0 90px 20px rgba(200,20,10,.5)}
 #egohud.sw::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.45)}
+
+/* Spielstand: Zeitstempel unter dem Knopf */
+.sv-ts{display:block;font-size:11px;letter-spacing:.04em;opacity:.7;margin-top:2px;font-family:inherit}

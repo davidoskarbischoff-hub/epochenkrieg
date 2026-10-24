@@ -364,3 +364,8 @@ Messung: Playwright, `index.html` über lokalen Server, Netzwerk-Log aller Antwo
 - Schiff stirbt: Passagiere werden am nächsten Land (bis 150 px, `SINK_R`) abgesetzt, sonst ertrinken sie (`kill`, zählt als Verlust). Entscheidung: Schiffe sind nicht vor Beschuss geschützt, aber die Ladung wird nicht doppelt bestraft, wenn Land nahe ist.
 - Mehrspieler: `ib` im Einheiten-Datensatz (neben `im`), `case'unload'` in `execRemote` und Gast-Wächter in `unloadShip`; Einsteigen und Fahren laufen über den normalen `cmd`. Ladung am Schiff = Zählen der Einheiten mit `inb` (auch beim Gast, `cargoOf`).
 - KI nutzt keinen Transport. Inselreich: `MAINLAND`-Test (Zellen Land ausserhalb des zu Fuss erreichbaren Hauptlands) siehe Bericht in der Commit-Nachricht; Spieler und KI haben immer einen Landweg (`ensureWalk`), Transport ist dort eine Abkürzung/Flankenlandung.
+
+## Spielstand speichern/laden (24.10.)
+- Größe: Küste M, 5 min Berater-Auto (1161 Objekte, davon ~1000 Vorkommen/Tiere): ca. 346 KB JSON. Speichern/Laden dauern im Software-Browser unter 1 s (Laden = `newGame` + Überlagerung, die Kartenerzeugung ist der Hauptteil).
+- Test (Playwright, `__norender`): 5 min simuliert, gespeichert, zweite Seite lädt: Zahl und Art aller Objekte, Rohstoffe, Epoche, Technologien, Jobs, KI-Zeiten, `G.mem`/`ai.seen`, Nebel stimmen mit dem Stand beim Speichern überein (Nebel +8 Felder wegen Rundung). Danach 2 min weiter: KI baut Hafen, Boote, Kaserne-Einheiten, Arbeiter wachsen, keine Konsolenfehler. Bit-genaue Gleichheit mit der Fortsetzung ohne Laden gibt es nicht (Reihenfolge `G.ents`, Wegcache).
+- Offen: mehrere Speicherplätze, Auto-Speichern alle X Minuten, Export/Import als Datei, Mehrspieler.
