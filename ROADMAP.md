@@ -20,7 +20,8 @@
 - [x] Krieger-Linien mit einem Grundkörper (Adventurer) durch alle Zeitalter, Teamfarbe ab Mittelalter, Brustpanzer/Stahlhelm als echte Modelle (`wear`)
 - [ ] Armbrust-Modell für den Armbrustschützen besorgen (trägt noch Bogen)
 - [x] Truppen/KI hängen fest auf grossen Karten: Entfernungsfeld bei langen Wegen, Neusuche nach Abdrängen, Gleiten am Ufer (Ankunft 386→441 von 448, Festhänge-Auslöser 6836→231, KI-Stillstand 5–26 %→<1 %)
-- [ ] Wegfindung: Boote zu unerreichbaren Fischgründen suchen immer wieder (Kosten), Dinos/Tiere blockieren Pässe
+- [x] Boote zu unerreichbaren Fischgründen (teamweite Sperre, 24.10.)
+- [ ] Wegfindung: Dinos/Tiere blockieren Pässe
 ## Ideen für die nächsten Schritte
 Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortieren.
 
@@ -50,7 +51,8 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Karte größer (3600×2400) mit Land und Wasser: tiefes Wasser (nur für Schiffe), flaches Wasser (auch für Truppen), Küste mit Strand
 - [x] Wegfindung (A*), Festhänge-Erkennung, Arbeiter verteilen sich auf Bäume; Bäume stehen weiter auseinander
 - [x] Fischquellen (Fische, Delfine ab Stufe II, Wale ab Stufe III), Hafen am Ufer, Fischerboote, Kriegsschiffe (Bronzezeit)
-- [ ] Seegefechte und Landungen testen und balancen (Kriegsschiffe, Küstenverteidigung)
+- [x] Seegefechte gemessen und balanciert (Panzerschiff, KI-Flotte ab 3 Schiffen, 24.10.)
+- [ ] Landungen/Truppentransport gibt es noch nicht, Küstenverteidigung nur Turm
 - [x] Gegner-KI nutzt Wasser noch nicht (kein Hafen, keine Boote)
 - [ ] Brücken über tiefes Wasser
 
