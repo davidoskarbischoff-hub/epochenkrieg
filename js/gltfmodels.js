@@ -20,7 +20,7 @@ const EKMODELS=(()=>{
     if(e.kind==='unit'){const en=entryFor('unit',e.type,e.lvl||0);return en?'|g:'+en.file:''}
     if(e.kind==='bld'){const en=bldVar(entryFor('bld',e.type,e.lvl??G.epoch[e.team],e.spec),e.id);return en?'|g:'+en.file+(en.cmap||'')+(en.sig||''):''}
     if(e.kind==='animal'){const en=entryFor('animal',e.type,0);return en?'|g:'+en.file:''}
-    if(e.kind==='node'&&e.sea&&manifest.sea&&manifest.sea[e.type]&&files.size)return'|gs';return''}
+    if(e.kind==='node'&&e.sea&&manifest.sea&&manifest.sea[e.type]&&files.size)return'|gs'+(manifest.sea[e.type].files||[]).filter(f=>files.has(f)).length/* Schwarm wird neu gebaut, wenn weitere Fisch-Dateien nachgeladen wurden */;return''}
   /* Gebäude mit mehreren Aussehen (z. B. Wohnhäuser): "variants":[{"file":..,"fit":..},…] – je nach Nummer des Gebäudes eine davon (überschreibt die Felder des Eintrags) */
   const bldVar=(en,id)=>en&&en.variants&&en.variants.length?Object.assign({},en,en.variants[(id|0)%en.variants.length]):en;
   function has(kind,type,ep){return !!entryFor(kind,type,ep)}
