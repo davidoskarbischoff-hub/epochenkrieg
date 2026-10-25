@@ -65,7 +65,7 @@ const Lobby=(()=>{
   function chatShow(n,col,x){const b=chatBox(),log=b.querySelector('#mpchatlog');chatMode();
     const d=document.createElement('div');d.className='cl';const a=document.createElement('b');a.textContent=String(n||'?').slice(0,20)+': ';a.style.color=/^#[0-9a-f]{3,8}$/i.test(col)?col:'';
     const t=document.createElement('span');t.textContent=String(x||'').slice(0,CHAT_MAX);d.append(a,t);log.appendChild(d);
-    while(log.children.length>(b.classList.contains('lob')?40:6))log.firstChild.remove();log.scrollTop=log.scrollHeight;
+    while(log.children.length>(b.classList.contains('lob')?40:5))log.firstChild.remove();log.scrollTop=log.scrollHeight;
     if(!b.classList.contains('lob'))setTimeout(()=>{d.classList.add('out');setTimeout(()=>d.remove(),600)},CHAT_SEC*1000)}
   function chatSend(text){text=String(text||'').trim().slice(0,CHAT_MAX);if(!text||!raw||!role)return false;
     raw({t:'chat',n:myName(),col:myCol(),x:text});chatShow(myName(),myCol(),text);return true}

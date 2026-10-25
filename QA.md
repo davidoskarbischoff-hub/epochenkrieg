@@ -169,3 +169,12 @@ Bilder (Scratch): `scratchpad/au/e0..e6_a.png` (Siedlung + Arbeiter + Kampf), `e
 - [x] (behoben 25.10.: `sea.fish.mats` dämpft die Farben je Sorte) Fischarten wirken je Zeitalter/Seed sehr unterschiedlich: manche Teiche haben weiße große Fische, andere kleine knallblaue/orange (Sorte nach Knoten-Nummer). Stimmungsbruch zu den zurückhaltenden Wasserfarben, Vorschlag: die zwei bunten Sorten dämpfen (`tint`) oder gleich häufig mischen.
 - [x] (behoben 25.10.: Tönung je Zeitalter + Teamfahne `flag`) Fischerboot (Bronzezeit) ist weiß mit braunen Spanten, ab Mittelalter braunes Holzboot: Wechsel ohne erkennbare Entwicklung.
 - Nicht geprüft: Mine/Lore im Bild, Flugzeuge, Nationen-Einheiten Ep. 6 im Kampf (nur Truppenliste ohne `nation`), Mehrspieler (kein Logikcode geändert, kein mp-test nötig).
+
+## Prüfung Chat/Bereit/Spielstand-Fenster (2026-10-25)
+- [x] Chat im Spiel (Liquid Glass): weisse Glasflächen waren auf hellem Gelände unlesbar -> dunkles Glas `rgba(16,20,28,.6)` (ui2.css). Behoben, Bild gesehen.
+- [x] Chat: lange Wörter ohne Leerzeichen liefen nicht um (`overflow-wrap:anywhere`), erste Zeile wurde angeschnitten (max-height entfernt, höchstens 5 Zeilen im Spiel). Behoben.
+- [x] Chat klassisch: Eingabezeile lag auf dem Rand der Konsole (fester Abstand 200 px) -> `--panelH` aus der Konsolenhöhe (skin.js). Nur im Code geprüft, Bild vor der Änderung zeigte die Überlappung.
+- [x] Lobby bis 1360 px Breite: Chat verdeckte Bereit/Start/Zurück -> Karte bekommt unten Abstand, bei <=640 px Chatprotokoll max. 84 px. Behoben (Bild 400 px: Start-Knopf sichtbar über dem Chat).
+- [x] Spielstand-Fenster mit Auto + Platz 1/2 belegt, 400 und 1280 px, DE/EN, beide Oberflächen: kein Überlauf, alles lesbar, keine Änderung nötig.
+- [ ] sollte: Gast-Lobby zeigte in meinen Testläufen nach Grössenänderung das Hauptmenü statt der Lobby (Chat blieb darüber). Ursache nicht geklärt (evtl. Testartefakt durch langsames Software-GL/Verbindung), nicht nachgestellt.
+- [ ] schön wäre: Spielstand-Fenster ist im Klassik-Stil auch bei Liquid Glass (kein ui2-Look).
