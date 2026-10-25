@@ -1,6 +1,15 @@
 /* Sprachen: Deutsch (Standard) und Englisch. tr('deutscher Text') liefert den englischen Text, wenn Englisch gewählt ist.
    Neue Texte: im Code deutsch schreiben, mit tr('...') umschliessen und hier unten die englische Übersetzung ergänzen. */
 const EN={
+  'Nachricht … (Enter = senden)':'Message … (Enter = send)',
+  'Gastgeber':'Host',
+  'Gast':'Guest',
+  'Bereit':'Ready',
+  'Bereit ✓':'Ready ✓',
+  'bereit':'ready',
+  'wartet':'waiting',
+  'Gast bereit – Spiel starten':'Guest ready – start game',
+  'Gast wartet – Spiel starten':'Guest waiting – start game',
   'Fischernetz':'Fishing net','Weitere Pakete von itch.io und poly.pizza (Dinosaurier, Fahrzeuge, Natur, Türme, Menschen, Architektur) – siehe models/CREDITS.md':'More packs from itch.io and poly.pizza (dinosaurs, vehicles, nature, towers, people, architecture) – see models/CREDITS.md',
   'Parasaurolophus':'Parasaurolophus','Triceratops':'Triceratops','Stegosaurus':'Stegosaurus','Brontosaurus':'Brontosaurus','Velociraptor':'Velociraptor','Tyrannosaurus':'Tyrannosaurus',
   'Pflanzenfresser – scheu, flieht im Rudel. Viel Nahrung':'Herbivore – shy, flees in herds. Lots of food','Pflanzenfresser – friedlich, wehrt sich aber mit den Hörnern. Viel Nahrung':'Herbivore – peaceful, but fights back with its horns. Lots of food','Pflanzenfresser – friedlich, schlägt mit dem Stachelschwanz zurück':'Herbivore – peaceful, strikes back with its spiked tail','Riesiger Pflanzenfresser – nur gefährlich, wenn man ihn reizt. Enorm viel Nahrung':'Giant herbivore – only dangerous when provoked. Huge amount of food','Fleischfresser im Rudel – schnell und angriffslustig':'Pack carnivore – fast and aggressive','Der König der Fleischfresser – greift alles an. Sehr selten':'King of the carnivores – attacks everything. Very rare',

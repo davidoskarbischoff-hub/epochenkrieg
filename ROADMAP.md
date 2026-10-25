@@ -85,7 +85,8 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Mehrspieler für zwei Spieler: Lobby mit Einladungslink, Kartenwahl, Seitenwahl; Gastgeber rechnet, Gast schickt Befehle (WebRTC über PeerJS, oder zwei Tabs lokal)
 - [x] Vier Karten: Küste und Landzunge, Festland, Bergland (Berge, Klippen, Hafen nur an Lücken), Große Bucht; Auswahl auch im Einzelspiel
 - [x] Mehrspieler-Fehler behoben: Gast-Aufstieg stufte dessen Einheiten wie bei der KI sofort hoch und schenkte alle Technologien („Alle upgraden“ beim Gast wirkungslos); Gast konnte keine Mine setzen (Gastgeber prüfte Erze gegen seinen eigenen Nebel)
-- [ ] Mehrspieler weiter ausbauen: Reconnect, Chat, Bereit-Knopf, Zuschauer, Spiel pausieren, 3–4 Spieler, Team-Farben wählbar, Sound-Events beim Gast
+- [x] Mehrspieler: Chat (Lobby und Spiel, Enter, 8 s sichtbar) und Bereit-Knopf in der Lobby (25.10.)
+- [ ] Mehrspieler weiter ausbauen: Reconnect, Zuschauer, Spiel pausieren, 3–4 Spieler, Team-Farben wählbar, Sound-Events beim Gast
 - [ ] Mehrspieler: Berater und Pause im Mehrspieler; verzögerungsfreie Vorhersage für den Gast
 - [x] Karten: Zufallsauswahl („Zufällige Karte“, „Neu würfeln“) und mehr Kartenarten (jetzt 13)
 - [ ] Karten: Höhenstufen (Plateaus mit Rampen), Brücken

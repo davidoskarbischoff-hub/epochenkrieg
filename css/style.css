@@ -565,3 +565,16 @@ body.ego #advisor{display:none}
 #svdlg button:hover{filter:brightness(1.2)}#svdlg button.dng{border-color:#a55}
 #svdlg .sv-foot{display:flex;gap:10px;justify-content:space-between;margin-top:10px}
 #svdlg .sv-note{display:block;margin-top:10px;opacity:.6;font-size:11px}
+
+/* Chat (Mehrspieler) und Bereit-Knopf */
+#mpchat{position:fixed;left:8px;bottom:200px;width:min(340px,calc(100vw - 16px));z-index:60;pointer-events:none;font-size:13px}
+#mpchat[hidden]{display:none}
+#mpchat.lob{bottom:12px;z-index:200;pointer-events:auto}
+#mpchatlog{display:flex;flex-direction:column;gap:2px;max-height:130px;overflow:hidden}
+#mpchat.lob #mpchatlog{max-height:110px;overflow-y:auto;margin-bottom:4px}
+#mpchat .cl{background:rgba(20,16,12,.72);color:#f6f1e6;padding:2px 8px;border-radius:6px;word-break:break-word;transition:opacity .5s}
+#mpchat .cl.out{opacity:0}
+#mpchatin{pointer-events:auto;width:100%;box-sizing:border-box;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.35);background:rgba(20,16,12,.85);color:#f6f1e6;font:inherit}
+#mpchatin[hidden]{display:none}
+.rdy{color:#d2a050}.rdy.on{color:#7cd27c;font-weight:700}
+.rdybtn.on{filter:brightness(1.15);outline:2px solid #7cd27c}

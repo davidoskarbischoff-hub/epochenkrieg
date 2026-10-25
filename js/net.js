@@ -7,7 +7,7 @@ const Lobby=(()=>{
   let lbT=0,pingTimer=null,role=null,view='menu',peer=null,conn=null,bc=null,raw=null,link='',helloTimer=null,inGame=false;
   const SIZES={S:{n:'Klein',maps:MAP_ORDER},M:{n:'Mittel',maps:MAP_ORDER},L:{n:'Gross',maps:MAP_ORDER}}; /* alle Kartenarten in jeder Grösse (Kartengrösse wirkt über playF) */
   const SPEEDS=[[1,'Normal (1×)'],[2,'Schnell (2×)'],[3,'Superschnell (3×)']];
-  const st={cfg:{size:'M',map:'land',speed:1,side:'A',colH:PALETTE[0][1],colG:PALETTE[1][1],water:1,mount:1,season:'summer',seed:(Math.random()*1e9)|0},prop:{},connected:false,status:'',error:''};
+  const st={cfg:{size:'M',map:'land',speed:1,side:'A',colH:PALETTE[0][1],colG:PALETTE[1][1],water:1,mount:1,season:'summer',seed:(Math.random()*1e9)|0},prop:{},ready:false,connected:false,status:'',error:''};
   const $=id=>document.getElementById(id);
   /* In der Desktop-App zeigt der Einladungslink auf die Web-Version (die App selbst hat keine öffentliche Adresse) */
   const baseUrl=()=>(window.EK_APP&&window.EK_APP.webUrl)||location.href.split('?')[0].split('#')[0];
@@ -41,17 +41,45 @@ const Lobby=(()=>{
         if(inGame){if(!m.rejoin){raw({t:'busy'});break}clearTimeout(waitTimer);if(G)G.netPause=false;NET.prev=null;NetLog.S.reconnects++;NetLog.set('state','verbunden');EKG.toast(tr('Mitspieler ist wieder da – weiter geht\'s.'),'good');break}
         st.connected=true;pushLobby();render()}break;
       case'busy':if(role==='client'){st.error='Das Spiel läuft bereits. Ein Wiedereinstieg nach Neuladen der Seite ist nicht möglich.';st.connected=false;render()}break;
-      case'lobby':if(role==='client'){clearInterval(helloTimer);st.cfg=m.cfg;st.prop=m.prop||{};st.connected=true;render()}break;
+      case'lobby':if(role==='client'){clearInterval(helloTimer);st.cfg=m.cfg;st.prop=m.prop||{};st.ready=!!m.ready;st.connected=true;render()}break;
       case'prop':if(role==='host'){Object.assign(st.prop,m.p);pushLobby();render()}break;
       case'col':if(role==='host'&&m.c!==st.cfg.colH){st.cfg.colG=m.c;pushLobby();render()}break;
-      case'start':if(role==='client'){inGame=true;clearInterval(pingTimer);pingTimer=setInterval(()=>{if(raw)raw({t:'ping',ts:performance.now()})},2000);NetLog.reset();NetLog.set('state','verbunden');EKG.startMP({role:'client',seed:m.seed,map:m.map,side:m.side,cfg:m.cfg,send:msg=>raw&&raw({t:'cmd',m:msg})})}break;
+      case'start':if(role==='client'){inGame=true;st.ready=false;setTimeout(chatMode,0);clearInterval(pingTimer);pingTimer=setInterval(()=>{if(raw)raw({t:'ping',ts:performance.now()})},2000);NetLog.reset();NetLog.set('state','verbunden');EKG.startMP({role:'client',seed:m.seed,map:m.map,side:m.side,cfg:m.cfg,send:msg=>raw&&raw({t:'cmd',m:msg})})}break;
+      case'chat':chatShow(m.n,m.col,m.x);break;
+      case'ready':if(role==='host'){st.ready=!!m.r;pushLobby();render()}break;
       case'ping':if(role==='host'&&raw)raw({t:'pong',ts:m.ts});break;
       case'pong':if(role==='client'&&m.ts)NetLog.rtt(performance.now()-m.ts);break;
       case'cmd':if(role==='host'&&inGame){try{EKG.execRemote(m.m)}catch(e){console.warn('cmd',e)}}break;
       case'snap':if(role==='client'){try{EKG.applySnap(m.s)}catch(e){console.warn('snap',e)}}break;
       case'msgs':if(role==='client')(m.list||[]).forEach(([t,k])=>EKG.toast(t,k));break;
     }}
-  function pushLobby(){if(role==='host'&&raw&&st.connected)raw({t:'lobby',cfg:st.cfg,prop:st.prop})}
+
+  /* ---- Chat (Lobby und Spiel): direkter Weg über dieselbe Verbindung, {t:'chat'}; Anzeige per textContent ---- */
+  const CHAT_MAX=120,CHAT_SEC=8;
+  function chatBox(){let b=$('mpchat');if(b)return b;b=document.createElement('div');b.id='mpchat';b.innerHTML='<div id="mpchatlog" aria-live="polite"></div><input id="mpchatin" maxlength="'+CHAT_MAX+'" autocomplete="off" hidden>';document.body.appendChild(b);
+    const inp=b.querySelector('input');inp.placeholder=T('Nachricht … (Enter = senden)');
+    return b}
+  function chatMode(){const b=chatBox(),lob=!inGame&&!!role&&st.connected;if(b.classList.contains('lob')&&!lob)b.querySelector('#mpchatlog').textContent='';b.classList.toggle('lob',lob);b.hidden=!(lob||inGame);const i=b.querySelector('input');if(lob)i.hidden=false;else if(!chatOpen)i.hidden=true;i.placeholder=T('Nachricht … (Enter = senden)')}
+  let chatOpen=false;
+  const myName=()=>role==='host'?T('Gastgeber'):T('Gast'),myCol=()=>role==='host'?st.cfg.colH:st.cfg.colG;
+  function chatShow(n,col,x){const b=chatBox(),log=b.querySelector('#mpchatlog');chatMode();
+    const d=document.createElement('div');d.className='cl';const a=document.createElement('b');a.textContent=String(n||'?').slice(0,20)+': ';a.style.color=/^#[0-9a-f]{3,8}$/i.test(col)?col:'';
+    const t=document.createElement('span');t.textContent=String(x||'').slice(0,CHAT_MAX);d.append(a,t);log.appendChild(d);
+    while(log.children.length>(b.classList.contains('lob')?40:6))log.firstChild.remove();log.scrollTop=log.scrollHeight;
+    if(!b.classList.contains('lob'))setTimeout(()=>{d.classList.add('out');setTimeout(()=>d.remove(),600)},CHAT_SEC*1000)}
+  function chatSend(text){text=String(text||'').trim().slice(0,CHAT_MAX);if(!text||!raw||!role)return false;
+    raw({t:'chat',n:myName(),col:myCol(),x:text});chatShow(myName(),myCol(),text);return true}
+  function chatEnd(){const b=chatBox(),i=b.querySelector('input');chatOpen=false;i.value='';i.blur();if(!b.classList.contains('lob'))i.hidden=true}
+  window.addEventListener('keydown',e=>{
+    const i=document.getElementById('mpchatin');
+    if(i&&e.target===i){e.stopImmediatePropagation();e.stopPropagation();
+      if(e.key==='Enter'){e.preventDefault();chatSend(i.value);i.value='';if(inGame)chatEnd()}
+      else if(e.key==='Escape'){e.preventDefault();chatEnd()}return}
+    if(e.key==='Enter'&&inGame&&role&&st.connected!==undefined&&!chatOpen&&!/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test((e.target&&e.target.tagName)||'')){
+      e.preventDefault();e.stopImmediatePropagation();chatMode();chatOpen=true;const b=chatBox(),inp=b.querySelector('input');inp.hidden=false;inp.focus()}
+  },true);
+  const chatOff=()=>{const b=$('mpchat');if(b){b.hidden=true;const l=b.querySelector('#mpchatlog');if(l)l.textContent=''}chatOpen=false};
+  function pushLobby(){if(role==='host'&&raw&&st.connected)raw({t:'lobby',cfg:st.cfg,prop:st.prop,ready:st.ready})}
 
   /* ---- Gastgeber ---- */
   async function host(local){
@@ -93,10 +121,10 @@ const Lobby=(()=>{
     rejoinTimer=setInterval(tryOnce,2500);tryOnce()}
   function start(){
     if(role!=='host'||!st.connected)return;
-    const seed=st.cfg.seed||((Math.random()*1e9)|0);inGame=true; /* Kartennummer aus der Lobby: die Vorschau zeigt genau diese Karte */NetLog.reset();NetLog.set('state','verbunden');raw({t:'start',seed,map:st.cfg.map,side:st.cfg.side,cfg:st.cfg});
+    const seed=st.cfg.seed||((Math.random()*1e9)|0);inGame=true;st.ready=false;setTimeout(chatMode,0); /* Kartennummer aus der Lobby: die Vorschau zeigt genau diese Karte */NetLog.reset();NetLog.set('state','verbunden');raw({t:'start',seed,map:st.cfg.map,side:st.cfg.side,cfg:st.cfg});
     EKG.startMP({role:'host',seed,map:st.cfg.map,side:st.cfg.side,cfg:st.cfg,send:msg=>raw&&raw(msg)});
   }
-  function leave(){close();role=null;view='menu';inGame=false}
+  function leave(){chatOff();st.ready=false;close();role=null;view='menu';inGame=false}
 
   /* ---- Oberfläche ---- */
   function open(){if(!role)view='menu';render()}
@@ -128,33 +156,35 @@ const Lobby=(()=>{
     else if(view==='enter')h=`<h1>${T('Beitreten')}</h1><p>${T('Füge den Einladungslink oder den Code ein:')}</p><input id="lInput" class="linput" placeholder="…?join=…">${err}<div class="btnrow"><button class="go" id="lJoin">${T('Beitreten')}</button><button class="btn2" id="lBack">${T('Zurück')}</button></div>`;
     else if(view==='host')h=`<h1>${T('Lobby')}</h1>${err}
       <label class="llabel">${T('Einladungslink')}</label><div class="linkrow"><input id="lLink" class="linput" readonly value="${link}"><button class="btn2" id="lCopy">${T('Kopieren')}</button></div>
-      <p class="lstat ${st.connected?'ok':''}">${st.connected?'● '+T('Mitspieler verbunden'):'○ '+T(st.status)}</p>${propBox}${settings}
-      <div class="btnrow"><button class="go" id="lStart" ${st.connected?'':'disabled'}>${T('Spiel starten')}</button><button class="btn2" id="lBack">${T('Zurück')}</button></div>`;
+      <p class="lstat ${st.connected?'ok':''}">${st.connected?'● '+T('Mitspieler verbunden')+` · <span class="rdy ${st.ready?'on':''}" id="lRdyS">${st.ready?T('bereit'):T('wartet')}</span>`:'○ '+T(st.status)}</p>${propBox}${settings}
+      <div class="btnrow"><button class="go" id="lStart" ${st.connected?'':'disabled'}>${st.connected?(st.ready?T('Gast bereit – Spiel starten'):T('Gast wartet – Spiel starten')):T('Spiel starten')}</button><button class="btn2" id="lBack">${T('Zurück')}</button></div>`;
     else h=`<h1>${T('Lobby')}</h1>${err}<p class="lstat ${st.connected?'ok':''}">${st.connected?'● '+T('Verbunden – warte, bis der Gastgeber das Spiel startet.'):'○ '+T(st.status)}</p>
-      ${st.connected?`<p class="lnote">${T('Tippe auf eine Karte, Grösse oder ein Tempo, um sie dem Gastgeber vorzuschlagen. Deine Farbe wählst du selbst.')}</p>${note}${settings}`:''}<div class="btnrow"><button class="btn2" id="lBack">${T('Zurück')}</button></div>`;
+      ${st.connected?`<p class="lnote">${T('Tippe auf eine Karte, Grösse oder ein Tempo, um sie dem Gastgeber vorzuschlagen. Deine Farbe wählst du selbst.')}</p>${note}${settings}`:''}<div class="btnrow">${st.connected?`<button class="go rdybtn ${st.ready?'on':''}" id="lReady" aria-pressed="${st.ready}">${st.ready?T('Bereit ✓'):T('Bereit')}</button>`:''}<button class="btn2" id="lBack">${T('Zurück')}</button></div>`;
     ov.innerHTML=`<div class="card lobby">${h}</div>`;
     const on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn};
     on('lHost',()=>host(false));on('lLocal',()=>host(true));on('lEnter',()=>{view='enter';render()});
     on('lJoin',()=>join($('lInput').value));on('lBack',()=>{leave();EKG.showStart()});
+    on('lReady',()=>{st.ready=!st.ready;if(raw)raw({t:'ready',r:st.ready});render()});
+    chatMode();
     on('lStart',start);on('tSave',()=>{try{localStorage.setItem('ek-turn',JSON.stringify({url:$('tUrl').value.trim(),user:$('tUser').value.trim(),pass:$('tPass').value}))}catch(_){}$('tSave').textContent=T('Gespeichert')});
     on('lCopy',()=>{const el=$('lLink');el.select();try{navigator.clipboard.writeText(el.value)}catch(_){document.execCommand('copy')}$('lCopy').textContent=T('Kopiert!')});
-    const setCfg=(k,v)=>{if(host_){c[k]=v;if(k==='size'&&!SIZES[v].maps.includes(c.map))c.map=SIZES[v].maps[0];pushLobby();render()}else{pr[k]=v;if(k==='size'&&!SIZES[v].maps.includes(pr.map||c.map))delete pr.map;if(raw)raw({t:'prop',p:{[k]:v}});render()}};
+    const setCfg=(k,v)=>{if(host_){st.ready=false;c[k]=v;if(k==='size'&&!SIZES[v].maps.includes(c.map))c.map=SIZES[v].maps[0];pushLobby();render()}else{pr[k]=v;if(k==='size'&&!SIZES[v].maps.includes(pr.map||c.map))delete pr.map;if(raw)raw({t:'prop',p:{[k]:v}});render()}};
     ov.querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>setCfg('size',b.dataset.z));
     ov.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>setCfg('map',b.dataset.m));
     ov.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>setCfg('speed',+b.dataset.v));
     ov.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>setCfg('water',+b.dataset.w));ov.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>setCfg('mount',+b.dataset.g));ov.querySelectorAll('[data-se]').forEach(b=>b.onclick=()=>setCfg('season',b.dataset.se));
     /* Würfeln (nur Gastgeber): neue Kartennummer, oder alles zufällig */
-    on('lbRe',()=>{c.seed=(Math.random()*1e9)|0;pushLobby();render()});
-    on('lbRand',()=>{const pick=l=>l[(Math.random()*l.length)|0];c.map=pick(MAP_ORDER);c.water=(Math.random()*3)|0;c.mount=(Math.random()*3)|0;c.season=pick(SEASON_IDS);c.seed=(Math.random()*1e9)|0;pushLobby();render()});
+    on('lbRe',()=>{st.ready=false;c.seed=(Math.random()*1e9)|0;pushLobby();render()});
+    on('lbRand',()=>{st.ready=false;const pick=l=>l[(Math.random()*l.length)|0];c.map=pick(MAP_ORDER);c.water=(Math.random()*3)|0;c.mount=(Math.random()*3)|0;c.season=pick(SEASON_IDS);c.seed=(Math.random()*1e9)|0;pushLobby();render()});
     /* Vorschau: Kacheln gestaffelt, grosses Bild kurz verzögert */
     if(view==='host'||st.connected&&view!=='menu'&&view!=='enter'){MPV.fill(ov,mo,c.map);clearTimeout(lbT);lbT=setTimeout(()=>{const cv=$('lbPv');if(cv)try{MPV.big(cv,c.map,mo,2)}catch(err){console.warn(err)}},120)}
     ov.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{if(host_){c.side=b.dataset.s;pushLobby();render()}});
     ov.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{if(host_){c.colH=b.dataset.c;pushLobby();render()}else{c.colG=b.dataset.c;if(raw)raw({t:'col',c:b.dataset.c});render()}});
-    on('pOk',()=>{Object.assign(c,pr);if(!SIZES[c.size].maps.includes(c.map))c.map=SIZES[c.size].maps[0];st.prop={};pushLobby();render()});
+    on('pOk',()=>{st.ready=false;Object.assign(c,pr);if(!SIZES[c.size].maps.includes(c.map))c.map=SIZES[c.size].maps[0];st.prop={};pushLobby();render()});
     on('pNo',()=>{st.prop={};pushLobby();render()});
   }
   /* Einladungslink geöffnet? Dann gleich beitreten. */
   window.addEventListener('load',()=>{const j=new URLSearchParams(location.search).get('join');if(j)setTimeout(()=>join(j),300)});
-  return{open,leave,render,debugDrop:()=>{try{if(conn)conn.close()}catch(_){}}};
+  return{open,leave,render,chat:chatSend,chatShow,debugDrop:()=>{try{if(conn)conn.close()}catch(_){}}};
 })();
 window.Lobby=Lobby;

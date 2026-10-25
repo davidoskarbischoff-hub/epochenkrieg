@@ -24,11 +24,29 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));const T0=Date.now(),P=s=>consol
  const link=await h.inputValue('#lLink');await g.goto(link,{timeout:180000,waitUntil:'domcontentloaded'});
  await g.waitForFunction(()=>window.Lobby&&window.__ek,null,{timeout:180000});
  P('Gast verbunden');await sleep(15000);
+ /* (0) Lobby: Bereit-Status und Chat in beide Richtungen */
+ await g.waitForSelector('#lReady',{timeout:30000});
+ const st0=await h.textContent('#lStart');
+ await g.click('#lReady');await sleep(1500);
+ const st1=await h.textContent('#lStart'),rd=await h.textContent('#lRdyS');
+ rep('(0) Bereit: Gastgeber sieht Status und Start-Knopf',/wartet/.test(st0)&&/bereit/i.test(st1)&&!/wartet/.test(st1)&&rd==='bereit',st0.trim()+' -> '+st1.trim());
+ await g.fill('#mpchatin','Hallo <b>Gastgeber</b>');await g.press('#mpchatin','Enter',{noWaitAfter:true,timeout:90000});await sleep(1000);
+ await h.fill('#mpchatin','Hi Gast');await h.press('#mpchatin','Enter',{noWaitAfter:true,timeout:90000});await sleep(1000);
+ const lg=p=>p.evaluate(()=>[...document.querySelectorAll('#mpchatlog .cl')].map(d=>d.textContent+'|'+d.querySelectorAll('b').length));
+ const lh=await lg(h),lgg=await lg(g);
+ rep('(0) Lobby-Chat in beide Richtungen, HTML bleibt Text',lh.some(x=>x.includes('Hallo <b>Gastgeber</b>'))&&lgg.some(x=>x.includes('Hi Gast'))&&lh.every(x=>x.endsWith('|1')),JSON.stringify([lh,lgg]));
  await h.click('#lStart',{noWaitAfter:true,timeout:120000});
  P('Start gedrückt');
  let ok1=false;for(let i=0;i<90&&!ok1;i++){await sleep(1000);ok1=await g.evaluate(()=>!!(typeof G!=='undefined'&&G&&G.ents&&G.ents.length>20&&NET.client&&NET.lastSnap>0)).catch(()=>false)}
  rep('(1) Verbindung, Start, Snapshot beim Gast',ok1,'Gast '+await g.evaluate(()=>typeof G!=='undefined'&&G&&G.ents?G.ents.length:-1).catch(()=>'?')+' Objekte, Host '+await h.evaluate(()=>G.ents.length));
  await sleep(4000);
+ /* (0b) Chat im Spiel: Enter oeffnet die Zeile, Nachricht kommt beim anderen an und verschwindet nach 8 s */
+ await g.keyboard.press('Enter');await g.keyboard.type('Gast im Spiel');await g.keyboard.press('Enter');
+ await h.keyboard.press('Enter');await h.keyboard.type('Host im Spiel');await h.keyboard.press('Enter');await sleep(1500);
+ const gh=await lg(h),gg=await lg(g);
+ rep('(0b) Spiel-Chat in beide Richtungen',gh.some(x=>x.includes('Gast im Spiel'))&&gg.some(x=>x.includes('Host im Spiel')),JSON.stringify([gh,gg]));
+ for(let i=0;i<30&&((await lg(h)).length||(await lg(g)).length);i++)await sleep(1000); /* Software-GL ist langsam: Zeitgeber koennen spaet laufen */
+ rep('(0b) Chat-Zeilen verschwinden nach 8 s',(await lg(h)).length===0&&(await lg(g)).length===0);
  const cnt=p=>p.evaluate(()=>[G.ents.filter(e=>e.kind==='unit').length,G.ents.filter(e=>e.kind==='bld').length]);
  const cH=await cnt(h),cG=await cnt(g);rep('(1) gleiche Zahl Einheiten/Gebäude',cH[0]===cG[0]&&cH[1]===cG[1],JSON.stringify([cH,cG]));
  rep('(1) keine Konsolenfehler bis hier',errs.length===0,errs.slice(0,3).join(' | '));
