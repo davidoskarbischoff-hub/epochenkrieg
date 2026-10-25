@@ -11,8 +11,8 @@ const MPV=(()=>{
   const keyOf=(id,o)=>[id,o.seed,o.size,o.water,o.mount,o.season].join('|');
 
   /* ----- Erzeugen (mit Sicherung der globalen Kartenfelder) ----- */
-  const save=()=>({G,TERR,HL,DSEA,MAINLAND,MAINPT,navT,navDyn,navVer,MAPCFG,MAPFEAT,startK,playF,curMap,mw:MOPT.water,mm:MOPT.mount,ms:MOPT.sel,mz:MOPT.season});
-  const load=s=>{G=s.G;TERR=s.TERR;HL=s.HL;DSEA=s.DSEA;MAINLAND=s.MAINLAND;MAINPT=s.MAINPT;navT=s.navT;navDyn=s.navDyn;navVer=s.navVer;MAPCFG=s.MAPCFG;MAPFEAT=s.MAPFEAT;startK=s.startK;playF=s.playF;curMap=s.curMap;
+  const save=()=>({G,TERR,HL,DSEA,MAINLAND,MAINPT,navT,navDyn,navGate,navVer,MAPCFG,MAPFEAT,startK,playF,curMap,mw:MOPT.water,mm:MOPT.mount,ms:MOPT.sel,mz:MOPT.season});
+  const load=s=>{G=s.G;TERR=s.TERR;HL=s.HL;DSEA=s.DSEA;MAINLAND=s.MAINLAND;MAINPT=s.MAINPT;navT=s.navT;navDyn=s.navDyn;navGate=s.navGate;navVer=s.navVer;MAPCFG=s.MAPCFG;MAPFEAT=s.MAPFEAT;startK=s.startK;playF=s.playF;curMap=s.curMap;
     MOPT.water=s.mw;MOPT.mount=s.mm;MOPT.sel=s.ms;MOPT.season=s.mz;navFields.length=0};
   const scratchG=()=>({late:[],nation:[null,null],nfx:[nationFx(),nationFx()],t:0,ents:[],byId:new Map(),nid:1,epoch:[0,0],tfx:[techFx(new Set()),techFx(new Set())],tech:[new Set(),new Set()],bones:[],mem:new Map(),pop:[0,0],cap:[0,0],res:[{},{}],mp:false});
   function run(id,o,full){

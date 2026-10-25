@@ -98,7 +98,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Grössere Karte, Wahl der Kartengrösse
 
 ### Mittel
-- [ ] Bessere Wegfindung um Gebäude und Wälder
+- [x] Bessere Wegfindung um Gebäude und Wälder – gemessen (6 Karten, Gruppen/Arbeiter/Mauern/Cluster), Tor in schräger Mauer und unerreichbare Ziele behoben, Details OPTIMIERUNG.md
 - [x] Klügere KI (gezielte Angriffe auf Arbeiter, Rückzug) – nur Schwer (Paket KI-T, aiTick); Normal und Leicht unverändert
 - [x] Technologien und Upgrades pro Epoche
 - [x] Spielstand speichern/laden: 3 Plätze + Auto-Platz (alle 5 Spielminuten, Option), Liste mit Zeitstempel/Spielzeit/Zeitalter, Löschen, Export/Import als JSON-Datei (24.10.). Offen: Mehrspieler (bewusst nicht), Vorschaubild je Platz

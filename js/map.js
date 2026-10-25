@@ -3,7 +3,7 @@ let startK=1;
    (Teil des Spiels; alle game-Dateien teilen sich die globalen Namen, Ladereihenfolge siehe index.html.) */
 'use strict';
 /* ---------- entities ---------- */
-function reg(e){G.ents.push(e);G.byId.set(e.id,e);if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea&&e.type!=='field'))navStamp(e,1);return e}
+function reg(e){G.ents.push(e);G.byId.set(e.id,e);if(navBlocks(e))navStamp(e,1);return e}
 function addUnit(type,team,x,y,fid){const d=UNITS[type],lvl=G.epoch[team],hp=unitHp(team,type,lvl);return reg({id:fid!==undefined?fid:G.nid++,kind:'unit',type,team,x,y,r:d.r,lvl,hp,maxHp:hp,state:'idle',cd:0,carry:0,ctype:null,rtype:null,tid:null,dest:null,amove:null,fa:team===0?-1.57:1.57})}
 function wallNeighbor(b){let best=null,bd=48;for(const o of G.ents)if(o!==b&&!o.dead&&o.kind==='bld'&&(o.type==='wall'||o.type==='gate')&&o.team===b.team){const d=Math.hypot(o.x-b.x,o.y-b.y);if(d<bd){bd=d;best=o}}return best}
 function addBld(type,team,x,y,built,fid){const d=BLDS[type],lvl=G.epoch[team],mh=Math.round(d.hp*LVL.bhp[lvl]*(1+(G.nfx?G.nfx[team].bhp:0)));let r0=d.r;if(type==='mine')for(const n of G.ents)if(n.kind==='node'&&!n.dead&&MINE_RT[n.rt]==='mine'&&Math.hypot(n.x-x,n.y-y)<2){r0=Math.max(r0,n.r+2);var ore=n.rt} /* Mine auf dem Vorkommen: so groß wie der Felsen */

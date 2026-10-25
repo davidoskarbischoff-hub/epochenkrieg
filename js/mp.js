@@ -38,7 +38,7 @@ function sendSnap(){if(!NET.send)return;flipTeams();let snap;try{snap=encodeSnap
   NET.send({t:'snap',s:snap})}
 /* Teil-Datensatz (_d:1) mit dem zuletzt bekannten Datensatz der Entität zusammenführen */
 function mergeRec(e,r){if(r._d&&e&&e._rec){r=Object.assign({},e._rec,r);delete r._d}return r}
-function removeEnt(e){if(e.dead)return;e.dead=true;if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea&&e.type!=='field'))navStamp(e,-1);sel.delete(e.id)}
+function removeEnt(e){if(e.dead)return;e.dead=true;if(navBlocks(e))navStamp(e,-1);sel.delete(e.id)}
 function applySnap(s){
   if(!G||!NET.client)return;
   NET.lastSnap=performance.now();if(s.hs){NetLog.onSnap(s.hs[0]);NetLog.S.hostStepMs=s.hs[1];NetLog.S.hostFps=s.hs[2]}

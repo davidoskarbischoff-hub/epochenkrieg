@@ -153,12 +153,13 @@ function moveToward(u,tx,ty,dt,ignore){
   if(d>26&&!navLos(u.x,u.y,tx,ty,naval,Math.max(0,d-stopR))){
     let pf=u.pf;
     if(!pf||Math.hypot(pf.tx-tx,pf.ty-ty)>28||(pf.fail&&G.t-pf.t>1.2)){
-      if(G.pfBudget>0&&(!pf||G.t-pf.t>.35)){G.pfBudget--;const path=navPath(u.x,u.y,tx,ty,stopR,naval,u.seed||0);u.pf=pf={tx,ty,path,i:0,t:G.t,fail:!(path&&path.length)}}}
+      if(G.pfBudget>0&&(!pf||G.t-pf.t>.35)){G.pfBudget--;const path=navPath(u.x,u.y,tx,ty,stopR,naval,u.seed||0);u.pf=pf={tx,ty,path,i:0,t:G.t,fail:!(path&&path.length),unr:navPartial===2}}}
     if(pf&&pf.fail)return true; // kein Weg: aufgeben (Aufrufer sieht u.pf.fail)
     if(pf&&pf.path){
       while(pf.i<pf.path.length-1&&Math.hypot(pf.path[pf.i].x-u.x,pf.path[pf.i].y-u.y)<9)pf.i++;
       while(pf.i<pf.path.length-1&&navLos(u.x,u.y,pf.path[pf.i+1].x,pf.path[pf.i+1].y,naval))pf.i++;
       wx=pf.path[pf.i].x;wy=pf.path[pf.i].y;
+      if(pf.unr&&pf.i===pf.path.length-1&&Math.hypot(wx-u.x,wy-u.y)<9){pf.fail=true;return true} /* Ziel unerreichbar (z. B. hinter geschlossener Mauer): am nächstgelegenen Punkt aufgeben, statt alle 0,35 s neu zu suchen */
       if(G.t-pf.t>.35&&((pf.i===pf.path.length-1&&Math.hypot(wx-u.x,wy-u.y)<9)||!navLos(u.x,u.y,wx,wy,naval)))u.pf=null} /* Wegende erreicht, Ziel aber noch nicht in Sicht (Teilweg), oder abgedrängt und Wegpunkt nicht mehr frei erreichbar: neu suchen statt stehen bleiben */
   }else u.pf=null;
   let ex=wx-u.x,ey=wy-u.y;const ed=Math.hypot(ex,ey);if(ed<.01)return d<=step;
@@ -309,7 +310,7 @@ function damage(t,amt,src){
   if(t.team===1&&G.mp&&G.t-G.alertT1>12){G.alertT1=G.t;G.ev.push({t:'alert',x:Math.round(t.x),y:Math.round(t.y)})}
   if(t.hp<=0){kill(t);if(t.kind==='animal'&&src&&src.team>=0){const f=ANIMALS[t.type].food;if(f){G.res[src.team][ 'food']+=f;if(src.team===0&&!NET.cap)toast(tr('Beute erlegt: +{0} Nahrung',f),'good')}}}
 }
-function kill(e){if(e.dead)return;e.dead=true;if(e.type==='farm')for(const n of G.ents)if(n.type==='field'&&n.farm===e.id)n.dead=true;if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea&&e.type!=='field'))navStamp(e,-1);if(e.kind==='unit'||e.kind==='animal')sfx('die',e);else if(e.kind==='bld')sfx('crumble',e);sel.delete(e.id);if(e.kind==='unit')G.stats.lost[e.team]++;
+function kill(e){if(e.dead)return;e.dead=true;if(e.type==='farm')for(const n of G.ents)if(n.type==='field'&&n.farm===e.id)n.dead=true;if(navBlocks(e))navStamp(e,-1);if(e.kind==='unit'||e.kind==='animal')sfx('die',e);else if(e.kind==='bld')sfx('crumble',e);sel.delete(e.id);if(e.kind==='unit')G.stats.lost[e.team]++;
   if(e.type==='hq'&&!G.over)G.over=e.team===0?'lose':'win';}
 /* Ego-Ansicht im Turm: der Spieler feuert selbst (Schaden, Reichweite, Nachladezeit wie die Automatik; solange er zielt, pausiert die Auto-Wahl).
    Gibt true zurück, wenn ein Schuss fiel. Mehrspieler: Gast schickt 'tfire', Gastgeber prüft Besitz (nach flipTeams ist der Gast Team 0). */
