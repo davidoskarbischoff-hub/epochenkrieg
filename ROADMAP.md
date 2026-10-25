@@ -352,3 +352,5 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 - Moves 24.10.: Kampf-Animationen im Takt, Rückstoss, Jog beim Angriffsmarsch (siehe OPTIMIERUNG.md). Offen: Bogen-Spannen (kein Clip), Sterbe-Überblendung.
 
 - [x] Fischerboote wählen Schwärme nach Weg zum Hafen und Menge (`boatPick`), Berater-Angriffsplan (Chip „Angreifen“).
+
+- [x] KI-Transport geprüft (25.10.): nicht nötig, alle 117 Testkarten haben einen Landweg (`ensureWalk`); nichts gebaut, Begründung in OPTIMIERUNG.md. Optional später: Flankenlandung der KI.
