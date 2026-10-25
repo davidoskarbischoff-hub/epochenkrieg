@@ -107,7 +107,7 @@ function renderOptions(){
   segB('oAiS',v=>{aiStyle=v});segB('oDiff',v=>{diff=v});
   q('oReset').onclick=()=>{optReset();setGfx(1);renderOptions()};q('oBack').onclick=renderMenu;
 }
-function applyLang(l){setLang(l);panelSig='';infoCache='';$('speedBtn').textContent=tr('Tempo {0}×',G?G.speed:1);$('pauseBtn').textContent=G&&G.paused?tr('Weiter'):tr('Pause');if(!$('overlay').hidden&&$('overlay').querySelector('[data-l]'))showStart();if(G)updateUI()}
+function applyLang(l){setLang(l);panelSig='';infoCache='';$('speedBtn').textContent=tr('Tempo {0}×',G?G.speed:1);$('pauseBtn').textContent=G&&G.paused?tr('Weiter'):tr('Pause');if(!$('overlay').hidden&&$('overlay').querySelector('[data-l]'))showStart();if(G)updateUI();try{window.Lobby&&Lobby.refresh()}catch(_){}}
 $('menuBtn').onclick=()=>{SND.init();toggleMenu()};
 ['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>{if(typeof SND!=='undefined')SND.init()},{once:true}));
 $('pauseBtn').onclick=()=>{if(G&&G.running)togglePause()};

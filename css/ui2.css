@@ -238,3 +238,13 @@ body.ui2 #mpchat:not(.lob){left:calc(8px*var(--u));bottom:calc(var(--miniH) + 18
 body.ui2 #mpchat .cl,body.ui2 #mpchatin{background:rgba(16,20,28,.6);border:1px solid rgba(255,255,255,.34);box-shadow:inset 0 1px 0 rgba(255,255,255,.45);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7);border-radius:14px}
 body.ui2 #mpchat.lob .cl,body.ui2 #mpchat.lob #mpchatin{background:rgba(30,24,18,.7)}
 @media (max-width:640px){body.ui2 #mpchat:not(.lob){width:calc(100vw - 16px - var(--miniW))}}
+
+/* Spielstand-Fenster im Glas-Look (nur Liquid Glass; klassisch bleibt in style.css) */
+body.ui2 #svdlg{background:rgba(6,9,14,.55)}
+body.ui2 #svdlg .sv-card{background:var(--glass);border:1px solid var(--rim);border-radius:22px;box-shadow:var(--glassS),0 30px 80px rgba(0,0,0,.55);color:var(--ink,#fff);text-shadow:0 1px 2px rgba(0,0,0,.6)}
+body.ui2 #svdlg h2{font-family:var(--f-display,var(--f-h,Georgia,serif));color:#fff}
+body.ui2 #svdlg .sv-row{border:1px solid var(--rim2);border-radius:14px;background:rgba(255,255,255,.07);box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+body.ui2 #svdlg button{color:#fff;border:1px solid var(--rim2);border-radius:99px;padding:6px 14px;background:var(--glass);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 2px 6px rgba(0,0,0,.3)}
+body.ui2 #svdlg button:hover{filter:none;border-color:var(--fr);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),var(--glow,0 0 10px rgba(255,255,255,.3))}
+body.ui2 #svdlg button.dng{border-color:#e0533c}
+body.ui2 #mpchatin:focus{outline:none;border-color:var(--fr);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),var(--glow,0 0 8px rgba(255,255,255,.3))}

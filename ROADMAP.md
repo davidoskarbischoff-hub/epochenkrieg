@@ -80,7 +80,8 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Befehlsketten: Taste L = Schleife (Patrouille), Rücktaste = Kette löschen
 - [x] Gebäude im neuen Grafikstil mit Material je Epoche; Einheiten zeigen ihre Stufe (Umhang, Schulterschmuck, Kamm, Schimmer)
 - [x] Balancing nach Testspielen: Technologie-Kosten, Belagerer, Marine, KI-Tempo (24.10.: Truppen Z3-Z6 per Duell-Messung angeglichen; 25.10.: Technologien und Marine gemessen, Bevölkerungs-Techs und Elektrizität billiger, Stationäre Fischer auf 3 Häfen begrenzt, siehe OPTIMIERUNG.md)
-- [ ] Idee: Turm-Techs (Schiessscharten/Gusseisen/Beton) sind teurer als zusätzliche Türme; bei Bedarf billiger machen oder Gebäude-Techs ergänzen
+- [x] Turm-Techs nachgerechnet (25.10., OPTIMIERUNG.md): auch mit -30 % lohnen sie erst ab ca. 10 Türmen, Werte bleiben unverändert
+- [x] Spielstand-Fenster im Glas-Look (Liquid Glass), Lobby zeichnet bei Sprachwechsel neu (25.10.)
 - [ ] Brücken über tiefes Wasser
 - [x] Mehrspieler für zwei Spieler: Lobby mit Einladungslink, Kartenwahl, Seitenwahl; Gastgeber rechnet, Gast schickt Befehle (WebRTC über PeerJS, oder zwei Tabs lokal)
 - [x] Vier Karten: Küste und Landzunge, Festland, Bergland (Berge, Klippen, Hafen nur an Lücken), Große Bucht; Auswahl auch im Einzelspiel

@@ -185,6 +185,7 @@ const Lobby=(()=>{
   }
   /* Einladungslink geöffnet? Dann gleich beitreten. */
   window.addEventListener('load',()=>{const j=new URLSearchParams(location.search).get('join');if(j)setTimeout(()=>join(j),300)});
-  return{open,leave,render,chat:chatSend,chatShow,debugDrop:()=>{try{if(conn)conn.close()}catch(_){}}};
+  function refresh(){const ov=$('overlay');if(!inGame&&ov&&!ov.hidden&&ov.querySelector('.card.lobby'))render()}
+  return{open,leave,render,refresh,chat:chatSend,chatShow,debugDrop:()=>{try{if(conn)conn.close()}catch(_){}}};
 })();
 window.Lobby=Lobby;
