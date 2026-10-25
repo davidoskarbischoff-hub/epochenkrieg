@@ -35,6 +35,11 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));const T0=Date.now(),P=s=>consol
  const lg=p=>p.evaluate(()=>[...document.querySelectorAll('#mpchatlog .cl')].map(d=>d.textContent+'|'+d.querySelectorAll('b').length));
  const lh=await lg(h),lgg=await lg(g);
  rep('(0) Lobby-Chat in beide Richtungen, HTML bleibt Text',lh.some(x=>x.includes('Hallo <b>Gastgeber</b>'))&&lgg.some(x=>x.includes('Hi Gast'))&&lh.every(x=>x.endsWith('|1')),JSON.stringify([lh,lgg]));
+ /* (0c) Lobby bleibt Lobby bei Fenstergrösse und Sprachwechsel (Gast und Gastgeber) */
+ {const inLob=p=>p.evaluate(()=>!!document.querySelector('#lReady,#lStart')&&!document.querySelector('.mm-lang'));let okL=true;
+  for(const p of [g,h]){await p.setViewportSize({width:1100,height:700});await sleep(800);await p.setViewportSize({width:800,height:500});await sleep(800);
+   await p.evaluate(()=>{applyLang('en')});await sleep(500);okL=okL&&await inLob(p);await p.evaluate(()=>{applyLang('de')});await sleep(500);okL=okL&&await inLob(p)}
+  rep('(0c) Lobby bleibt nach Resize/Sprachwechsel bei Gast und Gastgeber',okL)}
  await h.click('#lStart',{noWaitAfter:true,timeout:120000});
  P('Start gedrückt');
  let ok1=false;for(let i=0;i<90&&!ok1;i++){await sleep(1000);ok1=await g.evaluate(()=>!!(typeof G!=='undefined'&&G&&G.ents&&G.ents.length>20&&NET.client&&NET.lastSnap>0)).catch(()=>false)}
