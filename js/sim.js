@@ -16,7 +16,7 @@ function newGame(d,reuse,opts){cam.yaw=cam.tyaw=0;cam.pitch=cam.tpitch=1.14;
   const hq=G.ents.find(e=>e.type==='hq'&&e.team===0);centerOn(hq.x+120,hq.y-80);
   $('pauseBtn').textContent=tr('Pause');$('speedBtn').textContent=tr('Tempo {0}×',1);
 }
-function recount(){G.pop=[0,0];G.cap=[0,0];for(const e of G.ents){if(e.dead)continue;if(e.kind==='unit'&&e.type!=='cart')G.pop[e.team]++;else if(e.kind==='bld'&&e.built&&BLDS[e.type].pop)G.cap[e.team]+=BLDS[e.type].pop}G.cap=G.cap.map((c,t)=>Math.min(POPMAX+(G.nfx?G.nfx[t].pop:0),c+(G.tfx?G.tfx[t].pop:0)+(G.nfx?G.nfx[t].pop:0)+SF(t).pop))}
+function recount(){G.pop=[0,0];G.cap=[0,0];const hbN=[0,0];for(const e of G.ents){if(e.dead)continue;if(e.kind==='bld'&&e.type==='harbor'&&e.built&&e.team>=0)e.sfOn=++hbN[e.team]<=STATFISH_MAX;if(e.kind==='unit'&&e.type!=='cart')G.pop[e.team]++;else if(e.kind==='bld'&&e.built&&BLDS[e.type].pop)G.cap[e.team]+=BLDS[e.type].pop}G.cap=G.cap.map((c,t)=>Math.min(POPMAX+(G.nfx?G.nfx[t].pop:0),c+(G.tfx?G.tfx[t].pop:0)+(G.nfx?G.nfx[t].pop:0)+SF(t).pop))}
 function afford(t,c){return RES.every(r=>(G.res[t][r]||0)>=(c[r]||0))}
 const SF0={gather:0,prod:0,pop:0,bgather:0,trade:0,gold:0};
 const SF=t=>(G.sfx&&G.sfx[t])||SF0;
@@ -336,7 +336,7 @@ function unitStrike(team,id,tid){
   u.fa=Math.atan2(t.y-u.y,t.x-u.x);u.cd=d.cd;u.swing=G.t;hit(u,t);return true}
 function updBld(b,dt){
   if(!b.built)return;const d=BLDS[b.type];
-  if(b.type==='harbor'&&G.tfx[b.team].statfish)G.res[b.team].food+=G.tfx[b.team].statfish*dt*(1+.2*b.lvl);
+  if(b.type==='harbor'&&G.tfx[b.team].statfish&&b.sfOn!==false)G.res[b.team].food+=G.tfx[b.team].statfish*dt*(1+.2*b.lvl);
   if(d.shoot){const sd=b.spec==='def',sob=b.spec==='obs';b.cd=Math.max(0,b.cd-dt);if(b.cd<=0&&!(b.manT>G.t)){const t=findEnemy(b,d.shoot.rng*(sd?1.3:sob?.8:1),true);if(t){b.cd=d.shoot.cd*(sob?1.3:1);sfx('arrow',b);G.proj.push({x:b.x,y:b.y-8,tid:t.id,dmg:d.shoot.atk*(sd?1.8:sob?.7:1)*LVL.atk[b.lvl]*(1+G.tfx[b.team].tower),src:b.id,a:0})}}}
   if(b.queue.length&&b.queue[0].tech){const q=b.queue[0],T=TECH[q.tech]; /* Forschung in der Warteschlange: Kosten werden während der Forschung abgebucht */
     if(G.tech[b.team].has(q.tech)){b.queue.shift()}else{const f=Math.min(dt,T.time-q.t)/T.time,c={};for(const r in T.cost)c[r]=T.cost[r]*f;

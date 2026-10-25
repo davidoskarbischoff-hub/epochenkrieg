@@ -112,7 +112,7 @@ const EN={
   'Größere Fangnetze':'Bigger Fishing Nets',
   'Boote tragen 50 % mehr und fangen 25 % schneller':'Boats carry 50 % more and fish 25 % faster',
   'Stationäre Fischer':'Stationary Fishermen',
-  'Jeder Hafen fängt selbst Nahrung (1,5 pro Sekunde), ganz ohne Fischquelle':'Every harbor catches food by itself (1.5 per second), no fish source needed',
+  'Die ersten 3 Häfen fangen selbst Nahrung (je 1,5 pro Sekunde), ganz ohne Fischquelle':'The first 3 harbors catch food by themselves (1.5 per second each), no fish source needed',
   'Schiffsbau':'Shipbuilding',
   'Erlaubt Kriegsschiffe':'Allows warships',
   'Schnelle Kiele':'Fast Keels',

@@ -113,6 +113,7 @@ const MOVE_K=.9; /* alle Landeinheiten etwas gemächlicher (David: Truppen liefe
 /* Einheiten ändern ihren Namen mit dem Zeitalter (Sanitäter-Reihe) */
 /* Truppenlinien: ab einem späteren Zeitalter ist eine Einheit veraltet und nicht mehr ausbildbar (upto = letztes Zeitalter); vorhandene bleiben. uOk prüft beides. */
 /* Minen: bis MINE_CAP Arbeiter arbeiten drinnen, das Erz sammelt sich im Minenlager (MINE_STOCK) und eine Lore (Einheit cart) fährt es zum nächsten Lager */
+const STATFISH_MAX=3; /* Stationäre Fischer: höchstens so viele Häfen je Team fangen mit (25.10.: vorher unbegrenzt, jeder weitere Hafen brachte für 120 Holz 2,1 Nahrung/s) */
 const MINE_CAP=8,MINE_STOCK=300,CART_LOAD=60,CART_MAX=3,CART_COST={wood:100,iron:40}; /* CART_MAX = Loren je Mine (Schienen zählen als 2, jede Zusatz-Lore +1) */
 const UPTO={hbow:5,sling:0,club:1,archer:2,warship:2,crossbow:3,catapult:3,ram:2,spear:4,sword:4,musket:4,cannon:4,galleon:4,knight:5};for(const k in UPTO)UNITS[k].upto=UPTO[k];
 /* Truppenlinien: wird eine Einheit nach ihrem letzten Zeitalter aufgewertet, wechselt sie zur Nachfolger-Einheit (Aussehen und Werte).
@@ -179,16 +180,16 @@ const TECHS=[
   {id:'commune',bld:'hq',ep:0,name:'Dorfgemeinschaft',desc:'+10 Bevölkerungslimit',cost:{food:120,wood:100},time:22,fx:{pop:10}},
   {id:'shoes',bld:'hq',ep:1,name:'Lederschuhe',desc:'Arbeiter laufen 12 % schneller',cost:{food:150,wood:120},time:24,fx:{wspeed:.12}},
   {id:'bronzetools',bld:'hq',ep:1,name:'Bronzewerkzeuge',desc:'Arbeiter sammeln 20 % schneller',cost:{food:200,wood:150,stone:60},time:30,fx:{gather:.2}},
-  {id:'townlaw',bld:'hq',ep:2,name:'Stadtrecht',desc:'+15 Bevölkerungslimit',cost:{food:300,wood:250,stone:150},time:34,fx:{pop:15}},
+  {id:'townlaw',bld:'hq',ep:2,name:'Stadtrecht',desc:'+15 Bevölkerungslimit',cost:{food:150,wood:130,stone:80},time:34,fx:{pop:15}},
   {id:'irontools',bld:'hq',ep:2,name:'Eisenwerkzeuge',desc:'Arbeiter sammeln 25 % schneller',cost:{food:300,wood:200,iron:100},time:36,fx:{gather:.25}},
   {id:'carts',bld:'hq',ep:3,name:'Handkarren',desc:'Arbeiter tragen nochmal 40 % mehr',cost:{food:400,wood:300,iron:120},time:40,fx:{carry:.4}},
-  {id:'guilds',bld:'hq',ep:3,name:'Zünfte',desc:'+20 Bevölkerungslimit',cost:{food:450,wood:350,stone:200},time:42,fx:{pop:20}},
+  {id:'guilds',bld:'hq',ep:3,name:'Zünfte',desc:'+20 Bevölkerungslimit',cost:{food:230,wood:180,stone:100},time:42,fx:{pop:20}},
   {id:'industry',bld:'hq',ep:4,name:'Manufaktur',desc:'Arbeiter sammeln 30 % schneller',cost:{food:600,wood:400,iron:250},time:46,fx:{gather:.3}},
-  {id:'metropolis',bld:'hq',ep:4,name:'Metropole',desc:'+25 Bevölkerungslimit',cost:{food:700,wood:500,stone:300},time:48,fx:{pop:25}},
+  {id:'metropolis',bld:'hq',ep:4,name:'Metropole',desc:'+25 Bevölkerungslimit',cost:{food:330,wood:260,stone:150},time:48,fx:{pop:25}},
   {id:'influence1',bld:'hq',ep:1,name:'Einfluss',desc:'Dein Gebiet wächst: alle Gebäude beanspruchen 25 % mehr Land',cost:{food:200,wood:150,stone:100},time:30,fx:{claim:.25}},
   {id:'influence2',bld:'hq',ep:3,name:'Herrschaft',desc:'Dein Gebiet wächst nochmal um 25 %',cost:{food:450,wood:300,iron:150},time:40,fx:{claim:.25}},
   {id:'nets',bld:'harbor',ep:0,name:'Größere Fangnetze',desc:'Boote tragen 50 % mehr und fangen 25 % schneller',cost:{wood:90,food:60},time:20,fx:{bcarry:.5,bgather:.25}},
-  {id:'statfish',bld:'harbor',ep:1,name:'Stationäre Fischer',desc:'Jeder Hafen fängt selbst Nahrung (1,5 pro Sekunde), ganz ohne Fischquelle',cost:{wood:160,food:120},time:30,fx:{statfish:1.5}},
+  {id:'statfish',bld:'harbor',ep:1,name:'Stationäre Fischer',desc:'Die ersten 3 Häfen fangen selbst Nahrung (je 1,5 pro Sekunde), ganz ohne Fischquelle',cost:{wood:160,food:120},time:30,fx:{statfish:1.5}},
   {id:'shipbuild',bld:'harbor',ep:1,name:'Schiffsbau',desc:'Erlaubt Kriegsschiffe',cost:{wood:150,stone:60},time:26,fx:{}},
   {id:'keels',bld:'harbor',ep:2,name:'Schnelle Kiele',desc:'Boote und Schiffe sind 20 % schneller',cost:{wood:200,iron:60},time:30,fx:{bspeed:.2}},
   {id:'harpoons',bld:'harbor',ep:2,name:'Harpunen',desc:'Boote fangen 40 % schneller',cost:{wood:220,iron:90},time:34,fx:{bgather:.4}},
@@ -207,8 +208,8 @@ const TECHS=[
   {id:'powder',bld:'barracks',ep:4,name:'Schießpulver',desc:'Erlaubt Musketiere',cost:{food:500,wood:300,iron:250},time:42,fx:{}},
   {id:'foundry',bld:'barracks',ep:4,name:'Gießerei',desc:'Erlaubt Kanonen',cost:{wood:500,iron:350},time:46,fx:{}},
   {id:'rifling',bld:'barracks',ep:4,name:'Gezogene Läufe',desc:'Fernkämpfer machen 25 % mehr Schaden',cost:{food:500,iron:300},time:44,fx:{ratk:.25}},
-  {id:'electric',bld:'hq',ep:5,name:'Elektrizität',desc:'Arbeiter sammeln 35 % schneller',cost:{food:800,wood:500,iron:350},time:50,fx:{gather:.35}},
-  {id:'railway',bld:'hq',ep:5,name:'Eisenbahn',desc:'+30 Bevölkerungslimit',cost:{food:900,wood:600,stone:400},time:52,fx:{pop:30}},
+  {id:'electric',bld:'hq',ep:5,name:'Elektrizität',desc:'Arbeiter sammeln 35 % schneller',cost:{food:600,wood:400,iron:260},time:50,fx:{gather:.35}},
+  {id:'railway',bld:'hq',ep:5,name:'Eisenbahn',desc:'+30 Bevölkerungslimit',cost:{food:420,wood:320,stone:200},time:52,fx:{pop:30}},
   {id:'rifles',bld:'barracks',ep:5,name:'Gezogene Gewehre',desc:'Erlaubt Gewehrschützen',cost:{food:600,wood:350,iron:300},time:44,fx:{}},
   {id:'artillery',bld:'barracks',ep:5,name:'Schwere Artillerie',desc:'Erlaubt Haubitzen',cost:{wood:600,iron:450},time:48,fx:{}},
   {id:'armor',bld:'barracks',ep:5,name:'Panzerbau',desc:'Erlaubt Panzer',cost:{wood:600,iron:500,gold:150},time:50,fx:{}},
