@@ -20,7 +20,7 @@ const EKMODELS=(()=>{
     if(e.kind==='unit'){const en=entryFor('unit',e.type,e.lvl||0);return en?'|g:'+en.file:''}
     if(e.kind==='bld'){const en=bldVar(entryFor('bld',e.type,e.lvl??G.epoch[e.team],e.spec),e.id);return en?'|g:'+en.file+(en.cmap||'')+(en.sig||''):''}
     if(e.kind==='animal'){const en=entryFor('animal',e.type,0);return en?'|g:'+en.file:''}
-    if(e.kind==='node'&&e.sea&&manifest.sea&&manifest.sea[e.type]&&files.size)return'|gs';return''}
+    if(e.kind==='node'&&e.sea&&manifest.sea&&manifest.sea[e.type]&&files.size)return'|gs'+(manifest.sea[e.type].files||[]).filter(f=>files.has(f)).length/* Schwarm wird neu gebaut, wenn weitere Fisch-Dateien nachgeladen wurden */;return''}
   /* Gebäude mit mehreren Aussehen (z. B. Wohnhäuser): "variants":[{"file":..,"fit":..},…] – je nach Nummer des Gebäudes eine davon (überschreibt die Felder des Eintrags) */
   const bldVar=(en,id)=>en&&en.variants&&en.variants.length?Object.assign({},en,en.variants[(id|0)%en.variants.length]):en;
   function has(kind,type,ep){return !!entryFor(kind,type,ep)}
@@ -376,8 +376,12 @@ const EKMODELS=(()=>{
       let b=box(wrap),sz=b.getSize(new THREE.Vector3());const ref=refSize(kind,u.type,()=>origMake(u).g);
       const k=(en.human?(2.4/1.84):en.len?en.len/(Math.max(sz.x,sz.z)||1):en.height?en.height/(sz.y||1):(en.fit==='length'||(kind==='animal'&&!en.fit))?ref.m/(Math.max(sz.x,sz.y,sz.z)||1):ref.h/(sz.y||1))*(en.scale||1);
       root.scale.multiplyScalar(k);b=box(wrap);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-b.min.y+(en.lift||0),-c.z);
-      cmapOf(root,en.cmap);dress(root,wrap,en,k,u.team,u);if(!window.__noMerge)try{mergeSkin(root,en.work&&wrap.userData.handHolder?[wrap.userData.handHolder]:null)}catch(err){console.warn('mergeSkin',err)}
+      cmapOf(root,en.cmap);dress(root,wrap,en,k,u.team,u);if(en.pal)palette(root,en.pal,u.team);/* Farbtabelle umfärben (Teamfarbe auf Dach/Plane) */if(!window.__noMerge)try{mergeSkin(root,en.work&&wrap.userData.handHolder?[wrap.userData.handHolder]:null)}catch(err){console.warn('mergeSkin',err)}
       if(!window.__noMerge&&!(gl.animations&&gl.animations.length))try{mergeStatic([root],wrap,{cache:true})}catch(err){console.warn('mergeStatic',err)}/* Schiffe, Fahrzeuge: viele kleine Meshes → wenige */
+      /* Fahne in Teamfarbe für Fahrzeuge/Schiffe ohne farbbares Material: flag:{x,y,z,h} – x = Anteil der Länge ab Mitte (+ = Bug), y = Anteil der Höhe (Mastfuss), z = Anteil der Breite, h = Mastlänge (Welteinheiten) */
+      if(en.flag){const F=en.flag,fb=box(wrap),fs=fb.getSize(new THREE.Vector3()),ph=F.h||1.4,fx=(fb.min.x+fb.max.x)/2+(F.x||0)*fs.x,fz=(fb.min.z+fb.max.z)/2+(F.z||0)*fs.z,fy=fb.min.y+(F.y===undefined?1:F.y)*fs.y;
+        const pole=new THREE.Mesh(new THREE.CylinderGeometry(.03,.04,ph,5),m3Plain(0x4a3a2a,.8));pole.position.set(fx,fy+ph/2,fz);pole.castShadow=true;
+        const cl=new THREE.Mesh(new THREE.BoxGeometry(ph*.5,ph*.3,.03),m3Team(u.team));cl.position.set(fx-ph*.25,fy+ph*.82,fz);cl.castShadow=true;/* Tuch weht nach hinten */wrap.add(pole);wrap.add(cl)}
       const rig={g:wrap,gltf:true,bend:en.human?findBone(root,/^(Abdomen|Spine|Spine1|spine|DEF-spine\.?001)$/i):null,bendA:0,human:!!(en.human||(en.rider&&!en.rider.free)),legs:[],arms:[],tools:{},acts:{},cur:null,gl};
       if(en.human&&typeof WPOSE!=='undefined'&&!window.__noWpose){try{rig.wp=WPOSE.setup(rig,root,wrap,k,u);if(rig.wp)WPOSE.props(rig,root,wrap,k)}catch(err){console.warn('WPOSE',err);rig.wp=null}}
       if(gl.animations&&gl.animations.length){rig.mixer=new THREE.AnimationMixer(root);const A=en.anim||{},cl=gl.animations;
@@ -469,6 +473,7 @@ const EKMODELS=(()=>{
     const g=new THREE.Group(),mix=[],n=en.count||1;
     const deepS=typeof terrAt==='function'&&terrAt(e.x,e.y)===0,ex=(en.extra||[]).filter(x=>files.has(x.file)&&deepS&&e.id%x.every===(x.mod||0))/* Mantarochen und Hai schwimmen nur in Schwärmen im tiefen Wasser mit (Auswahl nach Knoten-Nummer: Mehrspieler gleich) */;
     for(let i=0;i<n;i++){const mi=ex.find(x=>(x.slot||1)===i),gl=files.get(mi?mi.file:L[(e.id+i*3)%L.length]),root=EKGLTF.SkeletonUtils.clone(gl.scene),w=new THREE.Group();w.add(root);prepare(root,0);root.rotation.order='YXZ';root.rotation.y=(en.yaw||0)*Math.PI/180;root.rotation.x=(en.roll||0)*Math.PI/180;
+      /* Farben je Datei und Materialname dämpfen (sea.fish.mats), damit die Schwärme zu den ruhigen Wasserfarben passen */const fm=en.mats&&en.mats[mi?mi.file:L[(e.id+i*3)%L.length]];if(fm)root.traverse(o=>{if(o.isMesh){const f=m=>{if(!fm[m.name])return m;const c=m.clone();c.color.set(fm[m.name]);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}});
       if(en.tint)root.traverse(o=>{if(o.isMesh){const f=m=>{const c=m.clone();c.color.set(en.tint);return c};o.material=Array.isArray(o.material)?o.material.map(f):f(o.material)}});
       let b=box(w),sz=b.getSize(new THREE.Vector3());const k=(mi?mi.size:en.size||1)*(.85+((e.id*7+i*13)%10)/33)/(Math.max(sz.x,sz.y,sz.z)||1);root.scale.multiplyScalar(k);b=box(w);const c=b.getCenter(new THREE.Vector3());root.position.set(-c.x,-c.y,-c.z);
       /* gleichmässig verteilt: zwei Ringe, gleiche Winkelgeschwindigkeit → Abstand bleibt, kein Übereinander */const a=i/n*6.283+e.id,r=n>1?(en.spread||1.1)*1.7*(i%2?1:.62):0;w.position.set(Math.cos(a)*r,(i%2?.12:-.12),Math.sin(a)*r);w.rotation.y=-(a+1.5708);w.userData.ph=i;

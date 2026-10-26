@@ -3496,6 +3496,14 @@
       "pitch": 16
      },
      "scale": 0.73
+    },
+    "tint": {
+     "Mat": "#d9b88d"
+    },
+    "flag": {
+     "x": -0.42,
+     "y": 0.55,
+     "h": 1.3
     }
    },
    {
@@ -3518,6 +3526,14 @@
       "pitch": 16
      },
      "scale": 0.73
+    },
+    "tint": {
+     "colormap": "#b49a80"
+    },
+    "flag": {
+     "x": -0.1,
+     "y": 1.0,
+     "h": 1.2
     }
    },
    {
@@ -3540,18 +3556,33 @@
       "pitch": 16
      },
      "scale": 0.73
+    },
+    "tint": {
+     "colormap": "#a9b7c0"
+    },
+    "flag": {
+     "x": -0.38,
+     "y": 1.0,
+     "h": 1.6
     }
    }
   ],
   "warship": {
    "file": "neu/Viking_boat.glb",
    "len": 6.5,
-   "yaw": 90
+   "yaw": 90,
+   "tint": {
+    "White": "team",
+    "Red": "team"
+   }
   },
   "galleon": {
    "file": "neu/Sail_ship.glb",
    "len": 9.5,
-   "yaw": 90
+   "yaw": 90,
+   "tint": {
+    "Fabric": "team"
+   }
   },
   "catapult": {
    "file": "neu/siege-catapult.glb",
@@ -3559,6 +3590,11 @@
    "yaw": 0,
    "tint": {
     "colormap": "#9c8a78"
+   },
+   "pal": {
+    "#9a5942": "team",
+    "#975b46": "team",
+    "#a6644c": "team"
    }
   },
   "plane": {
@@ -4035,6 +4071,9 @@
    "yaw": 0,
    "tint": {
     "colormap": "#9c8a78"
+   },
+   "pal": {
+    "#9a5942": "team"
    }
   },
   "knight": {
@@ -4720,7 +4759,12 @@
     ],
     "len": 9,
     "yaw": 90,
-    "tintAll": "#5d6670"
+    "tintAll": "#5d6670",
+    "flag": {
+     "x": -0.4,
+     "y": 0.45,
+     "h": 2.2
+    }
    }
   ],
   "howitzer": [
@@ -6981,7 +7025,24 @@
      "mod": 1,
      "slot": 2
     }
-   ]
+   ],
+   "mats": {
+    "neu/fische/Fish.glb": {
+     "Body": "#5f7f93",
+     "Fins": "#8a8f78",
+     "Front": "#9fb4bd"
+    },
+    "neu/fische/Fish-XWl86YFtpF.glb": {
+     "Bottom": "#a9b3ad",
+     "Top": "#9c7a68",
+     "Fins": "#b0a587"
+    },
+    "neu/fische/Fish-BEcU9rjiAq.glb": {
+     "Outline": "#2a2f33",
+     "Body": "#a8765e",
+     "Stripes": "#c9c3ae"
+    }
+   }
   },
   "dolphin": {
    "files": [

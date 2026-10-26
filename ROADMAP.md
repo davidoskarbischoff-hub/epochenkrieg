@@ -52,7 +52,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Wegfindung (A*), Festhänge-Erkennung, Arbeiter verteilen sich auf Bäume; Bäume stehen weiter auseinander
 - [x] Fischquellen (Fische, Delfine ab Stufe II, Wale ab Stufe III), Hafen am Ufer, Fischerboote, Kriegsschiffe (Bronzezeit)
 - [x] Seegefechte gemessen und balanciert (Panzerschiff, KI-Flotte ab 3 Schiffen, 24.10.)
-- [ ] Landungen/Truppentransport gibt es noch nicht, Küstenverteidigung nur Turm
+- [x] Truppentransport über Wasser (24.10.): Landtruppen steigen per Rechtsklick auf ein eigenes Schiff ein (Fischerboot 4, Kriegsschiff 6, Galeone/Panzerschiff 8), Schiff fährt per Rechtsklick aufs Land zum nächsten Ufer und lädt dort aus (Knopf „Ausladen“). Offen: KI nutzt keine Landungen, Küstenverteidigung nur Turm, keine Anzeige der Ladung am Schiff selbst
 - [x] Gegner-KI nutzt Wasser noch nicht (kein Hafen, keine Boote)
 - [ ] Brücken über tiefes Wasser
 
@@ -79,16 +79,20 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Mauern (ab Mittelalter), Rammbock und Katapult (Technologie Belagerungswerkstatt)
 - [x] Befehlsketten: Taste L = Schleife (Patrouille), Rücktaste = Kette löschen
 - [x] Gebäude im neuen Grafikstil mit Material je Epoche; Einheiten zeigen ihre Stufe (Umhang, Schulterschmuck, Kamm, Schimmer)
-- [ ] Balancing nach Testspielen: Technologie-Kosten, Belagerer, Marine, KI-Tempo (24.10.: Truppen Z3-Z6 per Duell-Messung angeglichen, Technologie-Kosten und Marine noch offen)
+- [x] Balancing nach Testspielen: Technologie-Kosten, Belagerer, Marine, KI-Tempo (24.10.: Truppen Z3-Z6 per Duell-Messung angeglichen; 25.10.: Technologien und Marine gemessen, Bevölkerungs-Techs und Elektrizität billiger, Stationäre Fischer auf 3 Häfen begrenzt, siehe OPTIMIERUNG.md)
+- [x] Turm-Techs nachgerechnet (25.10., OPTIMIERUNG.md): auch mit -30 % lohnen sie erst ab ca. 10 Türmen, Werte bleiben unverändert
+- [x] Spielstand-Fenster im Glas-Look (Liquid Glass), Lobby zeichnet bei Sprachwechsel neu (25.10.)
 - [ ] Brücken über tiefes Wasser
 - [x] Mehrspieler für zwei Spieler: Lobby mit Einladungslink, Kartenwahl, Seitenwahl; Gastgeber rechnet, Gast schickt Befehle (WebRTC über PeerJS, oder zwei Tabs lokal)
 - [x] Vier Karten: Küste und Landzunge, Festland, Bergland (Berge, Klippen, Hafen nur an Lücken), Große Bucht; Auswahl auch im Einzelspiel
 - [x] Mehrspieler-Fehler behoben: Gast-Aufstieg stufte dessen Einheiten wie bei der KI sofort hoch und schenkte alle Technologien („Alle upgraden“ beim Gast wirkungslos); Gast konnte keine Mine setzen (Gastgeber prüfte Erze gegen seinen eigenen Nebel)
-- [ ] Mehrspieler weiter ausbauen: Reconnect, Chat, Bereit-Knopf, Zuschauer, Spiel pausieren, 3–4 Spieler, Team-Farben wählbar, Sound-Events beim Gast
+- [x] Mehrspieler: Chat (Lobby und Spiel, Enter, 8 s sichtbar) und Bereit-Knopf in der Lobby (25.10.)
+- [ ] Mehrspieler weiter ausbauen: Reconnect, Zuschauer, Spiel pausieren, 3–4 Spieler, Team-Farben wählbar, Sound-Events beim Gast
 - [ ] Mehrspieler: Berater und Pause im Mehrspieler; verzögerungsfreie Vorhersage für den Gast
 - [x] Karten: Zufallsauswahl („Zufällige Karte“, „Neu würfeln“) und mehr Kartenarten (jetzt 13)
 - [ ] Karten: Höhenstufen (Plateaus mit Rampen), Brücken
-- [ ] Spielstand speichern, Kartengröße wählbar, mehrere KI-Gegner/Teams
+- [x] Spielstand speichern (24.10., nur Einzelspieler, siehe Paket S in CLAUDE.md)
+- [ ] Mehrere KI-Gegner/Teams (Kartengröße ist schon wählbar)
 
 ### Einfach
 - [ ] Sounds nach dem Testspielen feinjustieren
@@ -96,10 +100,10 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Grössere Karte, Wahl der Kartengrösse
 
 ### Mittel
-- [ ] Bessere Wegfindung um Gebäude und Wälder
+- [x] Bessere Wegfindung um Gebäude und Wälder – gemessen (6 Karten, Gruppen/Arbeiter/Mauern/Cluster), Tor in schräger Mauer und unerreichbare Ziele behoben, Details OPTIMIERUNG.md
 - [x] Klügere KI (gezielte Angriffe auf Arbeiter, Rückzug) – nur Schwer (Paket KI-T, aiTick); Normal und Leicht unverändert
 - [x] Technologien und Upgrades pro Epoche
-- [ ] Spielstand speichern
+- [x] Spielstand speichern/laden: 3 Plätze + Auto-Platz (alle 5 Spielminuten, Option), Liste mit Zeitstempel/Spielzeit/Zeitalter, Löschen, Export/Import als JSON-Datei (24.10.). Offen: Mehrspieler (bewusst nicht), Vorschaubild je Platz
 - [ ] Mehrere KI-Gegner (bis 4 Spieler, Teams)
 
 ### Später / schwer
@@ -346,3 +350,7 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 - [ ] **Info-Knopf („i") an Einheiten und Gebäuden:** Kleines i im Info-Feld öffnet ein Fenster mit Geschwindigkeit, Leben, Angriff, Reichweite, Angriffstempo, Rüstung/Klasse (`cls`, Gegenstücke `CTR`), Kosten, Ausbildungszeit, Stufe (`lvl`). Die Hinweise `unitTip` (ui.js) liefern schon einen Teil; Werte stufenabhängig über `LVL`/Technologien (`G.tfx`) berechnen, nicht nur Grundwerte.
 
 - Moves 24.10.: Kampf-Animationen im Takt, Rückstoss, Jog beim Angriffsmarsch (siehe OPTIMIERUNG.md). Offen: Bogen-Spannen (kein Clip), Sterbe-Überblendung.
+
+- [x] Fischerboote wählen Schwärme nach Weg zum Hafen und Menge (`boatPick`), Berater-Angriffsplan (Chip „Angreifen“).
+
+- [x] KI-Transport geprüft (25.10.): nicht nötig, alle 117 Testkarten haben einen Landweg (`ensureWalk`); nichts gebaut, Begründung in OPTIMIERUNG.md. Optional später: Flankenlandung der KI.

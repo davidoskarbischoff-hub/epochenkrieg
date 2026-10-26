@@ -15,7 +15,7 @@ const r1=v=>Math.round(v*10)/10;
 function encodeSnap(){
   const U=[],B=[],N=[],A=[],rel=v=>v&&G.t-v<1?r1(G.t-v):-1;
   for(const e of G.ents){if(e.dead)continue;
-    if(e.kind==='unit')U.push({i:e.id,ty:e.type,m:e.team,x:r1(e.x),y:r1(e.y),a:Math.round(e.fa*100)/100,h:Math.round(e.hp),H:e.maxHp,l:e.lvl,s:e.state,c:r1(e.carry||0),ct:e.ctype||0,rt:e.rtype||0,td:e.tid||0,sw:rel(e.swing),ga:rel(e.gat),mv:rel(e.mvT),u:e.upj?1:0,cd:r1(e.cd||0),q:e.team===0&&e.q&&e.q.length?e.q:0,lp:e.loop?1:0,gr:e.gar||0,im:e.inm||0});
+    if(e.kind==='unit')U.push({i:e.id,ty:e.type,m:e.team,x:r1(e.x),y:r1(e.y),a:Math.round(e.fa*100)/100,h:Math.round(e.hp),H:e.maxHp,l:e.lvl,s:e.state,c:r1(e.carry||0),ct:e.ctype||0,rt:e.rtype||0,td:e.tid||0,sw:rel(e.swing),ga:rel(e.gat),mv:rel(e.mvT),u:e.upj?1:0,cd:r1(e.cd||0),q:e.team===0&&e.q&&e.q.length?e.q:0,lp:e.loop?1:0,gr:e.gar||0,im:e.inm||0,ib:e.inb||0});
     else if(e.kind==='bld')B.push({i:e.id,ty:e.type,m:e.team,x:r1(e.x),y:r1(e.y),h:Math.round(e.hp),H:e.maxHp,l:e.lvl,b:e.built?1:0,p:Math.round(e.prog*1000)/1000,an:e.ang||0,sp:e.spec||0,em:e.empty||0,xc:e.xc||0,sk:e.type==='mine'?Math.round(mineStock(e)):0,cd:BLDS[e.type].shoot?r1(e.cd||0):0,or:e.ore||0,pc:e.pc||0,u:e.upj?1:0,qu:e.team===0?e.queue.map(q=>({type:q.type,tech:q.tech,t:r1(q.t),blocked:q.blocked?1:0})):0,r:e.team===0&&e.rally?e.rally:0});
     else if(e.kind==='animal')A.push({i:e.id,ty:e.type,x:r1(e.x),y:r1(e.y),a:Math.round(e.fa*100)/100,h:Math.round(e.hp),s:e.state,sw:rel(e.swing),mv:rel(e.mvT)});
     else if(e.kind==='node'&&(e.amount<e.maxAmt-.5||e.snapLow)){N.push([e.id,Math.round(e.amount)]);e.snapLow=e.amount<e.maxAmt-.5}}
@@ -38,7 +38,7 @@ function sendSnap(){if(!NET.send)return;flipTeams();let snap;try{snap=encodeSnap
   NET.send({t:'snap',s:snap})}
 /* Teil-Datensatz (_d:1) mit dem zuletzt bekannten Datensatz der Entität zusammenführen */
 function mergeRec(e,r){if(r._d&&e&&e._rec){r=Object.assign({},e._rec,r);delete r._d}return r}
-function removeEnt(e){if(e.dead)return;e.dead=true;if((e.kind==='bld'&&!BLDS[e.type].passable)||(e.kind==='node'&&!e.sea&&e.type!=='field'))navStamp(e,-1);sel.delete(e.id)}
+function removeEnt(e){if(e.dead)return;e.dead=true;if(navBlocks(e))navStamp(e,-1);sel.delete(e.id)}
 function applySnap(s){
   if(!G||!NET.client)return;
   NET.lastSnap=performance.now();if(s.hs){NetLog.onSnap(s.hs[0]);NetLog.S.hostStepMs=s.hs[1];NetLog.S.hostFps=s.hs[2]}
@@ -47,7 +47,7 @@ function applySnap(s){
   const seen=new Set();
   for(let r of s.U){seen.add(r.i);let e0=G.byId.get(r.i);r=mergeRec(e0,r);if(r._d)continue;let e=e0;if(!e||e.dead){e=addUnit(r.ty,r.m,r.x,r.y,r.i)}
     if(r.ty&&e.type!==r.ty)e.type=r.ty;e._rec=r;e.team=r.m;e.tx=r.x;e.ty=r.y;e.fa=r.a;e.hp=r.h;e.maxHp=r.H;e.lvl=r.l;e.state=r.s;e.carry=r.c;e.ctype=r.ct||null;e.rtype=r.rt||null;e.tid=r.td||null;
-    e.swing=r.sw>=0?G.t-r.sw:undefined;e.gat=r.ga>=0?G.t-r.ga:undefined;e.mvT=r.mv>=0?G.t-r.mv:undefined;e.upj=r.u?{}:null;e.cd=r.cd;e.gar=r.gr||undefined;e.inm=r.im||undefined;e.q=r.q||[];e.loop=r.lp?[{}]:null}
+    e.swing=r.sw>=0?G.t-r.sw:undefined;e.gat=r.ga>=0?G.t-r.ga:undefined;e.mvT=r.mv>=0?G.t-r.mv:undefined;e.upj=r.u?{}:null;e.cd=r.cd;e.gar=r.gr||undefined;e.inm=r.im||undefined;e.inb=r.ib||undefined;e.q=r.q||[];e.loop=r.lp?[{}]:null}
   for(let r of s.B){seen.add(r.i);let e0=G.byId.get(r.i);r=mergeRec(e0,r);if(r._d)continue;let e=e0;if(!e||e.dead){e=addBld(r.ty,r.m,r.x,r.y,!!r.b,r.i)}
     e._rec=r;e.team=r.m;e.x=r.x;e.y=r.y;e.hp=r.h;e.maxHp=r.H;e.lvl=r.l;e.built=!!r.b;e.prog=r.p;e.ang=r.an;e.spec=r.sp||undefined;e.empty=r.em||0;e.xc=r.xc||0;e.cd=r.cd||0;e.st=r.sk?{all:r.sk}:undefined;e.ore=r.or||undefined;e.pc=r.pc||undefined;e.upj=r.u?{}:null;e.queue=r.qu||[];e.rally=r.r||null}
   for(let r of s.A||[]){seen.add(r.i);let e0=G.byId.get(r.i);r=mergeRec(e0,r);if(r._d)continue;let e=e0;if(!e||e.dead)e=addAnimal(r.ty,r.x,r.y,r.i);e._rec=r;e.tx=r.x;e.ty=r.y;e.fa=r.a;e.hp=r.h;e.state=r.s;e.swing=r.sw>=0?G.t-r.sw:undefined;e.mvT=r.mv>=0?G.t-r.mv:undefined}
@@ -75,7 +75,7 @@ function execRemote(m){
       case'cmd':NET.tgtSet=true;NET.tgt=m.tid?get(m.tid):null;command(m.x,m.y,!!m.append);break;
       case'amove':attackMove(m.x,m.y,!!m.append);break;
       case'rage':useRage(0,(m.ids||[]).slice(0,80));break;
-      case'tfire':towerFire(0,m.id,m.tid);break;
+      case'tfire':towerFire(0,m.id,m.tid,m.tx,m.ty);break;
       case'ufire':unitStrike(0,m.id,m.tid);break;
       case'trade':if(RES.includes(m.rt)&&m.rt!=='gold')trade(0,m.rt,m.dir==='buy'?'buy':'sell');break;
       case'place':placing=m.type;wallAng=typeof m.ang==='number'?m.ang:null;if(BLDS[m.type]&&BLDS[m.type].ep<=G.epoch[0])tryPlace(m.x,m.y,!!m.keep);break;
@@ -85,6 +85,7 @@ function execRemote(m){
       case'adv':advance(0,m.nation);break;
       case'upg':startUpgrade(0,m.key);break;
       case'unmine':mineRelease(0,m.id);break;
+      case'unload':unloadShip(0,m.id,true);break;
       case'demo':demolish(0,m.id);break;
       case'cart2':buyCart(0,m.id);break;
       case'tspec':towerSpec(0,m.id,m.kind);break;

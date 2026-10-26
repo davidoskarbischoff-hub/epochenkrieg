@@ -179,16 +179,22 @@ const onLand=(x,y)=>terrAt(x,y)===2;
 
 /* ---------- Wegfindung ---------- */
 const NS=10,NW=W/NS,NH=H/NS;
-let navT=null,navDyn=null;
+let navT=null,navDyn=null,navGate=null;
 const navSeen=new Uint32Array(NW*NH),navG=new Float32Array(NW*NH),navPar=new Int32Array(NW*NH);let navGen=0;
-function navInit(){navT=new Uint8Array(NW*NH);navDyn=new Uint8Array(NW*NH);navFields.length=0;navFieldT=-1; /* gemerkte Entfernungsfelder gehören zur alten Karte */
+function navInit(){navT=new Uint8Array(NW*NH);navDyn=new Uint8Array(NW*NH);navGate=new Uint8Array(NW*NH);navFields.length=0;navFieldT=-1; /* gemerkte Entfernungsfelder gehören zur alten Karte */
   for(let y=0;y<NH;y++)for(let x=0;x<NW;x++)navT[y*NW+x]=terrAt((x+.5)*NS,(y+.5)*NS)}
 /* Gebäude und feste Ressourcen blockieren die Felder in ihrem Umkreis (+5 für die Breite der Einheiten).
    navVer zählt jede Änderung am Raster mit (für gemerkte Ergebnisse wie nodeOpen). */
 let navVer=0;
-function navStamp(e,sign){const r=e.r+5,x0=Math.max(0,Math.floor((e.x-r)/NS)),x1=Math.min(NW-1,Math.floor((e.x+r)/NS)),y0=Math.max(0,Math.floor((e.y-r)/NS)),y1=Math.min(NH-1,Math.floor((e.y+r)/NS));navVer++;
+/* Blockiert dieses Objekt die Wegsuche? Tore stehen dazu (ihr Durchgang wird in navStamp als Zone geöffnet) */
+const navBlocks=e=>(e.kind==='bld'&&(!BLDS[e.type].passable||e.type==='gate'))||(e.kind==='node'&&!e.sea&&e.type!=='field');
+function navStamp(e,sign){
+  if(e.type==='gate'){ /* Durchgang im Raster offen halten, egal wie die Zellen zum Tor liegen: sonst sperren die Nachbarmauern (Radius 16, Abstand 22) den schmalen Spalt, wenn keine Zellmitte hineinfällt */
+    const r=9,x0=Math.max(0,Math.floor((e.x-r)/NS)),x1=Math.min(NW-1,Math.floor((e.x+r)/NS)),y0=Math.max(0,Math.floor((e.y-r)/NS)),y1=Math.min(NH-1,Math.floor((e.y+r)/NS));navVer++;
+    for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const dx=(x+.5)*NS-e.x,dy=(y+.5)*NS-e.y;if(dx*dx+dy*dy<=r*r)navGate[y*NW+x]+=sign}return}
+  const r=e.r+5,x0=Math.max(0,Math.floor((e.x-r)/NS)),x1=Math.min(NW-1,Math.floor((e.x+r)/NS)),y0=Math.max(0,Math.floor((e.y-r)/NS)),y1=Math.min(NH-1,Math.floor((e.y+r)/NS));navVer++;
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const dx=(x+.5)*NS-e.x,dy=(y+.5)*NS-e.y;if(dx*dx+dy*dy<=r*r)navDyn[y*NW+x]+=sign}}
-const navOpen=(i,naval)=>navDyn[i]===0&&(naval==='dry'?navT[i]===2:naval?navT[i]<=1:(navT[i]===1||navT[i]===2)); /* 'dry' = nur festes Land (Loren) */
+const navOpen=(i,naval)=>(navDyn[i]===0||navGate[i]>0)&&(naval==='dry'?navT[i]===2:naval?navT[i]<=1:(navT[i]===1||navT[i]===2)); /* 'dry' = nur festes Land (Loren) */
 const navCell=(x,y)=>Math.max(0,Math.min(NH-1,(y/NS)|0))*NW+Math.max(0,Math.min(NW-1,(x/NS)|0));
 /* Dichter Wald: Fällen kann man nur Bäume am Waldrand. Ein Baum ist "offen", wenn ein freies Feld in Arbeiter-Reichweite liegt
    (so weit, wie die Wegsuche einen Arbeiter heranführt) und dieses Feld zu einem grösseren freien Gebiet gehört (keine
@@ -239,10 +245,10 @@ function navField(tx,ty,goalR,naval,peek){
   return f}
 /* A*: Weg von (sx,sy) bis auf 'goalR' Abstand an (tx,ty). Gibt eine Liste von Wegpunkten zurück, oder null.
    'seed' != 0 würfelt die Kosten leicht, damit festgefahrene Einheiten einen anderen Weg nehmen. */
-let navCl=null;
+let navCl=null,navPartial=0; /* navPartial nach navPath: 0 = Weg bis ans Ziel, 1 = Teilweg (Suche abgebrochen, geht später weiter), 2 = Ziel nachweislich unerreichbar (Weg endet am nächstgelegenen Punkt) */
 const NDX=[1,-1,0,0,1,1,-1,-1],NDY=[0,0,1,-1,1,-1,1,-1];let NHI=new Int32Array(4096),NHF=new Float32Array(4096); /* Wegsuche: feste Felder statt neuer Arrays je Schritt (schneller) */
 function navPath(sx,sy,tx,ty,goalR,naval,seed){
-  const s=navCell(sx,sy);navGen++;
+  const s=navCell(sx,sy);navGen++;navPartial=0;
   const gx=tx/NS,gy=ty/NS,gr=goalR/NS;
   const hx=(i)=>{const dx=Math.abs((i%NW)+.5-gx),dy=Math.abs(((i/NW)|0)+.5-gy);return(Math.max(dx,dy)+.4142*Math.min(dx,dy))-gr};
   let hn=0;
@@ -268,12 +274,12 @@ function navPath(sx,sy,tx,ty,goalR,naval,seed){
   let cells=[];
   if(goal<0){ /* Suchgrenze erreicht (lange Wege, Buchten, Seen): Entfernungsfeld vom Ziel aus (einmal je Ziel, für die ganze Gruppe gemerkt) */
     const fl=hot?hf:navField(tx,ty,goalR,naval);let i=s,nb=-1;
-    if(!fl){if(best===s)return[{x:sx,y:sy}];for(let i=best;i>=0;i=navPar[i])cells.push(i);cells.reverse()} /* Feld kommt im nächsten Schritt: so lange Teilweg */
+    if(!fl){navPartial=1;if(best===s)return[{x:sx,y:sy}];for(let i=best;i>=0;i=navPar[i])cells.push(i);cells.reverse()} /* Feld kommt im nächsten Schritt: so lange Teilweg */
     else{if(fl.d[s]>=1e8&&sIn){let bd=1e8;for(let y=Math.max(0,sy0-6);y<=Math.min(NH-1,sy0+6);y++)for(let x=Math.max(0,sx0-6);x<=Math.min(NW-1,sx0+6);x++){const j=y*NW+x,v=fl.d[j]+Math.hypot(x-sx0,y-sy0);if(v<bd){bd=v;i=j}}} /* Start im Gebäuderand */
     if(fl.d[i]<1e8){cells.push(s);for(let k=0;k<4000&&fl.d[i]>0;k++){const x=i%NW,y=(i/NW)|0;nb=-1;let bd=fl.d[i];
         for(let q=0;q<8;q++){const nx=x+NDX[q],ny=y+NDY[q];if(nx<0||ny<0||nx>=NW||ny>=NH)continue;const j=ny*NW+nx;if(fl.d[j]<bd){bd=fl.d[j];nb=j}}
         if(nb<0)break;i=nb;cells.push(i)}}
-    else{if(best===s||naval===true)return null;for(let i=best;i>=0;i=navPar[i])cells.push(i);cells.reverse()}} /* Boote: anderes Gewässer = kein Weg (moveToward merkt sich das Ziel als unerreichbar) */ // unerreichbar: bis zum nächstgelegenen Punkt
+    else{if(best===s||naval===true)return null;navPartial=2;for(let i=best;i>=0;i=navPar[i])cells.push(i);cells.reverse()}} /* Boote: anderes Gewässer = kein Weg (moveToward merkt sich das Ziel als unerreichbar) */ // unerreichbar: bis zum nächstgelegenen Punkt
   }else{for(let i=goal;i>=0;i=navPar[i])cells.push(i);cells.reverse()}
   let pts=cells.map(i=>({x:(i%NW+.5)*NS,y:(((i/NW)|0)+.5)*NS}));
   // Weg glätten: Zwischenpunkte weglassen, wenn man direkt hinüberlaufen kann

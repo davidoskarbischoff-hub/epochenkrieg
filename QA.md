@@ -112,7 +112,7 @@ Aufruf: `NODE_PATH=<playwright> node tools/mp-test.js [Bilderordner]` (~5 Min., 
 ## Meshopt-Modelle (21.10.)
 - 213 benutzte .glb mit Meshopt komprimiert (48,8 -> 21,9 MB). Struktur und Namen identisch, Kontaktbogen und Spielszene unverändert, keine Konsolenfehler. Nicht geprüft: Animation im Dauerlauf (nur Standbild), Desktop-App. Sieht eine Figur nach dem Laden verzerrt aus: Datei aus Git zurückholen und `tools/meshopt/pack.mjs` prüfen.
 - 24.10. Wolkenschatten (Option Grafik): Software-GL-Bild geprüft, Echtzeit-FPS auf echter GPU noch offen.
-- 24.10. Marine: Panzerschiff aufgewertet, KI-Flottenangriff erst ab 3 Schiffen, Boote sperren unerreichbare Fischgründe teamweit (Details OPTIMIERUNG.md). Offen: Kriegsschiffe vs. Küste nur im Gefecht ohne Landung gemessen, Landungen (Transport) gibt es nicht.
+- 24.10. Marine: Panzerschiff aufgewertet, KI-Flottenangriff erst ab 3 Schiffen, Boote sperren unerreichbare Fischgründe teamweit (Details OPTIMIERUNG.md). Offen: Kriegsschiffe vs. Küste nur im Gefecht ohne Landung gemessen, Landungen (Transport) gibt es nicht. -> 24.10. Truppentransport gebaut (Details OPTIMIERUNG.md, Abschnitt Truppentransport).
 
 - KI-Taktik Schwer (Rückzug/Sammlerjagd) nur per Selbstspiel gemessen, nicht im Fenster angesehen; Wirkung klein und verrauscht (siehe OPTIMIERUNG.md).
 
@@ -126,3 +126,55 @@ Bilder: `qa/bilder/era0.png`, `era3.png`, `era6.png`, `ui640.png`, `seq_sword.pn
 - [ ] (schön wäre) Bogenschütze: Gun_Shoot zeigt zwischen den Schüssen fast dieselbe Haltung (Schreitpose), Schuss nur kurz erkennbar; Schwert und Reiter (Attack_Kick, Pferd streckt Hinterbeine) laufen sauber im Takt, Start- und Endhaltung der Clips passen (Pop 0,2 bis 0,5 rad Summe), keine Verdrehung, Clip bleibt `attack`.
 
 - [x] Balancing Truppen Z3-Z6 (24.10., messbasiert, Details OPTIMIERUNG.md): hbow, Flugzeuge, Bomber vs Gebäude, Renault, Mark I, Doughboy, Bertha angepasst; mp-test ALLES OK, `node --check` ok, Lücken nur cannon/trench/derrick. Nicht im Spiel mit Menschen getestet (nur headless).
+
+- Flugzeuge/Bodenfeuer (24.10.): `AA_GUN` in `hit()` (sim.js) kürzt Gewehr-/MG-Schaden gegen Flugzeuge (x0,4/x0,3); kostengleich plane-mg -0,04, plane-rifle -0,14. Bei neuen `gun:true`-Einheiten oder Flak daran denken. Zahlen in OPTIMIERUNG.md.
+
+- Rehe am Strand (24.10.): Flucht-Richtungswahl verbessert (siehe OPTIMIERUNG.md); falls David weiter "stuck" meldet: Karte/Seed und Ort (cam.x/y) erfragen.
+
+- 24.10. Boote/Angriffsplan: Messwerte in OPTIMIERUNG.md. Nicht im Bild geprüft (nur Simulation): Chip „Angreifen“ im Berater-Panel (Aussehen in Liquid Glass und Klassisch), englischer Text.
+
+## Prüfung im Bild: Chip „Angreifen“, Ego-Turm, Schiffe, Kapsel, Wolken (2026-10-24, Merge origin/claude/youthful-brahmagupta-8dmxq5)
+Bilder (Scratch): `scratchpad/qa2/a1_*.png` (Berater), `a2_shot*.png` (Ego-Turm), `a3_ships*.png`, `a3b_dir.png` (Schiffe), `a4_stack.png` (Kapsel), `a5b_c0/c1/off.png` (Wolken). mp-test ALLES OK (jetzt mit Prüfung (5) Gast-Turm-Freischuss `tfire`), Lücken nur cannon/trench/derrick.
+- [x] Berater-Chip „Angreifen“ (Liquid Glass und Klassisch, DE/EN, 1100/700/400 px): Chip steht in der Taktik-Reihe, bricht bei schmalen Breiten sauber in eine zweite Zeile um, Aktivzustand (`aria-pressed`) und goldene Hervorhebung stimmen, kein Überlauf des Panels. „Auto an“: keine Meldung, nur Pille/Zeile „Berater · Auto an“ (auch direkt nach `advAnswer`).
+- [ ] (schön wäre) „Angriff“ (Taktik) und „Angreifen“ (Plan) liegen in einer Reihe und klingen fast gleich; beide können gleichzeitig aktiv sein (z. B. Ausgewogen + Angreifen). Vorschlag: Plan-Chip optisch absetzen oder „Angriffsplan“ nennen.
+- [ ] (sollte) Klassische Oberfläche bei 400 px Breite: obere Leiste läuft über den Rand (`scrollWidth` 502, `#menuBtn` rechts bei 415 px, Rohstoff-Chips bis 490 px). Nicht vom Berater verursacht. Neue Oberfläche bei 400 px ohne Überlauf.
+- [x] Ego-Wachturm: Tempo 3 -> 1 beim Start, beim Verlassen wieder 3; freier Schuss ohne Ziel erzeugt einen Pfeil (`free`), Nachladebalken läuft, keine Konsolenfehler.
+- [x] (sollte, behoben) Der freie Pfeil war in Ego unsichtbar (7-px-Strich in 1,6 Höhe, von hinten gesehen ein Punkt, außerdem fern unter dem Sichtfeld). `render.js`: eigener Freischuss in Ego als heller 34-px-Strich mit dunklem Rand auf einer Geraden vom Auge zum Zielpunkt; Bildfolge zeigt ihn auf das Fadenkreuz zulaufend. Hinweis: wer waagrecht zielt, schießt ins Leere (Reichweite 170 px = 17 m, Pfeil endet am Boden dort, unter dem Sichtfeld).
+- [x] Schiffe im Spiel: Kriegsschiff (Segel), Galeone (Segel/Streifen) tragen die Teamfarbe deutlich. 
+- [x] (sollte, behoben) Panzerschiff war für beide Teams gleich grau (einzelnes Material, `tintAll`). Jetzt Heckfahne in Teamfarbe: Manifest `flag` an Einheiten (neu in `gltfmodels.js` `makeUnit`, wie die Gebäudefahne, Pfahl + Tuch). Blau/Rot im Bild erkennbar, aber klein; bei Bedarf `h` im Manifest vergrößern.
+- [x] Obere Kapsel Tempo 1/2/3/5 und Pause (beide Oberflächen): Symbole unterscheidbar, Aktivfeld golden, Pause zeigt Play-Dreieck; Kapselbreite springt nicht (38/38 px neu, 78/68 px klassisch).
+- [ ] (schön wäre) Tempo-5-Symbol („>>>|“) wirkt gedrängt, ähnlich einem „Zum Ende“-Knopf.
+- [x] Wolkenschatten (Tempo 5, Zoom 0,32/0,8, Grafik Hoch): Muster wandert (Verhältnis an/aus 0,8 bis 1,04, Änderung zwischen Bildern im Mittel 6 %), nicht zu dunkel, aber im normalen Zoom nur sehr dezent. Beachten: Die Wolkenzeit hängt an der echten Uhr (nicht an Spieltempo/Pause), Wolken ziehen auch in der Pause weiter. Unter Software-GL bleiben sie aus (`R3.slow`).
+
+## QA-Lauf 2026-10-24 (Truppentransport, boatPick, Angriffsplan)
+- Ok, gemessen (Playwright, Software-GL, Seed 5, Küste): 3 Keulenträger steigen ins Fischerboot (alle `aboard`, `cargoOf`=3), `unloadShip` setzt alle auf Land (terrAt 2), erneutes Einsteigen klappt; Schiff stirbt am Ufer -> alle 3 an Land gerettet; Schiff stirbt im tiefen Wasser ohne Land in 160 px -> Passagier ertrinkt (tot). Bild: Boot mit Passagieren am Ufer, Truppen an Land sichtbar.
+- boatPick: Hafen + Boot, Steinzeit: wählt Fischschwarm (536 px) statt der nahen Delfine (451 px, erst ab Stufe 3 erlaubt, korrekt); Boot fischt (Ladung steigt, Nahrung +15 in 80 s).
+- Angriffsplan-Chip: neben den Taktik-Chips vorhanden, getrennt von „Angriff“, Klick setzt `advisor.atk`, `aria-pressed=true`, Berater meldet „Noch nichts vom Gegner gesehen – Späher losschicken.“ Keine Konsolenfehler.
+- Prüfungen: `node --check` aller js/*.js ok, `modell-luecken.js` nur cannon/trench/derrick, manifest.json gültig. Keine Mängel gefunden, kein Code geändert (MP unberührt, kein mp-test nötig).
+- Beobachtet (schön wäre): Fischerboot bringt in der Steinzeit mit einem Schwarm wenig Nahrung je Minute (kleine Ladung 4 nach 80 s Messung, kein Fehler). Rendertest in Software-GL nur mit ~1 Bild/10 s möglich, Echtzeit-Animation des Einsteigens nicht im Bild geprüft (Zustände per `step()` geprüft).
+
+## Prüfung Oberfläche schmal / Spielstand-Fenster (2026-10-24)
+- [x] Spielstand-Fenster (`SAVE.panel`) und Pausemenü im laufenden Spiel bei 1280, 900 und 400 px, Deutsch und Englisch: Fenster liegt ganz im Bild (400 px: 16–384), kein seitlicher Überlauf, Texte lesbar. Kein Fehler nötig.
+- [x] Klassische Oberfläche bei 400 px: obere Leiste lief über (Seitenbreite 502 px, Menü-Knopf rechts abgeschnitten, Rohstoff-Tafel links raus). Behoben in `css/topbar.css` (Block „≤ 560 px“). Jetzt Seitenbreite 400 px.
+- [x] Neue Oberfläche, Tempo-5-Symbol: drei Pfeile plus Strich standen gedrängt, `css/ui2.css` entzerrt (schmalere Pfeile, mehr Abstand).
+- Mehrspieler-Test `tools/mp-test.js`: ALLES OK (Host/Gast 1206 Objekte, Zeitalter 6, ufire/tfire).
+- Offen (schön wäre): bei 400 px ist das Pausemenü hinter dem Spielstand-Fenster nur grob sichtbar; Fenster mit belegtem Platz (Laden/Export/Löschen nebeneinander) nur im Quelltext, nicht im Bild geprüft.
+
+## Durchspiel-Audit (2026-10-25, nach Merge origin/claude/youthful-brahmagupta-8dmxq5)
+Bilder (Scratch): `scratchpad/au/e0..e6_a.png` (Siedlung + Arbeiter + Kampf), `e*_fight.png`, `c1/c3/c5_ships.png` (Schiffe beider Teams), `r1.png`/`r3.png` (Ramme/Katapult). Skripte `scene.js`, `close.js`, `ram.js`, `auto.js`. Software-GL, Seed 5, `__eagerModels`.
+- [x] Szenen Zeitalter 0-6 (Hütten bis Beton, Arbeiter an Baum/Strauch, je Zeitalter Truppen gegeneinander, Schiffe): keine `pageerror`/`console.error`, `EKMODELS.failed` leer, keine NaN in Einheiten. Teamfarben (Ringe, Lebensbalken Kreis/Raute, Hemd/Schild, Schiffssegel/Heckfahne) in allen Zeitaltern erkennbar. Hauptlager/Haus/Lager/Kaserne wachsen sichtbar mit dem Zeitalter, keine weißen/fehlenden Texturen.
+- [x] Berater-Auto, headless (Küste und Festland, Mittel, Seed 11): Zeitalter 4 nach 32,8 bzw. 34,2 Min, keine Ausnahme, keine NaN, keine Fehlermeldung; nur 2 kurzzeitig hängende Einheiten (Ramme/Schwert im Angriffsmarsch, 1 Arbeiter beim Bauen), lösen sich. Nebenbefund: bei Minute 33 liegen 4800 Nahrung / 3400 Stein ungenutzt (Überschuss, bekannt, Berater-Auto baut Truppen zu langsam daraus).
+- [x] (behoben) Fischschwärme: `EKMODELS.tag` enthält jetzt die Zahl der geladenen Fisch-Dateien; wurde ein Schwarm gebaut, bevor alle drei Sorten da waren, blieb er einsortig (alle weiß) bis zum nächsten Neuaufbau. Im Normalstart nicht sichtbar (Ladebild wartet), aber bei Nachladen/langsamer Leitung.
+- [x] (behoben 25.10.: Manifest `pal` für ram/catapult, Teamfarbe auf Dach/Rahmenteilen, Holz bleibt) Rammbock und Katapult tragen keine Teamfarbe: beide Teams haben dasselbe dunkelrote Holz (Ramme fast schwarzrot), wirkt wie „Feind“, auch für den eigenen Rammbock. Erkennbar nur an Ring/Lebensbalken. Vorschlag: Manifest `tint`/`flag` (Teamfahne wie beim Panzerschiff) für `ram`/`catapult`, Ramme etwas aufhellen.
+- [x] (behoben 25.10.: `sea.fish.mats` dämpft die Farben je Sorte) Fischarten wirken je Zeitalter/Seed sehr unterschiedlich: manche Teiche haben weiße große Fische, andere kleine knallblaue/orange (Sorte nach Knoten-Nummer). Stimmungsbruch zu den zurückhaltenden Wasserfarben, Vorschlag: die zwei bunten Sorten dämpfen (`tint`) oder gleich häufig mischen.
+- [x] (behoben 25.10.: Tönung je Zeitalter + Teamfahne `flag`) Fischerboot (Bronzezeit) ist weiß mit braunen Spanten, ab Mittelalter braunes Holzboot: Wechsel ohne erkennbare Entwicklung.
+- Nicht geprüft: Mine/Lore im Bild, Flugzeuge, Nationen-Einheiten Ep. 6 im Kampf (nur Truppenliste ohne `nation`), Mehrspieler (kein Logikcode geändert, kein mp-test nötig).
+
+## Prüfung Chat/Bereit/Spielstand-Fenster (2026-10-25)
+- [x] Chat im Spiel (Liquid Glass): weisse Glasflächen waren auf hellem Gelände unlesbar -> dunkles Glas `rgba(16,20,28,.6)` (ui2.css). Behoben, Bild gesehen.
+- [x] Chat: lange Wörter ohne Leerzeichen liefen nicht um (`overflow-wrap:anywhere`), erste Zeile wurde angeschnitten (max-height entfernt, höchstens 5 Zeilen im Spiel). Behoben.
+- [x] Chat klassisch: Eingabezeile lag auf dem Rand der Konsole (fester Abstand 200 px) -> `--panelH` aus der Konsolenhöhe (skin.js). Nur im Code geprüft, Bild vor der Änderung zeigte die Überlappung.
+- [x] Lobby bis 1360 px Breite: Chat verdeckte Bereit/Start/Zurück -> Karte bekommt unten Abstand, bei <=640 px Chatprotokoll max. 84 px. Behoben (Bild 400 px: Start-Knopf sichtbar über dem Chat).
+- [x] Spielstand-Fenster mit Auto + Platz 1/2 belegt, 400 und 1280 px, DE/EN, beide Oberflächen: kein Überlauf, alles lesbar, keine Änderung nötig.
+- [x] Gast-Lobby zeigte nach Grössenänderung das Hauptmenü (25.10.): gezielt nachgestellt (Gast und Gastgeber, Resize 1100x700/500x800/800x500, `resize`-Ereignis, `applyLang` DE/EN, `Lobby.render()`): Lobby bleibt jedes Mal Lobby, nie das Hauptmenü. Code geprüft: `resize()` ändert nur Zeichenflächen; `applyLang` ruft `showStart()` nur, wenn der Overlay `[data-l]` (Sprachknöpfe) enthält, die Lobby hat keine. Nicht reproduzierbar, also Testartefakt (langsames Software-GL). Absicherung: `tools/mp-test.js` Schritt (0c). Kleiner Rest: Lobby-Texte ändern sich bei Sprachwechsel erst beim nächsten Neuzeichnen (in der Lobby ist kein Sprachwechsel erreichbar).
+- [x] Spielstand-Fenster im Glas-Look bei Liquid Glass (ui2.css, 25.10.); Lobby zeichnet bei Sprachwechsel neu (`Lobby.refresh`).

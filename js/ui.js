@@ -13,11 +13,13 @@ let optTab='game';
 function renderMenu(){
   const m=$('menu');
   m.innerHTML=`<div class="gm"><div class="gm-frame"><div class="gm-crest">⚔</div><h1 class="gm-title">Epochenkrieg</h1><div class="gm-sub">${tr('Pause')}</div><div class="gm-rule"></div>
-  <nav class="gm-nav"><button class="go" id="mResume">${tr('Spiel fortsetzen')}</button><button id="mOpt">${tr('Optionen')}</button><button id="mMulti">${tr('Mehrspieler')}</button>${window.EK_APP?`<button id="mUpd">${tr('Nach Updates suchen')}</button>`:''}<button id="mNew">${tr('Neues Spiel')}</button></nav>
+  <nav class="gm-nav"><button class="go" id="mResume">${tr('Spiel fortsetzen')}</button>${SAVE.can()?`<button id="mSave">${tr('Speichern')}</button>`:''}${!NET.mp?`<button id="mLoad">${tr('Laden')}${SAVE.info()?`<small class="sv-ts">${SAVE.label()}</small>`:''}</button>`:''}<button id="mOpt">${tr('Optionen')}</button><button id="mMulti">${tr('Mehrspieler')}</button>${window.EK_APP?`<button id="mUpd">${tr('Nach Updates suchen')}</button>`:''}<button id="mNew">${tr('Neues Spiel')}</button></nav>
   <div class="gm-foot">${versionLabel()} · ${tr('Tipp')}: M = ${tr('Ton')}, F = ${tr('Kampfrausch')}, Esc = ${tr('Menü')}</div></div></div>`;
   $('mResume').onclick=toggleMenu;$('mOpt').onclick=renderOptions;
   const up=$('mUpd');if(up)up.onclick=()=>{window.EK_APP.checkForUpdates();toggleMenu()};
   $('mNew').onclick=()=>{toggleMenu();showStart()};
+  const sv=$('mSave');if(sv)sv.onclick=()=>SAVE.panel({save:true,done:()=>{if(!$('menu').hidden)toggleMenu()}});
+  const ld=$('mLoad');if(ld)ld.onclick=()=>SAVE.panel({save:SAVE.can(),done:()=>{if(!$('menu').hidden)toggleMenu()}});
   $('mMulti').onclick=()=>{toggleMenu();if(window.Lobby)Lobby.open()};
 }
 function renderOptions(){
@@ -31,6 +33,7 @@ function renderOptions(){
     +row('Kamera-Drehung',rng('oRot',.3,2.5,.1,OPT.camRot,OPT.camRot.toFixed(1)+'×'),'Wie schnell sich die Kamera beim Drehen und Neigen bewegt')
     +row('Ego: Mausempfindlichkeit',rng('oEgoS',.3,2.5,.1,OPT.egoSens,OPT.egoSens.toFixed(1)+'×'),'Wie schnell sich der Blick in der Ego-Ansicht dreht')
     +row('Ego: Kopf-Wippen',tog('oEgoB',OPT.egoBob),'Die Kamera wippt leicht, wenn die Figur läuft')
+    +row('Auto-Speichern',tog('oAuto',OPT.autosave!==false),'Alle 5 Spielminuten in den Platz „Automatisch“ speichern (nur Einzelspieler)')
     +row('Kamera zurücksetzen','<button id="oCamR" type="button" class="kmbtn">'+tr('Zurücksetzen')+'</button>','Drehung und Neigung auf Standard. Umschauen: Taste halten (Standard R) und die Maus bewegen')
     +row('Bildschirmrand-Scrollen',tog('oEdge',OPT.edgeScroll),'Maus an den Rand schieben, um die Karte zu bewegen')
     +row('Zoom-Stärke',rng('oZoom',.4,2.5,.1,OPT.zoomSpeed,OPT.zoomSpeed.toFixed(1)+'×'),'Wie stark das Mausrad zoomt')
@@ -91,20 +94,20 @@ function renderOptions(){
   document.querySelectorAll('.kmbtn').forEach(b=>b.onclick=()=>{b.textContent=tr('Taste drücken …');b.classList.add('wait');
     const h=ev=>{ev.preventDefault();ev.stopPropagation();removeEventListener('keydown',h,true);if(ev.key!=='Escape'&&ev.key!=='Shift'&&ev.key!=='Control'&&ev.key!=='Alt'&&ev.key!=='Meta'){keySet(b.dataset.a,ev.key.length===1?ev.key.toLowerCase():ev.key)}renderOptions()};addEventListener('keydown',h,true)});
   bind('kmReset',e=>e.onclick=()=>{keysReset();renderOptions()});
-  segB('oGfx',v=>setGfx(+v));bind('oShadow',e=>e.onchange=()=>optSet('shadows',e.checked));bind('oGrass',e=>e.onchange=()=>optSet('grass',e.checked));bind('oBloom',e=>e.onchange=()=>optSet('bloom',e.checked));bind('oCloud',e=>e.onchange=()=>optSet('cloudShade',e.checked));bind('oWeather',e=>e.onchange=()=>optSet('weather',e.checked));bind('oRoom',e=>e.onchange=()=>{optSet('room',e.checked);if(typeof ROOM!=='undefined'){if(!ROOM.g&&e.checked)ROOM.init();else ROOM.apply()}});bind('oIntro',e=>e.onchange=()=>optSet('intro',e.checked));bind('oRoomSt',e=>e.onchange=()=>{optSet('roomStudio',e.checked);if(typeof ROOM!=='undefined')ROOM.setBg()});bind('oGrade',e=>e.onchange=()=>optSet('grade',e.checked));bind('oFps',e=>e.onchange=()=>optSet('fps',e.checked));
+  segB('oGfx',v=>setGfx(+v));bind('oShadow',e=>e.onchange=()=>optSet('shadows',e.checked));bind('oGrass',e=>e.onchange=()=>optSet('grass',e.checked));bind('oBloom',e=>e.onchange=()=>optSet('bloom',e.checked));bind('oCloud',e=>e.onchange=()=>optSet('cloudShade',e.checked));bind('oWeather',e=>e.onchange=()=>optSet('weather',e.checked));bind('oRoom',e=>e.onchange=()=>{optSet('room',e.checked);if(typeof ROOM!=='undefined'){if(!ROOM.g&&e.checked)ROOM.init();else ROOM.apply()}});bind('oIntro',e=>e.onchange=()=>optSet('intro',e.checked));bind('oAuto',e=>e.onchange=()=>optSet('autosave',e.checked));bind('oRoomSt',e=>e.onchange=()=>{optSet('roomStudio',e.checked);if(typeof ROOM!=='undefined')ROOM.setBg()});bind('oGrade',e=>e.onchange=()=>optSet('grade',e.checked));bind('oFps',e=>e.onchange=()=>optSet('fps',e.checked));
   bind('oMute',e=>e.onchange=()=>SND.setMute(!e.checked));
   bind('mv',e=>e.oninput=()=>{SND.init();SND.setMusic(e.value/100);q('mvo').textContent=pc(SND.music)});
   bind('sv',e=>{e.oninput=()=>{SND.init();SND.setSfx(e.value/100);q('svo').textContent=pc(SND.sfx)};e.onchange=()=>SND.play('select')});
   bind('oWar',e=>e.onchange=()=>optSet('combatMusic',e.checked));bind('oVoice',e=>e.onchange=()=>optSet('voices',e.checked));
   bind('advChk',e=>e.onchange=()=>{advOn=e.checked;try{localStorage.setItem('ek-advisor',advOn?'1':'0')}catch(_){}if(!advOn)advisor.cur=null});
   bind('oAuto',e=>e.onchange=()=>{advisor.auto=e.checked;advisor.autoAt=(G?G.t:0)+2});
-  segB('oStrat',v=>{advisor.strat=v;advisor.ignore={};advisor.cur=null;advisor.next=0;advisor.reacted=null});
+  segB('oStrat',v=>{advSetStrat(v)});
   bind('gdChk',e=>e.onchange=()=>{guardOn=e.checked;try{localStorage.setItem('ek-guard',guardOn?'1':'0')}catch(_){}});
   bind('abChk',e=>e.onchange=()=>{autoBuildOn=e.checked;try{localStorage.setItem('ek-autobuild2',autoBuildOn?'1':'0')}catch(_){}});
   segB('oAiS',v=>{aiStyle=v});segB('oDiff',v=>{diff=v});
   q('oReset').onclick=()=>{optReset();setGfx(1);renderOptions()};q('oBack').onclick=renderMenu;
 }
-function applyLang(l){setLang(l);panelSig='';infoCache='';$('speedBtn').textContent=tr('Tempo {0}×',G?G.speed:1);$('pauseBtn').textContent=G&&G.paused?tr('Weiter'):tr('Pause');if(!$('overlay').hidden&&$('overlay').querySelector('[data-l]'))showStart();if(G)updateUI()}
+function applyLang(l){setLang(l);panelSig='';infoCache='';$('speedBtn').textContent=tr('Tempo {0}×',G?G.speed:1);$('pauseBtn').textContent=G&&G.paused?tr('Weiter'):tr('Pause');if(!$('overlay').hidden&&$('overlay').querySelector('[data-l]'))showStart();if(G)updateUI();try{window.Lobby&&Lobby.refresh()}catch(_){}}
 $('menuBtn').onclick=()=>{SND.init();toggleMenu()};
 ['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>{if(typeof SND!=='undefined')SND.init()},{once:true}));
 $('pauseBtn').onclick=()=>{if(G&&G.running)togglePause()};
@@ -123,6 +126,7 @@ function actionsFor0(s){
     if(s.filter(u=>u.kind==='unit'&&!UNITS[u.type].gather).length>1)acts.push({key:'form',nm:tr('Formation: {0}',tr(FORMS[curForm])),sub:tr('Taste G wechselt: Linie, Keil, Kolonne, Karree, Kreis'),run:()=>{curForm=(curForm+1)%FORMS.length;panelSig='';toast(tr('Formation: {0}',tr(FORMS[curForm])),'good')}});
     if(s.some(u=>u.kind==='unit'&&!UNITS[u.type].passive&&!UNITS[u.type].naval))acts.push({key:'rage',nm:tr('Kampfrausch'),sub:tr('Taste F: mehr Schaden und Tempo für {0} s',RAGE.dur),run:()=>{const ids=s.filter(u=>u.kind==='unit').map(u=>u.id);if(NET.client)NET.send({c:'rage',ids});else if(!useRage(0,ids))toast(tr('Kampfrausch lädt noch.'),'warn')}});
     if(s.some(u=>u.type==='scout'))acts.push({key:'exp',nm:tr('Erkunden'),sub:tr('Taste E: automatisch'),run:()=>{if(NET.client)NET.send({c:'explore',ids:s.map(u=>u.id)});else doExplore()}});
+    {const sh=s.filter(u=>u.kind==='unit'&&UNITS[u.type].cap);if(sh.length){const n=sh.reduce((a,u)=>a+cargoOf(u),0),cp=sh.reduce((a,u)=>a+UNITS[u.type].cap,0);acts.push({key:'unload',nm:tr('Ausladen'),sub:n?tr('Ladung {0} von {1}: Truppen an Land setzen',n,cp):tr('Leer. Landtruppen: Rechtsklick auf das Schiff. Schiff: Rechtsklick aufs Land'),run:()=>{sh.forEach(u=>unloadShip(0,u.id,true));panelSig=''}})}}
     acts.push({key:'stop',nm:tr('Halt'),sub:tr('Befehle abbrechen'),run:()=>{if(NET.client){NET.send({c:'halt',ids:s.map(u=>u.id)});return}s.forEach(u=>{if(u.kind==='unit'){u.state='idle';u.amove=null;u.q=[];u.loop=null;u.manual=true}})}});
     return acts;
   }
@@ -205,7 +209,7 @@ function updateUI(){
   {const sb=$('speedBtn'),pb=$('pauseBtn');sb.dataset.sp=G.speed;pb.dataset.on=G.paused?1:0;const ep=G.epoch[0];if(ib.dataset.ico!==String(ep)&&typeof ICON3!=='undefined'){const u=ICON3.thing('unit','worker');if(u){ib.style.setProperty('--ico','url('+u+')');ib.dataset.ico=ep}}}
   advisorTick();advisorUI();$('pauseBtn').hidden=!!G.mp;$('speedBtn').hidden=!!G.mp;
   const s=selection();document.body.classList.toggle('has-sel',s.length>0);
-  const sig=s.map(e=>e.id+(e.built?'b':'')).join(',')+'|'+G.epoch[0]+'|'+(G.adv[0]?1:0)+G.jobs[0].length+'|'+pending(0).n+'|'+G.tech[0].size+'|'+G.rs[0].length+'|v'+(typeof EKMODELS!=='undefined'?EKMODELS.ver:0);
+  const sig=s.map(e=>e.id+(e.built?'b':'')).join(',')+'|'+G.epoch[0]+'|'+(G.adv[0]?1:0)+G.jobs[0].length+'|'+pending(0).n+'|'+G.tech[0].size+'|'+G.rs[0].length+'|c'+s.reduce((a,e)=>a+(e.kind==='unit'&&UNITS[e.type].cap?cargoOf(e):0),0)+'|v'+(typeof EKMODELS!=='undefined'?EKMODELS.ver:0);
   if(sig!==panelSig){panelSig=sig;curActs=actionsFor(s);$('acts').innerHTML=curActs.map((a,i)=>`<button class="act" data-i="${i}">${actIcon(a)}${actKey(a.key)?`<kbd>${actKey(a.key)}</kbd>`:''}<span class="nm">${a.nm}</span>${a.cost?`<span class="cost">${costHTML(a.cost)}</span>`:''}${a.lock?`<span class="sub">${tr('ab {0}',a.lock)}</span>`:a.sub?`<span class="sub">${a.sub}</span>`:''}</button>`).join('')}
   $('acts').querySelectorAll('.act').forEach(b=>{const a=curActs[+b.dataset.i];if(!a)return;b.classList.toggle('locked',!!a.lock||!!a.need||!!(a.adv&&G.adv[0])||!!(a.key==='adv'&&G.jobs[0].length));b.classList.toggle('poor',!!a.cost&&!afford(0,a.cost));b.querySelectorAll('.c').forEach(ch=>{const ok=(G.res[0][ch.dataset.r]||0)>=+ch.dataset.n;ch.classList.toggle('ok',ok);ch.classList.toggle('bad',!ok)})});
   const ih=infoHTML(s);if(ih!==infoCache){infoCache=ih;$('info').innerHTML=ih}
@@ -257,7 +261,7 @@ const CLSN={inf:'Nahkämpfer',spear:'Speerträger',rng:'Fernkämpfer',cav:'Reite
 function unitTip(k){const d=UNITS[k];if(!d)return'';const e=Math.min(6,G.epoch[0]),m=v=>Math.round(v*LVL.hp[e]);
   const st=[tr('Leben {0}',m(d.hp)),d.heal?tr('Heilt {0}/s',d.heal):d.atk?tr('Angriff {0}',Math.round(d.atk*LVL.atk[e])):null,d.rng>30?tr('Reichweite {0}',d.rng):null,tr('Tempo {0}',d.spd)].filter(Boolean).join(' · ');
   const good=Object.keys(CTR[d.cls]||{}).map(c=>tr(CLSN[c]||c)).join(', ');
-  return '<br>'+[d.gather&&!d.naval?tr(UROLE.wk):d.naval&&d.gather?tr('Fischt auf dem Wasser und bringt Nahrung zum Hafen.'):tr(UROLE[d.cls]||''),st,good?tr('Stark gegen: {0}',good):''].filter(Boolean).join('<br>')}
+  return '<br>'+[d.gather&&!d.naval?tr(UROLE.wk):d.naval&&d.gather?tr('Fischt auf dem Wasser und bringt Nahrung zum Hafen.'):tr(UROLE[d.cls]||''),st,good?tr('Stark gegen: {0}',good):'',d.air&&!d.bomber?tr('Gewehre und MG treffen Flugzeuge nur mit 30-40 % Wirkung.'):''].filter(Boolean).join('<br>')}
 {const tip=document.createElement('div');tip.id='tip';tip.hidden=true;document.body.appendChild(tip);let timer=null,cur=null;
   const content=el=>{
     if(el.classList&&el.classList.contains('act')){const a=curActs[+el.dataset.i];if(!a)return null;return{h:a.nm,t:[a.sub,a.need,a.lock&&tr('Erst ab der {0} verfügbar.',a.lock)].filter(Boolean).join(' · ')+(a.unit?unitTip(a.unit):''),c:a.cost?costHTML(a.cost):''}}

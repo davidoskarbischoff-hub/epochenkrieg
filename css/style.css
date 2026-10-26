@@ -549,3 +549,36 @@ body.ego #advisor{display:none}
 #egohud .eg-txt.quiet{opacity:.6}
 #egohud.hurt::before{content:"";position:absolute;inset:0;box-shadow:inset 0 0 90px 20px rgba(200,20,10,.5)}
 #egohud.sw::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.45)}
+
+/* Spielstand: Zeitstempel unter dem Knopf */
+.sv-ts{display:block;font-size:11px;letter-spacing:.04em;opacity:.7;margin-top:2px;font-family:inherit}
+
+/* Spielstände (Liste mit Plätzen) */
+#svdlg{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;background:rgba(8,6,4,.7);padding:16px}
+#svdlg .sv-card{width:min(640px,100%);max-height:100%;overflow:auto;padding:22px 24px 16px;background:linear-gradient(180deg,var(--panel1),var(--panel2));border:2px solid var(--gold3);border-radius:8px;box-shadow:0 0 0 1px #000,0 30px 80px rgba(0,0,0,.75),inset 0 0 40px rgba(0,0,0,.45);color:var(--gold1)}
+#svdlg h2{margin:0 0 12px;font-family:var(--f-display);font-weight:normal;font-size:24px;letter-spacing:.06em}
+#svdlg .sv-row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:9px 10px;margin-bottom:7px;border:1px solid rgba(201,164,104,.3);border-radius:5px;background:rgba(0,0,0,.25)}
+#svdlg .sv-row.empty{opacity:.65}
+#svdlg .sv-i b{display:block;font-size:16px}#svdlg .sv-i small{opacity:.75;font-size:12px}
+#svdlg .sv-b{display:flex;gap:6px;flex-wrap:wrap}
+#svdlg button{font-family:var(--f-display);font-size:14px;letter-spacing:.04em;padding:6px 12px;border-radius:4px;cursor:pointer;color:var(--gold1);border:1px solid var(--gold3);background:linear-gradient(#4a4238,#2a2520)}
+#svdlg button:hover{filter:brightness(1.2)}#svdlg button.dng{border-color:#a55}
+#svdlg .sv-foot{display:flex;gap:10px;justify-content:space-between;margin-top:10px}
+#svdlg .sv-note{display:block;margin-top:10px;opacity:.6;font-size:11px}
+
+/* Chat (Mehrspieler) und Bereit-Knopf */
+#mpchat{position:fixed;left:8px;bottom:calc(var(--panelH,200px) + 8px);width:min(340px,calc(100vw - 16px));z-index:60;pointer-events:none;font-size:13px}
+#mpchat[hidden]{display:none}
+#mpchat.lob{bottom:12px;z-index:200;pointer-events:auto}
+#mpchatlog{display:flex;flex-direction:column;gap:2px}
+#mpchat.lob #mpchatlog{max-height:110px;overflow-y:auto;margin-bottom:4px}
+#mpchat .cl{background:rgba(20,16,12,.72);color:#f6f1e6;padding:2px 8px;border-radius:6px;overflow-wrap:anywhere;transition:opacity .5s}
+#mpchat .cl.out{opacity:0}
+#mpchatin{pointer-events:auto;width:100%;box-sizing:border-box;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.35);background:rgba(20,16,12,.85);color:#f6f1e6;font:inherit}
+#mpchatin[hidden]{display:none}
+.rdy{color:#d2a050}.rdy.on{color:#7cd27c;font-weight:700}
+.rdybtn.on{filter:brightness(1.15);outline:2px solid #7cd27c}
+
+/* Chat in der Lobby: Karte nach oben schieben, damit Bereit/Start nicht unter den Zeilen liegen */
+@media (max-width:1360px){body:has(#mpchat.lob:not([hidden])) .card.lobby{margin-bottom:200px}}
+@media (max-width:640px){#mpchat.lob #mpchatlog{max-height:84px}}

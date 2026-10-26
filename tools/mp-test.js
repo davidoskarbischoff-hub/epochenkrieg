@@ -4,7 +4,7 @@
    Verbindung lokal über BroadcastChannel (Lobby „Lokal testen“, ?join=local:CODE).
    Prüft: (1) Verbindung/Start/Snapshot/Konsole, (2) Aufstieg Zeitalter 6 mit Nationen beider Seiten,
    Nationen-Einheiten drüben sichtbar (Bilder), (3) Spät-Modelle nach EKMODELS.loadAll alle glTF,
-   (4) Gast-Ego-Schlag 'ufire' über das Netz. Ergebnis: Zeilen OK/FEHLER, Exitcode 1 bei Fehler. */
+   (4) Gast-Ego-Schlag 'ufire' über das Netz, (5) Gast-Turm-Freischuss 'tfire'. Ergebnis: Zeilen OK/FEHLER, Exitcode 1 bei Fehler. */
 const http=require('http'),fs=require('fs'),path=require('path');
 const {chromium}=require('playwright');
 const ROOT=path.resolve(__dirname,'..'),OUT=path.resolve(process.argv[2]||'/tmp/mp-test');fs.mkdirSync(OUT,{recursive:true});
@@ -24,11 +24,34 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));const T0=Date.now(),P=s=>consol
  const link=await h.inputValue('#lLink');await g.goto(link,{timeout:180000,waitUntil:'domcontentloaded'});
  await g.waitForFunction(()=>window.Lobby&&window.__ek,null,{timeout:180000});
  P('Gast verbunden');await sleep(15000);
+ /* (0) Lobby: Bereit-Status und Chat in beide Richtungen */
+ await g.waitForSelector('#lReady',{timeout:30000});
+ const st0=await h.textContent('#lStart');
+ await g.click('#lReady');await sleep(1500);
+ const st1=await h.textContent('#lStart'),rd=await h.textContent('#lRdyS');
+ rep('(0) Bereit: Gastgeber sieht Status und Start-Knopf',/wartet/.test(st0)&&/bereit/i.test(st1)&&!/wartet/.test(st1)&&rd==='bereit',st0.trim()+' -> '+st1.trim());
+ await g.fill('#mpchatin','Hallo <b>Gastgeber</b>');await g.press('#mpchatin','Enter',{noWaitAfter:true,timeout:90000});await sleep(1000);
+ await h.fill('#mpchatin','Hi Gast');await h.press('#mpchatin','Enter',{noWaitAfter:true,timeout:90000});await sleep(1000);
+ const lg=p=>p.evaluate(()=>[...document.querySelectorAll('#mpchatlog .cl')].map(d=>d.textContent+'|'+d.querySelectorAll('b').length));
+ const lh=await lg(h),lgg=await lg(g);
+ rep('(0) Lobby-Chat in beide Richtungen, HTML bleibt Text',lh.some(x=>x.includes('Hallo <b>Gastgeber</b>'))&&lgg.some(x=>x.includes('Hi Gast'))&&lh.every(x=>x.endsWith('|1')),JSON.stringify([lh,lgg]));
+ /* (0c) Lobby bleibt Lobby bei Fenstergrösse und Sprachwechsel (Gast und Gastgeber) */
+ {const inLob=p=>p.evaluate(()=>!!document.querySelector('#lReady,#lStart')&&!document.querySelector('.mm-lang'));let okL=true;
+  for(const p of [g,h]){await p.setViewportSize({width:1100,height:700});await sleep(800);await p.setViewportSize({width:800,height:500});await sleep(800);
+   await p.evaluate(()=>{applyLang('en')});await sleep(500);okL=okL&&await inLob(p);await p.evaluate(()=>{applyLang('de')});await sleep(500);okL=okL&&await inLob(p)}
+  rep('(0c) Lobby bleibt nach Resize/Sprachwechsel bei Gast und Gastgeber',okL)}
  await h.click('#lStart',{noWaitAfter:true,timeout:120000});
  P('Start gedrückt');
  let ok1=false;for(let i=0;i<90&&!ok1;i++){await sleep(1000);ok1=await g.evaluate(()=>!!(typeof G!=='undefined'&&G&&G.ents&&G.ents.length>20&&NET.client&&NET.lastSnap>0)).catch(()=>false)}
  rep('(1) Verbindung, Start, Snapshot beim Gast',ok1,'Gast '+await g.evaluate(()=>typeof G!=='undefined'&&G&&G.ents?G.ents.length:-1).catch(()=>'?')+' Objekte, Host '+await h.evaluate(()=>G.ents.length));
  await sleep(4000);
+ /* (0b) Chat im Spiel: Enter oeffnet die Zeile, Nachricht kommt beim anderen an und verschwindet nach 8 s */
+ await g.keyboard.press('Enter');await g.keyboard.type('Gast im Spiel');await g.keyboard.press('Enter');
+ await h.keyboard.press('Enter');await h.keyboard.type('Host im Spiel');await h.keyboard.press('Enter');await sleep(1500);
+ const gh=await lg(h),gg=await lg(g);
+ rep('(0b) Spiel-Chat in beide Richtungen',gh.some(x=>x.includes('Gast im Spiel'))&&gg.some(x=>x.includes('Host im Spiel')),JSON.stringify([gh,gg]));
+ for(let i=0;i<30&&((await lg(h)).length||(await lg(g)).length);i++)await sleep(1000); /* Software-GL ist langsam: Zeitgeber koennen spaet laufen */
+ rep('(0b) Chat-Zeilen verschwinden nach 8 s',(await lg(h)).length===0&&(await lg(g)).length===0);
  const cnt=p=>p.evaluate(()=>[G.ents.filter(e=>e.kind==='unit').length,G.ents.filter(e=>e.kind==='bld').length]);
  const cH=await cnt(h),cG=await cnt(g);rep('(1) gleiche Zahl Einheiten/Gebäude',cH[0]===cG[0]&&cH[1]===cG[1],JSON.stringify([cH,cG]));
  rep('(1) keine Konsolenfehler bis hier',errs.length===0,errs.slice(0,3).join(' | '));
@@ -78,6 +101,15 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));const T0=Date.now(),P=s=>consol
   sent+=await g.evaluate(i=>{const calls=[];const o=NET.send;NET.send=m=>{calls.push(m.c);return o(m)};try{unitStrike(0,i.a,i.f)}catch(e){calls.push('ERR '+e.message)}NET.send=o;return calls.join(',')+';'},e4);
   await sleep(2500);hp1=await h.evaluate(i=>G.byId.get(i.f).hp,e4)}
  rep("(4) Gast-Ego-Schlag 'ufire' über das Netz trifft",sent.includes('ufire')&&hp1<hp0,`gesendet=${sent} hp ${hp0}->${hp1}`);
+ /* (5) Gast-Turm-Freischuss 'tfire' mit Zielpunkt (Ego-Wachturm ohne Ziel): Pfeil entsteht auf dem Gastgeber, trifft den Feind am Zielpunkt */
+ const e5=await h.evaluate(()=>{const E=__ek,G=E.G;const hq=G.ents.find(e=>e.type==='hq'&&e.team===1);const t=E.addBld('tower',1,hq.x-260,hq.y+300,true);t.built=true;t.cd=0;t.manT=G.t+30;/* keine Auto-Schüsse */
+  const f=E.addUnit('spear',0,t.x+90,t.y);f.hp=f.maxHp=100000;f.state='idle';return{t:t.id,f:f.id,fx:f.x,fy:f.y}});
+ await sleep(2500);
+ const q0=await h.evaluate(i=>G.byId.get(i.f).hp,e5);let s5='',q1=q0;
+ for(let k=0;k<3&&q1>=q0;k++){await h.evaluate(i=>{const t=G.byId.get(i.t);t.cd=0;t.manT=G.t+30;const f=G.byId.get(i.f);f.x=i.fx;f.y=i.fy},e5);
+  s5+=await g.evaluate(i=>{const calls=[];const o=NET.send;NET.send=m=>{calls.push(m.c+(m.tx!==undefined?'@'+m.tx+','+m.ty:''));return o(m)};try{towerFire(0,i.t,0,i.fx,i.fy)}catch(e){calls.push('ERR '+e.message)}NET.send=o;return calls.join(',')+';'},e5);
+  await sleep(2500);q1=await h.evaluate(i=>G.byId.get(i.f).hp,e5)}
+ rep("(5) Gast-Turm-Freischuss 'tfire' über das Netz trifft",s5.includes('tfire@')&&q1<q0,`gesendet=${s5} hp ${q0}->${q1}`);
  rep('(4) keine Konsolenfehler insgesamt',errs.length===0,errs.slice(0,4).join(' | '));
  await b.close();srv.close();
  console.log(res.every(Boolean)?'ALLES OK':'FEHLER VORHANDEN');process.exit(res.every(Boolean)?0:1);

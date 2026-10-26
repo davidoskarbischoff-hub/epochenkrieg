@@ -7,7 +7,7 @@ let last=0;
 function simAdvance(raw){
   if(G&&G.running&&!G.over){
     if(NET.client){clientStep(raw);if(performance.now()-NET.lastSnap>8000&&!G.leftMsg&&NetLog.S.state!=='wiederverbinde'){G.leftMsg=true;toast(tr('Keine Daten vom Gastgeber – Verbindung verloren?'),'warn')}}
-    else if(!G.paused&&!G.netPause){let t=raw*G.speed,n=0;const t0=performance.now();while(t>0){const s=Math.min(t,.04);try{step(s)}catch(e){NetLog.err('Spielschritt',e)}t-=s;n++}if(NET.mp&&n)NetLog.stepMs((performance.now()-t0)/n);if(NET.host){NET.acc+=raw;if(NET.acc>=(NET.interval||.1)){NET.acc=0;sendSnap()}}}}}
+    else if(!G.paused&&!G.netPause){let t=raw*G.speed,n=0;const t0=performance.now();while(t>0){const s=Math.min(t,.04);try{step(s)}catch(e){NetLog.err('Spielschritt',e)}t-=s;n++}if(NET.mp&&n)NetLog.stepMs((performance.now()-t0)/n);if(!NET.mp)SAVE.tick();if(NET.host){NET.acc+=raw;if(NET.acc>=(NET.interval||.1)){NET.acc=0;sendSnap()}}}}}
 let bgLast=performance.now();
 try{const w=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(0),50)'],{type:'text/javascript'})));
   w.onmessage=()=>{const now=performance.now(),raw=Math.min(.25,(now-bgLast)/1000);bgLast=now;if(document.hidden&&NET.mp)simAdvance(raw)}}catch(_){}
