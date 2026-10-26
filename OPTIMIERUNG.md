@@ -404,3 +404,50 @@ Messung headless (`__norender`, `step(.04)`, KI aus bzw. Selbstspiel), Skripte n
   2. Unerreichbares Ziel (z. B. Punkt in geschlossenem Mauerring): Die Einheiten gingen zum nächsten Punkt und suchten dort alle 0,35 s neu (je 6–7 ms, bis zu 40–75 s). `navPath` meldet jetzt `navPartial` (2 = nachweislich unerreichbar), `moveToward` gibt am Wegende auf (`pf.fail`, gleiche Folge wie „kein Weg“). 30 Einheiten, 90 s, geschlossener Ring: Suchen 209/181/448 → 79/79/231, Ruhe nach 43/40/75 s → 24/29/41 s.
 - Leistung nachher: Schritt mit 100 Einheiten 2,83 ms (vorher 2,81), navPath im Mittel 2,24 ms (vorher 2,21), alle Aufrufe gleich schnell. Mehrspieler `tools/mp-test.js`: ALLES OK.
 - Nicht geändert: Gruppenstau am gemeinsamen Zielpunkt (nur Test-Artefakt, Formationen verteilen die Ziele), Teilwege bei Wegen über die ganze Karte (Feld baut sich im nächsten Schritt auf).
+
+## Karten-Ressourcen und Kartenprüfung (26.10.)
+Davids Vorgabe: Auf jeder Karte genug Ressourcen für beide Seiten, sinnvoll verteilt, und alle Vorkommen, die zählen, zugänglich (nicht auf Fels/Berg/steilem Boden, nicht auf Inseln ohne Zugang, nicht eingemauert). Umsetzung: `js/mapaudit.js` (`mapAudit`, Dauer-Absicherung am Ende von `genMap`) plus zwei kleine Änderungen im Generator (`oreOk`, `free()` mit Spiegelbild in `map.js`). Beschreibung der Regeln in CLAUDE.md.
+
+**Messung (Skripte nicht im Repo):** headless wie `newGame` ohne `renderBg`, 13 Kartenarten × S/M/L × Wasser 0/1/2 × Berge 0/1/2 × 6 Seeds = 2106 Karten, vorher (Stand vor der Änderung) und nachher. Je Karte und Seite (Hauptlager Team 0 und 1): Anzahl und Menge je Ressource in 400/450/700/850/1200 px, Erreichbarkeit jedes Vorkommens (Flutfüllung über die freien Wegfelder `navOpen` ab dem Hauptlager, an 2244 Landvorkommen von 26 Karten gegen echtes `navPath` geprüft: 2244 von 2244 vollständig erreichbar), Erz zusätzlich „Mine baubar“ (`validSpot` mit Mine-Radius, Gefälle höchstens .9), Öl „Bohrturm-Platz in 127 px“, Fisch „Boot erreicht es von einem möglichen Hafenplatz aus (`harborOk`, zu Fuss erreichbar) oder Arbeiter vom Ufer“, Spiegelbild jedes Vorkommens, Überlappungen, Landweg zwischen den Hauptlagern.
+
+| Vorkommen | Unbrauchbar vorher | nachher |
+|---|---|---|
+| Stein | 1720 von 27935 (6,16 %) | 0 |
+| Eisen | 1692 von 24955 (6,78 %) | 0 |
+| Gold | 602 von 6796 (8,86 %) | 0 |
+| Öl, Beeren, Holz | 0 (Holz 10 Bäume auf seichtem Wasser) | 0 |
+| Fisch (ausserhalb jedes Bootsweges, im Umkreis 1500 px) | 464 von 158603 (0,29 %) | 70 (0,04 %, siehe unten) |
+| Karten mit mindestens einem unbrauchbaren Vorkommen | 1175 von 2106 (56 %) | 4 (0,2 %) |
+
+Die Ursache bei Erz war das Gefälle: `validSpot` lehnt Minen auf Boden mit Gefälle über .9 ab, der Generator prüfte das nicht (Karten mit Bergen und Terrassen). Das Erz stand da, war aber nicht abbaubar. Die 70 Fisch-Reste sind Schwärme, die nur über einen Hafenplatz erreichbar sind, den ein anderes Vorkommen verstellt (das Mass nimmt `validSpot` strenger als die Prüfung, die Hafenplätze nur nach Gelände und Landweg wählt): kein echter Mangel.
+
+| Mindestmenge je Seite | vorher: Seiten ohne | kleinste Menge | nachher: Seiten ohne | kleinste Menge |
+|---|---|---|---|---|
+| Stein in 450 px | 2,7 % | 0 | 0 % | 3200 |
+| Eisen in 450 px | 3,4 % | 0 | 0 % | 2000 |
+| Stein in 1200 px | 0 % | 3200 | 0 % | 8000 |
+| Eisen in 1200 px | 0 % | 2000 | 0 % | 4000 (10 %-Wert 10000) |
+| Gold in 850 px | 56,9 % | 0 | 0,7 % (Archipel) | 0 (10 %-Wert 2100) |
+| Gold in 1200 px | 32,2 % | 0 | 0 % | 0 (10 %-Wert 2100, Median 3150) |
+| Öl in 850 px | 57,7 % | 0 | 1,7 % (Archipel) | 0 (10 %-Wert 4420) |
+| Öl in 1200 px | 30,0 % | 0 | 0,1 % | 0 (10 %-Wert 4420) |
+| Beeren 450 / 750 px | 0 % | 3400 | 0 % | 3400 (unverändert) |
+| Holz in 700 px (Bäume je ca. 420) | 0 % | 33 600 | 0 % | 33 600 (unverändert, mindestens 80 Bäume in 600 px) |
+| Fisch bei Hafenplatz in 700 px: Seiten mit weniger als 4 Schwärmen in 700 px | 580 von 3132 | | 70 von 3132 | |
+
+Gold und Öl fehlten auf der Hälfte aller Seiten in Reichweite; jetzt liegt je ein Gold-Vorkommen (2100) und ein Ölfeld (4420) im Ring 600–840 px, ausser auf Inselkarten (Archipel), wo das Land fehlt (dort in 1200 px oder gar nicht, nur gezählt: `MAPDBG.audit.soft`). Stein 3200 und Eisen 2000 am Start bleiben, wie sie waren (am Start nur wenig und nah, Expansion lohnt sich). Gute Karten werden nur ergänzt, nichts wird dort entfernt.
+
+| Fairness und Ordnung | vorher | nachher |
+|---|---|---|
+| Messwerte mit Verhältnis Seite 0 : Seite 1 unter 0,9 | 15 von 19179 (schlechtester 0,00) | 0 von 20612 (alle 1,00) |
+| Vorkommen ohne Gegenstück (Spiegel) | 27 | 0 |
+| Überlappungen Vorkommen/Gebäude/Bäume | 0 | 0 |
+| Landweg zwischen den Hauptlagern | immer | immer (Gegenprobe in der Prüfung) |
+
+**Eingriffe der Prüfung** in 2106 Karten: 18 Vorkommen versetzt, 412 unerreichbare Fischschwärme entfernt (fast nur Bergkarten mit Klippenküste: das Meer hinter den Klippen hat keinen Hafenplatz), 4 weitere entfernt, Karten mit Nachplatzierung 1917 (Gold in 1477 Karten, Öl in 1172, Fisch in 737, selten Stein/Eisen bis 1200 px). Unbehebbar (hart): 0 Karten; weich (Archipel): Gold 18, Öl 14, Eisen 9 Karten.
+
+**Leistung:** `genTerrain` + `genMap` nacheinander in einer Seite, 156 Karten je Messung: vorher Mittel 79,5 ms, nachher 93,7 ms (+14 ms, +18 %). `mapAudit` selbst im Mittel 13 ms (Aufteilung: Erreichbarkeit und Index ca. 3, Nachplatzierung 2, Fischlage 3, Holzkontrolle 2, Gegenprobe 1, Vorkommen prüfen 2 ms), im Messlauf mit 4 Seiten gleichzeitig Median 22, 90 % unter 46, 99 % unter 75 ms. Das Bodenbild (`renderBg`) braucht danach 5,6 s je `newGame`, die Prüfung fällt nicht ins Gewicht; die Kartenvorschau-Kacheln erzeugen kein `genMap` (nur die grosse Vorschau, +14 ms).
+
+**Gegenproben:** Gleiche Optionen + Seed ergeben dieselbe Karte (39 Konfigurationen zweimal erzeugt, identisch inklusive Kennungen; Kartenvorschau `MPV` und echtes `newGame` liefern dieselben Vorkommen). Mehrspieler: Gastgeber und Gast erzeugen gleich viele Objekte (mp-test Schritt 1: 1240 beide; `tools/mp-test.js` ALLES OK mit dem neuen Chromium-Argument `--disable-dev-shm-usage`, ohne hing der Test; ein einzelner Lauf fiel einmal bei (0b) Spiel-Chat durch, Wiederholung und der alte Code ohne Kartenprüfung bestehen alle Schritte, also Zeitverhalten der Software-Grafik, nicht die Karte). Spielstand: `SAVE` Version 2 plus `G.sv.mv` (`MAPGEN_VER`); Test: neuer Stand speichert und lädt (gleiche Vorkommen-Kennungen), Version 1 und Stände ohne/mit falscher Kartenversion werden abgelehnt („Spielstand passt nicht zu dieser Version“). Künstlich beschädigte Karte (Erz auf steilem Boden, fehlendes Gegenstück, alles Gold weg, Fisch an Land): die Prüfung stellt alles wieder her, ein zweiter Lauf ändert nichts mehr. Berater-Auto (Ausgewogen gegen KI, Normal, M, 15 min, `advisorTick` alle 12 Schritte; Küste Seed 11, Berge Seed 12, Wüste Seed 13): Zeitalter 1 bei Minute 10, 2 Minen und 2 Loren je Karte bei Minute 15, 22–28 Arbeiter, 16–21 Truppen, keine Fehler (vorher 22–28 Arbeiter, 15–22 Truppen: gleich, die Karten sind andere).
+
+**Grenzen:** Archipel hat auf der Heimatinsel zu wenig Land für Stein/Eisen 8000 in 1200 px und teils Gold/Öl (Schiffe/Truppentransport nötig); Tiere (Hirsche) sind eine Spieler-Option und nicht Teil der Garantie; Holz wird nur kontrolliert (die bestehende Mindestmenge `WOOD_MIN6/9` genügt auf allen Testkarten, Prüfung meldet unter 40 Bäumen in 600 px). Die Karten sind seit dieser Änderung nicht mehr dieselben wie vorher (`oreOk` und `free()` verändern den Zufallsablauf), alte Spielstände werden abgelehnt.

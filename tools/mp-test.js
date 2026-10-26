@@ -14,7 +14,7 @@ const res=[];const rep=(n,ok,t)=>{res.push(ok);console.log((ok?'OK     ':'FEHLER
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));const T0=Date.now(),P=s=>console.log('   ['+Math.round((Date.now()-T0)/1000)+'s] '+s);
 (async()=>{
  await new Promise(r=>srv.listen(0,r));const port=srv.address().port;
- const b=await chromium.launch({executablePath:process.env.CHROME||'/opt/pw-browsers/chromium',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});
+ const b=await chromium.launch({executablePath:process.env.CHROME||'/opt/pw-browsers/chromium',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--disable-dev-shm-usage']});
  const ctx=await b.newContext({viewport:{width:800,height:500}});
  await ctx.addInitScript(()=>{window.__seed=5;if(!location.search.includes('join'))window.__norender=true}); /* Gastgeber ohne Zeichnen (schneller), Gast zeichnet */ /* KEIN __eagerModels: Spät-Modelle laden nach */
  const h=await ctx.newPage(),g=await ctx.newPage(),errs=[];

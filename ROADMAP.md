@@ -354,3 +354,9 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 - [x] Fischerboote wählen Schwärme nach Weg zum Hafen und Menge (`boatPick`), Berater-Angriffsplan (Chip „Angreifen“).
 
 - [x] KI-Transport geprüft (25.10.): nicht nötig, alle 117 Testkarten haben einen Landweg (`ensureWalk`); nichts gebaut, Begründung in OPTIMIERUNG.md. Optional später: Flankenlandung der KI.
+
+## Karten-Ressourcen und Kartenprüfung (26.10.)
+- [x] Ressourcen-Audit über 13 Kartenarten × S/M/L × Wasser 0–2 × Berge 0–2 × mehrere Seeds (Vorher/Nachher-Tabellen in OPTIMIERUNG.md): Erz auf zu steilem Boden (Mine nicht baubar) war das grösste Loch (6–9 % aller Stein-/Eisen-/Goldvorkommen, 56 % der Karten hatten mindestens ein unbrauchbares Vorkommen, jetzt 0,2 %), dazu fehlendes Gold/Öl in Reichweite, Fisch ohne Zugang, Vorkommen ohne Gegenstück.
+- [x] `js/mapaudit.js` (`mapAudit`): Dauer-Absicherung am Ende von `genMap` (versetzen/ersetzen/nachplatzieren, Spiegelbild, Mindestmengen `MAP_MIN`, Zähler `MAPDBG.audit`); Generator: Erz nur auf flachem Boden (`oreOk`), `free()` prüft das Spiegelbild mit.
+- [x] Spielstand-Version 2 plus Kartenversion `MAPGEN_VER` (alte Stände werden sauber abgelehnt).
+- [ ] Später möglich: Holz-Nachpflanzen in der Prüfung (heute nur Kontrolle, `WOOD_MIN6/9` genügen auf allen Testkarten), Hirsche/Tiere sind eine Spieler-Option und nicht Teil der Garantie, Inselkarten (Archipel) bekommen Stein/Eisen jenseits der Heimatinsel nur per Schiff (Truppentransport vorhanden, KI nutzt ihn nicht).

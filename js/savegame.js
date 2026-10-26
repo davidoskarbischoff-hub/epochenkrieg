@@ -5,7 +5,7 @@
    Mehrspieler wird nicht gespeichert (der Spielstand dort liegt beim Gastgeber, Gäste sehen nur Schnappschüsse). */
 'use strict';
 const SAVE=(()=>{
-  const VER=1,META='ek-save-meta',META2='ek-save-meta2',DB='ek-saves';
+  const VER=2,META='ek-save-meta',META2='ek-save-meta2',DB='ek-saves';
   /* ---------- Kodierung: Map/Set/Uint8Array und Verweise auf Entitäten werden markiert ---------- */
   const b64=u8=>{let s='';for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s)};
   const unb64=s=>{const t=atob(s),u=new Uint8Array(t.length);for(let i=0;i<t.length;i++)u[i]=t.charCodeAt(i);return u};
@@ -97,7 +97,7 @@ const SAVE=(()=>{
     const txt=await get(sl||'s1');if(!txt){toast(tr('Kein Spielstand vorhanden.'),'warn');return null}
     return parse(txt)}
   function parse(txt){
-    try{const d=JSON.parse(txt);if(!d||d.v!==VER||!d.sv||!d.g||!Array.isArray(d.ents)){toast(tr('Spielstand passt nicht zu dieser Version.'),'warn');return null}return d}
+    try{const d=JSON.parse(txt);if(!d||d.v!==VER||!d.sv||d.sv.mv!==MAPGEN_VER||!d.g||!Array.isArray(d.ents)){ /* v2: Vorkommen-Kennungen ändern sich mit der Kartenprüfung (mapaudit.js, MAPGEN_VER) – ältere Stände passen nicht mehr zur neu erzeugten Karte und werden abgelehnt */toast(tr('Spielstand passt nicht zu dieser Version.'),'warn');return null}return d}
     catch(e){console.warn('load',e);toast(tr('Spielstand ist beschädigt.'),'warn');return null}}
   function apply(d){
     const sv=d.sv;diff=d.diff;aiStyle=d.aiStyle||aiStyle;

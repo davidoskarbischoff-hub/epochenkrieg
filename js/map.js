@@ -52,10 +52,11 @@ function genMap(seed){
   genRelief(A,bases[1],seed,curMap);applyPlayRect(playF);clearBases(bases);ensureWalk(bases);navInit(); // Hügel, Plateaus, Klippen
   if(cfg.cliff){const rc=cfg.shape==='fjord'?560:380;carveCoast(A.x,A.y,rc);carveCoast(W-A.x,H-A.y,rc);navInit()}
   const GAP={tree:15,bush:12,stone:14,iron:14,gold:14,oil:16,fish:10,dolphin:14,whale:30};
-  const free=(x,y,r,type)=>!G.ents.some(e=>Math.hypot(e.x-x,e.y-y)<e.r+r+GAP[type]);
+  const free=(x,y,r,type)=>!G.ents.some(e=>Math.hypot(e.x-x,e.y-y)<e.r+r+GAP[type])&&Math.hypot(2*x-W,2*y-H)>=2*r+GAP[type]&&!G.ents.some(e=>Math.hypot(e.x-(W-x),e.y-(H-y))<e.r+r+GAP[type]); /* auch das Spiegelbild muss frei sein, sonst bliebe das Vorkommen ohne Gegenstück */
   const ORE=new Set(['stone','iron','gold','oil']);let szForce=0;const szFor=type=>{if(!ORE.has(type))return 1;if(type==='oil')return 1.7;/* Ölfelder: wenige, dafür grosse */if(szForce)return szForce;const q=R();return q<.4?.5:q<.8?1:1.7};
   const cluster=(type,cx,cy,n,spread,okFn)=>{for(let i=0;i<n;i++){for(let k=0;k<20;k++){const a=R()*6.283,d=Math.sqrt(R())*spread;const x=cx+Math.cos(a)*d,y=cy+Math.sin(a)*d,sz=szFor(type),r=Math.round(NODES[type].r*Math.sqrt(sz));if(!okFn(x,y,r))continue;if(!free(x,y,r,type))continue;addNode(type,x,y,sz);break}}};
   const landOk=(x,y,r)=>okSpot(x,y,r+4);
+  const oreOk=(x,y,r)=>landOk(x,y,r)&&slopeNear(x,y,BLDS.mine.r)<=SLOPE_MINE; /* Erz nur auf Boden, der flach genug für eine Mine ist (validSpot lehnt steiler als .9 ab) */
   const waterOk={fish:(x,y,r)=>x>40&&y>40&&x<W-40&&y<H-40&&terrAt(x,y)===1&&terrAt(x+r,y)===1&&terrAt(x-r,y)===1&&terrAt(x,y+r)===1&&terrAt(x,y-r)===1,
     dolphin:(x,y,r)=>terrAt(x,y)===0&&terrAt(x+r,y)<=1&&terrAt(x-r,y)<=1&&terrAt(x,y+r)<=1&&terrAt(x,y-r)<=1&&x>40&&y>40&&x<W-40&&y<H-40,
     deep:(x,y,r)=>terrAt(x,y)===0&&terrAt(x+r,y)===0&&terrAt(x-r,y)===0&&terrAt(x,y+r)===0&&terrAt(x,y-r)===0&&x>40&&y>40&&x<W-40&&y<H-40,
@@ -67,7 +68,7 @@ function genMap(seed){
   // Startvorkommen rund um Basis A (zufällige Richtung, gültiges Land), danach gespiegelt auf Basis B
   const near=(type,n,spread,dmin,dmax,okFn)=>{for(let k=0;k<60;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!okFn(x,y,spread*.5))continue;const n0=G.ents.length;cluster(type,x,y,n,spread,okFn);if(G.ents.length-n0>=Math.min(n,3)){mirror(n0);return}}};
   // Die Wälder kommen erst am Schluss (genForests) und weichen allem anderen aus
-  near('bush',8,52,110,200,landOk);near('bush',6,44,290,430,landOk);szForce=1;near('stone',1,40,200,285,landOk);szForce=.5;near('iron',1,40,265,365,landOk);szForce=0;near('iron',1,40,520,720,landOk);near('stone',1,40,480,680,landOk);near('iron',1,62,800,1150,landOk);near('stone',1,62,760,1100,landOk);
+  near('bush',8,52,110,200,landOk);near('bush',6,44,290,430,landOk);szForce=1;near('stone',1,40,200,285,oreOk);szForce=.5;near('iron',1,40,265,365,oreOk);szForce=0;near('iron',1,40,520,720,oreOk);near('stone',1,40,480,680,oreOk);near('iron',1,62,800,1150,oreOk);near('stone',1,62,760,1100,oreOk);
   // Fische in Küstennähe von Basis A
   const nearWater=(type,n,spread,dmin,dmax)=>{for(let k=0;k<200;k++){const a=R()*6.283,d=dmin+R()*(dmax-dmin),x=A.x+Math.cos(a)*d,y=A.y+Math.sin(a)*d;if(!waterOk[type](x,y,spread*.4))continue;const n0=G.ents.length;cluster(type,x,y,n,spread,waterOk[type]);if(G.ents.length>n0){mirror(n0);return}}};
   nearWater('fish',2,90,180,480);nearWater('fish',2,90,260,620);nearWater('fish',2,100,300,760);nearWater('dolphin',2,80,350,900);
@@ -75,11 +76,11 @@ function genMap(seed){
   // gespiegelte Mitte
   const feats=[];
   const cnt=n=>Math.max(1,Math.round(n*Math.sqrt(AREA)*1.1*playF*playF));
-  for(let i=0;i<cnt(4);i++)feats.push(['stone',1,74,landOk]);
+  for(let i=0;i<cnt(4);i++)feats.push(['stone',1,74,oreOk]);
   for(let i=0;i<cnt(3);i++)feats.push(['bush',5,44,landOk]);
-  for(let i=0;i<cnt(3);i++)feats.push(['iron',1,72,landOk]);
+  for(let i=0;i<cnt(3);i++)feats.push(['iron',1,72,oreOk]);
   for(let i=0;i<cnt(2);i++)feats.push(['oil',1,40,landOk]);
-  for(let i=0;i<cnt(2);i++)feats.push(['gold',1,62,landOk]);
+  for(let i=0;i<cnt(2);i++)feats.push(['gold',1,62,oreOk]);
   for(let i=0;i<cnt(14);i++)feats.push(['fish',2+Math.floor(R()*2),120,waterOk.fish]);
   for(let i=0;i<cnt(8);i++)feats.push(['fish',1+Math.floor(R()*2),140,waterOk.deep]); /* kleine Schwärme auch draussen im tiefen Wasser */
   for(let i=0;i<cnt(6);i++)feats.push(['dolphin',1+Math.floor(R()*2),90,waterOk.dolphin]);
@@ -91,6 +92,7 @@ function genMap(seed){
     const n0=G.ents.length;cluster(t,x,y,n,sp,okFn);mirror(n0);
   }
   genForests(R,bases,A,cnt);
+  mapAudit(seed,bases,A); /* Dauer-Absicherung (mapaudit.js): unbrauchbare Vorkommen versetzen/ersetzen, Mindestmengen je Seite, vor den Tieren */
   spawnAnimals(R,bases,A);
 }
 /* ---------- Wälder ----------

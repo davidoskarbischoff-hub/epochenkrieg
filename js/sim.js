@@ -11,7 +11,7 @@ function newGame(d,reuse,opts){cam.yaw=cam.tyaw=0;cam.pitch=cam.tpitch=1.14;
   G.bones=[];sel.clear();placing=null;armed=false;panelSig='';advisor.cur=null;advisor.ignore={};advisor.next=8;advisor.last=-9;if(typeof SND!=='undefined')SND.setEpoch(0);
   const want=opts.seed!==undefined?opts.seed:(typeof window.__seed==='number'?window.__seed:undefined),mkey=curMap+'|'+MOPT.water+MOPT.mount+MOPT.sel,keep=reuse&&mapFresh&&bg&&mapKey===mkey&&want===undefined,seed=keep?mapSeed:(want!==undefined?want:(Math.random()*1e9)|0);mapSeed=seed;mapFresh=true;mapKey=mkey;MOPT.season=seasonOf(MOPT.sel,seed);genTerrain(seed,curMap);navInit();genMap(seed);if(!keep)renderBg(seed);
   if(opts.flip)flipTeams();G.mp=!!opts.mp;if(G.mp)G.speed=opts.speed||1;
-  G.sv={map:curMap,size:opts.size,seed,water:MOPT.water,mount:MOPT.mount,season:MOPT.sel};/* für Spielstand speichern (savegame.js) */
+  G.sv={map:curMap,size:opts.size,seed,water:MOPT.water,mount:MOPT.mount,season:MOPT.sel,mv:MAPGEN_VER};/* für Spielstand speichern (savegame.js) */
   G.solids=G.ents.filter(e=>e.kind!=='unit');recount();fogReset();
   const hq=G.ents.find(e=>e.type==='hq'&&e.team===0);centerOn(hq.x+120,hq.y-80);
   $('pauseBtn').textContent=tr('Pause');$('speedBtn').textContent=tr('Tempo {0}×',1);
@@ -482,7 +482,7 @@ function advance(team,nat){
   if(ep===5&&nat&&NATIONS[nat]){G.nation[team]=nat;G.nfx[team]=nationFx(nat);recount()}
   G.adv[team]={t:0,time:EPOCHS[ep].time};if(team===0){panelSig='';toast(tr('Aufstieg in die {0} begonnen.',tr(EPOCHS[ep+1].name)))}return true;
 }
-function validSpot(x,y,r,anyTerrain,ore){if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)return false;if(!anyTerrain&&(!onLand(x,y)||!onLand(x+r,y)||!onLand(x-r,y)||!onLand(x,y+r)||!onLand(x,y-r)))return false;if(!anyTerrain&&slopeNear(x,y,r)>.9)return false;for(const e of (G.solids||G.ents)){if(e.dead||e.kind==='unit'||(ore&&e.kind==='node'&&MINE_RT[e.rt]==='mine'))continue;const q=e.r+r+5;if(Math.abs(e.x-x)>=q||Math.abs(e.y-y)>=q)continue;if(Math.hypot(e.x-x,e.y-y)<q)return false}return true}
+function validSpot(x,y,r,anyTerrain,ore,noAnimals){if(x<r+12||y<r+12||x>W-r-12||y>H-r-12)return false;if(!anyTerrain&&(!onLand(x,y)||!onLand(x+r,y)||!onLand(x-r,y)||!onLand(x,y+r)||!onLand(x,y-r)))return false;if(!anyTerrain&&slopeNear(x,y,r)>.9)return false;for(const e of (G.solids||G.ents)){if(e.dead||e.kind==='unit'||(noAnimals&&e.kind==='animal')||(ore&&e.kind==='node'&&MINE_RT[e.rt]==='mine'))continue;const q=e.r+r+5;if(Math.abs(e.x-x)>=q||Math.abs(e.y-y)>=q)continue;if(Math.hypot(e.x-x,e.y-y)<q)return false}return true}
 /* freies Vorkommen (ohne Mine) für eine neue Mine, nächstes zuerst */
 function mineFree(rt,x,y,team){if(G.epoch[team]<NEED_LVL[rt])return null;let best=null,bd=2600;for(const n of G.ents){if(n.kind!=='node'||n.dead||n.rt!==rt||(team===0&&!nodeKnown(n)))continue;const d=Math.hypot(n.x-x,n.y-y);if(d<bd&&!G.ents.some(b=>b.type==='mine'&&!b.dead&&Math.hypot(b.x-n.x,b.y-n.y)<12)&&validSpot(n.x,n.y,BLDS.mine.r,false,true)){bd=d;best=n}}return best}
 /* Mine: rastet auf das nächste Stein-/Eisen-/Goldvorkommen ein (ohne eigene Mine darauf) */
