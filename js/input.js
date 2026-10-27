@@ -167,6 +167,7 @@ addEventListener('keydown',e=>{
   else if(kA(e)==='tiltU'||kA(e)==='tiltD'||kA(e)==='rotL'||kA(e)==='rotR'){if(e.key.length>1)e.preventDefault()}
   else if(kA(e)==='home'){const hq=G.ents.find(o=>o.type==='hq'&&o.team===0&&!o.dead);if(hq){sel.clear();sel.add(hq.id);centerOn(hq.x,hq.y);panelSig=''}}
   else if(kA(e)==='idle'){selectIdle()}
+  else if(kA(e)==='alertGo'){if(G.ping&&G.t-G.ping.t<180)centerOn(G.ping.x,G.ping.y);else toast(tr('Kein Angriff gemeldet.'))}
   else if(/^F[1-4]$/.test(e.key)){e.preventDefault();const f=e.key,m=f==='F1'?u=>u.type==='worker':f==='F2'?u=>u.type!=='worker'&&!UNITS[u.type].naval:f==='F4'?u=>UNITS[u.type].naval:()=>false;
     const us=G.ents.filter(u=>!u.dead&&u.team===0&&u.kind==='unit'&&m(u));if(!us.length){toast(f==='F3'?tr('Lufttruppen gibt es noch nicht.'):tr('Keine passenden Einheiten.'));return}sel.clear();us.forEach(u=>sel.add(u.id));panelSig='';sfx('select')}
   else if(kA(e)==='explore'){if(NET.client)NET.send({c:'explore',ids:ownSel().map(u=>u.id)});else doExplore()}
