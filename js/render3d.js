@@ -270,9 +270,9 @@ function r3Grass(){
 }
 /* Gras im sichtbaren Ausschnitt in die Instanzen schreiben (nur wenn sich der Ausschnitt merklich ändert oder der Nebel neu schattiert wurde) */
 function r3GrassView(force){
-  const v=R3.view,gc=r3.gCells;if(!r3.i_tuft||!v||!gc)return;const st=cam.z<.4?4:cam.z<.55?2:1/* weit weg: nur jedes 2./4. Büschel, dafür grösser (spart Dreiecke, Gras ist dort ohnehin nur Farbfleck) */,key=st+':'+[v.x0,v.x1,v.y0,v.y1].map(a=>Math.round(a/80)).join()+(R3.cull?':'+Math.round(R3.cx/80)+','+Math.round(R3.cy/80)+','+Math.round(R3.cull/80):'');if(!force&&key===r3.gKey)return;r3.gKey=key;
+  const v=R3.view,gc=r3.gCells;if(!r3.i_tuft||!v||!gc)return;const gq=Math.max(0,Math.min(1,(cam.z-.3)/.25)),gd=.25+.75*gq*gq/* weit weg: weniger Büschel, dafür grösser (spart Dreiecke, Gras ist dort ohnehin nur Farbfleck); stetig statt Stufen, jedes Büschel wächst über ein Band weich ein/aus */,key=Math.round(gd*20)+':'+[v.x0,v.x1,v.y0,v.y1].map(a=>Math.round(a/80)).join()+(R3.cull?':'+Math.round(R3.cx/80)+','+Math.round(R3.cy/80)+','+Math.round(R3.cull/80):'');if(!force&&key===r3.gKey)return;r3.gKey=key;
   const S=R3.S,o=_gO||(_gO=new THREE.Object3D()),c=_gC||(_gC=new THREE.Color()),cx0=Math.max(0,(v.x0/gc.GC)|0),cx1=Math.min(gc.gw-1,(v.x1/gc.GC)|0),cy0=Math.max(0,(v.y0/gc.GC)|0),cy1=Math.min(((H-1)/gc.GC)|0,(v.y1/gc.GC)|0);
-  const sk=st===1?1:st===2?1.35:1.7,fill=(m,cells,col)=>{let k=0;for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++){if(R3.cull){const ddx=(cx+.5)*gc.GC-R3.cx,ddy=(cy+.5)*gc.GC-R3.cy;if(ddx*ddx+ddy*ddy>(R3.cull+gc.GC)*(R3.cull+gc.GC))continue}const ls=cells[cy*gc.gw+cx];for(let q=0;q<ls.length;q+=st){const p=ls[q];if(p.hid)continue;o.position.set(p.x/S,p.h,p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(p.s*sk);o.updateMatrix();m.setMatrixAt(k,o.matrix);m.setColorAt(k,col(p));k++}}
+  const sk=gd<1?Math.min(1.7,1+.28*(1/gd-1)):1,sm3=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t)},cl=R3.cull,fill=(m,cells,col)=>{let k=0;for(let cy=cy0;cy<=cy1;cy++)for(let cx=cx0;cx<=cx1;cx++){if(R3.cull){const ddx=(cx+.5)*gc.GC-R3.cx,ddy=(cy+.5)*gc.GC-R3.cy;if(ddx*ddx+ddy*ddy>(R3.cull+gc.GC)*(R3.cull+gc.GC))continue}const ls=cells[cy*gc.gw+cx];for(let q=0;q<ls.length;q++){const p=ls[q];if(p.hid)continue;let a=gd<1?sm3((gd*1.22-(p.j!==undefined?p.j:(p.r*.159155)%1))/.22):1;if(cl){const f=Math.hypot(p.x-R3.cx,p.y-R3.cy)/cl;if(f>.88)a*=sm3((1-f)/.12)}if(a<.03)continue;o.position.set(p.x/S,p.h,p.y/S);o.rotation.set(0,p.r,0);o.scale.setScalar(p.s*sk*a);o.updateMatrix();m.setMatrixAt(k,o.matrix);m.setColorAt(k,col(p));k++}}
     m.count=k;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true};
   fill(r3.i_tuft,gc.t,p=>{const sh=fogShade(p.x,p.y)*p.c;return c.setRGB(sh,sh*(.96+p.j*.08),sh*.95)});fill(r3.i_flower,gc.f,p=>p.col)}
 let _gO=null,_gC=null;
@@ -306,7 +306,7 @@ function r3Nodes(){
   if(R3.natG!==G){R3.natG=G;R3.tk=new Map();R3.tl=new Map();R3.stumps=[];R3.ap={};R3.hidT={}} /* neue Partie: Baum-Arten und Stümpfe vergessen */
   const S=R3.S,B={},V=R3.view,M=260,fr=R3.fr=(R3.fr||0)+1,tl=R3.tl;R3.nodeZ=cam.z;
   /* Baumdichte: stetig nach Zoom (weit weg weniger Bäume) und Entfernung (flacher Blick), kein Springen: jeder Baum hat einen festen Rang (Weyl-Folge aus der Kennung), ist ab Dichte>Rang da und wächst über ein Band weich ein/aus */
-  const sm3=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t)},zdn=(()=>{const q=Math.max(0,Math.min(1,(cam.z-.3)/.2));return 1/3+2/3*q*q})(),trk=id=>(Math.imul(id|0,2654435761)>>>0)/4294967296,flw=Math.min(1,(R3.fl||0)*3);
+  const sm3=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t)},zdn=(()=>{const q=Math.max(0,Math.min(1,(cam.z-.3)/.2));return .3+.7*q*q})(),trk=id=>(Math.imul(id|0,2654435761)>>>0)/4294967296,flw=Math.min(1,(R3.fl||0)*3);
   /* Neu freigeschaltete Vorkommen (Zeitalter-Aufstieg) wachsen in ~1,8 s sanft aus dem Boden: ap[Typ] = Spielzeit der Freischaltung, hidT[Typ] = war wegen des Zeitalters versteckt */
   const ap=R3.ap,hidT=R3.hidT;let apBusy=false;
   const grow=ty=>{const t0=ap[ty];if(t0===undefined)return 1;const k=Math.min(1,(G.t-t0)/1.8);if(k<1)apBusy=true;const g=k*k*(3-2*k);return Math.max(.03,g)};
@@ -326,7 +326,7 @@ function r3Nodes(){
     if(e.type==='field'){fields.set(e.farm,e.amount/e.maxAmt);continue}
     if(!inV(e.x,e.y,M))continue;
     let tf=1,tbst=1,dd=0;if(cl){dd=Math.hypot(e.x-R3.cx,e.y-R3.cy)/cl;if(dd>.88)tf=sm3((1-dd)/.12)} /* Rand der Sichtweite: schrumpfen statt abschneiden */
-    if(e.type==='tree'){let dn=zdn;if(cl)dn=Math.min(dn,1-.75*flw*sm3((dd-.2)/.4));tf*=sm3((dn*1.22-trk(e.id))/.22);if(dn<1)tbst=Math.min(1.6,1+.28*(1/dn-1))} /* weit weg: weniger Bäume, die übrigen etwas grösser (Wald bleibt dicht, weniger Dreiecke) */
+    if(e.type==='tree'){let dn=zdn;if(cl)dn=Math.min(dn,1-.8*flw*sm3((dd-.1)/.4));tf*=sm3((dn*1.22-trk(e.id))/.22);if(dn<1)tbst=Math.min(1.6,1+.28*(1/dn-1))} /* weit weg: weniger Bäume, die übrigen etwas grösser (Wald bleibt dicht, weniger Dreiecke) */
     if(tf<.02)continue;
     const k=Math.max(.5,Math.sqrt(e.amount/e.maxAmt)),sh=fogShade(e.x,e.y),h=hAt(e.x,e.y),x=e.x/S,z=e.y/S,sd=e.seed;
     if(e.type==='tree'){const s=e.r/11*.62*(.85+sd*.35)*(.55+.45*k)*tbst*tf,tk=treeKind(e),v=.9+((sd*97)%1)*.2;{const ts=treeSea(tk.k,sd),ix=add(ts[0],tk.v,x,h-.05,z,sd*6.28,s,s*(.9+((sd*31)%1)*.3),v*sh*ts[1],(.95+((sd*53)%1)*.12)*v*sh*ts[2],v*sh*ts[3]);if(ix&&SHK.size){const sk=SHK.get(e.id);if(sk)sk.ix=ix}}}
