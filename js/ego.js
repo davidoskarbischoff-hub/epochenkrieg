@@ -24,7 +24,7 @@ EGO.stop=(pos)=>{
   if(!EGO.on)return;EGO.on=false;document.body.classList.remove('ego');const s=EGO.saved;
   if(EGO.speedBack){if(!G.mp)G.speed=EGO.speedBack;EGO.speedBack=0}
   if(s){Object.assign(cam,{x:s.x,y:s.y,z:s.z,yaw:s.yaw,pitch:s.pitch,tyaw:s.tyaw,tpitch:s.tpitch})}
-  if(EGO.mv&&EGO.e&&!EGO.e.dead)EGO.go(0,0);const o=EGO.e&&R3.reg.get(entKey(EGO.e));if(o)o.obj.visible=true;EGO.e=null;EGO.tgt=null;EGO.ctl=false;EGO.mv=null;if(typeof ROOM!=='undefined'&&ROOM.apply)ROOM.apply();
+  if(EGO.mv&&EGO.e&&!EGO.e.dead)EGO.go(0,0);const o=EGO.e&&R3.reg.get(entKey(EGO.e));if(o)o.obj.visible=true;if(EGO.sky)EGO.sky.mesh.visible=false;EGO.e=null;EGO.tgt=null;EGO.ctl=false;EGO.mv=null;if(typeof ROOM!=='undefined'&&ROOM.apply)ROOM.apply();
   try{if(document.pointerLockElement)document.exitPointerLock()}catch(_){}
   if(R3.ok){r3.camera.fov=R3.FOV;r3.camera.updateProjectionMatrix();r3.camera.near=.8}
   R3.nodeT=0;EGO.ui();panelSig='';if(pos)centerOn(pos.x,pos.y)};
@@ -102,11 +102,31 @@ EGO.tick=dt=>{EGO.reloadUi(dt);if(!EGO.on||!EGO.ctl||!EGO.e||(typeof menuOpen!==
   const f=(keys.w||keys.ArrowUp?1:0)-(keys.s||keys.ArrowDown?1:0),r=(keys.d||keys.ArrowRight?1:0)-(keys.a||keys.ArrowLeft?1:0);
   if(f||r){EGO.mvT-=dt;const ch=!EGO.mv||EGO.mv[0]!==f||EGO.mv[1]!==r;if(ch||EGO.mvT<=0||EGO.yawSent===undefined||Math.abs(EGO.yaw-EGO.yawSent)>.12){EGO.go(f,r);EGO.mvT=.25;EGO.yawSent=EGO.yaw}}
   else if(EGO.mv){EGO.go(0,0)}};
+/* Himmel der Ego-Ansicht: Verlauf Horizont (= Nebelfarbe, damit der Horizont nahtlos wird) → Zenit, Sonne mit Glanz, weiche Wolken; folgt der Kamera, nur in der Ego-Ansicht sichtbar */
+const SKYZ={spring:0x4a82c4,summer:0x3b73c2,autumn:0x6f93b6,winter:0x9bb2c8};
+EGO.skyMake=()=>{
+  const U={uZ:{value:new THREE.Color()},uH:{value:new THREE.Color()},uS:{value:new THREE.Vector3(-.6,.6,-.3)},uC:{value:new THREE.Color(0xfff0c8)},uT:{value:0}};
+  const m=new THREE.ShaderMaterial({uniforms:U,side:THREE.BackSide,depthWrite:false,depthTest:false,fog:false,
+    vertexShader:'varying vec3 vD;void main(){vD=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+    fragmentShader:`varying vec3 vD;uniform vec3 uZ,uH,uS,uC;uniform float uT;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*n(p);p*=2.03;a*=.5;}return s;}
+void main(){vec3 d=normalize(vD);float e=max(d.y,0.);float t=pow(e,.55);vec3 c=mix(uH,uZ,smoothstep(0.,1.,t));
+ float sd=max(dot(d,normalize(uS)),0.);c+=uC*(pow(sd,900.)*3.+pow(sd,24.)*.22+pow(sd,5.)*.07);
+ vec2 p=d.xz/(e+.22)*1.7+vec2(uT*.012,uT*.004);float cl=smoothstep(.52,.8,fbm(p))*smoothstep(.01,.2,e);
+ c=mix(c,mix(uH,vec3(1.),.75)*(.85+.3*sd),cl*.85);
+ gl_FragColor=vec4(c,1.);
+ #include <tonemapping_fragment>
+ #include <colorspace_fragment>
+}`});
+  const mesh=new THREE.Mesh(new THREE.SphereGeometry(1000,40,24),m);mesh.renderOrder=-100;mesh.frustumCulled=false;r3.scene.add(mesh);return{mesh,U}};
 /* Kamera aus den Augen (statt camUpdate der freien Kamera) */
 function egoCam(){
   const e=EGO.e,o=e&&R3.reg.get(entKey(e));if(!o||e.dead||!EGO.can(e)){if(e&&e.team===0&&e.kind==='unit'&&e.dead)toast(tr('Deine Einheit ist gefallen.'),'warn');else if(e&&e.kind==='animal'&&!e.dead)toast(tr('Das Tier ist ausser Sicht.'));EGO.stop(e&&e.dead?{x:e.x,y:e.y}:null);return}
   if(typeof ROOM!=='undefined'){if(ROOM.g&&ROOM.g.visible)ROOM.g.visible=false;if(ROOM.board&&ROOM.board.visible)ROOM.board.visible=false;if(ROOM.spot&&ROOM.spot.visible)ROOM.spot.visible=false}/* Raum-Foto nicht zeigen: Blick über den Kartenrand = Himmelsfarbe statt Foto */
-  {const A=R3.atmo;r3.scene.background=EGO.bg||(EGO.bg=new THREE.Color());EGO.bg.set(A?A.sky:0x16384f);r3.scene.fog.color.set(A?A.fog:0x9db8c4)}
+  {const A=R3.atmo;r3.scene.background=EGO.bg||(EGO.bg=new THREE.Color());EGO.bg.set(A?A.fog:0x9db8c4);r3.scene.fog.color.set(A?A.fog:0x9db8c4);
+   const K=EGO.sky||(EGO.sky=EGO.skyMake());K.mesh.visible=true;K.U.uH.value.set(A?A.fog:0x9db8c4);K.U.uZ.value.set(SKYZ[R3.se]||SKYZ.summer);K.U.uT.value=performance.now()/1000;K.mesh.position.copy(r3.camera.position);K.U.uS.value.copy(r3.sun.position).sub(r3.sun.target.position)}
   const{camera,sun}=r3,S=R3.S,p=o.obj.position,gy=Math.max(0,hAt(e.x,e.y));
   const now=performance.now(),dtm=Math.min(.1,Math.max(.001,(now-(EGO.bt||now))/1000));EGO.bt=now;
   /* Kopf-Wippen beim Gehen (nur Fußtruppen am Boden, Option) und kurzer Rückstoß beim Schlag/Schuss */
@@ -114,10 +134,10 @@ function egoCam(){
   EGO.bobA+=((OPT.egoBob&&EGO.ctl&&!ud.air&&!ud.naval&&EGO.sp>8?1:0)-EGO.bobA)*Math.min(1,dtm*8);EGO.bobP+=dtm*EGO.sp*.1;EGO.kick=Math.max(0,EGO.kick-dtm*4.5);
   const bob=Math.sin(EGO.bobP*2)*.045*EGO.bobA/Math.sqrt(EGO.zoom),roll=Math.cos(EGO.bobP)*.012*EGO.bobA,kk=EGO.kick*EGO.kick*.07*EGO.kickK;
   const ex=p.x,ez=p.z,ey=Math.max(p.y,gy)+EGO.eye+bob,cp=Math.cos(EGO.pitch),sy=Math.sin(EGO.yaw),cy=Math.cos(EGO.yaw);
-  camera.aspect=VW/VH;camera.fov=R3.FOV*1.25/EGO.zoom;camera.near=.15;camera.updateProjectionMatrix();
+  camera.aspect=VW/VH;camera.fov=R3.FOV*1.5/EGO.zoom;camera.near=.15;camera.updateProjectionMatrix();
   camera.position.set(ex,ey,ez);camera.up.set(Math.sin(roll)*Math.cos(EGO.yaw),Math.cos(roll),-Math.sin(roll)*Math.sin(EGO.yaw));camera.lookAt(ex+cp*sy,ey+Math.sin(EGO.pitch-kk),ez+cp*cy);camera.updateMatrixWorld();
-  const reach=(EGO.tower?300:190)*Math.sqrt(Math.max(1,EGO.zoom));/* Zeichenweite in Welteinheiten: Nebel + Auslassen (Leistung) */
-  r3.scene.fog.near=reach*.45;r3.scene.fog.far=reach;R3.farT=reach*1.05;R3.cull=reach*1.02*S;R3.cx=e.x;R3.cy=e.y;
+  const reach=(EGO.tower?420:280)*Math.sqrt(Math.max(1,EGO.zoom));/* Zeichenweite in Welteinheiten: Nebel + Auslassen (Leistung) */
+  r3.scene.fog.near=reach*.3;r3.scene.fog.far=reach;R3.farT=reach*1.05;R3.cull=reach*1.02*S;R3.fl=1;R3.cx=e.x;R3.cy=e.y;
   R3.k=(VH/(2*Math.tan(camera.fov*Math.PI/360)*30))/S;
   const b=Math.min(120,reach*.5);sun.position.set(ex-.95*b,ey+.85*b,ez-.5*b);sun.target.position.set(ex,gy,ez);sun.target.updateMatrixWorld();
   const sc=sun.shadow.camera;sc.left=sc.bottom=-b;sc.right=sc.top=b;sc.near=1;sc.far=b*3.2;sc.updateProjectionMatrix();
