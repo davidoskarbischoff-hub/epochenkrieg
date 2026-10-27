@@ -371,3 +371,5 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 - [x] Tutorial mit Pfeilen und Leuchtrahmen (siehe CLAUDE.md)
 - [ ] Idee: Tutorial um Fortgeschrittenen-Teil erweitern (Markt, Mauern, Schiffe; Ego-Ansicht und Schnelle Tasten stehen seit 27.10. drin), Tutorial-Fortschritt merken
 - [x] Ego-Ansicht: Waffe im Bild (27.10.): echtes Waffenmodell der Einheit unten rechts (Schild links, Bogen links), Wippen, Nachschwingen beim Drehen, Schlag/Stoss/Schuss-Bewegung, Option „Ego: Waffe im Bild“; offen: sichtbare Hände/Arme, Werkzeuge der Arbeiter, Waffen für Reiter/Schiffe/Flieger
+- [x] Ego: Arbeiter sehen ihr Werkzeug (Axt, Hammer, Sichel, Speer) mit Schlag im Arbeitstakt (27.10.)
+

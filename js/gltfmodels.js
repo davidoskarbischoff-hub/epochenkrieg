@@ -570,9 +570,14 @@ const EKMODELS=(()=>{
       if(spec.tint){const t={};for(const n in spec.tint)t[n]=spec.tint[n]==='team'?(TC[u.team||0]||'#888888'):spec.tint[n];tintMats(p,t)}
       p.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false}});out.push({p,side,file:spec.file,spec})}
     return out}
+  /* Werkzeug eines Arbeiters für eine Tätigkeit (work.<art>.tool im Manifest), wie held(): frisch geklont, noch ohne Haltung; null, wenn es keins gibt */
+  function heldTool(u,kind){
+    const en=u&&entryFor('unit',u.type,u.lvl||0),spec=en&&en.work&&en.work[kind]&&en.work[kind].tool,gl=spec&&files.get(spec.file);if(!gl)return null;
+    const p=EKGLTF.SkeletonUtils.clone(gl.scene);prepare(p,u.team||0);if(spec.tint){const t={};for(const n in spec.tint)t[n]=spec.tint[n]==='team'?(TC[u.team||0]||'#888888'):spec.tint[n];tintMats(p,t)}
+    p.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false}});return{p,side:'hand',file:spec.file,spec,kind}}
   /* für Tests/Vorschau: Modell von Hand eintragen */
   function register(kind,type,entry,gltf){if(!manifest)manifest={units:{},buildings:{}};const s=secOf(kind);(manifest[s]||(manifest[s]={}))[type]=entry;files.set(entry.file,gltf);R.ver++}
-  return Object.assign(R,{mergeStatic,init,cmapLoad,loadWhen,tag,has,held,makeUnit,makeBld,makeSea,iconModel,nodeParts,nodeN,nodeMeta,nodeL:nodeList,animate,register,files,ualFor,failed,refSize,dbg:()=>({refCache}),util:{findBone,ik2,turnW,aimBone,box,prepare,pickClip,V,Q,man:()=>manifest}})
+  return Object.assign(R,{mergeStatic,init,cmapLoad,loadWhen,tag,has,held,heldTool,makeUnit,makeBld,makeSea,iconModel,nodeParts,nodeN,nodeMeta,nodeL:nodeList,animate,register,files,ualFor,failed,refSize,dbg:()=>({refCache}),util:{findBone,ik2,turnW,aimBone,box,prepare,pickClip,V,Q,man:()=>manifest}})
 })();
 /* Modelle in die Bau-Funktionen einhängen (Rückfall auf die Code-Modelle, wenn nichts passt) */
 (()=>{const origU=buildUnit,origB=buildBld;window.origBuildUnit=origU;

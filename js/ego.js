@@ -164,6 +164,9 @@ const VMP={
  'neu/Sniper Rifle.glb':{len:.9,fix:[0,0,90],grip:.3,at:[.2,-.22,-.5],tilt:[78,-6],how:'shoot'},
  'neu/Assault Rifle.glb':{len:.8,fix:[0,0,90],grip:.3,at:[.2,-.22,-.5],tilt:[78,-6],how:'shoot'},
  'archiv/Submachine Gun.glb':{len:.4,fix:[0,0,90],grip:.3,at:[.2,-.2,-.5],tilt:[78,-6],how:'shoot'},
+ 'neu/Axe Small.glb':{len:.62,fix:[0,180,0],grip:.15,at:[.30,-.34,-.62],tilt:[34,12],how:'tool'},
+ 'neu/Doublesided Hammer.glb':{len:.4,fix:[0,0,0],grip:.12,at:[.36,-.3,-.64],tilt:[30,12],how:'tool'},
+ 'neu/Scythe.glb':{len:.8,fix:[0,180,0],grip:.25,at:[.36,-.3,-.64],tilt:[40,14],how:'tool'},
  'waffen/Shield_1_A.glb':{len:.3,fix:[0,-90,0],grip:.5,at:[-.36,-.17,-.64],tilt:[0,-8],how:'none'},
  'waffen/Shield_2_A.glb':{len:.3,fix:[0,-90,0],grip:.5,at:[-.36,-.17,-.64],tilt:[0,-8],how:'none'}};
 EGO.vmMake=()=>{const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(58,1,.05,30),g=new THREE.Group(),hemi=new THREE.HemisphereLight(0xffffff,0x666666,1),sun=new THREE.DirectionalLight(0xffffff,1);
@@ -171,18 +174,20 @@ EGO.vmMake=()=>{const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(58
   return{scene,cam,g,hemi,sun,items:[],key:'',on:false,sw:0,swK:'melee',cd:0,yaw:0,pitch:0,sx:0,sy:0,fa:0}};
 /* Waffen der Einheit aufbauen (einmal je Einheit/Stufe) */
 EGO.vmBuild=e=>{const vm=EGO.vm,D=Math.PI/180;for(const it of vm.items)vm.g.remove(it.piv);vm.items=[];
-  const list=e.kind==='unit'&&typeof EKMODELS!=='undefined'&&EKMODELS.held?EKMODELS.held(e):[];
-  for(const h of list){const P=VMP[h.file];if(!P)continue;
+  const wk=!!(UNITS[e.type]||{}).gather;/* Arbeiter zeigen das Werkzeug der letzten Tätigkeit (vm.kd), alle anderen ihre Waffe */
+  const list=e.kind==='unit'&&typeof EKMODELS!=='undefined'?(wk?[EKMODELS.heldTool&&EKMODELS.heldTool(e,vm.kd||'')].filter(Boolean):EKMODELS.held?EKMODELS.held(e):[]):[];
+  for(const h of list){const P=VMP[h.file+'|'+(h.kind||'')]||VMP[h.file];if(!P)continue;
     const inner=new THREE.Group(),piv=new THREE.Group();inner.rotation.set(P.fix[0]*D,P.fix[1]*D,P.fix[2]*D);inner.add(h.p);piv.add(inner);vm.g.add(piv);
     inner.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(inner),s=b.getSize(new THREE.Vector3()),k=P.len/Math.max(s.x,s.y,s.z,.01);
     inner.scale.setScalar(k);inner.updateMatrixWorld(true);const b2=new THREE.Box3().setFromObject(inner),c=b2.getCenter(new THREE.Vector3());
     inner.position.set(-c.x,-(b2.min.y+(b2.max.y-b2.min.y)*P.grip),-c.z);
-    vm.items.push({piv,P,side:h.side})}
-  vm.key=e.id+'|'+(e.lvl||0)+'|'+list.length};
+    vm.items.push({piv,P,side:h.side,tool:!!h.kind})}
+  vm.key=e.id+'|'+(e.lvl||0)+'|'+(wk?vm.kd||'':'')+'|'+list.length};
 /* je Bild: Haltung (Wippen, Nachschwingen, Schlag/Schuss), Lichter, Sichtbarkeit */
 EGO.vmUpdate=dt=>{const e=EGO.e;if(!e||e.kind!=='unit'||!r3.camera){if(EGO.vm)EGO.vm.on=false;return}
   const vm=EGO.vm||(EGO.vm=EGO.vmMake());
-  const key=e.id+'|'+(e.lvl||0);if(!vm.key.startsWith(key+'|')||(!vm.items.length&&EGO.vmRetry<performance.now())){EGO.vmRetry=performance.now()+2000;EGO.vmBuild(e)}
+  const wk=!!(UNITS[e.type]||{}).gather;if(vm.eid!==e.id){vm.eid=e.id;vm.kd=''}if(wk){const k=wkKind(e);if(k)vm.kd=k}
+  const key=e.id+'|'+(e.lvl||0)+'|'+(wk?vm.kd:'');if(!vm.key.startsWith(key+'|')||(!vm.items.length&&EGO.vmRetry<performance.now())){EGO.vmRetry=performance.now()+2000;EGO.vmBuild(e)}
   vm.on=vm.items.length>0&&EGO.zoom<1.5&&!EGO.tower&&OPT.egoWeapon!==false;if(!vm.on)return;const D=Math.PI/180;
   const cam=r3.camera,a=VW/VH;if(vm.cam.aspect!==a){vm.cam.aspect=a;vm.cam.updateProjectionMatrix()}
   /* Nachschwingen: Blickdrehung zieht die Waffe kurz in die Gegenrichtung */
@@ -191,10 +196,16 @@ EGO.vmUpdate=dt=>{const e=EGO.e;if(!e||e.kind!=='unit'||!r3.camera){if(EGO.vm)EG
   /* Angriff erkennen: Nachladezeit springt hoch (gilt für eigene Schläge und Selbstverteidigung) */
   if(e.cd>vm.cd+.05&&vm.sw<=.05){vm.sw=1;const d=UNITS[e.type]||{};vm.swK=(d.ranged||d.air)?'shoot':'melee'}vm.cd=e.cd||0;
   if(EGO.kick>.95&&vm.sw<=.05){vm.sw=1;const d=UNITS[e.type]||{};vm.swK=(d.ranged||d.air)?'shoot':'melee'}
+  /* Arbeit (Hacken, Hämmern, Sensen, Jagen): Takt aus der Spielrechnung wie bei den Figuren (ph 0 = Aufprall = 1), sonst eigener Takt */
+  let ph=null;if(wk&&vm.kd&&(e.state==='gather'||e.state==='build'||(vm.kd==='hunt'&&e.state==='attack'))){const hunt=vm.kd==='hunt',bd=vm.kd==='build',tm=hunt?((UNITS[e.type]||{}).cd||1.2):bd?(e.bl||.6):(e.gl||0),cur=hunt?e.cd:bd?e.bt:e.gt;
+    if(tm&&cur!==undefined&&!NET.client)ph=1-Math.max(0,Math.min(1,cur/tm));else{vm.fph=((vm.fph||0)+(G.paused?0:dt*Math.min(G.speed||1,5)/(WCYC[vm.kd]||1.2)))%1;ph=vm.fph}}
+  if(EGO.vmHold!==undefined&&wk)ph=EGO.vmHold;
   vm.sw=EGO.vmHold!==undefined?EGO.vmHold:Math.max(0,vm.sw-dt*3.2);/* vmHold: nur für Bildtests */const s=1-vm.sw,sw=vm.sw>0?Math.sin(Math.min(1,s)*Math.PI):0,bob=EGO.bobA;
   for(const it of vm.items){const P=it.P,p=it.piv,how=P.how;let tx=P.tilt[0],tz=P.tilt[1],px=P.at[0],py=P.at[1],pz=P.at[2];
     py+=Math.sin(EGO.bobP*2)*.012*bob+vm.sy*.5;px+=Math.cos(EGO.bobP)*.01*bob+vm.sx*.5;
-    if(vm.sw>0&&it.side==='hand'){
+    if(it.tool&&ph!==null){const sm=x=>x*x*(3-2*x);/* Aufprall bei ph 0/1: Werkzeug vorn unten, dann nach hinten oben ausholen und schlagen */
+      if(how==='tool'){tx+=ph<.5?40-60*sm(ph/.5):-20+60*Math.pow((ph-.5)/.5,2);tz-=Math.sin(ph*Math.PI)*8;pz-=Math.sin(ph*Math.PI)*.04}else if(how==='thrust'){pz-=Math.sin(ph*Math.PI)*.38}}
+    else if(vm.sw>0&&it.side==='hand'&&!it.tool){
       if(how==='melee'&&vm.swK==='melee'){const cl=x=>Math.max(0,Math.min(1,x));/* kurz ausholen, dann schlagen */tx+=-16*Math.sin(cl(s/.3)*Math.PI/2)*(1-cl((s-.3)/.7))+48*Math.sin(cl((s-.25)/.75)*Math.PI);tz-=sw*14;pz-=sw*.1;px-=sw*.08}
       else if(how==='thrust'&&vm.swK==='melee'){pz-=sw*.38;tx-=sw*8}
       else if(vm.swK==='shoot'||how==='shoot'){const r=(1-s)*(1-s);pz+=r*.07;tx+=r*6}}
