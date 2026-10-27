@@ -86,7 +86,7 @@
   function leave(){stop();if(typeof showStart==='function')showStart()}
   /* ---------- Start: kleine Übungskarte ohne Gegner ---------- */
   function start(){
-    if(NET.mp||!window.newGame)return;const o=$$('overlay');if(typeof MPV!=='undefined')MPV.stop();
+    if(NET.mp||!window.newGame)return;try{localStorage.setItem('ek-tut','1')}catch(_){}const o=$$('overlay');if(typeof MPV!=='undefined')MPV.stop();
     try{SND.init();SND.setEpoch(0)}catch(_){}
     document.body.classList.remove('mm');o.className='';o.hidden=true;diff='leicht';
     newGame('leicht',false,{map:'land',aiStyle:'turtle',size:'S',seed:20241027,water:0,mount:1,season:'summer'});
