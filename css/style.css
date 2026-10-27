@@ -582,3 +582,10 @@ body.ego #advisor{display:none}
 /* Chat in der Lobby: Karte nach oben schieben, damit Bereit/Start nicht unter den Zeilen liegen */
 @media (max-width:1360px){body:has(#mpchat.lob:not([hidden])) .card.lobby{margin-bottom:200px}}
 @media (max-width:640px){#mpchat.lob #mpchatlog{max-height:84px}}
+
+/* Werte-Fenster im Info-Feld (i-Knopf) */
+.ib{margin-left:auto;font:italic 700 14px Georgia,serif;color:var(--gold2,#c9a468)}.ib+.x{margin-left:4px}.ib.on{background:var(--gold3,#7a5f33);color:#fff3d6;border-color:var(--gold1,#f5e3ae)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:3px 14px;margin:6px 0 4px;padding:8px 10px;border-radius:8px;background:rgba(0,0,0,.28);border:1px solid rgba(201,164,104,.2);font-size:12.5px}
+.stats .st{display:flex;justify-content:space-between;gap:8px;align-items:baseline;min-width:0}.stats .st span{color:#a89c84}.stats .st b{font-weight:600;color:#efe3c6;text-align:right}
+.stats .st:nth-last-child(-n+2):has(.cost){grid-column:span 2}
+

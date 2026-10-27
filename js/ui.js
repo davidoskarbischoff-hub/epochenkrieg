@@ -51,6 +51,7 @@ function renderOptions(){
     +row('Leuchten (Bloom)',tog('oBloom',OPT.bloom),'Helle Stellen strahlen weich nach – kostet etwas Leistung')
     +row('Wolkenschatten',tog('oCloud',OPT.cloudShade),'Weiche Schatten ziehen langsam über das Gelände – nur Optik, aus bei Grafik Niedrig')
     +row('Wetter (Laub, Schnee)',tog('oWeather',OPT.weather),'Fallende Blätter im Herbst, Blütenblätter im Frühling, Schnee im Winter – nur Optik')
+    +row('Reichweiten-Ringe',tog('oRange',OPT.rangeRing),'Zeigt für ausgewählte Fernkämpfer und Türme einen Ring mit ihrer Reichweite')
     +row('Spielzimmer',tog('oRoom',OPT.room),'Karte liegt als Brett auf einem Schreibtisch in einer Werkstatt')
     +row('Intro-Animation',tog('oIntro',OPT.intro!==false),'Der Spielkarton öffnet sich beim Start; Klick oder Taste überspringt')
     +row('Raum: Fotostudio',tog('oRoomSt',OPT.roomStudio),'Statt der Maler-Werkstatt ein helles Fotostudio')
@@ -94,7 +95,7 @@ function renderOptions(){
   document.querySelectorAll('.kmbtn').forEach(b=>b.onclick=()=>{b.textContent=tr('Taste drücken …');b.classList.add('wait');
     const h=ev=>{ev.preventDefault();ev.stopPropagation();removeEventListener('keydown',h,true);if(ev.key!=='Escape'&&ev.key!=='Shift'&&ev.key!=='Control'&&ev.key!=='Alt'&&ev.key!=='Meta'){keySet(b.dataset.a,ev.key.length===1?ev.key.toLowerCase():ev.key)}renderOptions()};addEventListener('keydown',h,true)});
   bind('kmReset',e=>e.onclick=()=>{keysReset();renderOptions()});
-  segB('oGfx',v=>setGfx(+v));bind('oShadow',e=>e.onchange=()=>optSet('shadows',e.checked));bind('oGrass',e=>e.onchange=()=>optSet('grass',e.checked));bind('oBloom',e=>e.onchange=()=>optSet('bloom',e.checked));bind('oCloud',e=>e.onchange=()=>optSet('cloudShade',e.checked));bind('oWeather',e=>e.onchange=()=>optSet('weather',e.checked));bind('oRoom',e=>e.onchange=()=>{optSet('room',e.checked);if(typeof ROOM!=='undefined'){if(!ROOM.g&&e.checked)ROOM.init();else ROOM.apply()}});bind('oIntro',e=>e.onchange=()=>optSet('intro',e.checked));bind('oAuto',e=>e.onchange=()=>optSet('autosave',e.checked));bind('oRoomSt',e=>e.onchange=()=>{optSet('roomStudio',e.checked);if(typeof ROOM!=='undefined')ROOM.setBg()});bind('oGrade',e=>e.onchange=()=>optSet('grade',e.checked));bind('oFps',e=>e.onchange=()=>optSet('fps',e.checked));
+  segB('oGfx',v=>setGfx(+v));bind('oShadow',e=>e.onchange=()=>optSet('shadows',e.checked));bind('oRange',e=>e.onchange=()=>optSet('rangeRing',e.checked));bind('oGrass',e=>e.onchange=()=>optSet('grass',e.checked));bind('oBloom',e=>e.onchange=()=>optSet('bloom',e.checked));bind('oCloud',e=>e.onchange=()=>optSet('cloudShade',e.checked));bind('oWeather',e=>e.onchange=()=>optSet('weather',e.checked));bind('oRoom',e=>e.onchange=()=>{optSet('room',e.checked);if(typeof ROOM!=='undefined'){if(!ROOM.g&&e.checked)ROOM.init();else ROOM.apply()}});bind('oIntro',e=>e.onchange=()=>optSet('intro',e.checked));bind('oAuto',e=>e.onchange=()=>optSet('autosave',e.checked));bind('oRoomSt',e=>e.onchange=()=>{optSet('roomStudio',e.checked);if(typeof ROOM!=='undefined')ROOM.setBg()});bind('oGrade',e=>e.onchange=()=>optSet('grade',e.checked));bind('oFps',e=>e.onchange=()=>optSet('fps',e.checked));
   bind('oMute',e=>e.onchange=()=>SND.setMute(!e.checked));
   bind('mv',e=>e.oninput=()=>{SND.init();SND.setMusic(e.value/100);q('mvo').textContent=pc(SND.music)});
   bind('sv',e=>{e.oninput=()=>{SND.init();SND.setSfx(e.value/100);q('svo').textContent=pc(SND.sfx)};e.onchange=()=>SND.play('select')});
@@ -150,6 +151,7 @@ let curActs=[],infoCache='';
 const ACT_KEYS={am:'attack',exp:'explore',rage:'rage',form:'form',ego:'ego'};
 function actKey(k){const a=ACT_KEYS[k];if(!a||!OPT.keys[a]||(!ui2()&&k!=='am'&&k!=='exp'))return'';return keyLabel(OPT.keys[a])}
 $('acts').addEventListener('click',e=>{const b=e.target.closest('.act');if(!b||!G||!G.running)return;const a=curActs[+b.dataset.i];if(!a)return;if(a.lock){toast(tr('Erst ab der {0} verfügbar.',a.lock));sfx('error');return}if(a.need){toast(a.need);sfx('error');return}sfx('click');a.run()});
+$('info').addEventListener('pointerdown',e=>{if(e.target.closest('[data-info]')){infoOpen=!infoOpen;infoCache='';sfx('click');return}},true);
 $('info').addEventListener('pointerdown',e=>{if(!G||!G.running)return;const q=e.target.closest('[data-q]');if(q){const b=selection()[0];if(b&&b.team===0)cancelQueue(b,+q.dataset.q);return}if(e.target.closest('[data-clear]')){sel.clear();panelSig='';return}const tb=e.target.closest('[data-tech]');if(tb){startResearch(0,tb.dataset.tech);infoCache='';panelSig='';return}const ub=e.target.closest('[data-upg]');if(ub){startUpgrade(0,ub.dataset.upg);infoCache='';panelSig=''}});
 function techBlock(e){
   const ts=techsFor(e.type).filter(t=>t.ep<=G.epoch[0]);if(!ts.length)return '';const own=G.tech[0];
@@ -161,6 +163,28 @@ function techBlock(e){
   return h+'</div>'}
 /* Kopfbild in der Seitenleiste (nur neue Oberfläche): Rendering des echten Modells */
 function hdIcon(e){if(!ui2()||typeof ICON3==='undefined'||(e.kind!=='unit'&&e.kind!=='bld'))return'';try{const u=ICON3.thing(e.kind,e.type);return u?`<img class="hic" src="${u}" alt="">`:''}catch(_){return''}}
+/* Werte-Fenster („i“ im Info-Feld): alle Kennzahlen der gewählten Einheit/des Gebäudes, stufen- und technologieabhängig (nicht nur Grundwerte) */
+let infoOpen=false;
+/* tatsächlicher Schaden je Treffer gegen neutrale Ziele: Grundwert × Technologie × Stufe (wie in hit()) */
+function effAtk(e){const d=UNITS[e.type],tf=G.tfx[e.team]||{ratk:0,matk:0},nf=G.nfx[e.team]||{art:0};return d.atk*(1+(d.ranged?tf.ratk:tf.matk))*(d.cls==='siege'?1+(nf.art||0):1)*LVL.atk[e.lvl||0]}
+function statsHTML(e){
+  const R=(k,v)=>`<div class="st"><span>${tr(k)}</span><b>${v}</b></div>`;let r='';
+  if(e.kind==='unit'){
+    const d=UNITS[e.type],atk=effAtk(e);
+    const good=Object.keys(CTR[d.cls]||{}).map(c=>tr(CLSN[c]||c)),weak=Object.keys(CTR).filter(c=>(CTR[c]||{})[d.cls]>1).map(c=>tr(CLSN[c]||c));
+    r+=R('Leben',Math.ceil(e.hp)+' / '+e.maxHp);
+    if(d.atk){r+=R('Schaden',Math.round(atk));if(d.cd)r+=R('Angriffstempo',tr('{0} s',d.cd))+R('Schaden pro Sekunde',(atk/d.cd).toFixed(1));r+=R('Reichweite',d.ranged?d.rng:tr('Nahkampf'))}
+    else if(d.heal)r+=R('Heilt',tr('{0}/s',d.heal));
+    r+=R('Tempo',d.spd)+R('Sicht',d.sight);
+    if(d.cls&&CLSN[d.cls])r+=R('Klasse',tr(CLSN[d.cls]));
+    if(good.length)r+=R('Stark gegen',good.join(', '));if(weak.length)r+=R('Schwach gegen',weak.join(', '));
+    if(d.cost&&!d.nocost)r+=R('Kosten',costHTML(ucost(e.team,e.type)))+(d.time?R('Ausbildung',tr('{0} s',d.time)):'')}
+  else if(e.kind==='bld'){
+    const d=BLDS[e.type];r+=R('Leben',Math.ceil(e.hp)+' / '+e.maxHp)+R('Sicht',d.sight);
+    if(d.claim)r+=R('Gebiet',d.claim);if(d.pop)r+=R('Bevölkerung','+'+d.pop);
+    if(d.shoot){const sd=e.spec==='def',sob=e.spec==='obs';r+=R('Schaden',d.shoot.atk)+R('Angriffstempo',tr('{0} s',d.shoot.cd))+R('Reichweite',Math.round(d.shoot.rng*(sd?1.3:sob?.8:1)))}
+    if(d.cost&&Object.keys(d.cost).length)r+=R('Kosten',costHTML(d.cost))+(d.time?R('Bauzeit',tr('{0} s',d.time)):'')}
+  return `<div class="stats">${r}</div>`}
 function infoHTML(s){
   const clr='<button class="x" data-clear aria-label="'+tr('Auswahl aufheben')+'">×</button>';
   if(!s.length)return '<p class="muted">'+tr('Linksklick oder Rahmen ziehen wählt aus. Rechtsklick gibt Befehle: bewegen, sammeln, bauen, angreifen. Doppelklick wählt alle gleichen Einheiten im Bild.')+'</p>';
@@ -169,11 +193,12 @@ function infoHTML(s){
   if(e.kind==='animal'){const d=ANIMALS[e.type];return `<div class="ih"><h2>${nameOf(e)}</h2><span class="tag">${tr('Wildtier')}</span>${clr}</div><div class="hpw"><div class="hp"><span style="width:${Math.max(0,e.hp/e.maxHp*100).toFixed(0)}%"></span></div>${Math.ceil(e.hp)} / ${e.maxHp}</div><div class="line"><em>${tr(d.info)}</em></div>${d.food?`<div class="line">${tr('Jagdbeute')}: <b>${d.food}</b> ${rn('food')}</div>`:''}<div class="line"><em>${d.agg?tr('Angriff {0}',d.atk):tr('Rechtsklick mit Einheiten zum Jagen')}</em></div>`}
   const tag=e.team===1?'<span class="tag enemy">'+tr('Gegner')+'</span>':e.team===0?'<span class="tag">'+tr(EPOCHS[G.epoch[0]].name)+'</span>':'';
   const lv=e.kind==='node'?'':`<span class="tag" style="color:${LVLC[e.lvl]};border-color:${LVLC[e.lvl]}">${tr('Stufe {0}',LVLN[e.lvl])}</span>`;
-  let h=`<div class="ih">${hdIcon(e)}<h2>${nameOf(e)}</h2>${tag}${lv}${clr}</div>`;
+  let h=`<div class="ih">${hdIcon(e)}<h2>${nameOf(e)}</h2>${tag}${lv}${e.kind==='node'?'':`<button class="x ib${infoOpen?' on':''}" data-info aria-label="${tr('Werte')}" title="${tr('Werte anzeigen')}">i</button>`}${clr}</div>`;
   if(e.kind==='node')return h+`<div class="line">${tr('Vorrat')}: <b>${Math.ceil(e.amount)}</b> ${rn(e.rt)}</div>`;
   h+=`<div class="hpw"><div class="hp"><span style="width:${Math.max(0,e.hp/e.maxHp*100).toFixed(0)}%"></span></div>${Math.ceil(e.hp)} / ${e.maxHp}</div>`;
+  if(infoOpen)h+=statsHTML(e);
   if(e.kind==='unit'){const d=UNITS[e.type];let st=tr(STATE[e.state]||'');if(e.state==='gather')st=tr('Sammelt {0}',rn(e.rtype||e.ctype||'food'));if(e.state==='return')st=tr('Bringt {0} zum Lager',rn(e.ctype));
-    h+=`<div class="line">${st}${e.carry>0?` <em>· ${tr('trägt {0} {1}',Math.floor(e.carry),rn(e.ctype))}</em>`:''}</div>${e.q&&e.q.length?`<div class="line"><em>${tr('Befehlskette: {0} weitere Aufträge',e.q.length)}${e.loop?' · '+tr('Schleife'):''}</em></div>`:''}<div class="line"><em>${tr('Angriff {0} · Reichweite {1}',d.atk,d.ranged?d.rng:tr('Nahkampf'))}</em></div>`}
+    h+=`<div class="line">${st}${e.carry>0?` <em>· ${tr('trägt {0} {1}',Math.floor(e.carry),rn(e.ctype))}</em>`:''}</div>${e.q&&e.q.length?`<div class="line"><em>${tr('Befehlskette: {0} weitere Aufträge',e.q.length)}${e.loop?' · '+tr('Schleife'):''}</em></div>`:''}<div class="line"><em>${tr('Angriff {0} · Reichweite {1}',Math.round(effAtk(e)),d.ranged?d.rng:tr('Nahkampf'))}</em></div>`}
   else{
     if(!e.built)h+=`<div class="line">${tr('Im Bau: {0} %',Math.floor(e.prog*100))}${e.team===0?' <em>· '+tr('Arbeiter per Rechtsklick zum Bauen schicken')+'</em>':''}</div>`;
     if(e.team===0&&e.type==='hq'&&G.adv[0])h+=`<div class="line">${tr('Aufstieg in die {0}',tr(EPOCHS[G.epoch[0]+1].name))}: <b>${Math.floor(G.adv[0].t/G.adv[0].time*100)} %</b></div>`;

@@ -550,6 +550,19 @@ function r3Ghost(type,x,y,ok){
 /* Dynamische Auflösung: läuft das Bild zäh (< ~40 FPS), wird die Auflösung schrittweise gesenkt, bei flüssigem Bild wieder angehoben */
 function r3Dyn(dt){if(!(dt>0)||dt>.5)return;R3.dyn=R3.dyn||1;R3.dynA=(R3.dynA||1/60)*.95+dt*.05;R3.dynT=(R3.dynT||0)+dt;if(R3.dynT<1.5)return;R3.dynT=0;
   const f=1/R3.dynA,old=R3.dyn;if(f<38&&R3.dyn>.5)R3.dyn=Math.max(.5,R3.dyn-.1);else if(f>55&&R3.dyn<1)R3.dyn=Math.min(1,R3.dyn+.05);if(R3.dyn!==old)r3Resize();R3.slow=f<30}
+/* ---------- Reichweiten-Ringe: dünnes, dem Gelände folgendes Band um ausgewählte Fernkämpfer/Türme (nur Anzeige) ---------- */
+const RR_N=72;
+function r3Ranges(list){
+  const S=R3.S,pool=R3.rr||(R3.rr=[]);let n=0;
+  for(const q of list){let m=pool[n];
+    if(!m){const g=new THREE.BufferGeometry(),idx=[];g.setAttribute('position',new THREE.BufferAttribute(new Float32Array((RR_N+1)*6),3));
+      for(let i=0;i<RR_N;i++){const a=i*2,b=a+1,c=a+2,d=a+3;idx.push(a,b,c,b,d,c)}g.setIndex(idx);
+      m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.55,depthWrite:false,depthTest:false,fog:false,side:THREE.DoubleSide}));m.renderOrder=6;m.frustumCulled=false;r3.scene.add(m);pool[n]=m}
+    const pa=m.geometry.attributes.position,w=Math.max(.16,.24/Math.max(.45,cam.z)),r=q.r/S;m.material.color.set(q.c);m.material.opacity=q.o||.55;
+    for(let i=0;i<=RR_N;i++){const a=i/RR_N*Math.PI*2,ca=Math.cos(a),sa=Math.sin(a),x=q.x+ca*q.r,y=q.y+sa*q.r,h=hAt(x,y)+.2;
+      pa.setXYZ(i*2,(q.x/S)+ca*(r-w/2),h,(q.y/S)+sa*(r-w/2));pa.setXYZ(i*2+1,(q.x/S)+ca*(r+w/2),h,(q.y/S)+sa*(r+w/2))}
+    pa.needsUpdate=true;m.visible=true;n++}
+  for(let i=n;i<pool.length;i++)pool[i].visible=false}
 function r3Frame(list,rings,dt){r3Dyn(dt);
   const t=(performance.now()-R3.t0)/1000;WIND.value=t;CLOUD.t.value=t;CLOUD.k.value=(OPT.cloudShade&&GQ[gfxQ].cloud&&!R3.saverOn&&!R3.slow&&!(R3.ice>.5))?.8:0;
   if(R3.bgRef!==bg||R3.gRef!==G)r3Map();
@@ -562,6 +575,7 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);if(EGO.on)EGO.hide();r3Smoke(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
   r3TeamMarks(EGO.on?[]:R3.tmList||[],OPT.teamMark||'soft');
   R3.ringN=0;for(const r of EGO.on?[]:rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
+  r3Ranges(EGO.on||!OPT.rangeRing?[]:R3.rangeList||[]);
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;
   /* Schattenkarte nur jedes 2. Bild neu (bewegt sich die Kamera, sofort) – halbiert die Schatten-Zeichenarbeit, Unterschied ist nicht zu sehen */
   {const sm=r3.rd.shadowMap,ck=cam.x.toFixed(1)+','+cam.y.toFixed(1)+','+cam.z.toFixed(3)+','+cam.yaw.toFixed(3)+','+cam.pitch.toFixed(3);sm.autoUpdate=false;R3.shF=(R3.shF||0)+1;if(R3.shF%2===0||ck!==R3.shK){sm.needsUpdate=true;R3.shK=ck}}
