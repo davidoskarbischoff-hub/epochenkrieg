@@ -113,7 +113,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Ressourcen: grosse Vorkommen, Wälder, Steinhaufen
 - [x] Schräge 2,5D-Ansicht mit aufrechten Figuren (`sprites.js`)
 - [x] Oberfläche im dunklen Stein/Bronze-Stil, Minikarte unten links
-- [ ] Idee: Befehlsknöpfe mit eigenen Symbolen und Tastenkürzeln für alle Aktionen
+- [ ] Idee: Befehlsknöpfe mit eigenen Symbolen und Tastenkürzeln für alle Aktionen (Kontrollgruppen Strg+1..9 erledigt 27.10.)
 - [x] Kartenauswahl mit Vorschaubildern (`mapPreview` in nav.js), neue Karte Seenplatte, Seen/Teiche auf mehreren Karten (`lakes` in `MAPS`)
 - [x] Berater: 5 Taktiken (`STRATS`), Lagebild/Erkenntnisse über den Gegner (`advIntel`), Auto-Modus
 - [x] Code aufgeteilt (state/map/sim/ai/commands/input/mp/advisor/render/ui/main)

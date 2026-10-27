@@ -73,7 +73,7 @@ const SAVE=(()=>{
     const g={};for(const k of['t','nid','res','epoch','adv','jobs','rs','nation','speed','over','overShown','alertT','alertT1','aiT','stats','bones','forestCut','late','healT','eraT','rcT','tech','mem','ai'])g[k]=enc(G[k],S);
     const ex=new Uint8Array(exF.length);for(let i=0;i<exF.length;i++)ex[i]=Math.min(255,Math.round(exF[i]*255));
     return{v:VER,ts:Date.now(),diff,sv:G.sv,aiStyle,cam:{x:cam.x,y:cam.y,z:cam.z,yaw:cam.tyaw,pitch:cam.tpitch},g,ents,fog:b64(ex),
-      adv:{strat:advisor.strat,auto:advisor.auto,ignore:advisor.ignore}}}
+      adv:{strat:advisor.strat,auto:advisor.auto,ignore:advisor.ignore},grp:typeof grpList==='function'&&GRP.g===G?GRP.list.map(l=>l||[]):[]}}
   /* quiet = Auto-Speichern: keine Warnung, wenn es nicht geht */
   async function save(sl,quiet){
     sl=sl||'s1';
@@ -124,7 +124,7 @@ const SAVE=(()=>{
     fogUpdate();
     /* Kamera und Berater */
     cam.x=d.cam.x;cam.y=d.cam.y;cam.z=d.cam.z;cam.tyaw=cam.yaw=d.cam.yaw||0;cam.tpitch=cam.pitch=d.cam.pitch||1.14;if(typeof clampCam==='function')try{clampCam()}catch(_){}
-    advisor.strat=d.adv.strat||advisor.strat;advisor.auto=!!d.adv.auto;advisor.ignore=d.adv.ignore||{};advisor.cur=null;advisor.next=G.t+4;
+    if(typeof GRP!=='undefined'){GRP.g=G;GRP.list=Array.isArray(d.grp)?d.grp.map(l=>Array.isArray(l)?l:[]):[]}advisor.strat=d.adv.strat||advisor.strat;advisor.auto=!!d.adv.auto;advisor.ignore=d.adv.ignore||{};advisor.cur=null;advisor.next=G.t+4;
     sel.clear();placing=null;panelSig='';infoCache='';
     $('speedBtn').textContent=tr('Tempo {0}×',G.speed);$('pauseBtn').textContent=tr('Pause');
     if(typeof SND!=='undefined')SND.setEpoch(Math.min(G.epoch[0],6));

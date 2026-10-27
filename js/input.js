@@ -133,11 +133,30 @@ mm.addEventListener('pointerdown',e=>{if(!G)return;if(e.button===2&&G.running){c
 mm.addEventListener('pointermove',e=>{if(mmDrag)mmGo(e)});
 mm.addEventListener('pointerup',()=>{mmDrag=false});
 mm.addEventListener('contextmenu',e=>e.preventDefault());
+/* Kontrollgruppen: Strg/Cmd+Ziffer speichert die Auswahl, Umschalt+Ziffer fügt hinzu, Ziffer wählt sie wieder, zweimal schnell = Kamera springt hin.
+   Gespeichert werden Nummern (G.byId), je Partie neu; Einheiten und Gebäude werden nicht gemischt (die Befehlsknöpfe gelten für eine Art). */
+const GRP={g:null,list:[],lastN:0,lastT:0};
+function grpList(n){if(GRP.g!==G){GRP.g=G;GRP.list=[];GRP.lastN=0}return GRP.list[n]||(GRP.list[n]=[])}
+function grpKey(e){
+  const m=/^(?:Digit|Numpad)([1-9])$/.exec(e.code||'');if(!m||e.altKey||(typeof EGO!=='undefined'&&EGO.on))return false;
+  const n=+m[1];e.preventDefault();
+  if(e.ctrlKey||e.metaKey||e.shiftKey){
+    let own=ownSel();if(!own.length){toast(tr('Nichts ausgewählt, die Gruppe bleibt wie sie war.'));return true}
+    const us=own.filter(u=>u.kind==='unit');own=us.length?us:own.filter(b=>b.kind==='bld');
+    const add=e.shiftKey&&!(e.ctrlKey||e.metaKey),cur=grpList(n);let ids=own.map(u=>u.id);
+    if(add){const keep=cur.map(id=>G.byId.get(id)).filter(u=>u&&!u.dead&&(u.kind==='unit')===(own[0].kind==='unit'));ids=[...new Set([...keep.map(u=>u.id),...ids])]}
+    GRP.list[n]=ids;toast(tr(add?'Gruppe {0}: {1} Einträge':'Gruppe {0} gespeichert: {1}',n,ids.length),'good');sfx('select');return true}
+  const us=grpList(n).map(id=>G.byId.get(id)).filter(u=>u&&!u.dead&&u.team===0&&!u.inm);
+  if(!us.length){toast(tr('Gruppe {0} ist leer. Mit Strg + {0} speichern.',n));return true}
+  GRP.list[n]=us.map(u=>u.id);sel.clear();us.forEach(u=>sel.add(u.id));panelSig='';sfx('select');
+  const now=performance.now();if(GRP.lastN===n&&now-GRP.lastT<450){const cx=us.reduce((a,u)=>a+u.x,0)/us.length,cy=us.reduce((a,u)=>a+u.y,0)/us.length;centerOn(cx,cy)}
+  GRP.lastN=n;GRP.lastT=now;return true}
 addEventListener('keydown',e=>{
   keys[e.key]=true;keys[e.key.toLowerCase()]=true;
   if(e.key==='Escape'&&menuOpen){toggleMenu();return}
   if(menuOpen||!G||!G.running)return;
   if(kA(e)==='pause'){e.preventDefault();togglePause()}
+  else if(grpKey(e)){}
   else if(e.key==='Escape'){if(wallDrag)wallDrag=null;else if(placing||armed){placing=null;armed=false}else toggleMenu()}
   else if(kA(e)==='form'){curForm=(curForm+1)%FORMS.length;panelSig='';toast(tr('Formation: {0}',tr(FORMS[curForm])),'good')}
   else if(kA(e)==='rage'){const ids=ownSel().filter(u=>u.kind==='unit').map(u=>u.id);if(ids.length){if(NET.client)NET.send({c:'rage',ids});else if(!useRage(0,ids))toast(tr('Kampfrausch lädt noch.'),'warn')}}
