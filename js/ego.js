@@ -24,7 +24,7 @@ EGO.stop=(pos)=>{
   if(!EGO.on)return;EGO.on=false;document.body.classList.remove('ego');const s=EGO.saved;
   if(EGO.speedBack){if(!G.mp)G.speed=EGO.speedBack;EGO.speedBack=0}
   if(s){Object.assign(cam,{x:s.x,y:s.y,z:s.z,yaw:s.yaw,pitch:s.pitch,tyaw:s.tyaw,tpitch:s.tpitch})}
-  if(EGO.mv&&EGO.e&&!EGO.e.dead)EGO.go(0,0);const o=EGO.e&&R3.reg.get(entKey(EGO.e));if(o)o.obj.visible=true;if(EGO.sky)EGO.sky.mesh.visible=false;EGO.e=null;EGO.tgt=null;EGO.ctl=false;EGO.mv=null;if(typeof ROOM!=='undefined'&&ROOM.apply)ROOM.apply();
+  if(EGO.mv&&EGO.e&&!EGO.e.dead)EGO.go(0,0);const o=EGO.e&&R3.reg.get(entKey(EGO.e));if(o)o.obj.visible=true;if(EGO.sky)EGO.sky.mesh.visible=false;EGO.clT=0;try{EGO.chunkLod()}catch(_){}EGO.e=null;EGO.tgt=null;EGO.ctl=false;EGO.mv=null;if(typeof ROOM!=='undefined'&&ROOM.apply)ROOM.apply();
   try{if(document.pointerLockElement)document.exitPointerLock()}catch(_){}
   if(R3.ok){r3.camera.fov=R3.FOV;r3.camera.updateProjectionMatrix();r3.camera.near=.8}
   R3.nodeT=0;EGO.ui();panelSig='';if(pos)centerOn(pos.x,pos.y)};
@@ -121,6 +121,10 @@ void main(){vec3 d=normalize(vD);float e=max(d.y,0.);float t=pow(e,.55);vec3 c=m
  #include <colorspace_fragment>
 }`});
   const mesh=new THREE.Mesh(new THREE.SphereGeometry(1000,40,24),m);mesh.renderOrder=-100;mesh.frustumCulled=false;r3.scene.add(mesh);return{mesh,U}};
+/* Gelände in der Ego-Ansicht: nahe Stücke fein, ferne grob (nach Abstand zum Auge, statt global nach Zoom); reset = zurück zum Zustand der freien Kamera */
+EGO.chunkLod=(ex,ez)=>{for(const gp of R3.chunkGrps||[])for(const c of gp.children){const u=c.userData;if(!u.lo)continue;
+  if(u.cx===undefined){const b=u.hi.boundingBox;u.cx=(b.min.x+b.max.x)/2;u.cz=(b.min.z+b.max.z)/2}
+  const g=ex===undefined?(R3.lodOn?u.lo:u.hi):((u.cx-ex)*(u.cx-ex)+(u.cz-ez)*(u.cz-ez)>2500?u.lo:u.hi);if(c.geometry!==g)c.geometry=g}};
 /* Kamera aus den Augen (statt camUpdate der freien Kamera) */
 function egoCam(){
   const e=EGO.e,o=e&&R3.reg.get(entKey(e));if(!o||e.dead||!EGO.can(e)){if(e&&e.team===0&&e.kind==='unit'&&e.dead)toast(tr('Deine Einheit ist gefallen.'),'warn');else if(e&&e.kind==='animal'&&!e.dead)toast(tr('Das Tier ist ausser Sicht.'));EGO.stop(e&&e.dead?{x:e.x,y:e.y}:null);return}
@@ -137,7 +141,7 @@ function egoCam(){
   camera.aspect=VW/VH;camera.fov=R3.FOV*1.5/EGO.zoom;camera.near=.15;camera.updateProjectionMatrix();
   camera.position.set(ex,ey,ez);camera.up.set(Math.sin(roll)*Math.cos(EGO.yaw),Math.cos(roll),-Math.sin(roll)*Math.sin(EGO.yaw));camera.lookAt(ex+cp*sy,ey+Math.sin(EGO.pitch-kk),ez+cp*cy);camera.updateMatrixWorld();
   const reach=(EGO.tower?420:280)*Math.sqrt(Math.max(1,EGO.zoom));/* Zeichenweite in Welteinheiten: Nebel + Auslassen (Leistung) */
-  r3.scene.fog.near=reach*.3;r3.scene.fog.far=reach;R3.farT=reach*1.05;R3.cull=reach*1.02*S;R3.fl=1;R3.cx=e.x;R3.cy=e.y;
+  r3.scene.fog.near=reach*.3;r3.scene.fog.far=reach;R3.farT=reach*1.05;R3.cull=reach*1.02*S;R3.fl=1;if(!EGO.clT||performance.now()>EGO.clT){EGO.clT=performance.now()+250;EGO.chunkLod(ex,ez)}R3.cx=e.x;R3.cy=e.y;
   R3.k=(VH/(2*Math.tan(camera.fov*Math.PI/360)*30))/S;
   const b=Math.min(120,reach*.5);sun.position.set(ex-.95*b,ey+.85*b,ez-.5*b);sun.target.position.set(ex,gy,ez);sun.target.updateMatrixWorld();
   const sc=sun.shadow.camera;sc.left=sc.bottom=-b;sc.right=sc.top=b;sc.near=1;sc.far=b*3.2;sc.updateProjectionMatrix();
