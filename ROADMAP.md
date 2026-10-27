@@ -362,3 +362,4 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 - [ ] Später möglich: Holz-Nachpflanzen in der Prüfung (heute nur Kontrolle, `WOOD_MIN6/9` genügen auf allen Testkarten), Hirsche/Tiere sind eine Spieler-Option und nicht Teil der Garantie, Inselkarten (Archipel) bekommen Stein/Eisen jenseits der Heimatinsel nur per Schiff (Truppentransport vorhanden, KI nutzt ihn nicht).
 
 - [x] Bäume/Gras/Fische poppen beim Zoomen, Neigen, Drehen nicht mehr auf oder weg: stetige Dichte, Einblenden über Grösse, weicher Rand der Sichtweite (27.10., Messung in OPTIMIERUNG.md)
+- [x] Ego-Ansicht: echter Himmel mit Wolken und Sonne, weiteres Sichtfeld, grössere Sichtweite, sanfterer Nebel (27.10.); offen: Waffe/Hände in der Ich-Perspektive
