@@ -34,7 +34,7 @@ function r3Revive(full){if(!R3.ok)return;try{
   if(full&&R3.es){const old=M3.env,pm=new THREE.PMREMGenerator(r3.rd),t=pm.fromScene(R3.es,.04).texture;pm.dispose();M3.env=t;r3.scene.environment=t;r3.scene.traverse(o=>{if(!o.isMesh)return;for(const m of[].concat(o.material))if(m&&m.envMap===old){m.envMap=t;m.needsUpdate=true}})}
   r3.rd.setSize(Math.max(1,VW)+1,Math.max(1,VH),false);r3Resize();R3.bloomOff=0}catch(e){console.warn('revive',e)}}
 /* Grafikqualität (Menü): 0 Niedrig, 1 Mittel, 2 Hoch (Standard), 3 Ultra – unterscheiden sich sichtbar in Schärfe, Schatten, Gras, Leuchten und Rauch */
-const GQ=[{n:'Niedrig',pr:.7,sh:1024,grass:.25,bloom:0,smoke:0,rad:1,cloud:0},{n:'Mittel',pr:1,sh:1024,grass:.6,bloom:0,smoke:1,rad:1.5,cloud:1},{n:'Hoch',pr:1.5,sh:2048,grass:1,bloom:1,smoke:1,rad:2.5,cloud:1},{n:'Ultra',pr:2.2,sh:4096,grass:1.7,bloom:1,smoke:1,rad:4,cloud:1}];
+const GQ=[{n:'Niedrig',pr:.7,sh:1024,grass:.25,bloom:0,smoke:0,rad:1,cloud:0,gl:0},{n:'Mittel',pr:1,sh:1024,grass:.6,bloom:0,smoke:1,rad:1.5,cloud:1,gl:1},{n:'Hoch',pr:1.5,sh:2048,grass:1,bloom:1,smoke:1,rad:2.5,cloud:1,gl:1},{n:'Ultra',pr:2.2,sh:4096,grass:1.7,bloom:1,smoke:1,rad:4,cloud:1,gl:1}];
 let gfxQ=2;try{const q=localStorage.getItem('ek-gfx2');if(q!==null)gfxQ=Math.max(0,Math.min(3,+q||0));else{const o=localStorage.getItem('ek-gfx');if(o!==null)gfxQ=Math.max(0,Math.min(3,(+o||0)+1))}}catch(_){}
 function setGfx(q,temp){const old=gfxQ;gfxQ=q;try{r3.scene.traverse(o=>{if(o.userData&&o.userData.veg)o.castShadow=q>=2})}catch(_){}if(!temp)try{localStorage.setItem('ek-gfx2',q)}catch(_){}if(!R3.ok)return;const g=GQ[q],sz=Math.min(g.sh,r3.maxTex);if(r3.sun.shadow.mapSize.x!==sz){r3.sun.shadow.mapSize.set(sz,sz);if(r3.sun.shadow.map){r3.sun.shadow.map.dispose();r3.sun.shadow.map=null}}
   r3.sun.shadow.radius=g.rad;r3Resize();if(typeof optApply==='function')optApply();if(GQ[old].grass!==g.grass&&r3.i_tuft&&typeof W!=='undefined')r3Grass()}
@@ -154,6 +154,18 @@ function r3Map(){
   const mesh=r3Chunks(g,NX,NZ,tm);mesh.children.forEach(c=>c.receiveShadow=true);scene.add(mesh);r3.terrain=mesh;
   if(r3.waves)for(const w of r3.waves)scene.remove(w);r3.waves=[];
   for(const[sp,rep,op]of[[1,SX/9,.32],[-1,SX/5.3,.22]]){const wt=new THREE.CanvasTexture(r3.waveTex);wt.wrapS=wt.wrapT=THREE.RepeatWrapping;wt.repeat.set(rep,rep*SZ/SX);const wm=new THREE.Mesh(new THREE.PlaneGeometry(SX,SZ).rotateX(-Math.PI/2).translate(SX/2,0,SZ/2),new THREE.MeshBasicMaterial({map:wt,transparent:true,opacity:op,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));wm.position.y=-.34;wm.renderOrder=1;wm.userData.sp=sp;wm.userData.op0=op;scene.add(wm);r3.waves.push(wm)}
+  /* Sonnenglitzern: bewegte Wellenneigungen spiegeln die Sonne (Blinn-Phong auf Rausch-Normalen), nur auf Wasser sichtbar (das Gelände verdeckt die Ebene) */
+  if(r3.glint){scene.remove(r3.glint);r3.glint.geometry.dispose();r3.glint.material.dispose()}
+  {const gm=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false,uniforms:{uT:{value:0},uI:{value:0},uL:{value:new THREE.Vector3(-.6,.6,-.4).normalize()},uC:{value:new THREE.Color(1,.95,.82)}},
+    vertexShader:'varying vec3 vP;void main(){vec4 w=modelMatrix*vec4(position,1.0);vP=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',
+    fragmentShader:'varying vec3 vP;uniform float uT;uniform float uI;uniform vec3 uL;uniform vec3 uC;'+
+     'float h21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}'+
+     'float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(h21(i),h21(i+vec2(1.0,0.0)),f.x),mix(h21(i+vec2(0.0,1.0)),h21(i+vec2(1.0,1.0)),f.x),f.y);}'+
+     'vec2 nd(vec2 p){float e=0.12;return vec2(vn(p+vec2(e,0.0))-vn(p-vec2(e,0.0)),vn(p+vec2(0.0,e))-vn(p-vec2(0.0,e)))/(2.0*e);}'+
+     'void main(){vec2 p=vP.xz;float t=uT;vec2 g=nd(p*1.3+vec2(t*.16,t*.1))*.45+nd(p*3.1-vec2(t*.22,-t*.15))*.35+nd(p*7.3+vec2(-t*.3,t*.19))*.3;'+
+     'vec3 N=normalize(vec3(-g.x*1.5,1.0,-g.y*1.5));vec3 V=normalize(cameraPosition-vP);vec3 H=normalize(normalize(uL)+V);float s=pow(max(dot(N,H),0.0),320.0);'+
+     'float fade=1.0-smoothstep(60.0,190.0,length(cameraPosition-vP));gl_FragColor=vec4(uC*s*uI*fade,1.0);}'});
+   const gp=new THREE.Mesh(new THREE.PlaneGeometry(SX,SZ).rotateX(-Math.PI/2).translate(SX/2,0,SZ/2),gm);gp.position.y=-.335;gp.renderOrder=2;gp.visible=false;gp.frustumCulled=false;scene.add(gp);r3.glint=gp}
   const ovMat=(cv,order,op)=>{const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;const m=r3Chunks(g,NX,NZ,new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2,fog:false}));m.renderOrder=order;m.material.opacity=op;scene.add(m);return m};
   /* Küstenschaum: helle, weich verlaufende Linie im flachen Wasser am Ufer; pulsiert wie anlaufende Wellen */
   if(r3.foam){scene.remove(r3.foam);r3.foam.material.map.dispose()}
@@ -590,6 +602,8 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   r3Tod();
   camUpdate();
   if(r3.foam)r3.foam.material.opacity=(.42+.3*Math.sin(t*1.4)+.1*Math.sin(t*3.1))*(1-(R3.ice||0)*.8);
+  if(r3.glint){const gm=r3.glint.material,u=gm.uniforms,sdl=Math.hypot(R3.sd[0],R3.sd[1],R3.sd[2])||1,el=R3.sd[1]/sdl,k=GQ[gfxQ].gl&&!R3.saverOn&&!R3.slow&&!(R3.ice>.5)&&!(typeof ROOM!=='undefined'&&ROOM.wide())?smooth3(.04,.3,el)*(1-(R3.ice||0)):0;r3.glint.visible=k>.01;
+    if(k>.01){u.uT.value=t;u.uI.value=k*1.5;u.uL.value.set(R3.sd[0]/sdl,R3.sd[1]/sdl,R3.sd[2]/sdl);u.uC.value.copy(r3.sun.color).lerp(TC1.setRGB(1,1,1),.35)}}
   for(const w of r3.waves){w.material.opacity=w.userData.op0*(1-(R3.ice||0)*.72);const m=w.material.map;m.offset.x=(t*.012*w.userData.sp+.012*Math.sin(t*.35+w.userData.sp*3))%1;m.offset.y=(t*.007+.01*Math.sin(t*.27+w.userData.sp))%1}
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   {const V=R3.view,N=R3.nodeV,ck=Math.round(cam.yaw*12)+','+Math.round(cam.pitch*12);if(ck!==R3.camK){R3.camK=ck;R3.nodeT=0}if(Math.abs(Math.log(cam.z/(R3.nodeZ||cam.z)))>.02)R3.nodeT=0;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
