@@ -5,6 +5,7 @@
   Object.assign(EN,{
     'Tutorial':'Tutorial','Willkommen im Epochenkrieg!':'Welcome to Epochenkrieg!','Kamera bewegen':'Move the camera','Zoomen':'Zoom','Drehen und neigen':'Rotate and tilt','Arbeiter auswählen':'Select a worker','Nahrung sammeln':'Gather food','Holz sammeln':'Gather wood',
     'Neue Arbeiter ausbilden':'Train new workers','Bevölkerung':'Population','Eine Hütte bauen':'Build a hut','Eine Kaserne bauen':'Build barracks','Truppen ausbilden':'Train troops','Angreifen':'Attack','Zeitalter-Aufstieg':'Advancing an age','Der Berater':'The advisor','Pause, Tempo, Speichern':'Pause, speed, saving','Geschafft!':'Well done!',
+    'Schnelle Tasten':'Quick keys','Strg + Ziffer speichert die ausgewählten Einheiten als Gruppe, die Ziffer wählt sie wieder aus (zweimal drücken springt hin). Taste B springt zum letzten Angriff, der Punkt wählt einen untätigen Arbeiter.':'Ctrl + number saves the selected units as a group, the number selects them again (press twice to jump there). Key B jumps to the last attack, the period key selects an idle worker.',
     'Weiter':'Next','Überspringen':'Skip','Tutorial beenden':'Quit tutorial','Weiterspielen':'Keep playing','Zurück ins Hauptmenü':'Back to main menu','Schritt {0} von {1}':'Step {0} of {1}','Gut gemacht!':'Nicely done!',
     'Du führst einen Stamm von der Steinzeit bis in die Neuzeit. In wenigen Schritten lernst du die Grundlagen. Das hier ist eine friedliche Übungskarte – niemand greift dich an.':'You lead a tribe from the Stone Age to the modern era. In a few steps you learn the basics. This is a peaceful practice map – nobody will attack you.',
     'Bewege die Karte mit W, A, S, D oder den Pfeiltasten – oder schiebe die Maus an den Bildschirmrand. Ein Klick auf die Minikarte unten links springt direkt dorthin.':'Move the map with W, A, S, D or the arrow keys – or push the mouse to the screen edge. Clicking the minimap at the bottom left jumps straight there.',
@@ -52,6 +53,7 @@
     {t:'Zeitalter-Aufstieg',x:'Im Hauptlager gibt es den Knopf „Aufstieg“. Du brauchst genug Arbeiter und Rohstoffe, danach müssen alle Gebäude und Truppen auf die aktuelle Stufe („Alle upgraden“). Dein Ziel: von der Steinzeit bis in die Neuzeit.',manual:1,target:()=>({dom:$$('epoch')})},
     {t:'Der Berater',x:'Der Berater schlägt dir sinnvolle nächste Schritte vor: Taste Y nimmt an, X lehnt ab. Im Menü (Esc) kannst du ihn abschalten.',manual:1},
     {t:'Pause, Tempo, Speichern',x:'Leertaste = Pause, der Knopf „Tempo“ wechselt zwischen 1×, 2×, 3× und 5×. Im Menü (Esc) kannst du speichern und laden.',manual:1,target:()=>({dom:$$('speedBtn')})},
+    {t:'Schnelle Tasten',x:'Strg + Ziffer speichert die ausgewählten Einheiten als Gruppe, die Ziffer wählt sie wieder aus (zweimal drücken springt hin). Taste B springt zum letzten Angriff, der Punkt wählt einen untätigen Arbeiter.',manual:1},
     {t:'Geschafft!',x:'Du kennst jetzt die Grundlagen. Auf dieser Übungskarte kannst du frei weiterspielen oder zurück ins Hauptmenü gehen und eine echte Partie starten – viel Erfolg!',end:1}];
   /* ---------- Oberfläche ---------- */
   let box=null,arrow=null,hiEl=null,okT=0,chkT=0;
