@@ -77,10 +77,15 @@
   const ACC=['#d2a872','#d3915a','#a9b7c6','#c98a8a','#86aee0','#d49a5a','#b9c27a'],ROMAN=['I','II','III','IV','V','VI','VII','VIII'];
   /* ein Eintrag der Hauptseite: Symbol, Titel, Unterzeile; cls = Zusatzklasse, tag = Schild rechts */
   const mbtn=(id,ic,title,sub,cls,i,tag)=>`<button class="mm-b ${cls||''}" id="${id}" style="--i:${i}"${/mm-off/.test(cls||'')?' disabled':''}><span class="mm-ic">${ico(ic)}</span><span class="mm-bt"><b>${tr(title)}</b>${sub?`<small>${sub}</small>`:''}</span>${tag||''}</button>`;
+  /* Zeitalter-Leiste: erst enger, dann nur Ziffern, damit sie nie über den Fensterrand ragt (Schriften sind je Gerät verschieden, deshalb gemessen statt festgelegt) */
+  function fitEras(){const e=document.querySelector('.mm-eras'),ol=e&&e.querySelector('ol');if(!ol||!e.offsetWidth)return;e.classList.remove('c1','c2');
+    const room=()=>e.clientWidth-2*28,tooWide=()=>ol.getBoundingClientRect().width>room();
+    if(tooWide())e.classList.add('c1');if(tooWide())e.classList.add('c2')}
+  if(!window.__mmFit){window.__mmFit=1;let ft=0;window.addEventListener('resize',()=>{clearTimeout(ft);ft=setTimeout(fitEras,60)})}
   function main(){
     const o=ov();o.hidden=false;o.className='mmv';bg(true);o.onclick=null;if(G&&!NET.mp)G.running=false; /* alte Partie ruht im Hintergrund */
     if(window.TUT&&TUT.on)TUT.stop();
-    const sv=window.SAVE&&SAVE.info(),svSub=sv?tr('Letzter Spielstand: {0}',tr(EPOCHS[Math.min(sv.ep,EPOCHS.length-1)].name)+' · '+SAVE.label()):'',soon=r=>`<span class="mm-tag soon">${tr('Bald')} · ${r}</span>`;let n=0;
+    const sv=window.SAVE&&SAVE.info(),svSub=sv?tr(EPOCHS[Math.min(sv.ep,EPOCHS.length-1)].name)+' · '+SAVE.label():'',soon=r=>`<span class="mm-tag soon">${tr('Bald')} · ${r}</span>`;let n=0;
     o.innerHTML=`<div class="mm-side">${titleArt('mini')}<h1 class="mm-logo sm">Epochenkrieg</h1>
       <div class="mm-orn" aria-hidden="true"><i></i><svg viewBox="0 0 16 16"><path d="M8 1l2.2 5.8L16 8l-5.8 2.2L8 16l-2.2-5.8L0 8l5.8-2.2z"/></svg><i></i></div>
       <p class="mm-by">Daveson ${tr('für')} Deus Vult Infidel</p>
@@ -93,10 +98,10 @@
       ${mbtn('mmOpt','gear','Einstellungen',tr('Grafik, Ton, Steuerung, Sprache'),'',n++)}${mbtn('mmCred','star','Mitwirkende',tr('Wer am Spiel mitgewirkt hat'),'',n++)}</nav>
       <div class="mm-foot"><div class="mm-lang">${['de','en'].map(l=>`<button data-l="${l}" aria-pressed="${l===LANG}">${l==='de'?'Deutsch':'English'}</button>`).join('')}</div><small>${versionLabel()}</small></div></div>
       <div class="mm-eras"><p>${tr('Führe deinen Stamm durch sieben Zeitalter')}</p><ol>${EPOCHS.slice(0,7).map((e,i)=>`<li style="--c:${ACC[i]||ACC[0]}"><i>${ROMAN[i]}</i><span>${tr(e.name)}</span></li>`).join('')}</ol></div>`;
-    loadTitle(o);
+    loadTitle(o);fitEras();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitEras);
     const closeMenu=()=>{music();MPV.stop();bg(false);o.className='';if(typeof ROOM!=='undefined')ROOM.pkey=null;o.hidden=true};
     $('mmSp').onclick=()=>{sfx('click');single()};
-    const mc=$('mmCont');if(mc)mc.onclick=async()=>{sfx('click');const l=SAVE.list().filter(x=>x.meta).sort((a,b)=>b.meta.ts-a.meta.ts)[0];if(l&&await SAVE.load(l.slot))closeMenu()};
+    const mc=$('mmCont');if(mc)mc.title=tr('Letzter Spielstand: {0}',svSub);if(mc)mc.onclick=async()=>{sfx('click');const l=SAVE.list().filter(x=>x.meta).sort((a,b)=>b.meta.ts-a.meta.ts)[0];if(l&&await SAVE.load(l.slot))closeMenu()};
     const mld=$('mmLoad');if(mld)mld.onclick=()=>{sfx('click');SAVE.panel({done:closeMenu})};
     $('mmMp').onclick=()=>{music();if(window.Lobby){bg(false);Lobby.open()}};
     $('mmTut').onclick=()=>{sfx('click');if(window.TUT)TUT.start()};$('mmOpt').onclick=()=>openOpt('game');$('mmCred').onclick=()=>openOpt('cred');

@@ -39,7 +39,6 @@ html,body{background:#0b0806}
 @keyframes mmIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes mmPulse{50%{opacity:.4}}
 .mm-art.mini{flex:none;position:relative;width:100%;max-width:250px;aspect-ratio:3/2;margin-bottom:18px;border-radius:6px;box-shadow:0 0 0 2px #c9a24f,0 0 0 4px #0c1424,0 8px 20px rgba(0,0,0,.5)}
-@media(max-height:760px){.mm-art.mini{display:none}}
 @media(max-height:560px){.mm-splash{gap:18px}.mm-box{width:min(440px,70vw)}.mm-load{min-height:70px}}
 /* Hauptseite */
 .mm-side{width:min(380px,100%);min-height:100%;padding:44px 36px 24px;display:flex;flex-direction:column;animation:mmIn .6s ease;
@@ -179,7 +178,28 @@ body.title-img .mm-art.lid .mm-img{object-fit:contain}
 .mm-eras li span{font:600 10.5px system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#cdbf9f;white-space:nowrap}
 @media(max-width:1180px){.mm-eras li span{display:none}.mm-eras li{padding:0 8px}}
 @media(max-width:900px),(max-height:600px){.mm-eras{display:none}}
-@media(max-height:660px){.mm-nav{gap:6px;margin-top:14px}.mm-bt small{display:none}.mm-b{padding:7px 14px 7px 10px}.mm-ic{width:34px;height:34px}}
+/* Hauptseite passt sich dem Fenster an (27.10., Davids Hinweis): Maße wachsen/schrumpfen mit der Fensterhöhe, der Titel passt in die Spaltenbreite,
+   die Zeitalter-Leiste wird bei Platzmangel kleiner (js: fitEras); wird es trotzdem zu knapp, scrollt nur die Knopfliste */
+#overlay.mmv:not(:has(.mm-sp)){overflow:hidden}
+.mm-side{container-type:inline-size;height:100%;min-height:0;box-sizing:border-box;display:flex;flex-direction:column;padding-top:clamp(18px,4vh,40px);padding-bottom:clamp(12px,2.2vh,22px)}
+.mm-side>*{flex:none}
+.mm-side .mm-logo.sm{white-space:nowrap;font-size:clamp(28px,min(12.6cqw,6.4vh),52px)}
+.mm-art.mini{width:min(100%,250px,calc((100vh - 800px)*1.55));margin-bottom:clamp(6px,1.6vh,14px)}
+@media(max-height:879px){.mm-art.mini{display:none}}
+.mm-orn{margin-top:clamp(2px,.9vh,8px)}
+.mm-by{font-size:clamp(10px,1.4vh,12px)}
+.mm-nav{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--gold3) transparent;gap:clamp(4px,1vh,9px);
+  margin:calc(clamp(8px,2.2vh,22px) - 10px) -10px 0;padding:10px}
+.mm-b{padding-block:clamp(4px,1.1vh,10px)}
+.mm-b.mm-main{padding-block:clamp(6px,1.4vh,13px)}
+.mm-ic{width:clamp(30px,4.3vh,40px);height:clamp(30px,4.3vh,40px)}
+.mm-ic .mi{width:clamp(18px,2.4vh,22px);height:clamp(18px,2.4vh,22px)}
+.mm-foot{padding-top:clamp(8px,1.8vh,18px)}
+@media(max-height:799px){.mm-bt small{display:none}.mm-bt b{font-size:16px}.mm-b.mm-main .mm-bt b{font-size:18px}}
+@media(max-height:560px){.mm-orn,.mm-by{display:none}.mm-foot{border-top:0}}
+.mm-eras.c1 li{padding:0 8px;gap:5px}.mm-eras.c1 li+li::before{left:-4px;width:8px}.mm-eras.c1 li span{letter-spacing:.03em;font-size:9.5px}
+.mm-eras.c1 ol{padding-inline:12px}
+.mm-eras.c2 li span{display:none}.mm-eras.c2 li{padding:0 8px}
 /* Einzelspieler: Schritte, Kopf, eigene Regler, Zusammenfassung */
 .mm-back{display:inline-flex;align-items:center;gap:6px;padding:8px 16px 8px 10px}.mm-back .mi{width:18px;height:18px}
 .mm-head{padding-bottom:12px;border-bottom:1px solid rgba(201,164,104,.2)}
