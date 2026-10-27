@@ -511,3 +511,6 @@ Gebirge (Seed 7): vorher nicht gemessen, nachher 1+1 über alle Läufe; Wüste (
 - Bewegung: Wippen (`EGO.bobP`), Nachschwingen beim Drehen (Federn, `vm.sx/sy`), Schlag (Ausholen + Hieb, `vm.sw` 0..1 in 0,31 s), Stoss (Speer), Rückstoss (Fernkampf). Auslöser: Sprung der Nachladezeit `e.cd` oder `EGO.kick` (eigener Klick). Test-Haken `EGO.vmHold` hält den Fortschritt fest (nur für Bildtests).
 - Aus bei Zoom >= 1,5, im Turm, bei Gebäuden/Tieren, Arbeitern (keine Waffe im Manifest) und mit der Option „Ego: Waffe im Bild“ (`OPT.egoWeapon`).
 
+## Regressionslauf nach Ego-Waffe, Arbeiter-Werkzeug, Kartencode, Tutorial (27.10., abends)
+- Alle 13 Kartenarten (Grösse M, Seed 23, Wasser/Gebirge mittel, Sommer), je 10 Spielminuten Berater-Auto gegen KI (`__norender`), danach Speichern und Laden: keine Fehler, keine ungültigen Zahlen (NaN), Speichern/Laden überall „ok“ (27–36 s Rechenzeit je Lauf). Seite meldet keine Fehler. Ego-Ansicht, Kartencode und Tutorial (19 Schritte) wurden zusätzlich einzeln im Browser geprüft (siehe QA.md).
+
