@@ -129,8 +129,8 @@ EGO.chunkLod=(ex,ez)=>{for(const gp of R3.chunkGrps||[])for(const c of gp.childr
 function egoCam(){
   const e=EGO.e,o=e&&R3.reg.get(entKey(e));if(!o||e.dead||!EGO.can(e)){if(e&&e.team===0&&e.kind==='unit'&&e.dead)toast(tr('Deine Einheit ist gefallen.'),'warn');else if(e&&e.kind==='animal'&&!e.dead)toast(tr('Das Tier ist ausser Sicht.'));EGO.stop(e&&e.dead?{x:e.x,y:e.y}:null);return}
   if(typeof ROOM!=='undefined'){if(ROOM.g&&ROOM.g.visible)ROOM.g.visible=false;if(ROOM.board&&ROOM.board.visible)ROOM.board.visible=false;if(ROOM.spot&&ROOM.spot.visible)ROOM.spot.visible=false}/* Raum-Foto nicht zeigen: Blick über den Kartenrand = Himmelsfarbe statt Foto */
-  {const A=R3.atmo;r3.scene.background=EGO.bg||(EGO.bg=new THREE.Color());EGO.bg.set(A?A.fog:0x9db8c4);r3.scene.fog.color.set(A?A.fog:0x9db8c4);
-   const K=EGO.sky||(EGO.sky=EGO.skyMake());K.mesh.visible=true;K.U.uH.value.set(A?A.fog:0x9db8c4);K.U.uZ.value.set(SKYZ[R3.se]||SKYZ.summer);K.U.uT.value=performance.now()/1000;K.mesh.position.copy(r3.camera.position);K.U.uS.value.copy(r3.sun.position).sub(r3.sun.target.position)}
+  {const A=R3.atmo;r3.scene.background=EGO.bg||(EGO.bg=new THREE.Color());const fh=R3.fogNow||(A?A.fog:0x9db8c4);EGO.bg.set(fh);r3.scene.fog.color.set(fh);
+   const K=EGO.sky||(EGO.sky=EGO.skyMake());K.mesh.visible=true;K.U.uH.value.set(R3.fogNow||(A?A.fog:0x9db8c4));K.U.uZ.value.set(SKYZ[R3.se]||SKYZ.summer);K.U.uT.value=performance.now()/1000;K.mesh.position.copy(r3.camera.position);K.U.uS.value.copy(r3.sun.position).sub(r3.sun.target.position)}
   const{camera,sun}=r3,S=R3.S,p=o.obj.position,gy=Math.max(0,hAt(e.x,e.y));
   const now=performance.now(),dtm=Math.min(.1,Math.max(.001,(now-(EGO.bt||now))/1000));EGO.bt=now;
   /* Kopf-Wippen beim Gehen (nur Fußtruppen am Boden, Option) und kurzer Rückstoß beim Schlag/Schuss */
@@ -143,7 +143,7 @@ function egoCam(){
   const reach=(EGO.tower?420:280)*Math.sqrt(Math.max(1,EGO.zoom));/* Zeichenweite in Welteinheiten: Nebel + Auslassen (Leistung) */
   r3.scene.fog.near=reach*.3;r3.scene.fog.far=reach;R3.farT=reach*1.05;R3.cull=reach*1.02*S;R3.fl=1;if(!EGO.clT||performance.now()>EGO.clT){EGO.clT=performance.now()+250;EGO.chunkLod(ex,ez)}R3.cx=e.x;R3.cy=e.y;
   R3.k=(VH/(2*Math.tan(camera.fov*Math.PI/360)*30))/S;
-  const b=Math.min(120,reach*.5);sun.position.set(ex-.95*b,ey+.85*b,ez-.5*b);sun.target.position.set(ex,gy,ez);sun.target.updateMatrixWorld();
+  const b=Math.min(120,reach*.5);sun.position.set(ex+R3.sd[0]*b,ey+R3.sd[1]*b,ez+R3.sd[2]*b);sun.target.position.set(ex,gy,ez);sun.target.updateMatrixWorld();
   const sc=sun.shadow.camera;sc.left=sc.bottom=-b;sc.right=sc.top=b;sc.near=1;sc.far=b*3.2;sc.updateProjectionMatrix();
   /* sichtbarer Ausschnitt für das Zeichnen = Quadrat um das Auge */
   const r=R3.cull;R3.view={x0:e.x-r,x1:e.x+r,y0:e.y-r,y1:e.y+r}}

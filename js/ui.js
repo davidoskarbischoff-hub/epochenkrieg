@@ -51,6 +51,7 @@ function renderOptions(){
     +row('Leuchten (Bloom)',tog('oBloom',OPT.bloom),'Helle Stellen strahlen weich nach – kostet etwas Leistung')
     +row('Wolkenschatten',tog('oCloud',OPT.cloudShade),'Weiche Schatten ziehen langsam über das Gelände – nur Optik, aus bei Grafik Niedrig')
     +row('Wetter (Laub, Schnee)',tog('oWeather',OPT.weather),'Fallende Blätter im Herbst, Blütenblätter im Frühling, Schnee im Winter – nur Optik')
+    +row('Tageszeit',seg('oTod',[['off','Aus'],['soft','Dezent'],['full','Voll']],OPT.tod),'Die Sonne wandert über den Tag (25 Spielminuten): Morgen- und Abendlicht; „Voll“ mit dunkler Nacht – nur Optik')
     +row('Reichweiten-Ringe',tog('oRange',OPT.rangeRing),'Zeigt für ausgewählte Fernkämpfer und Türme einen Ring mit ihrer Reichweite')
     +row('Spielzimmer',tog('oRoom',OPT.room),'Karte liegt als Brett auf einem Schreibtisch in einer Werkstatt')
     +row('Intro-Animation',tog('oIntro',OPT.intro!==false),'Der Spielkarton öffnet sich beim Start; Klick oder Taste überspringt')
@@ -89,7 +90,7 @@ function renderOptions(){
   bind('oEdge',e=>e.onchange=()=>optSet('edgeScroll',e.checked));
   bind('oRot',e=>e.oninput=()=>{optSet('camRot',+e.value);q('oRoto').textContent=(+e.value).toFixed(1)+'×'});
   bind('oZoom',e=>e.oninput=()=>{optSet('zoomSpeed',+e.value);q('oZoomo').textContent=(+e.value).toFixed(1)+'×'});
-  segB('oUi',v=>{optSet('uiClassic',v==='classic');panelSig='';infoCache='';if(G)updateUI()});segB('oHp',v=>optSet('hpBars',v));segB('oTm',v=>optSet('teamMark',v));bind('oTips',e=>e.onchange=()=>optSet('tips',e.checked));bind('oToasts',e=>e.onchange=()=>optSet('toasts',e.checked));
+  segB('oUi',v=>{optSet('uiClassic',v==='classic');panelSig='';infoCache='';if(G)updateUI()});segB('oHp',v=>optSet('hpBars',v));segB('oTm',v=>optSet('teamMark',v));segB('oTod',v=>optSet('tod',v));bind('oTips',e=>e.onchange=()=>optSet('tips',e.checked));bind('oToasts',e=>e.onchange=()=>optSet('toasts',e.checked));
   segB('oLang',v=>{applyLang(v);renderOptions()});
   segB('oWild',v=>{try{localStorage.setItem('ek-wild',v)}catch(_){}renderOptions()});
   document.querySelectorAll('.kmbtn').forEach(b=>b.onclick=()=>{b.textContent=tr('Taste drücken …');b.classList.add('wait');
@@ -168,7 +169,7 @@ let infoOpen=false;
 /* tatsächlicher Schaden je Treffer gegen neutrale Ziele: Grundwert × Technologie × Stufe (wie in hit()) */
 function effAtk(e){const d=UNITS[e.type],tf=G.tfx[e.team]||{ratk:0,matk:0},nf=G.nfx[e.team]||{art:0};return d.atk*(1+(d.ranged?tf.ratk:tf.matk))*(d.cls==='siege'?1+(nf.art||0):1)*LVL.atk[e.lvl||0]}
 function statsHTML(e){
-  const R=(k,v)=>`<div class="st"><span>${tr(k)}</span><b>${v}</b></div>`;let r='';
+  const R=(k,v)=>`<div class="kv"><span>${tr(k)}</span><b>${v}</b></div>`;let r='';
   if(e.kind==='unit'){
     const d=UNITS[e.type],atk=effAtk(e);
     const good=Object.keys(CTR[d.cls]||{}).map(c=>tr(CLSN[c]||c)),weak=Object.keys(CTR).filter(c=>(CTR[c]||{})[d.cls]>1).map(c=>tr(CLSN[c]||c));
@@ -184,7 +185,7 @@ function statsHTML(e){
     if(d.claim)r+=R('Gebiet',d.claim);if(d.pop)r+=R('Bevölkerung','+'+d.pop);
     if(d.shoot){const sd=e.spec==='def',sob=e.spec==='obs';r+=R('Schaden',d.shoot.atk)+R('Angriffstempo',tr('{0} s',d.shoot.cd))+R('Reichweite',Math.round(d.shoot.rng*(sd?1.3:sob?.8:1)))}
     if(d.cost&&Object.keys(d.cost).length)r+=R('Kosten',costHTML(d.cost))+(d.time?R('Bauzeit',tr('{0} s',d.time)):'')}
-  return `<div class="stats">${r}</div>`}
+  return `<div class="ustats">${r}</div>`}
 function infoHTML(s){
   const clr='<button class="x" data-clear aria-label="'+tr('Auswahl aufheben')+'">×</button>';
   if(!s.length)return '<p class="muted">'+tr('Linksklick oder Rahmen ziehen wählt aus. Rechtsklick gibt Befehle: bewegen, sammeln, bauen, angreifen. Doppelklick wählt alle gleichen Einheiten im Bild.')+'</p>';
