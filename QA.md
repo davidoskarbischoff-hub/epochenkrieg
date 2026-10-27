@@ -181,5 +181,6 @@ Bilder (Scratch): `scratchpad/au/e0..e6_a.png` (Siedlung + Arbeiter + Kampf), `e
 
 ## Ego: Waffe im Bild (27.10.)
 - [x] Bilder geprüft (Software-GL): Schwert + Schild, Speer + Schild, Keule, Streitaxt, Bogen, Scharfschützengewehr, Sturmgewehr, Druidenstab; Schlag-Pose bei Schwert/Speer/Bogen; Wechsel per Tab, Gebäude/Arbeiter (keine Waffe), Option aus.
-- [ ] offen: Armbrust (`Wooden Bow`), Maschinenpistole, Reiter-Schwert nicht einzeln im Bild geprüft; Horn des Spähers bewusst weggelassen; keine Hände/Arme (Waffe schwebt); echte Bildrate/Look auf einer richtigen Grafikkarte (David).
+- [x] (27.10.) Armbrust (`Wooden Bow`, wirkt wie ein dunkler Bogen) und Maschinenpistole (Sturmtruppe, etwas verkleinert) im Bild geprüft.
+- [ ] offen: Reiter-Schwert nicht einzeln im Bild geprüft; Horn des Spähers bewusst weggelassen; keine Hände/Arme (Waffe schwebt); echte Bildrate/Look auf einer richtigen Grafikkarte (David).
 

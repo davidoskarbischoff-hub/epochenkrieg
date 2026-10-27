@@ -163,7 +163,7 @@ const VMP={
  'neu/Wooden Bow.glb':{len:.62,fix:[0,0,0],grip:.5,at:[-.24,-.2,-.7],tilt:[0,-5],yaw:-28,how:'shoot'},
  'neu/Sniper Rifle.glb':{len:.9,fix:[0,0,90],grip:.3,at:[.2,-.22,-.5],tilt:[78,-6],how:'shoot'},
  'neu/Assault Rifle.glb':{len:.8,fix:[0,0,90],grip:.3,at:[.2,-.22,-.5],tilt:[78,-6],how:'shoot'},
- 'archiv/Submachine Gun.glb':{len:.55,fix:[0,0,90],grip:.3,at:[.2,-.22,-.5],tilt:[78,-6],how:'shoot'},
+ 'archiv/Submachine Gun.glb':{len:.4,fix:[0,0,90],grip:.3,at:[.2,-.2,-.5],tilt:[78,-6],how:'shoot'},
  'waffen/Shield_1_A.glb':{len:.3,fix:[0,-90,0],grip:.5,at:[-.36,-.17,-.64],tilt:[0,-8],how:'none'},
  'waffen/Shield_2_A.glb':{len:.3,fix:[0,-90,0],grip:.5,at:[-.36,-.17,-.64],tilt:[0,-8],how:'none'}};
 EGO.vmMake=()=>{const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(58,1,.05,30),g=new THREE.Group(),hemi=new THREE.HemisphereLight(0xffffff,0x666666,1),sun=new THREE.DirectionalLight(0xffffff,1);
