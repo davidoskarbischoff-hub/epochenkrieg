@@ -562,9 +562,17 @@ const EKMODELS=(()=>{
     for(const en of Object.values(manifest.nodes||{}))for(const x of Array.isArray(en)?en:[en]){if(!x||!x.file||x.off||!x.when)continue;const w=Array.isArray(x.when)?x.when:[x.when];if(w.some(t=>tags.includes(t))&&!files.has(x.file))need.add(x.file)}
     let n=0;await Promise.all([...need].map(async f=>{if(!loadingF.has(f))loadingF.set(f,loader.loadAsync('models/'+f).then(g=>{files.set(f,g);n++}).catch(err=>{failed.push(f);console.warn('Modell nicht geladen:',f,err&&err.message)}));await loadingF.get(f)}));
     if(n)pCache.clear();return n}
+  /* Waffe(n) einer Einheit als eigene Modelle (Ego-Ansicht, Bild der Waffe): [{p,side:'hand'|'left',file,spec}], p = frisch geklont und umgefärbt, noch ohne Haltung */
+  function held(u){
+    const en=u&&entryFor('unit',u.type,u.lvl||0),out=[];if(!en)return out;
+    for(const side of['hand','left']){const spec=en[side],gl=spec&&files.get(spec.file);if(!gl)continue;
+      const p=EKGLTF.SkeletonUtils.clone(gl.scene);prepare(p,u.team||0);
+      if(spec.tint){const t={};for(const n in spec.tint)t[n]=spec.tint[n]==='team'?(TC[u.team||0]||'#888888'):spec.tint[n];tintMats(p,t)}
+      p.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false}});out.push({p,side,file:spec.file,spec})}
+    return out}
   /* für Tests/Vorschau: Modell von Hand eintragen */
   function register(kind,type,entry,gltf){if(!manifest)manifest={units:{},buildings:{}};const s=secOf(kind);(manifest[s]||(manifest[s]={}))[type]=entry;files.set(entry.file,gltf);R.ver++}
-  return Object.assign(R,{mergeStatic,init,cmapLoad,loadWhen,tag,has,makeUnit,makeBld,makeSea,iconModel,nodeParts,nodeN,nodeMeta,nodeL:nodeList,animate,register,files,ualFor,failed,refSize,dbg:()=>({refCache}),util:{findBone,ik2,turnW,aimBone,box,prepare,pickClip,V,Q,man:()=>manifest}})
+  return Object.assign(R,{mergeStatic,init,cmapLoad,loadWhen,tag,has,held,makeUnit,makeBld,makeSea,iconModel,nodeParts,nodeN,nodeMeta,nodeL:nodeList,animate,register,files,ualFor,failed,refSize,dbg:()=>({refCache}),util:{findBone,ik2,turnW,aimBone,box,prepare,pickClip,V,Q,man:()=>manifest}})
 })();
 /* Modelle in die Bau-Funktionen einhängen (Rückfall auf die Code-Modelle, wenn nichts passt) */
 (()=>{const origU=buildUnit,origB=buildBld;window.origBuildUnit=origU;

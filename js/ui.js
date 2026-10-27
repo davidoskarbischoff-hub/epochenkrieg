@@ -33,6 +33,7 @@ function renderOptions(){
     +row('Kamera-Drehung',rng('oRot',.3,2.5,.1,OPT.camRot,OPT.camRot.toFixed(1)+'×'),'Wie schnell sich die Kamera beim Drehen und Neigen bewegt')
     +row('Ego: Mausempfindlichkeit',rng('oEgoS',.3,2.5,.1,OPT.egoSens,OPT.egoSens.toFixed(1)+'×'),'Wie schnell sich der Blick in der Ego-Ansicht dreht')
     +row('Ego: Kopf-Wippen',tog('oEgoB',OPT.egoBob),'Die Kamera wippt leicht, wenn die Figur läuft')
+    +row('Ego: Waffe im Bild',tog('oEgoW',OPT.egoWeapon!==false),'Zeigt in der Ego-Ansicht die Waffe der Figur unten im Bild')
     +row('Auto-Speichern',tog('oAuto',OPT.autosave!==false),'Alle 5 Spielminuten in den Platz „Automatisch“ speichern (nur Einzelspieler)')
     +row('Kamera zurücksetzen','<button id="oCamR" type="button" class="kmbtn">'+tr('Zurücksetzen')+'</button>','Drehung und Neigung auf Standard. Umschauen: Taste halten (Standard R) und die Maus bewegen')
     +row('Bildschirmrand-Scrollen',tog('oEdge',OPT.edgeScroll),'Maus an den Rand schieben, um die Karte zu bewegen')
@@ -85,7 +86,7 @@ function renderOptions(){
   const q=id=>document.getElementById(id),bind=(id,fn)=>{const e=q(id);if(e)fn(e)};
   const segB=(id,fn)=>bind(id,e=>e.querySelectorAll('button').forEach(b=>b.onclick=()=>{fn(b.dataset.v);e.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
   bind('oCam',e=>e.oninput=()=>{optSet('camSpeed',+e.value);q('oCamo').textContent=(+e.value).toFixed(1)+'×'});
-  bind('oEgoS',e=>e.oninput=()=>{optSet('egoSens',+e.value);q('oEgoSo').textContent=(+e.value).toFixed(1)+'×'});bind('oEgoB',e=>e.onchange=()=>optSet('egoBob',e.checked));
+  bind('oEgoS',e=>e.oninput=()=>{optSet('egoSens',+e.value);q('oEgoSo').textContent=(+e.value).toFixed(1)+'×'});bind('oEgoB',e=>e.onchange=()=>optSet('egoBob',e.checked));bind('oEgoW',e=>e.onchange=()=>optSet('egoWeapon',e.checked));
   bind('oCamR',e=>e.onclick=()=>camReset());
   bind('oEdge',e=>e.onchange=()=>optSet('edgeScroll',e.checked));
   bind('oRot',e=>e.oninput=()=>{optSet('camRot',+e.value);q('oRoto').textContent=(+e.value).toFixed(1)+'×'});

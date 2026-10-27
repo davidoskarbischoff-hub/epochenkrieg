@@ -178,3 +178,8 @@ Bilder (Scratch): `scratchpad/au/e0..e6_a.png` (Siedlung + Arbeiter + Kampf), `e
 - [x] Spielstand-Fenster mit Auto + Platz 1/2 belegt, 400 und 1280 px, DE/EN, beide Oberflächen: kein Überlauf, alles lesbar, keine Änderung nötig.
 - [x] Gast-Lobby zeigte nach Grössenänderung das Hauptmenü (25.10.): gezielt nachgestellt (Gast und Gastgeber, Resize 1100x700/500x800/800x500, `resize`-Ereignis, `applyLang` DE/EN, `Lobby.render()`): Lobby bleibt jedes Mal Lobby, nie das Hauptmenü. Code geprüft: `resize()` ändert nur Zeichenflächen; `applyLang` ruft `showStart()` nur, wenn der Overlay `[data-l]` (Sprachknöpfe) enthält, die Lobby hat keine. Nicht reproduzierbar, also Testartefakt (langsames Software-GL). Absicherung: `tools/mp-test.js` Schritt (0c). Kleiner Rest: Lobby-Texte ändern sich bei Sprachwechsel erst beim nächsten Neuzeichnen (in der Lobby ist kein Sprachwechsel erreichbar).
 - [x] Spielstand-Fenster im Glas-Look bei Liquid Glass (ui2.css, 25.10.); Lobby zeichnet bei Sprachwechsel neu (`Lobby.refresh`).
+
+## Ego: Waffe im Bild (27.10.)
+- [x] Bilder geprüft (Software-GL): Schwert + Schild, Speer + Schild, Keule, Streitaxt, Bogen, Scharfschützengewehr, Sturmgewehr, Druidenstab; Schlag-Pose bei Schwert/Speer/Bogen; Wechsel per Tab, Gebäude/Arbeiter (keine Waffe), Option aus.
+- [ ] offen: Armbrust (`Wooden Bow`), Maschinenpistole, Reiter-Schwert nicht einzeln im Bild geprüft; Horn des Spähers bewusst weggelassen; keine Hände/Arme (Waffe schwebt); echte Bildrate/Look auf einer richtigen Grafikkarte (David).
+

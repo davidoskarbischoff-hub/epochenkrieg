@@ -504,3 +504,10 @@ Gebirge (Seed 7): vorher nicht gemessen, nachher 1+1 über alle Läufe; Wüste (
 
 ## Regressionslauf nach den Paketen vom 27.10.
 - Alle 13 Kartenarten (Grösse M, Seed 23, Wasser/Berge mittel, Sommer), je 10 Spielminuten Berater-Auto gegen KI (`__norender`), danach Speichern und Laden: keine Fehlermeldungen, keine NaN-Positionen/-Leben, Speichern/Laden überall ok (28–41 s Rechenzeit je Lauf, Software-Chromium). Vollständiger Mehrspieler-Test (`tools/mp-test.js`) „ALLES OK“, Tutorial-Durchlauf (18 Schritte) ok, klassische Oberfläche bei 400 px ohne Überlauf. Skript `sweep.js` liegt im Verlauf, nicht im Repo.
+
+## Ego: Waffe im Bild (27.10.)
+- `EKMODELS.held(u)` (gltfmodels.js) liefert die Waffen aus dem Manifest (`hand`/`left`) als frisch geklonte, umgefärbte Modelle ohne Knochen. `EGO.vmBuild/vmUpdate/vmDraw` (ego.js): eigene Szene + eigene Kamera (Blickwinkel 58°, bleibt beim Zoomen gleich), Lichter (Sonne, Himmel) aus der Welt kopiert; zweiter Zeichendurchgang nach der Welt mit gelöschter Tiefe (`render3d.js`, direkt nach dem Hauptbild), deshalb kein Eintauchen in Wände. Kosten: eine kleine Szene mit 1–2 Modellen (< 3000 Dreiecke), kein Schatten.
+- Haltung je Datei in `VMP` (ego.js): `len`, `fix`, `grip`, `at`, `tilt`, `yaw`, `how`. Per Bild geprüft (Software-GL, 1000×620): Schwert, Speer, Keule, Axt, Bogen, Scharfschützengewehr, Sturmgewehr, Stab, Schilde. Bewusst ohne Bild: Horn des Spähers (sah als grosser Klumpen aus), Schleuder, Armbrust/Maschinenpistole (Haltung wie die Gewehre, nicht einzeln geprüft).
+- Bewegung: Wippen (`EGO.bobP`), Nachschwingen beim Drehen (Federn, `vm.sx/sy`), Schlag (Ausholen + Hieb, `vm.sw` 0..1 in 0,31 s), Stoss (Speer), Rückstoss (Fernkampf). Auslöser: Sprung der Nachladezeit `e.cd` oder `EGO.kick` (eigener Klick). Test-Haken `EGO.vmHold` hält den Fortschritt fest (nur für Bildtests).
+- Aus bei Zoom >= 1,5, im Turm, bei Gebäuden/Tieren, Arbeitern (keine Waffe im Manifest) und mit der Option „Ego: Waffe im Bild“ (`OPT.egoWeapon`).
+

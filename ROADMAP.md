@@ -362,7 +362,7 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 - [ ] Später möglich: Holz-Nachpflanzen in der Prüfung (heute nur Kontrolle, `WOOD_MIN6/9` genügen auf allen Testkarten), Hirsche/Tiere sind eine Spieler-Option und nicht Teil der Garantie, Inselkarten (Archipel) bekommen Stein/Eisen jenseits der Heimatinsel nur per Schiff (Truppentransport vorhanden, KI nutzt ihn nicht).
 
 - [x] Bäume/Gras/Fische poppen beim Zoomen, Neigen, Drehen nicht mehr auf oder weg: stetige Dichte, Einblenden über Grösse, weicher Rand der Sichtweite (27.10., Messung in OPTIMIERUNG.md)
-- [x] Ego-Ansicht: echter Himmel mit Wolken und Sonne, weiteres Sichtfeld, grössere Sichtweite, sanfterer Nebel (27.10.); offen: Waffe/Hände in der Ich-Perspektive
+- [x] Ego-Ansicht: echter Himmel mit Wolken und Sonne, weiteres Sichtfeld, grössere Sichtweite, sanfterer Nebel (27.10.); Waffe in der Ich-Perspektive erledigt (27.10., siehe unten); offen: Hände/Arme
 
 ## Karten-Optik, Hauptmenü, Tutorial (27.10.)
 - [x] Kartenvorschau: Relief mit Hang-/Schlagschatten, Felsschichten, Schneegrate, ruhiges Randgebirge, Streifen-Fehler behoben
@@ -370,4 +370,4 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 - [x] Hauptmenü 2: Symbole, Zierrahmen, Zeitalter-Leiste, Weiterspielen, Schritte 1–3, eigene Regler, Zusammenfassung
 - [x] Tutorial mit Pfeilen und Leuchtrahmen (siehe CLAUDE.md)
 - [ ] Idee: Tutorial um Fortgeschrittenen-Teil erweitern (Markt, Mauern, Schiffe, Ego-Ansicht), Tutorial-Fortschritt merken
-
+- [x] Ego-Ansicht: Waffe im Bild (27.10.): echtes Waffenmodell der Einheit unten rechts (Schild links, Bogen links), Wippen, Nachschwingen beim Drehen, Schlag/Stoss/Schuss-Bewegung, Option „Ego: Waffe im Bild“; offen: sichtbare Hände/Arme, Werkzeuge der Arbeiter, Waffen für Reiter/Schiffe/Flieger
