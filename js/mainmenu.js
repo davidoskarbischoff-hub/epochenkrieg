@@ -79,6 +79,7 @@
   const mbtn=(id,ic,title,sub,cls,i,tag)=>`<button class="mm-b ${cls||''}" id="${id}" style="--i:${i}"${/mm-off/.test(cls||'')?' disabled':''}><span class="mm-ic">${ico(ic)}</span><span class="mm-bt"><b>${tr(title)}</b>${sub?`<small>${sub}</small>`:''}</span>${tag||''}</button>`;
   function main(){
     const o=ov();o.hidden=false;o.className='mmv';bg(true);o.onclick=null;if(G&&!NET.mp)G.running=false; /* alte Partie ruht im Hintergrund */
+    if(window.TUT&&TUT.on)TUT.stop();
     const sv=window.SAVE&&SAVE.info(),svSub=sv?tr('Letzter Spielstand: {0}',tr(EPOCHS[Math.min(sv.ep,EPOCHS.length-1)].name)+' · '+SAVE.label()):'',soon=r=>`<span class="mm-tag soon">${tr('Bald')} · ${r}</span>`;let n=0;
     o.innerHTML=`<div class="mm-side">${titleArt('mini')}<h1 class="mm-logo sm">Epochenkrieg</h1>
       <div class="mm-orn" aria-hidden="true"><i></i><svg viewBox="0 0 16 16"><path d="M8 1l2.2 5.8L16 8l-5.8 2.2L8 16l-2.2-5.8L0 8l5.8-2.2z"/></svg><i></i></div>
@@ -87,7 +88,7 @@
       ${mbtn('mmSp','swords','Einzelspieler',tr('Gegen die KI – Karte und Partie wählen'),sv?'':'mm-main',n++)}
       ${window.SAVE?mbtn('mmLoad','disk','Spielstand laden',tr('Spielstände von früher fortsetzen'),'',n++):''}
       ${mbtn('mmMp','globe','Mehrspieler',tr('Online mit Einladungslink'),'',n++,'<span class="mm-tag beta">Beta</span>')}
-      ${mbtn('mmTut','scroll','Tutorial',tr('Schritt für Schritt lernen'),'mm-off',n++,soon('Release 3'))}
+      ${mbtn('mmTut','scroll','Tutorial',tr('Schritt für Schritt lernen'),'',n++)}
       ${mbtn('mmStory','book','Story','','mm-off',n++,soon('Release 4'))}
       ${mbtn('mmOpt','gear','Einstellungen',tr('Grafik, Ton, Steuerung, Sprache'),'',n++)}${mbtn('mmCred','star','Mitwirkende',tr('Wer am Spiel mitgewirkt hat'),'',n++)}</nav>
       <div class="mm-foot"><div class="mm-lang">${['de','en'].map(l=>`<button data-l="${l}" aria-pressed="${l===LANG}">${l==='de'?'Deutsch':'English'}</button>`).join('')}</div><small>${versionLabel()}</small></div></div>
@@ -98,7 +99,7 @@
     const mc=$('mmCont');if(mc)mc.onclick=async()=>{sfx('click');const l=SAVE.list().filter(x=>x.meta).sort((a,b)=>b.meta.ts-a.meta.ts)[0];if(l&&await SAVE.load(l.slot))closeMenu()};
     const mld=$('mmLoad');if(mld)mld.onclick=()=>{sfx('click');SAVE.panel({done:closeMenu})};
     $('mmMp').onclick=()=>{music();if(window.Lobby){bg(false);Lobby.open()}};
-    $('mmOpt').onclick=()=>openOpt('game');$('mmCred').onclick=()=>openOpt('cred');
+    $('mmTut').onclick=()=>{sfx('click');if(window.TUT)TUT.start()};$('mmOpt').onclick=()=>openOpt('game');$('mmCred').onclick=()=>openOpt('cred');
     o.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{applyLang(b.dataset.l);main()})}
   function openOpt(tab){if(!menuOpen)toggleMenu();optTab=tab;renderOptions()}
   /* Einstellungen aus dem Hauptmenü: „Übernehmen“ schließt zurück zum Hauptmenü */

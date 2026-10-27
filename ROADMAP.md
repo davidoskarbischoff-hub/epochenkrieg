@@ -239,7 +239,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 ## v0.2.1 – Leistung und Hauptmenü (2026-10-11)
 - [x] Leistung im Langzeitspiel: Wegsuche ~5× schneller, KI-Turmsuche gedrosselt, Gelände in Stücken (nur Sichtbares wird gezeichnet), Vorkommen ausserhalb des Bildes übersprungen, dynamische Auflösung bei wenig FPS.
 - [x] Hauptmenü (`js/mainmenu.js`, `css/mainmenu.css`): Ladebildschirm „Epochenkrieg – Daveson für Deus Vult Infidel“, Hauptseite mit eigener Musik und fliegender Kamera über die Karte, Einzelspieler-Seite mit Kartenkacheln, Reglern (Kartengröße, Schwierigkeit, Wildtiere) und Gegner-Kacheln; Mehrspieler mit Beta-Hinweis; Tutorial (Release 3) und Story (Release 4) als „Bald“.
-- [ ] Tutorial (Release 3), Story (Release 4).
+- [x] Tutorial (27.10.): `js/tutorial.js`, 17 geführte Schritte auf einer friedlichen Übungskarte. [ ] Story (Release 4).
 - [ ] Altes `showStart` in ui.js entfernen, sobald das neue Menü bewährt ist.
 - [ ] Eigenes, langes Menü-Musikstück (jetzt: Greensleeves-Synthesizer).
 
@@ -363,3 +363,11 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 
 - [x] Bäume/Gras/Fische poppen beim Zoomen, Neigen, Drehen nicht mehr auf oder weg: stetige Dichte, Einblenden über Grösse, weicher Rand der Sichtweite (27.10., Messung in OPTIMIERUNG.md)
 - [x] Ego-Ansicht: echter Himmel mit Wolken und Sonne, weiteres Sichtfeld, grössere Sichtweite, sanfterer Nebel (27.10.); offen: Waffe/Hände in der Ich-Perspektive
+
+## Karten-Optik, Hauptmenü, Tutorial (27.10.)
+- [x] Kartenvorschau: Relief mit Hang-/Schlagschatten, Felsschichten, Schneegrate, ruhiges Randgebirge, Streifen-Fehler behoben
+- [x] Boden-Shader: Felsschichten an steilen Hängen (dezent); offen: steilere Klippen-Geometrie (braucht Test mit echter GPU)
+- [x] Hauptmenü 2: Symbole, Zierrahmen, Zeitalter-Leiste, Weiterspielen, Schritte 1–3, eigene Regler, Zusammenfassung
+- [x] Tutorial mit Pfeilen und Leuchtrahmen (siehe CLAUDE.md)
+- [ ] Idee: Tutorial um Fortgeschrittenen-Teil erweitern (Markt, Mauern, Schiffe, Ego-Ansicht), Tutorial-Fortschritt merken
+

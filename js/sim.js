@@ -133,7 +133,7 @@ function step(dt){
   separate();
   fogT+=dt;if(fogT>=.2){fogT=0;fogUpdate()}
   G.ents=G.ents.filter(e=>{if(e.dead){G.byId.delete(e.id);return false}return true});
-  if(!G.mp){G.aiT+=dt;if(G.aiT>=1){G.aiT=0;aiTick()}}
+  if(!G.mp&&!G.tut){G.aiT+=dt;if(G.aiT>=1){G.aiT=0;aiTick()}}
   G.fx=G.fx.filter(f=>G.t-f.t<.7);
 }
 
