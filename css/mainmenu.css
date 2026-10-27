@@ -207,3 +207,11 @@ body.title-img .mm-art.lid .mm-img{object-fit:contain}
 body.room .mm-go{position:sticky;bottom:0;border-radius:14px;background:linear-gradient(180deg,rgba(30,25,20,.96),rgba(16,13,10,.98))}
 @media(max-width:560px){.mm-go{flex-direction:column;align-items:stretch}.mm-go .go{min-width:0;width:100%}}
 @media(prefers-reduced-motion:reduce){.mm-b,.mm-eras{animation:none}.mm-b::after{display:none}}
+
+/* Kartencode (Einzelspieler-Seite) */
+.mm-codebar{display:flex;align-items:center;gap:8px;margin:2px 2px 0;font-size:12.5px;color:#a89c84}
+.mm-codebar label{white-space:nowrap}
+.mm-code{flex:1;min-width:0;background:rgba(0,0,0,.35);border:1px solid var(--gold3);border-radius:8px;color:#f3e4c4;padding:6px 10px;font:600 13px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.04em}
+.mm-code:focus{outline:none;border-color:var(--gold1);box-shadow:0 0 10px rgba(227,182,106,.3)}
+.mm-codebar .mm-d{padding:6px 12px;font-size:13px}
+

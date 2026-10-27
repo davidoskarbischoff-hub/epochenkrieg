@@ -316,7 +316,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Hafen bei „wenig Wasser“ auf grossen Karten oft weit vom Start (KI baut dann keinen Hafen)
 - [ ] Kraterrand: kleinen Teich nah am Start ergänzen (Fische, Hafen)
 - [ ] Jahreszeit im Mehrspieler-Spiel vom Gast frei wählbar (nur Vorschlag)
-- [ ] Karten-Seed per Eingabefeld teilen/merken („Lieblingskarten“)
+- [x] (27.10.) Karten-Seed teilen: „Kartencode“ unter der Vorschau (Kopieren, Einfügen) – offen: „Lieblingskarten“ merken, Code in der Mehrspieler-Lobby
 
 ## Industrie- und Waffen-Modelle (18.10.)
 - [x] Farbtabellen repariert (Davids Upload hatte `variation-a/b/c.png` überschrieben); Industrie-Tabellen heissen `ind-a/b/c.png`
