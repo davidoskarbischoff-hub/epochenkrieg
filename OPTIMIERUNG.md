@@ -501,3 +501,6 @@ Gebirge (Seed 7): vorher nicht gemessen, nachher 1+1 über alle Läufe; Wüste (
 ## Sonnenglitzern auf dem Wasser (27.10.)
 - Neu `r3.glint` (render3d.js): eine Ebene über dem Meer mit eigenem Shader (3 Rausch-Ebenen als Wellenneigung, Spiegelung `pow(dot(N,H),320)`), additiv, folgt Sonnenstand/-farbe der Tageszeit (`R3.sd`): morgens/abends flacher Sonnenstand = mehr Glitzern bei flachem Kamerablick, nachts aus. Aus bei Eis, Sparmodus, `R3.slow`, Grafik Niedrig und im Menü/Anflug.
 - Prüfung per Screenshot (Software-GL, Küste/Inselreich, Tag und Abend): feine Lichtpunkte statt Flecken (Exponent 90 gab grosse, hart begrenzte Flecken, 320 mit Stärke 1,5 wirkt natürlich). Kosten: ca. 12 Rauschabfragen je Wasser-Bildpunkt; auf echter GPU nicht gemessen (Software-GL zu langsam), bei zu niedriger Bildrate schaltet `R3.slow` die Ebene ab.
+
+## Regressionslauf nach den Paketen vom 27.10.
+- Alle 13 Kartenarten (Grösse M, Seed 23, Wasser/Berge mittel, Sommer), je 10 Spielminuten Berater-Auto gegen KI (`__norender`), danach Speichern und Laden: keine Fehlermeldungen, keine NaN-Positionen/-Leben, Speichern/Laden überall ok (28–41 s Rechenzeit je Lauf, Software-Chromium). Vollständiger Mehrspieler-Test (`tools/mp-test.js`) „ALLES OK“, Tutorial-Durchlauf (18 Schritte) ok, klassische Oberfläche bei 400 px ohne Überlauf. Skript `sweep.js` liegt im Verlauf, nicht im Repo.
