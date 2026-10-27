@@ -515,7 +515,7 @@ function r3Unit(o,e,h,dt,t){
       const wantW=!hunt&&((e.state==='attack'&&(swA<1||wind))||(!moving&&G.t-(e.healT||-9)<.6))?'attack':(work||build||hunt)?'work':moving?'walk':'idle';
       const wp=rig.wp&&near?wkPhase(o,e,kd,dt,wantW,hunt,d):null;if(wantW!=='work')o.pg=undefined;
       /* Fernsicht: kleine Figuren (unter ~30 Pixel Höhe, weit herausgezoomt) rechnen ihr Skelett nur jedes 2. (unter ~18 Pixel jedes 3.) Bild, versetzt nach Nummer, mit der angesammelten Zeit; bei Wechsel der Tätigkeit sofort */
-      const thr=R3.k*25<18?3:R3.k*25<30?2:1;o.ad=(o.ad||0)+dt;
+      const hpx=R3.k*25,thr=Math.max(hpx<18?3:hpx<30?2:1,wantW==='idle'&&!(o.fl>0)?2:1,wantW==='walk'&&hpx<45?2:1)/* Leerlauf-Atmen braucht keine 60 Hz; kleine gehende Figuren auch nicht */;o.ad=(o.ad||0)+dt;
       if(thr<2||o.lw!==wantW||(R3.fn+e.id)%thr===0||o.ad>.12){const adt=o.ad;o.ad=0;o.lw=wantW;
       EKMODELS.animate(rig,wantW,adt,moving?Math.max(.6,d.spd/60):1,kd,{v:moving?d.spd*(e.spk||1)*(e.rage>G.t?RAGE.spd:1)/10/(obj.scale.x||1):0,hit:o.fl>.2&&!(swA<.45||wind),atk:wantW==='attack'&&e.state==='attack'?{s:swA,cd:e.cd||0,per:d.cd}:null,fight:(e.state==='attack'||e.state==='amove')&&!d.gather&&e.type!=='worker',
         near,ph:wp?wp.ph:undefined,n:o.wn||0,cv:e.carry>0&&e.state==='return',ct:e.ctype})}
