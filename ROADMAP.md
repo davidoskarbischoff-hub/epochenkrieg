@@ -360,3 +360,5 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 - [x] `js/mapaudit.js` (`mapAudit`): Dauer-Absicherung am Ende von `genMap` (versetzen/ersetzen/nachplatzieren, Spiegelbild, Mindestmengen `MAP_MIN`, Zähler `MAPDBG.audit`); Generator: Erz nur auf flachem Boden (`oreOk`), `free()` prüft das Spiegelbild mit.
 - [x] Spielstand-Version 2 plus Kartenversion `MAPGEN_VER` (alte Stände werden sauber abgelehnt).
 - [ ] Später möglich: Holz-Nachpflanzen in der Prüfung (heute nur Kontrolle, `WOOD_MIN6/9` genügen auf allen Testkarten), Hirsche/Tiere sind eine Spieler-Option und nicht Teil der Garantie, Inselkarten (Archipel) bekommen Stein/Eisen jenseits der Heimatinsel nur per Schiff (Truppentransport vorhanden, KI nutzt ihn nicht).
+
+- [x] Bäume/Gras/Fische poppen beim Zoomen, Neigen, Drehen nicht mehr auf oder weg: stetige Dichte, Einblenden über Grösse, weicher Rand der Sichtweite (27.10., Messung in OPTIMIERUNG.md)

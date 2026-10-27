@@ -451,3 +451,28 @@ Gold und Öl fehlten auf der Hälfte aller Seiten in Reichweite; jetzt liegt je 
 **Gegenproben:** Gleiche Optionen + Seed ergeben dieselbe Karte (39 Konfigurationen zweimal erzeugt, identisch inklusive Kennungen; Kartenvorschau `MPV` und echtes `newGame` liefern dieselben Vorkommen). Mehrspieler: Gastgeber und Gast erzeugen gleich viele Objekte (mp-test Schritt 1: 1240 beide; `tools/mp-test.js` ALLES OK mit dem neuen Chromium-Argument `--disable-dev-shm-usage`, ohne hing der Test; ein einzelner Lauf fiel einmal bei (0b) Spiel-Chat durch, Wiederholung und der alte Code ohne Kartenprüfung bestehen alle Schritte, also Zeitverhalten der Software-Grafik, nicht die Karte). Spielstand: `SAVE` Version 2 plus `G.sv.mv` (`MAPGEN_VER`); Test: neuer Stand speichert und lädt (gleiche Vorkommen-Kennungen), Version 1 und Stände ohne/mit falscher Kartenversion werden abgelehnt („Spielstand passt nicht zu dieser Version“). Künstlich beschädigte Karte (Erz auf steilem Boden, fehlendes Gegenstück, alles Gold weg, Fisch an Land): die Prüfung stellt alles wieder her, ein zweiter Lauf ändert nichts mehr. Berater-Auto (Ausgewogen gegen KI, Normal, M, 15 min, `advisorTick` alle 12 Schritte; Küste Seed 11, Berge Seed 12, Wüste Seed 13): Zeitalter 1 bei Minute 10, 2 Minen und 2 Loren je Karte bei Minute 15, 22–28 Arbeiter, 16–21 Truppen, keine Fehler (vorher 22–28 Arbeiter, 15–22 Truppen: gleich, die Karten sind andere).
 
 **Grenzen:** Archipel hat auf der Heimatinsel zu wenig Land für Stein/Eisen 8000 in 1200 px und teils Gold/Öl (Schiffe/Truppentransport nötig); Tiere (Hirsche) sind eine Spieler-Option und nicht Teil der Garantie; Holz wird nur kontrolliert (die bestehende Mindestmenge `WOOD_MIN6/9` genügt auf allen Testkarten, Prüfung meldet unter 40 Bäumen in 600 px). Die Karten sind seit dieser Änderung nicht mehr dieselben wie vorher (`oreOk` und `free()` verändern den Zufallsablauf), alte Spielstände werden abgelehnt.
+
+## Weiches Ein-/Ausblenden von Bäumen und Gras (27.10.)
+**Davids Wunsch (26.10.):** „Bäume, wenn man raussucht, reinsucht: auf einmal sind sie da, dann sind sie weg. Sehr komisch und inkonsistent.“
+**Befund (`r3Nodes`, `r3GrassView` in render3d.js):**
+1. Harte Ausdünnung: bei Zoom .5 und .38 und in Entfernungsbändern (.32/.6 der Sichtweite) wurden alle Bäume mit `id%2` bzw. `id%3` auf einmal weggelassen, die übrigen sprangen auf 1,3–1,6-fache Grösse. Da Spiegelbilder aufeinanderfolgende Kennungen bekommen, verschwanden dabei oft ganze Waldstücke einer Seite.
+2. Ränder: der Bildschirmtest am Fusspunkt hatte feste Ränder, hohe Kronen unterhalb des Bildes tauchten erst auf, wenn der Fuss ins Bild kam. Die Sichtweite (`R3.cull`) schnitt hart ab. Zwischen pitch 1,0 und 0,99 sprang die Ausdünnung an (`R3.cull` war 0 oder gross).
+3. Gras: Stufen 1/2/4 nach Zoom, Büschel nur an Zellen-Rändern geschnitten.
+4. Fische im Schwarm wurden bei Zoom < .5/.4 einzeln ausgeblendet.
+**Lösung (nur Darstellung, nichts im Spielstand/Mehrspieler):**
+- Jeder Baum hat einen festen Rang `trk(id)` (Weyl-Folge, gleichmässig verteilt). Die Dichte `dn` ist stetig: Zoom `zdn` = .3 + .7·q² (q = (Zoom−.3)/.2), bei flachem Blick zusätzlich nach Entfernung (`flw` = Gewicht nach `R3.fl`, geht stetig gegen 0 bei pitch 1). Ein Baum ist ganz da, wenn Rang < Dichte, und wächst über ein Band (.22) weich ein/aus: `tf = sm3((dn·1.22 − Rang)/.22)`. Die Grösse der übrigen wächst stetig mit (`tbst` = 1 + .28·(1/dn − 1), höchstens 1,6 wie vorher).
+- Rand der Sichtweite: Bäume, Büsche, Erze, Stümpfe und Deko schrumpfen zwischen 88 % und 100 % der Sichtweite auf 0 (`fadeAt`).
+- Bildschirmtest: Fusspunkt (oberer Rand) und Kopfpunkt +9,2 Einheiten (unterer Rand) statt fester Ränder; Neuaufbau von `r3Nodes` zusätzlich bei Zoomänderung > 2 % (vorher nur bei Kamera-Schritt/Drehung).
+- Gras: Dichte `gd` = .25 + .75·gq² stetig, Rang pro Büschel `p.j`, gleiches Band, Rand der Sichtweite schrumpft; Schlüssel für den Neuaufbau in 5-%-Stufen.
+- Fischschwärme: Fische wachsen/schrumpfen mit `dt*6` statt zu verschwinden.
+**Messung (Küste M, Seed 11, 1000×650, Kamera in 2-%-Zoomschritten bzw. .03-Neigungs-/Drehschritten, nach jedem Schritt `r3Nodes`; gezählt werden Bäume AUF dem Bildschirm, deren Grösse sich zwischen zwei Schritten um mehr als .25 ändert; „auf/weg“ = aus dem Nichts erscheinen/verschwinden):**
+| Bewegung | vorher auf+weg (schlimmster Schritt) | nachher auf+weg | nachher weiche Grössenänderung (schlimmster Schritt) |
+|---|---|---|---|
+| Zoom 1,3→.3→1,3 | 624+624 (158+159) | 0+0 | 90 (14) |
+| Neigen 1,5→.2→1,5 | 187+191 (38+31) | 0+0 | 189 (14) |
+| Drehen bei flacher Neigung | 147+152 (7+6) | 0+0 | 0 |
+| Verschieben quer | 0 | 0 | 0 |
+| Zoom bei flachem Blick | 363+328 (149+316) | 0+0 | 2 |
+Gebirge (Seed 7): vorher nicht gemessen, nachher 1+1 über alle Läufe; Wüste (Seed 5): 0+0.
+**Kosten:** `r3Nodes` 0,6–1,4 ms (vorher 0,5–1,3). Dreiecke der Natur-Instanzen (Küste M): Zoom 1: 251k → 247k; .6: 579k → 559k; .45: 404k → 696k (die Stufe „jeder 2. Baum“ galt von .38 bis .5, jetzt steigt die Dichte stetig, deshalb mehr Bäume im Bereich .4–.5); .3: 727k → 755k; flach .5: 895k → 698k; flach .3: 905k → 878k. Das Maximum sinkt (905k → 878k).
+**Nicht geändert / Grenzen:** Gelände-LOD bei Zoom .95 (jeder 2. Eckpunkt) – bei gleicher Kamera kaum Unterschied im Bild (Test mit Wechsel der Geometrie), deshalb unverändert. Jahreszeit-Baummodelle, die erst nachladen (`EKMODELS.loadWhen`), tauschen beim Laden einmal alle Bäume aus (nur im Spielzimmer-Anflug sichtbar). Weitere Pop-Quellen (Schatten, Figuren-LOD bei 60 px) nicht untersucht. Echtes Gefühl bei 60 fps bleibt ein Test mit Grafikkarte: Software-GL läuft mit ~1 fps, deshalb wurde Bild für Bild gemessen.
