@@ -13,7 +13,7 @@ const STRATS={
   balanced:{name:'Ausgewogen',desc:'Von allem etwas',wk:[18,28,38,48,54,56,58],mil:ep=>10+ep*8,atk:ep=>ep<4?99:10+ep*8,tow:()=>1,barW:6,bar2:20,hs:5,w:{}},
   turtle:{name:'Verteidigung',desc:'Türme, solide Armee, spät angreifen',wk:[15,22,30,40,45,46,48],mil:ep=>8+ep*3,atk:ep=>16+ep*4,tow:ep=>2+ep,barW:6,bar2:99,hs:1,w:{tower:1,upg:2,army:2,barracks:2,tech:3,attack:9}},
   boom:{name:'Aufstieg',desc:'So schnell wie möglich in die höchste Epoche',wk:[7,13,23,33,41,41,43],mil:ep=>3+ep*2,atk:ep=>14+ep*3,tow:()=>1,barW:9,bar2:99,hs:2,w:{adv:1,upg:1,tech:2,worker:2,house:2,balance:2,barracks:8,army:8,attack:9}},
-  rush:{name:'Angriff',desc:'Früh viele Truppen, schnell zuschlagen',wk:[5,8,10,12,12,12,12],mil:ep=>12+ep*5,atk:ep=>5+ep,tow:()=>1,barW:4,bar2:8,hs:1,w:{barracks:1,army:1,attack:2,worker:4,adv:7,tech:7,upg:6}},
+  rush:{name:'Schneller Angriff',desc:'Früh viele Truppen, schnell zuschlagen',wk:[5,8,10,12,12,12,12],mil:ep=>12+ep*5,atk:ep=>5+ep,tow:()=>1,barW:4,bar2:8,hs:1,w:{barracks:1,army:1,attack:2,worker:4,adv:7,tech:7,upg:6}},
   eco:{name:'Wirtschaft',desc:'Viele Arbeiter, große Vorräte',wk:[8,14,26,36,44,44,46],mil:ep=>4+ep*2,atk:ep=>12+ep*3,tow:()=>1,barW:10,bar2:99,hs:3,w:{worker:1,house:1,balance:1,harbor:2,tech:2,shift:2,adv:3,upg:3,barracks:7,army:7,attack:9}}
 };
 /* Lagebild: was der Spieler vom Gegner weiß (gemerkte Gebäude, sichtbare Truppen) */
