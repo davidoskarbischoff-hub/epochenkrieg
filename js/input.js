@@ -138,7 +138,7 @@ mm.addEventListener('contextmenu',e=>e.preventDefault());
 const GRP={g:null,list:[],lastN:0,lastT:0};
 function grpList(n){if(GRP.g!==G){GRP.g=G;GRP.list=[];GRP.lastN=0}return GRP.list[n]||(GRP.list[n]=[])}
 function grpKey(e){
-  const m=/^(?:Digit|Numpad)([1-9])$/.exec(e.code||'');if(!m||e.altKey||(typeof EGO!=='undefined'&&EGO.on))return false;
+  const m=/^(?:Digit|Numpad)([1-9])$/.exec(e.code||'');if(!m||e.altKey||(typeof EGO!=='undefined'&&EGO.on)||/^(INPUT|TEXTAREA|SELECT)$/.test((e.target&&e.target.tagName)||''))return false;
   const n=+m[1];e.preventDefault();
   if(e.ctrlKey||e.metaKey||e.shiftKey){
     let own=ownSel();if(!own.length){toast(tr('Nichts ausgewählt, die Gruppe bleibt wie sie war.'));return true}
