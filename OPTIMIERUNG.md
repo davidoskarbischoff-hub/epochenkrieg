@@ -404,3 +404,113 @@ Messung headless (`__norender`, `step(.04)`, KI aus bzw. Selbstspiel), Skripte n
   2. Unerreichbares Ziel (z. B. Punkt in geschlossenem Mauerring): Die Einheiten gingen zum nächsten Punkt und suchten dort alle 0,35 s neu (je 6–7 ms, bis zu 40–75 s). `navPath` meldet jetzt `navPartial` (2 = nachweislich unerreichbar), `moveToward` gibt am Wegende auf (`pf.fail`, gleiche Folge wie „kein Weg“). 30 Einheiten, 90 s, geschlossener Ring: Suchen 209/181/448 → 79/79/231, Ruhe nach 43/40/75 s → 24/29/41 s.
 - Leistung nachher: Schritt mit 100 Einheiten 2,83 ms (vorher 2,81), navPath im Mittel 2,24 ms (vorher 2,21), alle Aufrufe gleich schnell. Mehrspieler `tools/mp-test.js`: ALLES OK.
 - Nicht geändert: Gruppenstau am gemeinsamen Zielpunkt (nur Test-Artefakt, Formationen verteilen die Ziele), Teilwege bei Wegen über die ganze Karte (Feld baut sich im nächsten Schritt auf).
+
+## Karten-Ressourcen und Kartenprüfung (26.10.)
+Davids Vorgabe: Auf jeder Karte genug Ressourcen für beide Seiten, sinnvoll verteilt, und alle Vorkommen, die zählen, zugänglich (nicht auf Fels/Berg/steilem Boden, nicht auf Inseln ohne Zugang, nicht eingemauert). Umsetzung: `js/mapaudit.js` (`mapAudit`, Dauer-Absicherung am Ende von `genMap`) plus zwei kleine Änderungen im Generator (`oreOk`, `free()` mit Spiegelbild in `map.js`). Beschreibung der Regeln in CLAUDE.md.
+
+**Messung (Skripte nicht im Repo):** headless wie `newGame` ohne `renderBg`, 13 Kartenarten × S/M/L × Wasser 0/1/2 × Berge 0/1/2 × 6 Seeds = 2106 Karten, vorher (Stand vor der Änderung) und nachher. Je Karte und Seite (Hauptlager Team 0 und 1): Anzahl und Menge je Ressource in 400/450/700/850/1200 px, Erreichbarkeit jedes Vorkommens (Flutfüllung über die freien Wegfelder `navOpen` ab dem Hauptlager, an 2244 Landvorkommen von 26 Karten gegen echtes `navPath` geprüft: 2244 von 2244 vollständig erreichbar), Erz zusätzlich „Mine baubar“ (`validSpot` mit Mine-Radius, Gefälle höchstens .9), Öl „Bohrturm-Platz in 127 px“, Fisch „Boot erreicht es von einem möglichen Hafenplatz aus (`harborOk`, zu Fuss erreichbar) oder Arbeiter vom Ufer“, Spiegelbild jedes Vorkommens, Überlappungen, Landweg zwischen den Hauptlagern.
+
+| Vorkommen | Unbrauchbar vorher | nachher |
+|---|---|---|
+| Stein | 1720 von 27935 (6,16 %) | 0 |
+| Eisen | 1692 von 24955 (6,78 %) | 0 |
+| Gold | 602 von 6796 (8,86 %) | 0 |
+| Öl, Beeren, Holz | 0 (Holz 10 Bäume auf seichtem Wasser) | 0 |
+| Fisch (ausserhalb jedes Bootsweges, im Umkreis 1500 px) | 464 von 158603 (0,29 %) | 70 (0,04 %, siehe unten) |
+| Karten mit mindestens einem unbrauchbaren Vorkommen | 1175 von 2106 (56 %) | 4 (0,2 %) |
+
+Die Ursache bei Erz war das Gefälle: `validSpot` lehnt Minen auf Boden mit Gefälle über .9 ab, der Generator prüfte das nicht (Karten mit Bergen und Terrassen). Das Erz stand da, war aber nicht abbaubar. Die 70 Fisch-Reste sind Schwärme, die nur über einen Hafenplatz erreichbar sind, den ein anderes Vorkommen verstellt (das Mass nimmt `validSpot` strenger als die Prüfung, die Hafenplätze nur nach Gelände und Landweg wählt): kein echter Mangel.
+
+| Mindestmenge je Seite | vorher: Seiten ohne | kleinste Menge | nachher: Seiten ohne | kleinste Menge |
+|---|---|---|---|---|
+| Stein in 450 px | 2,7 % | 0 | 0 % | 3200 |
+| Eisen in 450 px | 3,4 % | 0 | 0 % | 2000 |
+| Stein in 1200 px | 0 % | 3200 | 0 % | 8000 |
+| Eisen in 1200 px | 0 % | 2000 | 0 % | 4000 (10 %-Wert 10000) |
+| Gold in 850 px | 56,9 % | 0 | 0,7 % (Archipel) | 0 (10 %-Wert 2100) |
+| Gold in 1200 px | 32,2 % | 0 | 0 % | 0 (10 %-Wert 2100, Median 3150) |
+| Öl in 850 px | 57,7 % | 0 | 1,7 % (Archipel) | 0 (10 %-Wert 4420) |
+| Öl in 1200 px | 30,0 % | 0 | 0,1 % | 0 (10 %-Wert 4420) |
+| Beeren 450 / 750 px | 0 % | 3400 | 0 % | 3400 (unverändert) |
+| Holz in 700 px (Bäume je ca. 420) | 0 % | 33 600 | 0 % | 33 600 (unverändert, mindestens 80 Bäume in 600 px) |
+| Fisch bei Hafenplatz in 700 px: Seiten mit weniger als 4 Schwärmen in 700 px | 580 von 3132 | | 70 von 3132 | |
+
+Gold und Öl fehlten auf der Hälfte aller Seiten in Reichweite; jetzt liegt je ein Gold-Vorkommen (2100) und ein Ölfeld (4420) im Ring 600–840 px, ausser auf Inselkarten (Archipel), wo das Land fehlt (dort in 1200 px oder gar nicht, nur gezählt: `MAPDBG.audit.soft`). Stein 3200 und Eisen 2000 am Start bleiben, wie sie waren (am Start nur wenig und nah, Expansion lohnt sich). Gute Karten werden nur ergänzt, nichts wird dort entfernt.
+
+| Fairness und Ordnung | vorher | nachher |
+|---|---|---|
+| Messwerte mit Verhältnis Seite 0 : Seite 1 unter 0,9 | 15 von 19179 (schlechtester 0,00) | 0 von 20612 (alle 1,00) |
+| Vorkommen ohne Gegenstück (Spiegel) | 27 | 0 |
+| Überlappungen Vorkommen/Gebäude/Bäume | 0 | 0 |
+| Landweg zwischen den Hauptlagern | immer | immer (Gegenprobe in der Prüfung) |
+
+**Eingriffe der Prüfung** in 2106 Karten: 18 Vorkommen versetzt, 412 unerreichbare Fischschwärme entfernt (fast nur Bergkarten mit Klippenküste: das Meer hinter den Klippen hat keinen Hafenplatz), 4 weitere entfernt, Karten mit Nachplatzierung 1917 (Gold in 1477 Karten, Öl in 1172, Fisch in 737, selten Stein/Eisen bis 1200 px). Unbehebbar (hart): 0 Karten; weich (Archipel): Gold 18, Öl 14, Eisen 9 Karten.
+
+**Leistung:** `genTerrain` + `genMap` nacheinander in einer Seite, 156 Karten je Messung: vorher Mittel 79,5 ms, nachher 93,7 ms (+14 ms, +18 %). `mapAudit` selbst im Mittel 13 ms (Aufteilung: Erreichbarkeit und Index ca. 3, Nachplatzierung 2, Fischlage 3, Holzkontrolle 2, Gegenprobe 1, Vorkommen prüfen 2 ms), im Messlauf mit 4 Seiten gleichzeitig Median 22, 90 % unter 46, 99 % unter 75 ms. Das Bodenbild (`renderBg`) braucht danach 5,6 s je `newGame`, die Prüfung fällt nicht ins Gewicht; die Kartenvorschau-Kacheln erzeugen kein `genMap` (nur die grosse Vorschau, +14 ms).
+
+**Gegenproben:** Gleiche Optionen + Seed ergeben dieselbe Karte (39 Konfigurationen zweimal erzeugt, identisch inklusive Kennungen; Kartenvorschau `MPV` und echtes `newGame` liefern dieselben Vorkommen). Mehrspieler: Gastgeber und Gast erzeugen gleich viele Objekte (mp-test Schritt 1: 1240 beide; `tools/mp-test.js` ALLES OK mit dem neuen Chromium-Argument `--disable-dev-shm-usage`, ohne hing der Test; ein einzelner Lauf fiel einmal bei (0b) Spiel-Chat durch, Wiederholung und der alte Code ohne Kartenprüfung bestehen alle Schritte, also Zeitverhalten der Software-Grafik, nicht die Karte). Spielstand: `SAVE` Version 2 plus `G.sv.mv` (`MAPGEN_VER`); Test: neuer Stand speichert und lädt (gleiche Vorkommen-Kennungen), Version 1 und Stände ohne/mit falscher Kartenversion werden abgelehnt („Spielstand passt nicht zu dieser Version“). Künstlich beschädigte Karte (Erz auf steilem Boden, fehlendes Gegenstück, alles Gold weg, Fisch an Land): die Prüfung stellt alles wieder her, ein zweiter Lauf ändert nichts mehr. Berater-Auto (Ausgewogen gegen KI, Normal, M, 15 min, `advisorTick` alle 12 Schritte; Küste Seed 11, Berge Seed 12, Wüste Seed 13): Zeitalter 1 bei Minute 10, 2 Minen und 2 Loren je Karte bei Minute 15, 22–28 Arbeiter, 16–21 Truppen, keine Fehler (vorher 22–28 Arbeiter, 15–22 Truppen: gleich, die Karten sind andere).
+
+**Grenzen:** Archipel hat auf der Heimatinsel zu wenig Land für Stein/Eisen 8000 in 1200 px und teils Gold/Öl (Schiffe/Truppentransport nötig); Tiere (Hirsche) sind eine Spieler-Option und nicht Teil der Garantie; Holz wird nur kontrolliert (die bestehende Mindestmenge `WOOD_MIN6/9` genügt auf allen Testkarten, Prüfung meldet unter 40 Bäumen in 600 px). Die Karten sind seit dieser Änderung nicht mehr dieselben wie vorher (`oreOk` und `free()` verändern den Zufallsablauf), alte Spielstände werden abgelehnt.
+
+## Weiches Ein-/Ausblenden von Bäumen und Gras (27.10.)
+**Davids Wunsch (26.10.):** „Bäume, wenn man raussucht, reinsucht: auf einmal sind sie da, dann sind sie weg. Sehr komisch und inkonsistent.“
+**Befund (`r3Nodes`, `r3GrassView` in render3d.js):**
+1. Harte Ausdünnung: bei Zoom .5 und .38 und in Entfernungsbändern (.32/.6 der Sichtweite) wurden alle Bäume mit `id%2` bzw. `id%3` auf einmal weggelassen, die übrigen sprangen auf 1,3–1,6-fache Grösse. Da Spiegelbilder aufeinanderfolgende Kennungen bekommen, verschwanden dabei oft ganze Waldstücke einer Seite.
+2. Ränder: der Bildschirmtest am Fusspunkt hatte feste Ränder, hohe Kronen unterhalb des Bildes tauchten erst auf, wenn der Fuss ins Bild kam. Die Sichtweite (`R3.cull`) schnitt hart ab. Zwischen pitch 1,0 und 0,99 sprang die Ausdünnung an (`R3.cull` war 0 oder gross).
+3. Gras: Stufen 1/2/4 nach Zoom, Büschel nur an Zellen-Rändern geschnitten.
+4. Fische im Schwarm wurden bei Zoom < .5/.4 einzeln ausgeblendet.
+**Lösung (nur Darstellung, nichts im Spielstand/Mehrspieler):**
+- Jeder Baum hat einen festen Rang `trk(id)` (Weyl-Folge, gleichmässig verteilt). Die Dichte `dn` ist stetig: Zoom `zdn` = .3 + .7·q² (q = (Zoom−.3)/.2), bei flachem Blick zusätzlich nach Entfernung (`flw` = Gewicht nach `R3.fl`, geht stetig gegen 0 bei pitch 1). Ein Baum ist ganz da, wenn Rang < Dichte, und wächst über ein Band (.22) weich ein/aus: `tf = sm3((dn·1.22 − Rang)/.22)`. Die Grösse der übrigen wächst stetig mit (`tbst` = 1 + .28·(1/dn − 1), höchstens 1,6 wie vorher).
+- Rand der Sichtweite: Bäume, Büsche, Erze, Stümpfe und Deko schrumpfen zwischen 88 % und 100 % der Sichtweite auf 0 (`fadeAt`).
+- Bildschirmtest: Fusspunkt (oberer Rand) und Kopfpunkt +9,2 Einheiten (unterer Rand) statt fester Ränder; Neuaufbau von `r3Nodes` zusätzlich bei Zoomänderung > 2 % (vorher nur bei Kamera-Schritt/Drehung).
+- Gras: Dichte `gd` = .25 + .75·gq² stetig, Rang pro Büschel `p.j`, gleiches Band, Rand der Sichtweite schrumpft; Schlüssel für den Neuaufbau in 5-%-Stufen.
+- Fischschwärme: Fische wachsen/schrumpfen mit `dt*6` statt zu verschwinden.
+**Messung (Küste M, Seed 11, 1000×650, Kamera in 2-%-Zoomschritten bzw. .03-Neigungs-/Drehschritten, nach jedem Schritt `r3Nodes`; gezählt werden Bäume AUF dem Bildschirm, deren Grösse sich zwischen zwei Schritten um mehr als .25 ändert; „auf/weg“ = aus dem Nichts erscheinen/verschwinden):**
+| Bewegung | vorher auf+weg (schlimmster Schritt) | nachher auf+weg | nachher weiche Grössenänderung (schlimmster Schritt) |
+|---|---|---|---|
+| Zoom 1,3→.3→1,3 | 624+624 (158+159) | 0+0 | 90 (14) |
+| Neigen 1,5→.2→1,5 | 187+191 (38+31) | 0+0 | 189 (14) |
+| Drehen bei flacher Neigung | 147+152 (7+6) | 0+0 | 0 |
+| Verschieben quer | 0 | 0 | 0 |
+| Zoom bei flachem Blick | 363+328 (149+316) | 0+0 | 2 |
+Gebirge (Seed 7): vorher nicht gemessen, nachher 1+1 über alle Läufe; Wüste (Seed 5): 0+0.
+**Kosten:** `r3Nodes` 0,6–1,4 ms (vorher 0,5–1,3). Dreiecke der Natur-Instanzen (Küste M): Zoom 1: 251k → 247k; .6: 579k → 559k; .45: 404k → 696k (die Stufe „jeder 2. Baum“ galt von .38 bis .5, jetzt steigt die Dichte stetig, deshalb mehr Bäume im Bereich .4–.5); .3: 727k → 755k; flach .5: 895k → 698k; flach .3: 905k → 878k. Das Maximum sinkt (905k → 878k).
+**Nicht geändert / Grenzen:** Gelände-LOD bei Zoom .95 (jeder 2. Eckpunkt) – bei gleicher Kamera kaum Unterschied im Bild (Test mit Wechsel der Geometrie), deshalb unverändert. Jahreszeit-Baummodelle, die erst nachladen (`EKMODELS.loadWhen`), tauschen beim Laden einmal alle Bäume aus (nur im Spielzimmer-Anflug sichtbar). Weitere Pop-Quellen (Schatten, Figuren-LOD bei 60 px) nicht untersucht. Echtes Gefühl bei 60 fps bleibt ein Test mit Grafikkarte: Software-GL läuft mit ~1 fps, deshalb wurde Bild für Bild gemessen.
+
+## Ego-Ansicht: mehr Sicht, echter Himmel (27.10.)
+**Davids Wunsch (26.10.):** „Ego-Ansicht verbessern: dass man mehr sieht und es realistischer ist.“
+**Vorher:** Himmel = einfarbig dunkles Blau (`ATMO.sky`, gedacht für die Tischfarbe), Nebel hellgrau → Nachtfarbe über einer Tageslandschaft; Sichtfeld 45°, Reichweite 190 Einheiten, Nebel ab 45 %.
+**Jetzt (`js/ego.js`):**
+- Himmelskuppel `EGO.skyMake` (Shader, folgt der Kamera, nur in der Ego-Ansicht): Verlauf vom Horizont (= Nebelfarbe, damit der Horizont nahtlos ist) zum Zenit (`SKYZ` je Jahreszeit: Frühling/Sommer blau, Herbst dunstig, Winter blassgrau), Sonne mit Glanz in Richtung der Schattensonne, weiche wandernde Wolken (4 Oktaven Rauschen). Gleiche Farbumrechnung/Tonwerte wie das Gelände (tonemapping/colorspace-Chunks), deshalb stimmen Nebel und Horizont überein.
+- Sichtfeld 54° (vorher 45°), Reichweite 280 Einheiten für Figuren und 420 für Türme (vorher 190/300), Nebel ab 30 % der Reichweite (vorher 45 %), `R3.fl=1` (Ausdünnung nach Entfernung bei flachem Blick).
+- Volle Details: Gelände nicht mehr global grob bei Zoom < .95, sondern je Stück nach Abstand zum Auge (`EGO.chunkLod`: unter 50 Einheiten fein, sonst grob); Baum-Dichte und Gras unabhängig vom Zoom der freien Kamera (`EGO.on`).
+**Messung** (Küste M, Seed 11, vier Blickrichtungen, Dreiecke Natur-Instanzen + sichtbares Gelände): vorher 25k+25k / 334k+307k / 230k+221k / 89k+57k, nachher 26k+37k / 458k+195k / 475k+152k / 113k+63k. Summe im ungünstigsten Blick 641k → 653k, im schlechtesten Fall 451k → 627k (Wald weit sichtbar). `r3Nodes` 0,5–2,6 ms.
+**Nicht gemacht / offen:** Waffe/Hände vor dem Auge (Ich-Perspektive) – bräuchte ein eigenes Waffenmodell aus dem Manifest; Schatten reichen höchstens 120 Einheiten; am Kartenrand endet das Land (Himmelsfarbe statt Randgebirge). Echte Flüssigkeit nur mit Grafikkarte prüfbar.
+
+## Kartenvorschau, Boden-Shader, Hauptmenü, Tutorial (27.10.)
+- Vorschau-Malzeit (Software-Chromium, Küste M): Karte erzeugen ~145 ms, Kachel 1× ~100 ms, grosse Vorschau 3× erste ~610 ms / wiederholt ~335 ms (alt: ~500 / ~290 ms). Mehraufwand durch Hangfelder (einmal je Karte, in `S._f` gemerkt) und zusätzliche Rauschlagen.
+- Boden-Shader: Felsschichten nur bei steilen Fragmenten (dynamische Verzweigung); Vergleich Canyon/Bergland mit `window.__noStrata`: Wirkung schwach, weil die Hänge nach 2× Glättung (`HLs` in `r3Map`) rund wie Dünen sind. Echte Felswände bräuchten weniger Glättung an Fels-Kanten (verändert `hAt` und damit Gebäude-/Einheitenhöhen – nur mit echter GPU prüfen).
+- Tutorial-Test (`tut.js` im Verlauf, Software-Chromium, `__norender`): alle 17 Schritte laufen durch (Kamera +400, Zoom ×1,5, Drehen +0,6, Auswahl, Befehl auf Beerenstrauch/Baum, Ausbilden, Hütte/Kaserne setzen, Krieger ausbilden, „Weiter“-Schritte, „Weiterspielen“). Fehler gefunden und behoben: `scr()` wirft ohne Renderer → `mark()` in try/catch und nur bei `R3.ok`, sonst blieb Schritt 5 hängen. Bild-Test: Pfeil über dem Arbeiter, Leuchtrahmen um „Hütte“, Karte links oben (rechts liegt die Seitenleiste).
+
+
+## Animation drosseln (27.10.)
+- Messung (Skript `prof.js`/`prof2.js` im Verlauf, Küste L, Zeitalter 5, 48 Gebäude + 120 Figuren im Bild, Zoom 1, Software-Chromium mit stummgeschaltetem `renderer.render`, also nur die JS-Zeit): je Bild `r3Sync` 5,8 ms (davon `EKMODELS.animate` ~5 ms: Mixer `slerpFlat`/`_update`, Haltungen), `draw` gesamt 10,7 ms, Spielschritt 4,7 ms (mit KI und Berater). Der Profiler (CDP `Profiler`) zeigt keinen einzelnen Ausreisser: Animation ~40 µs je Figur und Bild, `updBld` 0,9 ms/Schritt, Wegsuche nur bei echten Bewegungen (90 ruhende Truppen: ~110–150 `navPath` je 10 Spielsekunden, weil sie die Frontlinie einnehmen).
+- Änderung (`r3Unit`, render3d.js): Figuren im Leerlauf rechnen ihr Skelett nur jedes 2. Bild (Atmen braucht keine 60 Hz), kleine gehende Figuren (unter 45 Pixel Höhe) ebenso; Treffer-Zucken und Tätigkeitswechsel sofort, angesammelte Zeit wird mitgegeben. Gleiche Szene danach: `r3Sync` 3,3 ms (−44 %), `draw` 7,2 ms (−32 %). Bei gemischten Szenen (viele Arbeiter bei der Arbeit, Kämpfe) ist der Gewinn kleiner, weil Arbeit/Kampf weiter jedes Bild gerechnet werden.
+- Weiter offen: 2D-Anzeigen (`ctx.save` ~1 ms/Bild, Stufenschilder der Gebäude `ovBld` ~1,2 ms/Bild bei 48 Gebäuden) könnten zu einem Zeichenaufruf zusammengefasst werden; echte FPS nur auf echter GPU messbar.
+
+## Sonnenglitzern auf dem Wasser (27.10.)
+- Neu `r3.glint` (render3d.js): eine Ebene über dem Meer mit eigenem Shader (3 Rausch-Ebenen als Wellenneigung, Spiegelung `pow(dot(N,H),320)`), additiv, folgt Sonnenstand/-farbe der Tageszeit (`R3.sd`): morgens/abends flacher Sonnenstand = mehr Glitzern bei flachem Kamerablick, nachts aus. Aus bei Eis, Sparmodus, `R3.slow`, Grafik Niedrig und im Menü/Anflug.
+- Prüfung per Screenshot (Software-GL, Küste/Inselreich, Tag und Abend): feine Lichtpunkte statt Flecken (Exponent 90 gab grosse, hart begrenzte Flecken, 320 mit Stärke 1,5 wirkt natürlich). Kosten: ca. 12 Rauschabfragen je Wasser-Bildpunkt; auf echter GPU nicht gemessen (Software-GL zu langsam), bei zu niedriger Bildrate schaltet `R3.slow` die Ebene ab.
+
+## Regressionslauf nach den Paketen vom 27.10.
+- Alle 13 Kartenarten (Grösse M, Seed 23, Wasser/Berge mittel, Sommer), je 10 Spielminuten Berater-Auto gegen KI (`__norender`), danach Speichern und Laden: keine Fehlermeldungen, keine NaN-Positionen/-Leben, Speichern/Laden überall ok (28–41 s Rechenzeit je Lauf, Software-Chromium). Vollständiger Mehrspieler-Test (`tools/mp-test.js`) „ALLES OK“, Tutorial-Durchlauf (18 Schritte) ok, klassische Oberfläche bei 400 px ohne Überlauf. Skript `sweep.js` liegt im Verlauf, nicht im Repo.
+
+## Ego: Waffe im Bild (27.10.)
+- `EKMODELS.held(u)` (gltfmodels.js) liefert die Waffen aus dem Manifest (`hand`/`left`) als frisch geklonte, umgefärbte Modelle ohne Knochen. `EGO.vmBuild/vmUpdate/vmDraw` (ego.js): eigene Szene + eigene Kamera (Blickwinkel 58°, bleibt beim Zoomen gleich), Lichter (Sonne, Himmel) aus der Welt kopiert; zweiter Zeichendurchgang nach der Welt mit gelöschter Tiefe (`render3d.js`, direkt nach dem Hauptbild), deshalb kein Eintauchen in Wände. Kosten: eine kleine Szene mit 1–2 Modellen (< 3000 Dreiecke), kein Schatten.
+- Haltung je Datei in `VMP` (ego.js): `len`, `fix`, `grip`, `at`, `tilt`, `yaw`, `how`. Per Bild geprüft (Software-GL, 1000×620): Schwert, Speer, Keule, Axt, Bogen, Scharfschützengewehr, Sturmgewehr, Stab, Schilde. Bewusst ohne Bild: Horn des Spähers (sah als grosser Klumpen aus), Schleuder, Armbrust/Maschinenpistole (Haltung wie die Gewehre, nicht einzeln geprüft).
+- Bewegung: Wippen (`EGO.bobP`), Nachschwingen beim Drehen (Federn, `vm.sx/sy`), Schlag (Ausholen + Hieb, `vm.sw` 0..1 in 0,31 s), Stoss (Speer), Rückstoss (Fernkampf). Auslöser: Sprung der Nachladezeit `e.cd` oder `EGO.kick` (eigener Klick). Test-Haken `EGO.vmHold` hält den Fortschritt fest (nur für Bildtests).
+- Aus bei Zoom >= 1,5, im Turm, bei Gebäuden/Tieren, Arbeitern (keine Waffe im Manifest) und mit der Option „Ego: Waffe im Bild“ (`OPT.egoWeapon`).
+
+## Regressionslauf nach Ego-Waffe, Arbeiter-Werkzeug, Kartencode, Tutorial (27.10., abends)
+- Alle 13 Kartenarten (Grösse M, Seed 23, Wasser/Gebirge mittel, Sommer), je 10 Spielminuten Berater-Auto gegen KI (`__norender`), danach Speichern und Laden: keine Fehler, keine ungültigen Zahlen (NaN), Speichern/Laden überall „ok“ (27–36 s Rechenzeit je Lauf). Seite meldet keine Fehler. Ego-Ansicht, Kartencode und Tutorial (19 Schritte) wurden zusätzlich einzeln im Browser geprüft (siehe QA.md).
+

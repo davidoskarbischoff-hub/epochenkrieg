@@ -33,6 +33,7 @@ function renderOptions(){
     +row('Kamera-Drehung',rng('oRot',.3,2.5,.1,OPT.camRot,OPT.camRot.toFixed(1)+'×'),'Wie schnell sich die Kamera beim Drehen und Neigen bewegt')
     +row('Ego: Mausempfindlichkeit',rng('oEgoS',.3,2.5,.1,OPT.egoSens,OPT.egoSens.toFixed(1)+'×'),'Wie schnell sich der Blick in der Ego-Ansicht dreht')
     +row('Ego: Kopf-Wippen',tog('oEgoB',OPT.egoBob),'Die Kamera wippt leicht, wenn die Figur läuft')
+    +row('Ego: Waffe im Bild',tog('oEgoW',OPT.egoWeapon!==false),'Zeigt in der Ego-Ansicht die Waffe der Figur unten im Bild')
     +row('Auto-Speichern',tog('oAuto',OPT.autosave!==false),'Alle 5 Spielminuten in den Platz „Automatisch“ speichern (nur Einzelspieler)')
     +row('Kamera zurücksetzen','<button id="oCamR" type="button" class="kmbtn">'+tr('Zurücksetzen')+'</button>','Drehung und Neigung auf Standard. Umschauen: Taste halten (Standard R) und die Maus bewegen')
     +row('Bildschirmrand-Scrollen',tog('oEdge',OPT.edgeScroll),'Maus an den Rand schieben, um die Karte zu bewegen')
@@ -51,6 +52,8 @@ function renderOptions(){
     +row('Leuchten (Bloom)',tog('oBloom',OPT.bloom),'Helle Stellen strahlen weich nach – kostet etwas Leistung')
     +row('Wolkenschatten',tog('oCloud',OPT.cloudShade),'Weiche Schatten ziehen langsam über das Gelände – nur Optik, aus bei Grafik Niedrig')
     +row('Wetter (Laub, Schnee)',tog('oWeather',OPT.weather),'Fallende Blätter im Herbst, Blütenblätter im Frühling, Schnee im Winter – nur Optik')
+    +row('Tageszeit',seg('oTod',[['off','Aus'],['soft','Dezent'],['full','Voll']],OPT.tod),'Die Sonne wandert über den Tag (25 Spielminuten): Morgen- und Abendlicht; „Voll“ mit dunkler Nacht – nur Optik')
+    +row('Reichweiten-Ringe',tog('oRange',OPT.rangeRing),'Zeigt für ausgewählte Fernkämpfer und Türme einen Ring mit ihrer Reichweite')
     +row('Spielzimmer',tog('oRoom',OPT.room),'Karte liegt als Brett auf einem Schreibtisch in einer Werkstatt')
     +row('Intro-Animation',tog('oIntro',OPT.intro!==false),'Der Spielkarton öffnet sich beim Start; Klick oder Taste überspringt')
     +row('Raum: Fotostudio',tog('oRoomSt',OPT.roomStudio),'Statt der Maler-Werkstatt ein helles Fotostudio')
@@ -83,18 +86,18 @@ function renderOptions(){
   const q=id=>document.getElementById(id),bind=(id,fn)=>{const e=q(id);if(e)fn(e)};
   const segB=(id,fn)=>bind(id,e=>e.querySelectorAll('button').forEach(b=>b.onclick=()=>{fn(b.dataset.v);e.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
   bind('oCam',e=>e.oninput=()=>{optSet('camSpeed',+e.value);q('oCamo').textContent=(+e.value).toFixed(1)+'×'});
-  bind('oEgoS',e=>e.oninput=()=>{optSet('egoSens',+e.value);q('oEgoSo').textContent=(+e.value).toFixed(1)+'×'});bind('oEgoB',e=>e.onchange=()=>optSet('egoBob',e.checked));
+  bind('oEgoS',e=>e.oninput=()=>{optSet('egoSens',+e.value);q('oEgoSo').textContent=(+e.value).toFixed(1)+'×'});bind('oEgoB',e=>e.onchange=()=>optSet('egoBob',e.checked));bind('oEgoW',e=>e.onchange=()=>optSet('egoWeapon',e.checked));
   bind('oCamR',e=>e.onclick=()=>camReset());
   bind('oEdge',e=>e.onchange=()=>optSet('edgeScroll',e.checked));
   bind('oRot',e=>e.oninput=()=>{optSet('camRot',+e.value);q('oRoto').textContent=(+e.value).toFixed(1)+'×'});
   bind('oZoom',e=>e.oninput=()=>{optSet('zoomSpeed',+e.value);q('oZoomo').textContent=(+e.value).toFixed(1)+'×'});
-  segB('oUi',v=>{optSet('uiClassic',v==='classic');panelSig='';infoCache='';if(G)updateUI()});segB('oHp',v=>optSet('hpBars',v));segB('oTm',v=>optSet('teamMark',v));bind('oTips',e=>e.onchange=()=>optSet('tips',e.checked));bind('oToasts',e=>e.onchange=()=>optSet('toasts',e.checked));
+  segB('oUi',v=>{optSet('uiClassic',v==='classic');panelSig='';infoCache='';if(G)updateUI()});segB('oHp',v=>optSet('hpBars',v));segB('oTm',v=>optSet('teamMark',v));segB('oTod',v=>optSet('tod',v));bind('oTips',e=>e.onchange=()=>optSet('tips',e.checked));bind('oToasts',e=>e.onchange=()=>optSet('toasts',e.checked));
   segB('oLang',v=>{applyLang(v);renderOptions()});
   segB('oWild',v=>{try{localStorage.setItem('ek-wild',v)}catch(_){}renderOptions()});
   document.querySelectorAll('.kmbtn').forEach(b=>b.onclick=()=>{b.textContent=tr('Taste drücken …');b.classList.add('wait');
     const h=ev=>{ev.preventDefault();ev.stopPropagation();removeEventListener('keydown',h,true);if(ev.key!=='Escape'&&ev.key!=='Shift'&&ev.key!=='Control'&&ev.key!=='Alt'&&ev.key!=='Meta'){keySet(b.dataset.a,ev.key.length===1?ev.key.toLowerCase():ev.key)}renderOptions()};addEventListener('keydown',h,true)});
   bind('kmReset',e=>e.onclick=()=>{keysReset();renderOptions()});
-  segB('oGfx',v=>setGfx(+v));bind('oShadow',e=>e.onchange=()=>optSet('shadows',e.checked));bind('oGrass',e=>e.onchange=()=>optSet('grass',e.checked));bind('oBloom',e=>e.onchange=()=>optSet('bloom',e.checked));bind('oCloud',e=>e.onchange=()=>optSet('cloudShade',e.checked));bind('oWeather',e=>e.onchange=()=>optSet('weather',e.checked));bind('oRoom',e=>e.onchange=()=>{optSet('room',e.checked);if(typeof ROOM!=='undefined'){if(!ROOM.g&&e.checked)ROOM.init();else ROOM.apply()}});bind('oIntro',e=>e.onchange=()=>optSet('intro',e.checked));bind('oAuto',e=>e.onchange=()=>optSet('autosave',e.checked));bind('oRoomSt',e=>e.onchange=()=>{optSet('roomStudio',e.checked);if(typeof ROOM!=='undefined')ROOM.setBg()});bind('oGrade',e=>e.onchange=()=>optSet('grade',e.checked));bind('oFps',e=>e.onchange=()=>optSet('fps',e.checked));
+  segB('oGfx',v=>setGfx(+v));bind('oShadow',e=>e.onchange=()=>optSet('shadows',e.checked));bind('oRange',e=>e.onchange=()=>optSet('rangeRing',e.checked));bind('oGrass',e=>e.onchange=()=>optSet('grass',e.checked));bind('oBloom',e=>e.onchange=()=>optSet('bloom',e.checked));bind('oCloud',e=>e.onchange=()=>optSet('cloudShade',e.checked));bind('oWeather',e=>e.onchange=()=>optSet('weather',e.checked));bind('oRoom',e=>e.onchange=()=>{optSet('room',e.checked);if(typeof ROOM!=='undefined'){if(!ROOM.g&&e.checked)ROOM.init();else ROOM.apply()}});bind('oIntro',e=>e.onchange=()=>optSet('intro',e.checked));bind('oAuto',e=>e.onchange=()=>optSet('autosave',e.checked));bind('oRoomSt',e=>e.onchange=()=>{optSet('roomStudio',e.checked);if(typeof ROOM!=='undefined')ROOM.setBg()});bind('oGrade',e=>e.onchange=()=>optSet('grade',e.checked));bind('oFps',e=>e.onchange=()=>optSet('fps',e.checked));
   bind('oMute',e=>e.onchange=()=>SND.setMute(!e.checked));
   bind('mv',e=>e.oninput=()=>{SND.init();SND.setMusic(e.value/100);q('mvo').textContent=pc(SND.music)});
   bind('sv',e=>{e.oninput=()=>{SND.init();SND.setSfx(e.value/100);q('svo').textContent=pc(SND.sfx)};e.onchange=()=>SND.play('select')});
@@ -119,6 +122,7 @@ function toast(msg,kind){if(NET.cap){NET.cap.push([msg,kind]);return}if(!OPT.toa
 const costHTML=c=>RES.filter(r=>c[r]).map(r=>`<span class="c ${(G&&G.res[0][r]||0)>=c[r]?'ok':'bad'}" data-r="${r}" data-n="${c[r]}">${ART.icon(r)}${Math.ceil(c[r])}</span>`).join('');
 function actionsFor(s){const a=actionsFor0(s);if(s.length&&!EGO.on&&EGO.can(s[0]))a.unshift({key:'ego',nm:tr('Ego-Ansicht'),sub:tr('Taste {0}: aus den Augen schauen',keyLabel(OPT.keys.ego||'v')),run:()=>EGO.start(s[0])});return a}
 function actionsFor0(s){
+  if(s.length>1&&s.some(u=>u.kind!==s[0].kind))s=s.filter(u=>u.kind===s[0].kind);/* gemischte Auswahl (z. B. Umschalt-Klick auf ein Gebäude): Knöpfe der ersten Art */
   if(!s.length||s[0].team!==0)return[];const f=s[0],acts=[],ep=G.epoch[0];
   if(f.kind==='unit'){
     if(s.some(u=>UNITS[u.type].builds))for(const k of ['house','store','barracks','airfield','farm','mine','derrick','refinery','market','harbor','tower','castle','wall','gate','trench'].filter(k=>BLDS[k].ep<=ep)){const d=BLDS[k];acts.push({key:'b'+k,nm:tr(d.name),cost:d.cost,sub:tr(d.sub),lock:d.ep>ep?tr(EPOCHS[d.ep].name):null,run:()=>startPlace(k)})}
@@ -150,6 +154,7 @@ let curActs=[],infoCache='';
 const ACT_KEYS={am:'attack',exp:'explore',rage:'rage',form:'form',ego:'ego'};
 function actKey(k){const a=ACT_KEYS[k];if(!a||!OPT.keys[a]||(!ui2()&&k!=='am'&&k!=='exp'))return'';return keyLabel(OPT.keys[a])}
 $('acts').addEventListener('click',e=>{const b=e.target.closest('.act');if(!b||!G||!G.running)return;const a=curActs[+b.dataset.i];if(!a)return;if(a.lock){toast(tr('Erst ab der {0} verfügbar.',a.lock));sfx('error');return}if(a.need){toast(a.need);sfx('error');return}sfx('click');a.run()});
+$('info').addEventListener('pointerdown',e=>{if(e.target.closest('[data-info]')){infoOpen=!infoOpen;infoCache='';sfx('click');return}},true);
 $('info').addEventListener('pointerdown',e=>{if(!G||!G.running)return;const q=e.target.closest('[data-q]');if(q){const b=selection()[0];if(b&&b.team===0)cancelQueue(b,+q.dataset.q);return}if(e.target.closest('[data-clear]')){sel.clear();panelSig='';return}const tb=e.target.closest('[data-tech]');if(tb){startResearch(0,tb.dataset.tech);infoCache='';panelSig='';return}const ub=e.target.closest('[data-upg]');if(ub){startUpgrade(0,ub.dataset.upg);infoCache='';panelSig=''}});
 function techBlock(e){
   const ts=techsFor(e.type).filter(t=>t.ep<=G.epoch[0]);if(!ts.length)return '';const own=G.tech[0];
@@ -161,6 +166,28 @@ function techBlock(e){
   return h+'</div>'}
 /* Kopfbild in der Seitenleiste (nur neue Oberfläche): Rendering des echten Modells */
 function hdIcon(e){if(!ui2()||typeof ICON3==='undefined'||(e.kind!=='unit'&&e.kind!=='bld'))return'';try{const u=ICON3.thing(e.kind,e.type);return u?`<img class="hic" src="${u}" alt="">`:''}catch(_){return''}}
+/* Werte-Fenster („i“ im Info-Feld): alle Kennzahlen der gewählten Einheit/des Gebäudes, stufen- und technologieabhängig (nicht nur Grundwerte) */
+let infoOpen=false;
+/* tatsächlicher Schaden je Treffer gegen neutrale Ziele: Grundwert × Technologie × Stufe (wie in hit()) */
+function effAtk(e){const d=UNITS[e.type],tf=G.tfx[e.team]||{ratk:0,matk:0},nf=G.nfx[e.team]||{art:0};return d.atk*(1+(d.ranged?tf.ratk:tf.matk))*(d.cls==='siege'?1+(nf.art||0):1)*LVL.atk[e.lvl||0]}
+function statsHTML(e){
+  const R=(k,v)=>`<div class="kv"><span>${tr(k)}</span><b>${v}</b></div>`;let r='';
+  if(e.kind==='unit'){
+    const d=UNITS[e.type],atk=effAtk(e);
+    const good=Object.keys(CTR[d.cls]||{}).map(c=>tr(CLSN[c]||c)),weak=Object.keys(CTR).filter(c=>(CTR[c]||{})[d.cls]>1).map(c=>tr(CLSN[c]||c));
+    r+=R('Leben',Math.ceil(e.hp)+' / '+e.maxHp);
+    if(d.atk){r+=R('Schaden',Math.round(atk));if(d.cd)r+=R('Angriffstempo',tr('{0} s',d.cd))+R('Schaden pro Sekunde',(atk/d.cd).toFixed(1));r+=R('Reichweite',d.ranged?d.rng:tr('Nahkampf'))}
+    else if(d.heal)r+=R('Heilt',tr('{0}/s',d.heal));
+    r+=R('Tempo',d.spd)+R('Sicht',d.sight);
+    if(d.cls&&CLSN[d.cls])r+=R('Klasse',tr(CLSN[d.cls]));
+    if(good.length)r+=R('Stark gegen',good.join(', '));if(weak.length)r+=R('Schwach gegen',weak.join(', '));
+    if(d.cost&&!d.nocost)r+=R('Kosten',costHTML(ucost(e.team,e.type)))+(d.time?R('Ausbildung',tr('{0} s',d.time)):'')}
+  else if(e.kind==='bld'){
+    const d=BLDS[e.type];r+=R('Leben',Math.ceil(e.hp)+' / '+e.maxHp)+R('Sicht',d.sight);
+    if(d.claim)r+=R('Gebiet',d.claim);if(d.pop)r+=R('Bevölkerung','+'+d.pop);
+    if(d.shoot){const sd=e.spec==='def',sob=e.spec==='obs';r+=R('Schaden',d.shoot.atk)+R('Angriffstempo',tr('{0} s',d.shoot.cd))+R('Reichweite',Math.round(d.shoot.rng*(sd?1.3:sob?.8:1)))}
+    if(d.cost&&Object.keys(d.cost).length)r+=R('Kosten',costHTML(d.cost))+(d.time?R('Bauzeit',tr('{0} s',d.time)):'')}
+  return `<div class="ustats">${r}</div>`}
 function infoHTML(s){
   const clr='<button class="x" data-clear aria-label="'+tr('Auswahl aufheben')+'">×</button>';
   if(!s.length)return '<p class="muted">'+tr('Linksklick oder Rahmen ziehen wählt aus. Rechtsklick gibt Befehle: bewegen, sammeln, bauen, angreifen. Doppelklick wählt alle gleichen Einheiten im Bild.')+'</p>';
@@ -169,11 +196,12 @@ function infoHTML(s){
   if(e.kind==='animal'){const d=ANIMALS[e.type];return `<div class="ih"><h2>${nameOf(e)}</h2><span class="tag">${tr('Wildtier')}</span>${clr}</div><div class="hpw"><div class="hp"><span style="width:${Math.max(0,e.hp/e.maxHp*100).toFixed(0)}%"></span></div>${Math.ceil(e.hp)} / ${e.maxHp}</div><div class="line"><em>${tr(d.info)}</em></div>${d.food?`<div class="line">${tr('Jagdbeute')}: <b>${d.food}</b> ${rn('food')}</div>`:''}<div class="line"><em>${d.agg?tr('Angriff {0}',d.atk):tr('Rechtsklick mit Einheiten zum Jagen')}</em></div>`}
   const tag=e.team===1?'<span class="tag enemy">'+tr('Gegner')+'</span>':e.team===0?'<span class="tag">'+tr(EPOCHS[G.epoch[0]].name)+'</span>':'';
   const lv=e.kind==='node'?'':`<span class="tag" style="color:${LVLC[e.lvl]};border-color:${LVLC[e.lvl]}">${tr('Stufe {0}',LVLN[e.lvl])}</span>`;
-  let h=`<div class="ih">${hdIcon(e)}<h2>${nameOf(e)}</h2>${tag}${lv}${clr}</div>`;
+  let h=`<div class="ih">${hdIcon(e)}<h2>${nameOf(e)}</h2>${tag}${lv}${e.kind==='node'?'':`<button class="x ib${infoOpen?' on':''}" data-info aria-label="${tr('Werte')}" title="${tr('Werte anzeigen')}">i</button>`}${clr}</div>`;
   if(e.kind==='node')return h+`<div class="line">${tr('Vorrat')}: <b>${Math.ceil(e.amount)}</b> ${rn(e.rt)}</div>`;
   h+=`<div class="hpw"><div class="hp"><span style="width:${Math.max(0,e.hp/e.maxHp*100).toFixed(0)}%"></span></div>${Math.ceil(e.hp)} / ${e.maxHp}</div>`;
+  if(infoOpen)h+=statsHTML(e);
   if(e.kind==='unit'){const d=UNITS[e.type];let st=tr(STATE[e.state]||'');if(e.state==='gather')st=tr('Sammelt {0}',rn(e.rtype||e.ctype||'food'));if(e.state==='return')st=tr('Bringt {0} zum Lager',rn(e.ctype));
-    h+=`<div class="line">${st}${e.carry>0?` <em>· ${tr('trägt {0} {1}',Math.floor(e.carry),rn(e.ctype))}</em>`:''}</div>${e.q&&e.q.length?`<div class="line"><em>${tr('Befehlskette: {0} weitere Aufträge',e.q.length)}${e.loop?' · '+tr('Schleife'):''}</em></div>`:''}<div class="line"><em>${tr('Angriff {0} · Reichweite {1}',d.atk,d.ranged?d.rng:tr('Nahkampf'))}</em></div>`}
+    h+=`<div class="line">${st}${e.carry>0?` <em>· ${tr('trägt {0} {1}',Math.floor(e.carry),rn(e.ctype))}</em>`:''}</div>${e.q&&e.q.length?`<div class="line"><em>${tr('Befehlskette: {0} weitere Aufträge',e.q.length)}${e.loop?' · '+tr('Schleife'):''}</em></div>`:''}<div class="line"><em>${tr('Angriff {0} · Reichweite {1}',Math.round(effAtk(e)),d.ranged?d.rng:tr('Nahkampf'))}</em></div>`}
   else{
     if(!e.built)h+=`<div class="line">${tr('Im Bau: {0} %',Math.floor(e.prog*100))}${e.team===0?' <em>· '+tr('Arbeiter per Rechtsklick zum Bauen schicken')+'</em>':''}</div>`;
     if(e.team===0&&e.type==='hq'&&G.adv[0])h+=`<div class="line">${tr('Aufstieg in die {0}',tr(EPOCHS[G.epoch[0]+1].name))}: <b>${Math.floor(G.adv[0].t/G.adv[0].time*100)} %</b></div>`;
@@ -232,7 +260,7 @@ function showStart(){
   <div class="diff" role="group" aria-label="${tr('Schwierigkeit')}">${['leicht','normal','schwer'].map(d=>`<button data-d="${d}" aria-pressed="${d===diff}">${tr(d)}</button>`).join('')}</div>
   <div class="diff aist" role="group" aria-label="${tr('Gegner')}">${Object.entries(AI_STYLES).map(([k,v])=>`<button data-as="${k}" aria-pressed="${k===aiStyle}" title="${tr(v.desc)}">${tr(v.name)}</button>`).join('')}</div>
   <div class="maps" role="group" aria-label="${tr('Karte')}">${Object.entries(MAPS).map(([k,m])=>`<button data-map="${k}" aria-pressed="${k===curMap}"><b>${tr(m.name)}</b><img src="${mapPreview(k)}" alt="" title="${tr(m.desc)}"></button>`).join('')}</div>
-  <dl class="ctl"><dt>${tr('Auswählen')}</dt><dd>${tr('Linksklick, Rahmen ziehen, Doppelklick für alle gleichen')}</dd><dt>${tr('Befehl')}</dt><dd>${tr('Rechtsklick: bewegen, sammeln, bauen, angreifen, Sammelpunkt')}</dd><dt>${tr('Kamera')}</dt><dd>${tr('WASD oder Pfeiltasten, Bildschirmrand, Minikarte, Mausrad zoomt, mittlere Maustaste dreht und neigt')}</dd><dt>${tr('Tasten')}</dt><dd>${tr('Q Angriffsmarsch · H Hauptlager · . untätiger Arbeiter · Leertaste Pause · Esc Menü')}</dd><dt>${tr('Touch')}</dt><dd>${tr('Tippen wählt aus, mit Auswahl tippen gibt Befehl, Wischen bewegt die Karte')}</dd></dl>
+  <dl class="ctl"><dt>${tr('Auswählen')}</dt><dd>${tr('Linksklick, Rahmen ziehen, Doppelklick für alle gleichen')}</dd><dt>${tr('Befehl')}</dt><dd>${tr('Rechtsklick: bewegen, sammeln, bauen, angreifen, Sammelpunkt')}</dd><dt>${tr('Kamera')}</dt><dd>${tr('WASD oder Pfeiltasten, Bildschirmrand, Minikarte, Mausrad zoomt, mittlere Maustaste dreht und neigt')}</dd><dt>${tr('Tasten')}</dt><dd>${tr('Q Angriffsmarsch · H Hauptlager · . untätiger Arbeiter · Leertaste Pause · Esc Menü')}</dd><dt>${tr('Gruppen')}</dt><dd>${tr('Strg + Ziffer speichert die Auswahl, Ziffer wählt sie, zweimal drücken springt hin (Umschalt + Ziffer fügt hinzu)')}</dd><dt>${tr('Touch')}</dt><dd>${tr('Tippen wählt aus, mit Auswahl tippen gibt Befehl, Wischen bewegt die Karte')}</dd></dl>
   <div class="langrow"><span>${tr('Sprache')}</span><div class="diff" role="group">${['de','en'].map(l=>`<button data-l="${l}" aria-pressed="${l===LANG}">${l==='de'?'Deutsch':'English'}</button>`).join('')}</div></div>
   <div class="btnrow row"><button class="go" id="goBtn">${tr('Einzelspiel starten')}</button><button class="btn2" id="mpBtn">${tr('Mehrspieler')} …</button></div></div>`;
   ov.querySelectorAll('[data-map]').forEach(b=>b.onclick=()=>{curMap=b.dataset.map;ov.querySelectorAll('[data-map]').forEach(x=>x.setAttribute('aria-pressed',x===b))});

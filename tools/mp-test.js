@@ -14,7 +14,7 @@ const res=[];const rep=(n,ok,t)=>{res.push(ok);console.log((ok?'OK     ':'FEHLER
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));const T0=Date.now(),P=s=>console.log('   ['+Math.round((Date.now()-T0)/1000)+'s] '+s);
 (async()=>{
  await new Promise(r=>srv.listen(0,r));const port=srv.address().port;
- const b=await chromium.launch({executablePath:process.env.CHROME||'/opt/pw-browsers/chromium',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});
+ const b=await chromium.launch({executablePath:process.env.CHROME||'/opt/pw-browsers/chromium',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--disable-dev-shm-usage']});
  const ctx=await b.newContext({viewport:{width:800,height:500}});
  await ctx.addInitScript(()=>{window.__seed=5;if(!location.search.includes('join'))window.__norender=true}); /* Gastgeber ohne Zeichnen (schneller), Gast zeichnet */ /* KEIN __eagerModels: Spät-Modelle laden nach */
  const h=await ctx.newPage(),g=await ctx.newPage(),errs=[];
@@ -48,7 +48,8 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));const T0=Date.now(),P=s=>consol
  /* (0b) Chat im Spiel: Enter oeffnet die Zeile, Nachricht kommt beim anderen an und verschwindet nach 8 s */
  await g.keyboard.press('Enter');await g.keyboard.type('Gast im Spiel');await g.keyboard.press('Enter');
  await h.keyboard.press('Enter');await h.keyboard.type('Host im Spiel');await h.keyboard.press('Enter');await sleep(1500);
- const gh=await lg(h),gg=await lg(g);
+ let gh=await lg(h),gg=await lg(g);
+ for(let i=0;i<12&&!(gh.some(x=>x.includes('Gast im Spiel'))&&gg.some(x=>x.includes('Host im Spiel')));i++){await sleep(1000);gh=await lg(h);gg=await lg(g)} /* Software-GL: Nachrichten kommen bei vollem Bild spaet an */
  rep('(0b) Spiel-Chat in beide Richtungen',gh.some(x=>x.includes('Gast im Spiel'))&&gg.some(x=>x.includes('Host im Spiel')),JSON.stringify([gh,gg]));
  for(let i=0;i<30&&((await lg(h)).length||(await lg(g)).length);i++)await sleep(1000); /* Software-GL ist langsam: Zeitgeber koennen spaet laufen */
  rep('(0b) Chat-Zeilen verschwinden nach 8 s',(await lg(h)).length===0&&(await lg(g)).length===0);

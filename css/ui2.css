@@ -248,3 +248,9 @@ body.ui2 #svdlg button{color:#fff;border:1px solid var(--rim2);border-radius:99p
 body.ui2 #svdlg button:hover{filter:none;border-color:var(--fr);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),var(--glow,0 0 10px rgba(255,255,255,.3))}
 body.ui2 #svdlg button.dng{border-color:#e0533c}
 body.ui2 #mpchatin:focus{outline:none;border-color:var(--fr);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),var(--glow,0 0 8px rgba(255,255,255,.3))}
+
+/* i-Knopf (Werte) neben dem Schliessen-Kreuz im neuen Look */
+body.ui2 #side .ih:has(.ib){padding-right:calc(76px*var(--u))}
+body.ui2 #side .ih .ib{right:calc(34px*var(--u));font-size:calc(19px*var(--u));font-style:italic;font-family:Georgia,serif}
+body.ui2 #side .ih .ib.on{color:var(--gold1,#f5e3ae);background:rgba(227,182,106,.18);border-radius:50%}
+body.ui2 #side .ustats{font-size:calc(13px*var(--u))}

@@ -128,6 +128,11 @@ function draw(){
   const list=[];for(const e of vis)if(e.kind!=='node'||e.sea)list.push([e,false]);for(const m of ghosts)list.push([m,true]);
   const rings=[];R3.tmList=vis.filter(e=>(e.kind==='unit'||e.kind==='bld')&&e.team>=0&&!e.inm&&(e.kind!=='bld'||e.built!==false));
   for(const e of vis)if(s.has(e.id))rings.push({x:e.x,y:e.y,r:e.r+(e.kind==='bld'?6:4),c:e.team===1?0xef9b86:e.team<0?0xecdfc3:0xf3d48a});
+  /* Reichweiten-Ringe: eigene Fernkämpfer und Türme in der Auswahl (bis 6 einzeln, sonst je Truppenart ein Ring um den ersten) */
+  {const rl=[];if(OPT.rangeRing&&s.size){const pick=[];for(const e of vis)if(s.has(e.id)&&e.team===0&&!e.inm){let rr=0;if(e.kind==='unit'){const d=UNITS[e.type];if(d&&d.ranged&&d.rng>=40)rr=d.rng+e.r}else if(e.kind==='bld'&&e.built!==false){const d=BLDS[e.type];if(d&&d.shoot)rr=d.shoot.rng*(e.spec==='def'?1.3:e.spec==='obs'?.8:1)}if(rr)pick.push({e,rr})}
+    if(pick.length<=6)for(const q of pick)rl.push({x:q.e.x,y:q.e.y,r:q.rr,c:0xf3d48a});
+    else{const seen=new Set();for(const q of pick){const k=q.e.type+'|'+Math.round(q.rr);if(seen.has(k)||seen.size>=4)continue;seen.add(k);rl.push({x:q.e.x,y:q.e.y,r:q.rr,c:0xf3d48a})}}}
+  R3.rangeList=rl}
   for(const f of G.fx){const k=(G.t-f.t)/.7;rings.push({x:f.x,y:f.y,r:14*(1-k*.6),c:f.kind==='attack'?0xe0533c:f.kind==='rally'?0xf3d48a:0xecdfc3,o:1-k})}
   let ghostOk=true,pw=null,wl=null;
   if(placing&&mouse.in){pw=toWorld(mouse.x,mouse.y);

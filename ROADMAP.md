@@ -113,13 +113,13 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [x] Ressourcen: grosse Vorkommen, Wälder, Steinhaufen
 - [x] Schräge 2,5D-Ansicht mit aufrechten Figuren (`sprites.js`)
 - [x] Oberfläche im dunklen Stein/Bronze-Stil, Minikarte unten links
-- [ ] Idee: Befehlsknöpfe mit eigenen Symbolen und Tastenkürzeln für alle Aktionen
+- [ ] Idee: Befehlsknöpfe mit eigenen Symbolen und Tastenkürzeln für alle Aktionen (Kontrollgruppen Strg+1..9 erledigt 27.10.)
 - [x] Kartenauswahl mit Vorschaubildern (`mapPreview` in nav.js), neue Karte Seenplatte, Seen/Teiche auf mehreren Karten (`lakes` in `MAPS`)
 - [x] Berater: 5 Taktiken (`STRATS`), Lagebild/Erkenntnisse über den Gegner (`advIntel`), Auto-Modus
 - [x] Code aufgeteilt (state/map/sim/ai/commands/input/mp/advisor/render/ui/main)
 - [x] Optik: weiche Küsten, Sandstrand und Brandung, Gras mit Korn/Blumen/Steinchen, Küstenschatten, Licht von links oben
 - [x] Partikel: Rauch (Hütten, Hauptlager), Feuer bei beschädigten Gebäuden, Staub, Funken im Kampf, Späne beim Sammeln, Kielwasser
-- [ ] Nächste Optik-Ideen: Tag/Nacht-Licht, bessere Schatten, Wasserglanz (Wolkenschatten erledigt 24.10., Option Grafik; Wellen nur sanfter)
+- [x] Tag/Nacht-Licht erledigt (27.10., Option „Tageszeit“). [ ] Nächste Optik-Ideen: bessere Schatten (Wasserglanz/Sonnenglitzern erledigt 27.10.; Wolkenschatten erledigt 24.10., Option Grafik; Wellen nur sanfter)
 - [ ] Später: echte 3D-Modelle oder vorgerenderte Bilder, Spielserver, Steam
 
 ## Plan nach dem 3D-Test (Stil ist entschieden: 3D mit Three.js, siehe 3dtest.html / js/test3d.js)
@@ -239,7 +239,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 ## v0.2.1 – Leistung und Hauptmenü (2026-10-11)
 - [x] Leistung im Langzeitspiel: Wegsuche ~5× schneller, KI-Turmsuche gedrosselt, Gelände in Stücken (nur Sichtbares wird gezeichnet), Vorkommen ausserhalb des Bildes übersprungen, dynamische Auflösung bei wenig FPS.
 - [x] Hauptmenü (`js/mainmenu.js`, `css/mainmenu.css`): Ladebildschirm „Epochenkrieg – Daveson für Deus Vult Infidel“, Hauptseite mit eigener Musik und fliegender Kamera über die Karte, Einzelspieler-Seite mit Kartenkacheln, Reglern (Kartengröße, Schwierigkeit, Wildtiere) und Gegner-Kacheln; Mehrspieler mit Beta-Hinweis; Tutorial (Release 3) und Story (Release 4) als „Bald“.
-- [ ] Tutorial (Release 3), Story (Release 4).
+- [x] Tutorial (27.10.): `js/tutorial.js`, 17 geführte Schritte auf einer friedlichen Übungskarte. [ ] Story (Release 4).
 - [ ] Altes `showStart` in ui.js entfernen, sobald das neue Menü bewährt ist.
 - [ ] Eigenes, langes Menü-Musikstück (jetzt: Greensleeves-Synthesizer).
 
@@ -316,7 +316,7 @@ Davids eigene Wünsche aus dem Testspielen hier ergänzen und nach oben sortiere
 - [ ] Hafen bei „wenig Wasser“ auf grossen Karten oft weit vom Start (KI baut dann keinen Hafen)
 - [ ] Kraterrand: kleinen Teich nah am Start ergänzen (Fische, Hafen)
 - [ ] Jahreszeit im Mehrspieler-Spiel vom Gast frei wählbar (nur Vorschlag)
-- [ ] Karten-Seed per Eingabefeld teilen/merken („Lieblingskarten“)
+- [x] (27.10.) Karten-Seed teilen: „Kartencode“ unter der Vorschau (Kopieren, Einfügen) – offen: „Lieblingskarten“ merken, Code in der Mehrspieler-Lobby
 
 ## Industrie- und Waffen-Modelle (18.10.)
 - [x] Farbtabellen repariert (Davids Upload hatte `variation-a/b/c.png` überschrieben); Industrie-Tabellen heissen `ind-a/b/c.png`
@@ -346,11 +346,30 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 - Schätzung: Stufe 1 mittel (Kamera, Sichtbarkeits-Anpassungen), Stufe 2 gross (Eingabe, Kampf, Kollision), Stufe 3 gross. Erst nach den Arbeitspaketen A–D.
 
 ## Idee von David: Reichweite und Einheiten-Info (18.10., später)
-- [ ] **Reichweiten-Anzeige:** Beim Anklicken von Truppen erscheint ein Ring mit ihrer Trefferreichweite (`rng` in `UNITS`): Bogenschützen, Kanonen, Katapulte usw.; bei mehreren Einheiten die jeweiligen Ringe oder der Ring der gewählten Gruppe. Ring in Teamfarbe, dezent, nur für die eigene Auswahl (auch für Gebäude mit `shoot`, z. B. Türme). Einen Mindestabstand für Belagerungswaffen (Kanone, Haubitze, Katapult) gibt es im Spiel noch nicht: erst als Spielregel in `data.js`/`sim.js` einführen (`minRng`), dann inneren Ring zeichnen; Mehrspieler: nur Anzeige, die Regel wirkt im Gastgeber.
-- [ ] **Info-Knopf („i") an Einheiten und Gebäuden:** Kleines i im Info-Feld öffnet ein Fenster mit Geschwindigkeit, Leben, Angriff, Reichweite, Angriffstempo, Rüstung/Klasse (`cls`, Gegenstücke `CTR`), Kosten, Ausbildungszeit, Stufe (`lvl`). Die Hinweise `unitTip` (ui.js) liefern schon einen Teil; Werte stufenabhängig über `LVL`/Technologien (`G.tfx`) berechnen, nicht nur Grundwerte.
+- [x] (27.10., ohne Mindestabstand) **Reichweiten-Anzeige:** Beim Anklicken von Truppen erscheint ein Ring mit ihrer Trefferreichweite (`rng` in `UNITS`): Bogenschützen, Kanonen, Katapulte usw.; bei mehreren Einheiten die jeweiligen Ringe oder der Ring der gewählten Gruppe. Ring in Teamfarbe, dezent, nur für die eigene Auswahl (auch für Gebäude mit `shoot`, z. B. Türme). Einen Mindestabstand für Belagerungswaffen (Kanone, Haubitze, Katapult) gibt es im Spiel noch nicht: erst als Spielregel in `data.js`/`sim.js` einführen (`minRng`), dann inneren Ring zeichnen; Mehrspieler: nur Anzeige, die Regel wirkt im Gastgeber.
+- [x] (27.10.) **Info-Knopf („i") an Einheiten und Gebäuden:** Kleines i im Info-Feld öffnet ein Fenster mit Geschwindigkeit, Leben, Angriff, Reichweite, Angriffstempo, Rüstung/Klasse (`cls`, Gegenstücke `CTR`), Kosten, Ausbildungszeit, Stufe (`lvl`). Die Hinweise `unitTip` (ui.js) liefern schon einen Teil; Werte stufenabhängig über `LVL`/Technologien (`G.tfx`) berechnen, nicht nur Grundwerte.
 
 - Moves 24.10.: Kampf-Animationen im Takt, Rückstoss, Jog beim Angriffsmarsch (siehe OPTIMIERUNG.md). Offen: Bogen-Spannen (kein Clip), Sterbe-Überblendung.
 
 - [x] Fischerboote wählen Schwärme nach Weg zum Hafen und Menge (`boatPick`), Berater-Angriffsplan (Chip „Angreifen“).
 
 - [x] KI-Transport geprüft (25.10.): nicht nötig, alle 117 Testkarten haben einen Landweg (`ensureWalk`); nichts gebaut, Begründung in OPTIMIERUNG.md. Optional später: Flankenlandung der KI.
+
+## Karten-Ressourcen und Kartenprüfung (26.10.)
+- [x] Ressourcen-Audit über 13 Kartenarten × S/M/L × Wasser 0–2 × Berge 0–2 × mehrere Seeds (Vorher/Nachher-Tabellen in OPTIMIERUNG.md): Erz auf zu steilem Boden (Mine nicht baubar) war das grösste Loch (6–9 % aller Stein-/Eisen-/Goldvorkommen, 56 % der Karten hatten mindestens ein unbrauchbares Vorkommen, jetzt 0,2 %), dazu fehlendes Gold/Öl in Reichweite, Fisch ohne Zugang, Vorkommen ohne Gegenstück.
+- [x] `js/mapaudit.js` (`mapAudit`): Dauer-Absicherung am Ende von `genMap` (versetzen/ersetzen/nachplatzieren, Spiegelbild, Mindestmengen `MAP_MIN`, Zähler `MAPDBG.audit`); Generator: Erz nur auf flachem Boden (`oreOk`), `free()` prüft das Spiegelbild mit.
+- [x] Spielstand-Version 2 plus Kartenversion `MAPGEN_VER` (alte Stände werden sauber abgelehnt).
+- [ ] Später möglich: Holz-Nachpflanzen in der Prüfung (heute nur Kontrolle, `WOOD_MIN6/9` genügen auf allen Testkarten), Hirsche/Tiere sind eine Spieler-Option und nicht Teil der Garantie, Inselkarten (Archipel) bekommen Stein/Eisen jenseits der Heimatinsel nur per Schiff (Truppentransport vorhanden, KI nutzt ihn nicht).
+
+- [x] Bäume/Gras/Fische poppen beim Zoomen, Neigen, Drehen nicht mehr auf oder weg: stetige Dichte, Einblenden über Grösse, weicher Rand der Sichtweite (27.10., Messung in OPTIMIERUNG.md)
+- [x] Ego-Ansicht: echter Himmel mit Wolken und Sonne, weiteres Sichtfeld, grössere Sichtweite, sanfterer Nebel (27.10.); Waffe in der Ich-Perspektive erledigt (27.10., siehe unten); offen: Hände/Arme
+
+## Karten-Optik, Hauptmenü, Tutorial (27.10.)
+- [x] Kartenvorschau: Relief mit Hang-/Schlagschatten, Felsschichten, Schneegrate, ruhiges Randgebirge, Streifen-Fehler behoben
+- [x] Boden-Shader: Felsschichten an steilen Hängen (dezent); offen: steilere Klippen-Geometrie (braucht Test mit echter GPU)
+- [x] Hauptmenü 2: Symbole, Zierrahmen, Zeitalter-Leiste, Weiterspielen, Schritte 1–3, eigene Regler, Zusammenfassung
+- [x] Tutorial mit Pfeilen und Leuchtrahmen (siehe CLAUDE.md)
+- [ ] Idee: Tutorial um Fortgeschrittenen-Teil erweitern (Markt, Mauern, Schiffe; Ego-Ansicht und Schnelle Tasten stehen seit 27.10. drin), Tutorial-Fortschritt merken
+- [x] Ego-Ansicht: Waffe im Bild (27.10.): echtes Waffenmodell der Einheit unten rechts (Schild links, Bogen links), Wippen, Nachschwingen beim Drehen, Schlag/Stoss/Schuss-Bewegung, Option „Ego: Waffe im Bild“; offen: sichtbare Hände/Arme, Werkzeuge der Arbeiter, Waffen für Reiter/Schiffe/Flieger
+- [x] Ego: Arbeiter sehen ihr Werkzeug (Axt, Hammer, Sichel, Speer) mit Schlag im Arbeitstakt (27.10.)
+

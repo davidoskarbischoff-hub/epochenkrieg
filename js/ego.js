@@ -24,7 +24,7 @@ EGO.stop=(pos)=>{
   if(!EGO.on)return;EGO.on=false;document.body.classList.remove('ego');const s=EGO.saved;
   if(EGO.speedBack){if(!G.mp)G.speed=EGO.speedBack;EGO.speedBack=0}
   if(s){Object.assign(cam,{x:s.x,y:s.y,z:s.z,yaw:s.yaw,pitch:s.pitch,tyaw:s.tyaw,tpitch:s.tpitch})}
-  if(EGO.mv&&EGO.e&&!EGO.e.dead)EGO.go(0,0);const o=EGO.e&&R3.reg.get(entKey(EGO.e));if(o)o.obj.visible=true;EGO.e=null;EGO.tgt=null;EGO.ctl=false;EGO.mv=null;if(typeof ROOM!=='undefined'&&ROOM.apply)ROOM.apply();
+  if(EGO.mv&&EGO.e&&!EGO.e.dead)EGO.go(0,0);const o=EGO.e&&R3.reg.get(entKey(EGO.e));if(o)o.obj.visible=true;if(EGO.sky)EGO.sky.mesh.visible=false;EGO.clT=0;try{EGO.chunkLod()}catch(_){}EGO.e=null;EGO.tgt=null;EGO.ctl=false;EGO.mv=null;if(typeof ROOM!=='undefined'&&ROOM.apply)ROOM.apply();
   try{if(document.pointerLockElement)document.exitPointerLock()}catch(_){}
   if(R3.ok){r3.camera.fov=R3.FOV;r3.camera.updateProjectionMatrix();r3.camera.near=.8}
   R3.nodeT=0;EGO.ui();panelSig='';if(pos)centerOn(pos.x,pos.y)};
@@ -102,11 +102,35 @@ EGO.tick=dt=>{EGO.reloadUi(dt);if(!EGO.on||!EGO.ctl||!EGO.e||(typeof menuOpen!==
   const f=(keys.w||keys.ArrowUp?1:0)-(keys.s||keys.ArrowDown?1:0),r=(keys.d||keys.ArrowRight?1:0)-(keys.a||keys.ArrowLeft?1:0);
   if(f||r){EGO.mvT-=dt;const ch=!EGO.mv||EGO.mv[0]!==f||EGO.mv[1]!==r;if(ch||EGO.mvT<=0||EGO.yawSent===undefined||Math.abs(EGO.yaw-EGO.yawSent)>.12){EGO.go(f,r);EGO.mvT=.25;EGO.yawSent=EGO.yaw}}
   else if(EGO.mv){EGO.go(0,0)}};
+/* Himmel der Ego-Ansicht: Verlauf Horizont (= Nebelfarbe, damit der Horizont nahtlos wird) → Zenit, Sonne mit Glanz, weiche Wolken; folgt der Kamera, nur in der Ego-Ansicht sichtbar */
+const SKYZ={spring:0x4a82c4,summer:0x3b73c2,autumn:0x6f93b6,winter:0x9bb2c8};
+EGO.skyMake=()=>{
+  const U={uZ:{value:new THREE.Color()},uH:{value:new THREE.Color()},uS:{value:new THREE.Vector3(-.6,.6,-.3)},uC:{value:new THREE.Color(0xfff0c8)},uT:{value:0}};
+  const m=new THREE.ShaderMaterial({uniforms:U,side:THREE.BackSide,depthWrite:false,depthTest:false,fog:false,
+    vertexShader:'varying vec3 vD;void main(){vD=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+    fragmentShader:`varying vec3 vD;uniform vec3 uZ,uH,uS,uC;uniform float uT;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*n(p);p*=2.03;a*=.5;}return s;}
+void main(){vec3 d=normalize(vD);float e=max(d.y,0.);float t=pow(e,.55);vec3 c=mix(uH,uZ,smoothstep(0.,1.,t));
+ float sd=max(dot(d,normalize(uS)),0.);c+=uC*(pow(sd,900.)*3.+pow(sd,24.)*.22+pow(sd,5.)*.07);
+ vec2 p=d.xz/(e+.22)*1.7+vec2(uT*.012,uT*.004);float cl=smoothstep(.52,.8,fbm(p))*smoothstep(.01,.2,e);
+ c=mix(c,mix(uH,vec3(1.),.75)*(.85+.3*sd),cl*.85);
+ gl_FragColor=vec4(c,1.);
+ #include <tonemapping_fragment>
+ #include <colorspace_fragment>
+}`});
+  const mesh=new THREE.Mesh(new THREE.SphereGeometry(1000,40,24),m);mesh.renderOrder=-100;mesh.frustumCulled=false;r3.scene.add(mesh);return{mesh,U}};
+/* Gelände in der Ego-Ansicht: nahe Stücke fein, ferne grob (nach Abstand zum Auge, statt global nach Zoom); reset = zurück zum Zustand der freien Kamera */
+EGO.chunkLod=(ex,ez)=>{for(const gp of R3.chunkGrps||[])for(const c of gp.children){const u=c.userData;if(!u.lo)continue;
+  if(u.cx===undefined){const b=u.hi.boundingBox;u.cx=(b.min.x+b.max.x)/2;u.cz=(b.min.z+b.max.z)/2}
+  const g=ex===undefined?(R3.lodOn?u.lo:u.hi):((u.cx-ex)*(u.cx-ex)+(u.cz-ez)*(u.cz-ez)>2500?u.lo:u.hi);if(c.geometry!==g)c.geometry=g}};
 /* Kamera aus den Augen (statt camUpdate der freien Kamera) */
 function egoCam(){
   const e=EGO.e,o=e&&R3.reg.get(entKey(e));if(!o||e.dead||!EGO.can(e)){if(e&&e.team===0&&e.kind==='unit'&&e.dead)toast(tr('Deine Einheit ist gefallen.'),'warn');else if(e&&e.kind==='animal'&&!e.dead)toast(tr('Das Tier ist ausser Sicht.'));EGO.stop(e&&e.dead?{x:e.x,y:e.y}:null);return}
   if(typeof ROOM!=='undefined'){if(ROOM.g&&ROOM.g.visible)ROOM.g.visible=false;if(ROOM.board&&ROOM.board.visible)ROOM.board.visible=false;if(ROOM.spot&&ROOM.spot.visible)ROOM.spot.visible=false}/* Raum-Foto nicht zeigen: Blick über den Kartenrand = Himmelsfarbe statt Foto */
-  {const A=R3.atmo;r3.scene.background=EGO.bg||(EGO.bg=new THREE.Color());EGO.bg.set(A?A.sky:0x16384f);r3.scene.fog.color.set(A?A.fog:0x9db8c4)}
+  {const A=R3.atmo;r3.scene.background=EGO.bg||(EGO.bg=new THREE.Color());const fh=R3.fogNow||(A?A.fog:0x9db8c4);EGO.bg.set(fh);r3.scene.fog.color.set(fh);
+   const K=EGO.sky||(EGO.sky=EGO.skyMake());K.mesh.visible=true;K.U.uH.value.set(R3.fogNow||(A?A.fog:0x9db8c4));K.U.uZ.value.set(SKYZ[R3.se]||SKYZ.summer);K.U.uT.value=performance.now()/1000;K.mesh.position.copy(r3.camera.position);K.U.uS.value.copy(r3.sun.position).sub(r3.sun.target.position)}
   const{camera,sun}=r3,S=R3.S,p=o.obj.position,gy=Math.max(0,hAt(e.x,e.y));
   const now=performance.now(),dtm=Math.min(.1,Math.max(.001,(now-(EGO.bt||now))/1000));EGO.bt=now;
   /* Kopf-Wippen beim Gehen (nur Fußtruppen am Boden, Option) und kurzer Rückstoß beim Schlag/Schuss */
@@ -114,15 +138,84 @@ function egoCam(){
   EGO.bobA+=((OPT.egoBob&&EGO.ctl&&!ud.air&&!ud.naval&&EGO.sp>8?1:0)-EGO.bobA)*Math.min(1,dtm*8);EGO.bobP+=dtm*EGO.sp*.1;EGO.kick=Math.max(0,EGO.kick-dtm*4.5);
   const bob=Math.sin(EGO.bobP*2)*.045*EGO.bobA/Math.sqrt(EGO.zoom),roll=Math.cos(EGO.bobP)*.012*EGO.bobA,kk=EGO.kick*EGO.kick*.07*EGO.kickK;
   const ex=p.x,ez=p.z,ey=Math.max(p.y,gy)+EGO.eye+bob,cp=Math.cos(EGO.pitch),sy=Math.sin(EGO.yaw),cy=Math.cos(EGO.yaw);
-  camera.aspect=VW/VH;camera.fov=R3.FOV*1.25/EGO.zoom;camera.near=.15;camera.updateProjectionMatrix();
+  camera.aspect=VW/VH;camera.fov=R3.FOV*1.5/EGO.zoom;camera.near=.15;camera.updateProjectionMatrix();
   camera.position.set(ex,ey,ez);camera.up.set(Math.sin(roll)*Math.cos(EGO.yaw),Math.cos(roll),-Math.sin(roll)*Math.sin(EGO.yaw));camera.lookAt(ex+cp*sy,ey+Math.sin(EGO.pitch-kk),ez+cp*cy);camera.updateMatrixWorld();
-  const reach=(EGO.tower?300:190)*Math.sqrt(Math.max(1,EGO.zoom));/* Zeichenweite in Welteinheiten: Nebel + Auslassen (Leistung) */
-  r3.scene.fog.near=reach*.45;r3.scene.fog.far=reach;R3.farT=reach*1.05;R3.cull=reach*1.02*S;R3.cx=e.x;R3.cy=e.y;
+  const reach=(EGO.tower?420:280)*Math.sqrt(Math.max(1,EGO.zoom));/* Zeichenweite in Welteinheiten: Nebel + Auslassen (Leistung) */
+  r3.scene.fog.near=reach*.3;r3.scene.fog.far=reach;R3.farT=reach*1.05;R3.cull=reach*1.02*S;R3.fl=1;if(!EGO.clT||performance.now()>EGO.clT){EGO.clT=performance.now()+250;EGO.chunkLod(ex,ez)}R3.cx=e.x;R3.cy=e.y;
   R3.k=(VH/(2*Math.tan(camera.fov*Math.PI/360)*30))/S;
-  const b=Math.min(120,reach*.5);sun.position.set(ex-.95*b,ey+.85*b,ez-.5*b);sun.target.position.set(ex,gy,ez);sun.target.updateMatrixWorld();
+  const b=Math.min(120,reach*.5);sun.position.set(ex+R3.sd[0]*b,ey+R3.sd[1]*b,ez+R3.sd[2]*b);sun.target.position.set(ex,gy,ez);sun.target.updateMatrixWorld();
   const sc=sun.shadow.camera;sc.left=sc.bottom=-b;sc.right=sc.top=b;sc.near=1;sc.far=b*3.2;sc.updateProjectionMatrix();
   /* sichtbarer Ausschnitt für das Zeichnen = Quadrat um das Auge */
-  const r=R3.cull;R3.view={x0:e.x-r,x1:e.x+r,y0:e.y-r,y1:e.y+r}}
+  const r=R3.cull;R3.view={x0:e.x-r,x1:e.x+r,y0:e.y-r,y1:e.y+r};EGO.vmUpdate(dtm)}
+/* Waffe im Bild (Ego, eigene Einheit): das echte Waffenmodell der Figur (EKMODELS.held) steht unten im Bild. Eigener Zeichendurchgang nach der Welt
+   (Tiefe gelöscht, deshalb taucht sie nie in Wände/Gelände ein), eigene Kamera mit festem Blickwinkel (Zoom ändert die Grösse nicht), Lichter aus der Welt kopiert.
+   Haltung je Datei in VMP: len = längste Seite im Bild, fix = Drehung, die die Spitze nach +Y legt (Grad), grip = Griffstelle als Anteil der Länge von unten,
+   at = Griffpunkt im Bild (x rechts, y oben, z vorn = negativ), tilt = [Spitze nach vorn, Spitze zur Mitte] in Grad, how = Bewegung beim Angriff (melee/thrust/shoot/none). */
+const VMP={
+ 'waffen/Sword_1_A.glb':{len:.62,fix:[0,90,0],grip:.12,at:[.30,-.36,-.62],tilt:[40,16],how:'melee'},
+ 'neu/Sword.glb':{len:.62,fix:[0,90,0],grip:.12,at:[.30,-.36,-.62],tilt:[40,16],how:'melee'},
+ 'waffen/BattleAxe_1_1_A.glb':{len:.62,fix:[0,90,0],grip:.2,at:[.30,-.36,-.62],tilt:[40,12],how:'melee'},
+ 'waffen/SpikedClub_1_A.glb':{len:.55,fix:[0,0,0],grip:.15,at:[.30,-.36,-.62],tilt:[40,14],how:'melee'},
+ 'neu/Wooden Torch.glb':{len:.7,fix:[0,0,0],grip:.15,at:[.30,-.36,-.62],tilt:[38,14],how:'melee'},
+ 'neu/Spear.glb':{len:1.5,fix:[0,0,0],grip:.3,at:[.30,-.34,-.6],tilt:[66,10],how:'thrust'},
+ 'waffen/DruidStaff_2_1_A.glb':{len:.95,fix:[0,0,0],grip:.3,at:[.30,-.34,-.6],tilt:[48,10],how:'melee'},
+ 'waffen/Bow_1_1_A_001.glb':{len:.62,fix:[-90,0,0],grip:.5,at:[-.24,-.2,-.7],tilt:[0,-5],yaw:-28,how:'shoot'},
+ 'neu/Wooden Bow.glb':{len:.62,fix:[0,0,0],grip:.5,at:[-.24,-.2,-.7],tilt:[0,-5],yaw:-28,how:'shoot'},
+ 'neu/Sniper Rifle.glb':{len:.9,fix:[0,0,90],grip:.3,at:[.2,-.22,-.5],tilt:[78,-6],how:'shoot'},
+ 'neu/Assault Rifle.glb':{len:.8,fix:[0,0,90],grip:.3,at:[.2,-.22,-.5],tilt:[78,-6],how:'shoot'},
+ 'archiv/Submachine Gun.glb':{len:.4,fix:[0,0,90],grip:.3,at:[.2,-.2,-.5],tilt:[78,-6],how:'shoot'},
+ 'neu/Axe Small.glb':{len:.62,fix:[0,180,0],grip:.15,at:[.30,-.34,-.62],tilt:[34,12],how:'tool'},
+ 'neu/Doublesided Hammer.glb':{len:.4,fix:[0,0,0],grip:.12,at:[.36,-.3,-.64],tilt:[30,12],how:'tool'},
+ 'neu/Scythe.glb':{len:.8,fix:[0,180,0],grip:.25,at:[.36,-.3,-.64],tilt:[40,14],how:'tool'},
+ 'waffen/Shield_1_A.glb':{len:.3,fix:[0,-90,0],grip:.5,at:[-.36,-.17,-.64],tilt:[0,-8],how:'none'},
+ 'waffen/Shield_2_A.glb':{len:.3,fix:[0,-90,0],grip:.5,at:[-.36,-.17,-.64],tilt:[0,-8],how:'none'}};
+EGO.vmMake=()=>{const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(58,1,.05,30),g=new THREE.Group(),hemi=new THREE.HemisphereLight(0xffffff,0x666666,1),sun=new THREE.DirectionalLight(0xffffff,1);
+  scene.add(g,hemi,sun,sun.target);if(r3.scene.environment)scene.environment=r3.scene.environment;
+  return{scene,cam,g,hemi,sun,items:[],key:'',on:false,sw:0,swK:'melee',cd:0,yaw:0,pitch:0,sx:0,sy:0,fa:0}};
+/* Waffen der Einheit aufbauen (einmal je Einheit/Stufe) */
+EGO.vmBuild=e=>{const vm=EGO.vm,D=Math.PI/180;for(const it of vm.items)vm.g.remove(it.piv);vm.items=[];
+  const wk=!!(UNITS[e.type]||{}).gather;/* Arbeiter zeigen das Werkzeug der letzten Tätigkeit (vm.kd), alle anderen ihre Waffe */
+  const list=e.kind==='unit'&&typeof EKMODELS!=='undefined'?(wk?[EKMODELS.heldTool&&EKMODELS.heldTool(e,vm.kd||'')].filter(Boolean):EKMODELS.held?EKMODELS.held(e):[]):[];
+  for(const h of list){const P=VMP[h.file+'|'+(h.kind||'')]||VMP[h.file];if(!P)continue;
+    const inner=new THREE.Group(),piv=new THREE.Group();inner.rotation.set(P.fix[0]*D,P.fix[1]*D,P.fix[2]*D);inner.add(h.p);piv.add(inner);vm.g.add(piv);
+    inner.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(inner),s=b.getSize(new THREE.Vector3()),k=P.len/Math.max(s.x,s.y,s.z,.01);
+    inner.scale.setScalar(k);inner.updateMatrixWorld(true);const b2=new THREE.Box3().setFromObject(inner),c=b2.getCenter(new THREE.Vector3());
+    inner.position.set(-c.x,-(b2.min.y+(b2.max.y-b2.min.y)*P.grip),-c.z);
+    vm.items.push({piv,P,side:h.side,tool:!!h.kind})}
+  vm.key=e.id+'|'+(e.lvl||0)+'|'+(wk?vm.kd||'':'')+'|'+list.length};
+/* je Bild: Haltung (Wippen, Nachschwingen, Schlag/Schuss), Lichter, Sichtbarkeit */
+EGO.vmUpdate=dt=>{const e=EGO.e;if(!e||e.kind!=='unit'||!r3.camera){if(EGO.vm)EGO.vm.on=false;return}
+  const vm=EGO.vm||(EGO.vm=EGO.vmMake());
+  const wk=!!(UNITS[e.type]||{}).gather;if(vm.eid!==e.id){vm.eid=e.id;vm.kd=''}if(wk){const k=wkKind(e);if(k)vm.kd=k}
+  const key=e.id+'|'+(e.lvl||0)+'|'+(wk?vm.kd:'');if(!vm.key.startsWith(key+'|')||(!vm.items.length&&EGO.vmRetry<performance.now())){EGO.vmRetry=performance.now()+2000;EGO.vmBuild(e)}
+  vm.on=vm.items.length>0&&EGO.zoom<1.5&&!EGO.tower&&OPT.egoWeapon!==false;if(!vm.on)return;const D=Math.PI/180;
+  const cam=r3.camera,a=VW/VH;if(vm.cam.aspect!==a){vm.cam.aspect=a;vm.cam.updateProjectionMatrix()}
+  /* Nachschwingen: Blickdrehung zieht die Waffe kurz in die Gegenrichtung */
+  let dy=EGO.yaw-vm.yaw,dp=EGO.pitch-vm.pitch;vm.yaw=EGO.yaw;vm.pitch=EGO.pitch;dy=Math.max(-.25,Math.min(.25,dy));dp=Math.max(-.25,Math.min(.25,dp));
+  vm.sx+=dy*.35;vm.sy+=-dp*.35;const dec=Math.exp(-dt*9);vm.sx*=dec;vm.sy*=dec;
+  /* Angriff erkennen: Nachladezeit springt hoch (gilt für eigene Schläge und Selbstverteidigung) */
+  if(e.cd>vm.cd+.05&&vm.sw<=.05){vm.sw=1;const d=UNITS[e.type]||{};vm.swK=(d.ranged||d.air)?'shoot':'melee'}vm.cd=e.cd||0;
+  if(EGO.kick>.95&&vm.sw<=.05){vm.sw=1;const d=UNITS[e.type]||{};vm.swK=(d.ranged||d.air)?'shoot':'melee'}
+  /* Arbeit (Hacken, Hämmern, Sensen, Jagen): Takt aus der Spielrechnung wie bei den Figuren (ph 0 = Aufprall = 1), sonst eigener Takt */
+  let ph=null;if(wk&&vm.kd&&(e.state==='gather'||e.state==='build'||(vm.kd==='hunt'&&e.state==='attack'))){const hunt=vm.kd==='hunt',bd=vm.kd==='build',tm=hunt?((UNITS[e.type]||{}).cd||1.2):bd?(e.bl||.6):(e.gl||0),cur=hunt?e.cd:bd?e.bt:e.gt;
+    if(tm&&cur!==undefined&&!NET.client)ph=1-Math.max(0,Math.min(1,cur/tm));else{vm.fph=((vm.fph||0)+(G.paused?0:dt*Math.min(G.speed||1,5)/(WCYC[vm.kd]||1.2)))%1;ph=vm.fph}}
+  if(EGO.vmHold!==undefined&&wk)ph=EGO.vmHold;
+  vm.sw=EGO.vmHold!==undefined?EGO.vmHold:Math.max(0,vm.sw-dt*3.2);/* vmHold: nur für Bildtests */const s=1-vm.sw,sw=vm.sw>0?Math.sin(Math.min(1,s)*Math.PI):0,bob=EGO.bobA;
+  for(const it of vm.items){const P=it.P,p=it.piv,how=P.how;let tx=P.tilt[0],tz=P.tilt[1],px=P.at[0],py=P.at[1],pz=P.at[2];
+    py+=Math.sin(EGO.bobP*2)*.012*bob+vm.sy*.5;px+=Math.cos(EGO.bobP)*.01*bob+vm.sx*.5;
+    if(it.tool&&ph!==null){const sm=x=>x*x*(3-2*x);/* Aufprall bei ph 0/1: Werkzeug vorn unten, dann nach hinten oben ausholen und schlagen */
+      if(how==='tool'){tx+=ph<.5?40-60*sm(ph/.5):-20+60*Math.pow((ph-.5)/.5,2);tz-=Math.sin(ph*Math.PI)*8;pz-=Math.sin(ph*Math.PI)*.04}else if(how==='thrust'){pz-=Math.sin(ph*Math.PI)*.38}}
+    else if(vm.sw>0&&it.side==='hand'&&!it.tool){
+      if(how==='melee'&&vm.swK==='melee'){const cl=x=>Math.max(0,Math.min(1,x));/* kurz ausholen, dann schlagen */tx+=-16*Math.sin(cl(s/.3)*Math.PI/2)*(1-cl((s-.3)/.7))+48*Math.sin(cl((s-.25)/.75)*Math.PI);tz-=sw*14;pz-=sw*.1;px-=sw*.08}
+      else if(how==='thrust'&&vm.swK==='melee'){pz-=sw*.38;tx-=sw*8}
+      else if(vm.swK==='shoot'||how==='shoot'){const r=(1-s)*(1-s);pz+=r*.07;tx+=r*6}}
+    p.position.set(px,py,pz);p.rotation.set(-tx*D,(P.yaw||0)*D,tz*D,'ZXY')}
+  /* Lichter: Sonne/Himmel der Welt, Richtung in Kamera-Raum */
+  vm.hemi.color.copy(r3.hemi.color);vm.hemi.groundColor.copy(r3.hemi.groundColor);vm.hemi.intensity=r3.hemi.intensity*.9;
+  vm.sun.color.copy(r3.sun.color);vm.sun.intensity=r3.sun.intensity*.9;const q=cam.quaternion.clone().invert(),dv=new THREE.Vector3(R3.sd[0],R3.sd[1],R3.sd[2]).applyQuaternion(q);vm.sun.position.copy(dv.multiplyScalar(5));vm.sun.target.position.set(0,0,0)};
+EGO.vmRetry=0;
+/* zweiter Zeichendurchgang: nur die Waffe, Tiefe vorher gelöscht */
+EGO.vmDraw=()=>{const vm=EGO.vm;if(!EGO.on||!vm||!vm.on||!r3.rd)return;const rd=r3.rd,ac=rd.autoClear;rd.autoClear=false;rd.clearDepth();rd.render(vm.scene,vm.cam);rd.autoClear=ac};
 /* eigene Figur/Gebäude ausblenden (nach r3Sync, vor dem Zeichnen) */
 EGO.hide=()=>{const o=EGO.e&&R3.reg.get(entKey(EGO.e));if(o)o.obj.visible=false};
 /* Eingabe: Fang-Listener (Capture), damit die normale Maus-/Tastensteuerung nicht mitläuft */

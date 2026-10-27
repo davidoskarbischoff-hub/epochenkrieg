@@ -3,8 +3,30 @@
 (()=>{
   let splashDone=false,spSize='L';
   const SIZES_SP=[['S','Klein'],['M','Mittel'],['L','Groß']],DIFFS=[['leicht','Leicht'],['normal','Normal'],['schwer','Schwer']],WILD=[['none','Keine'],['half','Wenige'],['normal','Normal'],['double','Viele']];
-  const AI_ICON={balanced:'⚖',turtle:'🛡',rush:'⚔',eco:'⚒',boom:'▲',random:'🎲'};
+  const AI_ICON={balanced:'gear',turtle:'shield',rush:'swords',eco:'hammer',boom:'boom',random:'dice'};
   const ov=()=>$('overlay');
+  /* Symbole (Linien-SVG, Farbe = Textfarbe): einheitlich statt Emoji, die je nach System anders oder gar nicht erscheinen */
+  const IC={swords:'<path d="M20 4l-9 9M13 11l-2 2M7 13l4 4M6 18l-2 2"/><path d="M4 4l9 9M11 13l2 2M17 13l-4 4M18 18l2 2"/>',
+    shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M12 7v10"/>',
+    hammer:'<path d="M13 4l7 7-3 3-7-7z"/><path d="M12 9L4 17l3 3 8-8"/>',
+    boom:'<path d="M12 20V6M6 12l6-6 6 6"/><path d="M5 20h14"/>',
+    dice:'<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.1" fill="currentColor"/><circle cx="15" cy="15" r="1.1" fill="currentColor"/><circle cx="15" cy="9" r="1.1" fill="currentColor"/><circle cx="9" cy="15" r="1.1" fill="currentColor"/>',
+    sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/>',
+    spring:'<path d="M5 19C5 10 10 5 19 5c0 9-5 14-14 14z"/><path d="M5 19L13 11"/>',
+    autumn:'<path d="M12 3l2 5 5-1-3 4 4 3-5 1 1 5-4-3-4 3 1-5-5-1 4-3-3-4 5 1z"/>',
+    snow:'<path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9M9 4l3 2 3-2M9 20l3-2 3 2"/>',
+    gear:'<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
+    book:'<path d="M4 5c3-1 6-1 8 1 2-2 5-2 8-1v13c-3-1-6-1-8 1-2-2-5-2-8-1z"/><path d="M12 6v13"/>',
+    scroll:'<path d="M6 4h11a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 011-2z"/><path d="M9 9h7M9 13h7"/>',
+    disk:'<path d="M5 4h12l2 2v14H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>',
+    globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.5 3 3.5 15 0 18M12 3c-3.5 3-3.5 15 0 18"/>',
+    star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+    play:'<path d="M8 5v14l11-7z" fill="currentColor"/>',
+    cont:'<circle cx="12" cy="12" r="9"/><path d="M10 8v8l6-4z" fill="currentColor"/>',
+    back:'<path d="M15 5l-7 7 7 7"/>',
+    map:'<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/>'};
+  const ico=n=>`<svg class="mi" viewBox="0 0 24 24" aria-hidden="true">${IC[n]||''}</svg>`;
+  Object.assign(EN,{'Kartencode':'Map code','Kartencode kopiert':'Map code copied','Kartencode übernommen':'Map code applied','Ungültiger Kartencode':'Invalid map code','Kopieren':'Copy','Kartencode: Kartenart, Größe, Wasser, Gebirge, Jahreszeit und Nummer. Kopieren und weitergeben – wer ihn einfügt, bekommt dieselbe Karte.':'Map code: map type, size, water, mountains, season and number. Copy and share it – whoever pastes it gets the same map.','Neu hier? Im Hauptmenü gibt es ein Tutorial, das die Grundlagen Schritt für Schritt zeigt.':'New here? The main menu has a tutorial that shows the basics step by step.','Weiterspielen':'Continue','Letzter Spielstand: {0}':'Latest save: {0}','Gegen die KI – Karte und Partie wählen':'Against the AI – pick map and match','Spielstände von früher fortsetzen':'Resume an earlier game','Online mit Einladungslink':'Online via invite link','Schritt für Schritt lernen':'Learn step by step','Grafik, Ton, Steuerung, Sprache':'Graphics, sound, controls, language','Wer am Spiel mitgewirkt hat':'Who helped make the game','Führe deinen Stamm durch sieben Zeitalter':'Lead your tribe through seven ages','Karte':'Map','Gegner':'Opponent','Starten':'Start'});
   const music=()=>{try{if(typeof SND!=='undefined'){SND.init();SND.setEpoch(7)}}catch(_){}}; /* Menümusik: Smetana, Die Moldau (PIECES[7]) */
   /* Hintergrund: Bedienelemente des Spiels ausblenden, Kamera fährt langsam */
   function bg(on){document.body.classList.toggle('mm',on);if(on&&!bg.raf){const t0=performance.now();const fly=()=>{if(!document.body.classList.contains('mm')){bg.raf=0;return}const t=(performance.now()-t0)/1000*.025;
@@ -52,63 +74,82 @@
       if(typeof OPT!=='undefined'&&OPT.intro===false){o.onclick=null;main();return}
       o.classList.add('mm-opening');const ts=[setTimeout(()=>{try{sfx('click')}catch(_){}},900),setTimeout(()=>o.classList.add('mm-diving'),1500),setTimeout(()=>done(),3200)];
       fin=()=>ts.forEach(clearTimeout);const f0=fin;fin=()=>{f0()};document.addEventListener('keydown',skip,true)}}
+  const ACC=['#d2a872','#d3915a','#a9b7c6','#c98a8a','#86aee0','#d49a5a','#b9c27a'],ROMAN=['I','II','III','IV','V','VI','VII','VIII'];
+  /* ein Eintrag der Hauptseite: Symbol, Titel, Unterzeile; cls = Zusatzklasse, tag = Schild rechts */
+  const mbtn=(id,ic,title,sub,cls,i,tag)=>`<button class="mm-b ${cls||''}" id="${id}" style="--i:${i}"${/mm-off/.test(cls||'')?' disabled':''}><span class="mm-ic">${ico(ic)}</span><span class="mm-bt"><b>${tr(title)}</b>${sub?`<small>${sub}</small>`:''}</span>${tag||''}</button>`;
   function main(){
     const o=ov();o.hidden=false;o.className='mmv';bg(true);o.onclick=null;if(G&&!NET.mp)G.running=false; /* alte Partie ruht im Hintergrund */
-    const soon=(t,r)=>`<button class="mm-b mm-off" disabled>${tr(t)}<span class="mm-tag soon">${tr('Bald')} · ${r}</span></button>`;
-    o.innerHTML=`<div class="mm-side">${titleArt('mini')}<h1 class="mm-logo sm">Epochenkrieg</h1><p class="mm-by">Daveson ${tr('für')} Deus Vult Infidel</p>
-      <nav class="mm-nav"><button class="mm-b mm-main" id="mmSp">${tr('Einzelspieler')}</button>
-      ${window.SAVE?`<button class="mm-b" id="mmLoad">${tr('Spielstand laden')}${SAVE.info()?`<small class="sv-ts">${SAVE.label()}</small>`:''}</button>`:''}
-      <button class="mm-b" id="mmMp">${tr('Mehrspieler')}<span class="mm-tag beta">Beta</span></button>
-      ${soon('Tutorial','Release 3')}${soon('Story','Release 4')}
-      <button class="mm-b" id="mmOpt">${tr('Einstellungen')}</button><button class="mm-b" id="mmCred">${tr('Mitwirkende')}</button></nav>
-      <div class="mm-foot"><div class="mm-lang">${['de','en'].map(l=>`<button data-l="${l}" aria-pressed="${l===LANG}">${l==='de'?'Deutsch':'English'}</button>`).join('')}</div><small>${versionLabel()}</small></div></div>`;
+    if(window.TUT&&TUT.on)TUT.stop();
+    const sv=window.SAVE&&SAVE.info(),svSub=sv?tr('Letzter Spielstand: {0}',tr(EPOCHS[Math.min(sv.ep,EPOCHS.length-1)].name)+' · '+SAVE.label()):'',soon=r=>`<span class="mm-tag soon">${tr('Bald')} · ${r}</span>`;let n=0;
+    o.innerHTML=`<div class="mm-side">${titleArt('mini')}<h1 class="mm-logo sm">Epochenkrieg</h1>
+      <div class="mm-orn" aria-hidden="true"><i></i><svg viewBox="0 0 16 16"><path d="M8 1l2.2 5.8L16 8l-5.8 2.2L8 16l-2.2-5.8L0 8l5.8-2.2z"/></svg><i></i></div>
+      <p class="mm-by">Daveson ${tr('für')} Deus Vult Infidel</p>
+      <nav class="mm-nav">${sv?mbtn('mmCont','cont','Weiterspielen',svSub,'mm-main',n++):''}
+      ${mbtn('mmSp','swords','Einzelspieler',tr('Gegen die KI – Karte und Partie wählen'),sv?'':'mm-main',n++)}
+      ${window.SAVE?mbtn('mmLoad','disk','Spielstand laden',tr('Spielstände von früher fortsetzen'),'',n++):''}
+      ${mbtn('mmMp','globe','Mehrspieler',tr('Online mit Einladungslink'),'',n++,'<span class="mm-tag beta">Beta</span>')}
+      ${mbtn('mmTut','scroll','Tutorial',tr('Schritt für Schritt lernen'),'',n++)}
+      ${mbtn('mmStory','book','Story','','mm-off',n++,soon('Release 4'))}
+      ${mbtn('mmOpt','gear','Einstellungen',tr('Grafik, Ton, Steuerung, Sprache'),'',n++)}${mbtn('mmCred','star','Mitwirkende',tr('Wer am Spiel mitgewirkt hat'),'',n++)}</nav>
+      <div class="mm-foot"><div class="mm-lang">${['de','en'].map(l=>`<button data-l="${l}" aria-pressed="${l===LANG}">${l==='de'?'Deutsch':'English'}</button>`).join('')}</div><small>${versionLabel()}</small></div></div>
+      <div class="mm-eras"><p>${tr('Führe deinen Stamm durch sieben Zeitalter')}</p><ol>${EPOCHS.slice(0,7).map((e,i)=>`<li style="--c:${ACC[i]||ACC[0]}"><i>${ROMAN[i]}</i><span>${tr(e.name)}</span></li>`).join('')}</ol></div>`;
     loadTitle(o);
+    const closeMenu=()=>{music();MPV.stop();bg(false);o.className='';if(typeof ROOM!=='undefined')ROOM.pkey=null;o.hidden=true};
     $('mmSp').onclick=()=>{sfx('click');single()};
-    const mld=$('mmLoad');if(mld)mld.onclick=()=>{sfx('click');SAVE.panel({done:()=>{music();MPV.stop();bg(false);o.className='';if(typeof ROOM!=='undefined')ROOM.pkey=null;o.hidden=true}})};
+    const mc=$('mmCont');if(mc)mc.onclick=async()=>{sfx('click');const l=SAVE.list().filter(x=>x.meta).sort((a,b)=>b.meta.ts-a.meta.ts)[0];if(l&&await SAVE.load(l.slot))closeMenu()};
+    const mld=$('mmLoad');if(mld)mld.onclick=()=>{sfx('click');SAVE.panel({done:closeMenu})};
     $('mmMp').onclick=()=>{music();if(window.Lobby){bg(false);Lobby.open()}};
-    $('mmOpt').onclick=()=>openOpt('game');$('mmCred').onclick=()=>openOpt('cred');
+    $('mmTut').onclick=()=>{sfx('click');if(window.TUT)TUT.start()};$('mmOpt').onclick=()=>openOpt('game');$('mmCred').onclick=()=>openOpt('cred');
     o.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{applyLang(b.dataset.l);main()})}
   function openOpt(tab){if(!menuOpen)toggleMenu();optTab=tab;renderOptions()}
   /* Einstellungen aus dem Hauptmenü: „Übernehmen“ schließt zurück zum Hauptmenü */
   const origOpt=renderOptions;window.renderOptions=function(){origOpt();if(document.body.classList.contains('mm')){const b=$('oBack');if(b)b.onclick=()=>toggleMenu()}};
-  const slider=(id,list,cur,label)=>{const i=Math.max(0,list.findIndex(v=>v[0]===cur));return `<div class="mm-tile mm-sl"><b>${tr(label)}</b><input type="range" id="${id}" min="0" max="${list.length-1}" step="1" value="${i}">
+  const slider=(id,list,cur,label)=>{const i=Math.max(0,list.findIndex(v=>v[0]===cur));return `<div class="mm-tile mm-sl"><b>${tr(label)}</b><input type="range" id="${id}" min="0" max="${list.length-1}" step="1" value="${i}" style="--p:${i/(list.length-1)*100}%">
     <div class="mm-ticks">${list.map((v,k)=>`<span data-k="${k}" class="${k===i?'on':''}">${tr(v[1])}</span>`).join('')}</div></div>`};
   /* Karten-Auswahl (bleibt gemerkt): Karte, Größe, Wasser, Gebirge, Jahreszeit; seed = Nummer der Karte (Vorschau und Start nutzen denselben Wert) */
   const SPK='ek-sp',WATERS=[[0,'Wenig'],[1,'Mittel'],[2,'Viel']],MOUNTS=[[0,'Keine'],[1,'Wenige'],[2,'Viele']];
-  const SEAS=[['spring','Frühling','🌸'],['summer','Sommer','☀️'],['autumn','Herbst','🍂'],['winter','Winter','❄️'],['random','Zufall','🎲']];
+  const SEAS=[['spring','Frühling','spring'],['summer','Sommer','sun'],['autumn','Herbst','autumn'],['winter','Winter','snow'],['random','Zufall','dice']];
   const SP=Object.assign({map:curMap,size:'L',water:1,mount:1,season:'summer'},(()=>{try{return JSON.parse(localStorage.getItem(SPK)||'{}')}catch(_){return{}}})());
   if(!MAPS[SP.map])SP.map='coast';if(!['S','M','L'].includes(SP.size))SP.size='L';SP.seed=(Math.random()*1e9)|0;spSize=SP.size;curMap=SP.map;
   const spSave=()=>{try{localStorage.setItem(SPK,JSON.stringify({map:SP.map,size:SP.size,water:SP.water,mount:SP.mount,season:SP.season}))}catch(_){}};
   const spOpts=()=>({seed:SP.seed,size:SP.size,water:SP.water,mount:SP.mount,season:SP.season});
   const code=n=>n.toString(36).toUpperCase().padStart(6,'0').slice(-6);
+  /* Kartencode zum Weitergeben: ART-GRÖSSE-WASSER-GEBIRGE-JAHRESZEIT-NUMMER (z. B. COAST-L-1-1-S-0K3F9A); gleiche Eingaben ergeben immer dieselbe Karte */
+  const SEAL={spring:'P',summer:'S',autumn:'A',winter:'W',random:'Z'};
+  const shareCode=()=>[SP.map.toUpperCase(),SP.size,SP.water,SP.mount,SEAL[SP.season]||'S',code(SP.seed)].join('-');
+  const readCode=t=>{const p=String(t).trim().toUpperCase().split(/[\s-]+/);if(p.length!==6)return null;
+    const map=MAP_ORDER.find(k=>k.toUpperCase()===p[0]),water=+p[2],mount=+p[3],season=Object.keys(SEAL).find(k=>SEAL[k]===p[4]),seed=/^[0-9A-Z]{1,6}$/.test(p[5])?parseInt(p[5],36):-1;
+    if(!map||!['S','M','L'].includes(p[1])||![0,1,2].includes(water)||![0,1,2].includes(mount)||!season||!(seed>=0&&seed<=1e9))return null;return{map,size:p[1],water,mount,season,seed}};
   function single(){
     const o=ov();o.className='mmv';bg(true);const wild=typeof wildAmt==='function'?wildAmt():'normal';
-    o.innerHTML=`<div class="mm-sp"><div class="mm-head"><button class="mm-back" id="mmBack">‹ ${tr('Zurück')}</button><h2>${tr('Einzelspieler')}</h2></div>
+    o.innerHTML=`<div class="mm-sp"><div class="mm-head"><button class="mm-back" id="mmBack">${ico('back')}${tr('Zurück')}</button><h2>${tr('Einzelspieler')}</h2></div>
       <div class="mm-grid">
-        <section class="mm-col"><h3>${tr('Karte')}</h3>
+        <section class="mm-col"><h3><i>1</i>${tr('Karte')}</h3>
           <div class="mm-pv"><div class="mm-frame"><canvas id="mmPv" width="720" height="480"></canvas><div class="mm-busy" id="mmBusy"><i></i></div></div>
             <div class="mm-pvbar"><div class="mm-pvt"><b id="mmPvName"></b><small id="mmPvInfo"></small></div>
-              <div class="mm-dice"><button class="mm-d main" id="mmRand" title="${tr('Würfelt Kartenart, Wasser, Gebirge, Jahreszeit und Kartennummer')}">🎲 ${tr('Zufällige Karte')}</button><button class="mm-d" id="mmRe" title="${tr('Gleiche Einstellungen, neue Kartennummer')}">↻ ${tr('Neu würfeln')}</button></div></div>
+              <div class="mm-dice"><button class="mm-d main" id="mmRand" title="${tr('Würfelt Kartenart, Wasser, Gebirge, Jahreszeit und Kartennummer')}">${ico('dice')}${tr('Zufällige Karte')}</button><button class="mm-d" id="mmRe" title="${tr('Gleiche Einstellungen, neue Kartennummer')}">↻ ${tr('Neu würfeln')}</button></div></div>
+            <div class="mm-codebar" title="${tr('Kartencode: Kartenart, Größe, Wasser, Gebirge, Jahreszeit und Nummer. Kopieren und weitergeben – wer ihn einfügt, bekommt dieselbe Karte.')}"><label for="mmCode">${tr('Kartencode')}</label><input id="mmCode" class="mm-code" spellcheck="false" autocomplete="off" maxlength="40"><button class="mm-d" id="mmCodeCp" type="button">${tr('Kopieren')}</button></div>
             <div class="mm-leg"><span><i class="lg-b"></i>${tr('Dein Lager')}</span><span><i class="lg-r"></i>${tr('Gegner')}</span><span><i class="lg-g"></i>${tr('Gold')}</span><span><i class="lg-i"></i>${tr('Eisen')}</span><span><i class="lg-s"></i>${tr('Stein')}</span><span><i class="lg-o"></i>${tr('Öl')}</span><span><i class="lg-t"></i>${tr('Wald')}</span><span><i class="lg-f"></i>${tr('Fisch')}</span></div></div>
           <div class="mm-maps">${MAP_ORDER.map(k=>{const m=MAPS[k];return`<button class="mm-map" data-map="${k}" aria-pressed="${k===SP.map}" title="${tr(m.desc)}"><img data-pv="${k}" alt=""><b>${tr(m.name)}</b><small>${tr(m.desc)}</small></button>`}).join('')}</div></section>
-        <section class="mm-col"><h3>${tr('Partie')}</h3>
+        <section class="mm-col"><h3><i>2</i>${tr('Partie')}</h3>
           ${slider('mmSize',SIZES_SP,SP.size,'Kartengröße')}
           ${slider('mmWater',WATERS,SP.water,'Wasser')}${slider('mmMount',MOUNTS,SP.mount,'Gebirge')}<p class="mm-hint2" id="mmHint2"></p>
-          <div class="mm-tile mm-sl"><b>${tr('Jahreszeit')}</b><div class="mm-seg" id="mmSeason">${SEAS.map(([k,n,ic])=>`<button data-se="${k}" aria-pressed="${k===SP.season}"><span>${ic}</span>${tr(n)}</button>`).join('')}</div></div>
+          <div class="mm-tile mm-sl"><b>${tr('Jahreszeit')}</b><div class="mm-seg" id="mmSeason">${SEAS.map(([k,n,ic])=>`<button data-se="${k}" aria-pressed="${k===SP.season}"><span>${ico(ic)}</span>${tr(n)}</button>`).join('')}</div></div>
           ${slider('mmDiff',DIFFS,diff,'Schwierigkeit')}${slider('mmWild',WILD,wild,'Wildtiere')}
-          <h3>${tr('Gegner')}</h3><div class="mm-ai">${Object.entries(AI_STYLES).map(([k,v])=>`<button class="mm-tile mm-aib" data-as="${k}" aria-pressed="${k===aiStyle}"><span class="ic">${AI_ICON[k]||'⚔'}</span><b>${tr(v.name)}</b><small>${tr(v.desc)}</small></button>`).join('')}</div>
-          <details class="mm-ctl"><summary>${tr('Steuerung')}</summary><dl class="ctl"><dt>${tr('Auswählen')}</dt><dd>${tr('Linksklick, Rahmen ziehen, Doppelklick für alle gleichen')}</dd><dt>${tr('Befehl')}</dt><dd>${tr('Rechtsklick: bewegen, sammeln, bauen, angreifen, Sammelpunkt')}</dd><dt>${tr('Kamera')}</dt><dd>${tr('WASD oder Pfeiltasten, Bildschirmrand, Minikarte, Mausrad zoomt')}</dd><dt>${tr('Tasten')}</dt><dd>${tr('Q Angriffsmarsch · H Hauptlager · . untätiger Arbeiter · Leertaste Pause · Esc Menü')}</dd></dl></details>
+          <h3><i>3</i>${tr('Gegner')}</h3><div class="mm-ai">${Object.entries(AI_STYLES).map(([k,v])=>`<button class="mm-tile mm-aib" data-as="${k}" aria-pressed="${k===aiStyle}"><span class="ic">${ico(AI_ICON[k]||'swords')}</span><b>${tr(v.name)}</b><small>${tr(v.desc)}</small></button>`).join('')}</div>
+          <details class="mm-ctl"><summary>${tr('Steuerung')}</summary><dl class="ctl"><dt>${tr('Auswählen')}</dt><dd>${tr('Linksklick, Rahmen ziehen, Doppelklick für alle gleichen')}</dd><dt>${tr('Befehl')}</dt><dd>${tr('Rechtsklick: bewegen, sammeln, bauen, angreifen, Sammelpunkt')}</dd><dt>${tr('Kamera')}</dt><dd>${tr('WASD oder Pfeiltasten, Bildschirmrand, Minikarte, Mausrad zoomt')}</dd><dt>${tr('Tasten')}</dt><dd>${tr('Q Angriffsmarsch · H Hauptlager · . untätiger Arbeiter · Leertaste Pause · Esc Menü')}</dd><dt>${tr('Gruppen')}</dt><dd>${tr('Strg + Ziffer speichert die Auswahl, Ziffer wählt sie, zweimal drücken springt hin (Umschalt + Ziffer fügt hinzu)')}</dd></dl></details>
         </section></div>
-      <div class="mm-go"><button class="go" id="goBtn">${tr('Spiel starten')}</button></div></div>`;
+      <div class="mm-go"><div class="mm-sum" id="mmSum"></div><button class="go" id="goBtn">${ico('play')}<span>${tr('Spiel starten')}</span></button></div></div>`;
     $('mmBack').onclick=()=>{sfx('click');MPV.stop();clearTimeout(pvT);clearTimeout(boardT);main()};
     let pvT=0,boardT=0;
-    const pvCanvas=()=>$('mmPv'),sync=()=>{ /* Bedienelemente an SP angleichen (nach Würfeln) */
+    const pvCanvas=()=>$('mmPv'),sumUp=()=>{const el=$('mmSum');if(!el)return;const sz=SIZES_SP.find(q=>q[0]===SP.size),df=DIFFS.find(q=>q[0]===diff);el.innerHTML=`<b>${tr(MAPS[SP.map].name)}</b><span>${[tr(sz?sz[1]:''),tr(df?df[1]:''),tr(SEASON_NAMES[seasonOf(SP.season,SP.seed)])].join(' · ')}</span>`},sync=()=>{ /* Bedienelemente an SP angleichen (nach Würfeln) */
       o.querySelectorAll('[data-map]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.map===SP.map));
       o.querySelectorAll('[data-se]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.se===SP.season));
-      for(const[id,list,v]of[['mmSize',SIZES_SP,SP.size],['mmWater',WATERS,SP.water],['mmMount',MOUNTS,SP.mount]]){const el=$(id),k=list.findIndex(q=>q[0]===v);el.value=k;el.parentNode.querySelectorAll('[data-k]').forEach(s=>s.classList.toggle('on',+s.dataset.k===k))}
+      for(const[id,list,v]of[['mmSize',SIZES_SP,SP.size],['mmWater',WATERS,SP.water],['mmMount',MOUNTS,SP.mount]]){const el=$(id),k=list.findIndex(q=>q[0]===v);el.value=k;el.style.setProperty('--p',k/(list.length-1)*100+'%');el.parentNode.querySelectorAll('[data-k]').forEach(s=>s.classList.toggle('on',+s.dataset.k===k))}
       const h=MAP_HINT[SP.map]||['',''];$('mmHint2').textContent=tr('Wasser wirkt hier auf: {0}. Gebirge: {1}.',tr(h[0]),tr(h[1]));
       const m=MAPS[SP.map],sea=seasonOf(SP.season,SP.seed);$('mmPvName').textContent=tr(m.name);
-      $('mmPvInfo').textContent=[tr(SEASON_NAMES[sea]),tr('Wasser')+': '+tr(WATERS[SP.water][1]),tr('Gebirge')+': '+tr(MOUNTS[SP.mount][1]),tr('Karte Nr.')+' '+code(SP.seed)].join(' · ')};
+      {const ci=$('mmCode');if(ci&&document.activeElement!==ci)ci.value=shareCode()}
+      sumUp();$('mmPvInfo').textContent=[tr(SEASON_NAMES[sea]),tr('Wasser')+': '+tr(WATERS[SP.water][1]),tr('Gebirge')+': '+tr(MOUNTS[SP.mount][1]),tr('Karte Nr.')+' '+code(SP.seed)].join(' · ')};
     /* nach jeder Änderung: Kacheln (gestaffelt), große Vorschau (kurz verzögert), Brett im Spielzimmer (noch später) */
     const refresh=(tiles)=>{spSave();curMap=SP.map;sync();
       if(tiles)MPV.fill(o,spOpts(),SP.map);
@@ -118,14 +159,19 @@
     o.querySelectorAll('[data-map]').forEach(b=>{b.onclick=()=>{sfx('click');SP.map=b.dataset.map;refresh(false)}});
     o.querySelectorAll('[data-se]').forEach(b=>{b.onclick=()=>{sfx('click');SP.season=b.dataset.se;refresh(true)}});
     o.querySelectorAll('[data-as]').forEach(b=>b.onclick=()=>{aiStyle=b.dataset.as;o.querySelectorAll('[data-as]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
-    const bindSl=(id,list,set)=>{const el=$(id),upd=()=>{const k=+el.value;set(list[k][0]);el.parentNode.querySelectorAll('[data-k]').forEach(s=>s.classList.toggle('on',+s.dataset.k===k))};el.oninput=upd;el.parentNode.querySelectorAll('[data-k]').forEach(s=>s.onclick=()=>{el.value=s.dataset.k;upd()})};
+    const bindSl=(id,list,set)=>{const el=$(id),upd=()=>{const k=+el.value;set(list[k][0]);el.style.setProperty('--p',k/(list.length-1)*100+'%');sumUp();el.parentNode.querySelectorAll('[data-k]').forEach(s=>s.classList.toggle('on',+s.dataset.k===k))};el.oninput=upd;el.parentNode.querySelectorAll('[data-k]').forEach(s=>s.onclick=()=>{el.value=s.dataset.k;upd()})};
     bindSl('mmSize',SIZES_SP,v=>{SP.size=v;spSize=v;refresh(true)});bindSl('mmWater',WATERS,v=>{SP.water=v;refresh(true)});bindSl('mmMount',MOUNTS,v=>{SP.mount=v;refresh(true)});
     bindSl('mmDiff',DIFFS,v=>diff=v);bindSl('mmWild',WILD,v=>{try{localStorage.setItem('ek-wild',v)}catch(_){}});
     /* Würfeln: „Zufällige Karte“ würfelt alles, „Neu würfeln“ nur die Kartennummer (gleiche Einstellungen) */
     $('mmRand').onclick=()=>{sfx('click');const pick=l=>l[(Math.random()*l.length)|0];let m;do{m=pick(MAP_ORDER)}while(m===SP.map&&MAP_ORDER.length>1);SP.map=m;SP.water=(Math.random()*3)|0;SP.mount=(Math.random()*3)|0;SP.season=pick(SEASON_IDS);SP.seed=(Math.random()*1e9)|0;refresh(true)};
     $('mmRe').onclick=()=>{sfx('click');SP.seed=(Math.random()*1e9)|0;refresh(true)};
+    {const ci=$('mmCode'),apply=()=>{const v=ci.value.trim();if(!v||v===shareCode())return;const c=readCode(v);if(!c){toast(tr('Ungültiger Kartencode'),'warn');ci.value=shareCode();return}
+        Object.assign(SP,c);spSize=SP.size;ci.value=shareCode();sfx('click');toast(tr('Kartencode übernommen'));refresh(true)};
+      ci.onfocus=()=>ci.select();ci.onchange=apply;ci.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){apply();ci.blur()}};ci.onpaste=()=>setTimeout(apply,0);
+      $('mmCodeCp').onclick=()=>{sfx('click');const t=shareCode();let ok=false;try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).catch(()=>{});ok=true}}catch(_){}
+        if(!ok){try{ci.focus();ci.select();ok=document.execCommand('copy')}catch(_){}}toast(ok?tr('Kartencode kopiert')+': '+t:t)}}
     $('goBtn').onclick=()=>{music();MPV.stop();clearTimeout(pvT);clearTimeout(boardT);$('goBtn').disabled=true;$('goBtn').textContent=tr('Karte wird erzeugt …');requestAnimationFrame(()=>setTimeout(()=>{bg(false);o.className='';
-      newGame(diff,false,{map:SP.map,aiStyle,size:SP.size,seed:SP.seed,water:SP.water,mount:SP.mount,season:SP.season});if(typeof ROOM!=='undefined')ROOM.pkey=null;G.running=true;G.started=true;o.hidden=true;toast(tr('Tipp: Wähle deine Arbeiter aus und schick sie per Rechtsklick zu Beeren oder Bäumen.'))},20))};
+      newGame(diff,false,{map:SP.map,aiStyle,size:SP.size,seed:SP.seed,water:SP.water,mount:SP.mount,season:SP.season});if(typeof ROOM!=='undefined')ROOM.pkey=null;G.running=true;G.started=true;o.hidden=true;toast(tr('Tipp: Wähle deine Arbeiter aus und schick sie per Rechtsklick zu Beeren oder Bäumen.'));try{if(!localStorage.getItem('ek-tut')){localStorage.setItem('ek-tut','1');setTimeout(()=>toast(tr('Neu hier? Im Hauptmenü gibt es ein Tutorial, das die Grundlagen Schritt für Schritt zeigt.')),2500)}}catch(_){}},20))};
     refresh(true)}
   /* Einstieg: beim ersten Mal Ladebildschirm, danach (Neues Spiel, Zurück aus der Lobby) direkt Hauptseite */
   window.showStart=function(){if(NET.mp){endMP();if(window.Lobby)Lobby.leave()}if(splashDone)main();else splash()};
