@@ -79,7 +79,7 @@ const TODK={soft:[[0,.82,.9,0,22,-38,.95,1],[.1,.95,.4,0,35,-22,1,1],[.25,1,0,0,
 const smooth01=t=>t*t*(3-2*t);
 function r3Tod(){
   const m0=OPT.tod||'soft',off=m0==='off'||!G||!G.running||(typeof ROOM!=='undefined'&&ROOM.wide());
-  if(off||!R3.atmo){if(R3.todOn){R3.todOn=false;R3.sd[0]=-.95;R3.sd[1]=.85;R3.sd[2]=-.5;if(R3.atmo)r3Light(R3.atmo)}return}
+  if(off||!R3.atmo){if(R3.todOn){R3.todOn=false;R3.night=0;R3.sd[0]=-.95;R3.sd[1]=.85;R3.sd[2]=-.5;if(R3.atmo)r3Light(R3.atmo)}return}
   const m=EGO.on&&m0==='full'?'soft':m0,K=TODK[m],ph=(((G.t||0)/TOD.len)+TOD.start)%1;let i=0;while(i<K.length-1&&K[i+1][0]<=ph)i++;
   const a=K[i],b=K[(i+1)%K.length],pa=a[0],pb=i+1<K.length?b[0]:1,t=smooth01(Math.max(0,Math.min(1,(ph-pa)/(pb-pa||1)))),L=(k)=>a[k]+(b[k]-a[k])*t;
   const sunM=L(1),warm=L(2),blue=L(3),elev=L(4)*Math.PI/180,az=L(5)*Math.PI/180,hemM=L(6),expM=L(7),A=R3.atmo;
@@ -87,7 +87,7 @@ function r3Tod(){
   const col=(hex,warmHex,blueHex,w,bl)=>TC2.setHex(hex).lerp(TC1.setHex(warmHex),w).lerp(TC1.setHex(blueHex),bl).getHex();
   r3Light({sun:[col(A.sun[0],0xff9d5a,0x8aa6e6,warm,blue),A.sun[1]*sunM],hemi:[col(A.hemi[0],0xffc79a,0x6f8ac8,warm*.5,blue*.6),col(A.hemi[1],0x7a5a3a,0x1c2a44,warm*.2,blue*.5),A.hemi[2]*hemM],fill:[col(A.fill[0],0xffb0a0,0x7f9bd8,warm*.3,blue*.5),A.fill[1]*(1+blue*.6)],exp:A.exp*expM,
     sky:col(A.sky,0x6a3a3a,0x0b1424,warm*.4,blue*.8),fog:col(A.fog,0xe8a77a,0x2c3d5e,warm*.4,blue*.62),sea:col(A.sea,0x3a4a52,0x0b1a30,warm*.2,blue*.6)});
-  R3.todOn=true}
+  R3.todOn=true;R3.night=Math.max(0,Math.min(1,(.78-sunM)/.5))/* 0 am Tag, 1 in tiefer Nacht (Voll: Sonne×.2) */}
 function r3Season(){
   if(!R3.ok||typeof MOPT==='undefined')return;
   const se=MOPT.season||'summer',pal=(MAPS[curMap]||{}).pal||'green',A=Object.assign({},ATMO[se]||ATMO.summer),P=mapPal(curMap,se);
@@ -623,7 +623,7 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   {const V=R3.view,N=R3.nodeV,ck=Math.round(cam.yaw*12)+','+Math.round(cam.pitch*12);if(ck!==R3.camK){R3.camK=ck;R3.nodeT=0}if(Math.abs(Math.log(cam.z/(R3.nodeZ||cam.z)))>.02)R3.nodeT=0;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
   r3Lod();R3.nodeT-=dt;R3.gsT=(R3.gsT||0)-dt;if(R3.nodeT<=0){R3.nodeT=R3.apBusy?.06:.4;r3Nodes();if(R3.gsT<=0){R3.gsT=.4;r3GrassShade()}else r3GrassView()}else r3GrassView();if(SHK.size)r3Shake(dt)
-  if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);if(EGO.on)EGO.hide();r3Smoke(Math.min(dt,.1),t);r3Fire(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
+  if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);if(EGO.on)EGO.hide();r3Smoke(Math.min(dt,.1),t);r3Fire(Math.min(dt,.1),t);r3Lamps(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
   r3TeamMarks(EGO.on?[]:R3.tmList||[],OPT.teamMark||'soft');
   R3.ringN=0;for(const r of EGO.on?[]:rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   r3Ranges(EGO.on||!OPT.rangeRing?[]:R3.rangeList||[]);
@@ -693,7 +693,7 @@ function r3Smoke(dt,t){
   if(!R3.ok)return;if(!r3.smoke)r3SmokeInit();const S=r3.smoke,Sc=R3.S;
   if(G&&G.ents&&!R3.saverOn&&GQ[gfxQ].smoke){for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built)continue;const d=SMOKE_SRC[e.type];if(!d||G.epoch[e.team]<d.ep||!shown(e))continue;
     e._sm=(e._sm||Math.random())-dt;if(e._sm>0)continue;e._sm=d.rate*(.7+Math.random()*.6);const q=S.pool.find(p=>!p.on);if(!q)break;
-    const o=R3.reg.get(e.id),R=e.r/Sc*1.05,top=(o&&o.obj.userData.h)||R*2;
+    const o=R3.reg.get(entKey(e)),R=e.r/Sc*1.05,top=(o&&o.obj.userData.h)||R*2;
     q.on=true;q.age=0;q.life=3.6+Math.random()*2.0;q.vx=.5+Math.random()*.3;q.vy=.9+Math.random()*.5;q.vz=(Math.random()-.5)*.25;q.s0=1.1;q.s1=4.2+Math.random()*1.6;q.a0=.8;q.m.color.setHex(G.epoch[e.team]>=5?0x8f8c88:0xe2dfd8);
     q.sp.position.set(e.x/Sc+d.o[0]*R,hAt(e.x,e.y)+top*d.o[1],e.y/Sc+d.o[2]*R);q.sp.visible=true}}
   for(const q of S.pool){if(!q.on)continue;q.age+=dt;if(q.age>=q.life){q.on=false;q.sp.visible=false;continue}
@@ -714,7 +714,7 @@ function r3Fire(dt,t){
   const list=F.list;list.length=0;
   if(on&&!(G.paused||G.netPause)){for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built||e.hp>=e.maxHp*.5||!shown(e))continue;const dmg=1-e.hp/(e.maxHp*.5)/* 0 bei 50 % Leben, 1 kurz vor dem Einsturz */;list.push(e);
       e._fi=(e._fi||0)-dt;if(e._fi>0)continue;e._fi=.16-dmg*.11;const q=F.pool.find(p=>!p.on);if(!q)break;
-      const o=R3.reg.get(e.id),R=e.r/Sc*1.05,top=(o&&o.obj.userData.h)||R*2,a=Math.random()*6.283,rr=Math.random()*R*.7;
+      const o=R3.reg.get(entKey(e)),R=e.r/Sc*1.05,top=(o&&o.obj.userData.h)||R*2,a=Math.random()*6.283,rr=Math.random()*R*.7;
       q.on=true;q.age=0;q.life=.7+Math.random()*.6;q.vy=1.2+dmg*1.2;q.s=(R*.55+top*.25)*(.6+dmg*.7)*(.7+Math.random()*.6);q.ph=Math.random()*6.283;q.m.rotation=(Math.random()-.5)*.5;
       q.sp.position.set(e.x/Sc+Math.cos(a)*rr,hAt(e.x,e.y)+top*(.25+Math.random()*.6),e.y/Sc+Math.sin(a)*rr);q.sp.visible=true;
       if(r3.smoke&&Math.random()<.3){const s=r3.smoke.pool.find(p=>!p.on);if(s){s.on=true;s.age=0;s.life=4+Math.random()*2;s.vx=.4;s.vy=1.4+dmg;s.vz=(Math.random()-.5)*.3;s.s0=R*.5;s.s1=R*2+3;s.a0=.75;s.m.color.setHex(0x2c2a28);s.sp.position.copy(q.sp.position);s.sp.position.y+=.5;s.sp.visible=true}}}}
@@ -722,8 +722,26 @@ function r3Fire(dt,t){
     const u=q.age/q.life,p=q.sp.position;p.y+=q.vy*dt;p.x+=Math.sin(t*9+q.ph)*.25*dt;const s=q.s*(1+u*.4)*(1-u*u*.7);q.sp.scale.set(s*.7,s,1);q.m.opacity=Math.min(1,u*6)*(1-u)*(.85+.15*Math.sin(t*23+q.ph));q.m.color.setRGB(1,.55+.4*(1-u),.25*(1-u))}
   if(list.length>1)list.sort((a,b)=>Math.hypot(a.x-cam.x,a.y-cam.y)-Math.hypot(b.x-cam.x,b.y-cam.y));
   const lv=!!GQ[gfxQ].smoke;for(let i=0;i<F.lights.length;i++){const L=F.lights[i],e=on?list[i]:null;if(L.visible!==lv)L.visible=lv;if(!e){L.intensity=0;continue}
-    const o=R3.reg.get(e.id),R=e.r/Sc*1.05,top=(o&&o.obj.userData.h)||R*2,dmg=1-e.hp/(e.maxHp*.5);
+    const o=R3.reg.get(entKey(e)),R=e.r/Sc*1.05,top=(o&&o.obj.userData.h)||R*2,dmg=1-e.hp/(e.maxHp*.5);
     L.position.set(e.x/Sc,hAt(e.x,e.y)+top*.6,e.y/Sc);L.distance=R*7+6;L.intensity=(16+dmg*30)*(.8+.2*Math.sin(t*17+e.id)+.1*Math.sin(t*31))}}
+
+/* Nachtlichter (Tageszeit „Dezent/Voll“): warme Lichtpunkte an fertigen Gebäuden (Fackeln/Fenster, ab Industriezeit weisslich), als additive Sprites aus einem Pool, Stärke nach R3.night;
+   dazu bekommen die drei Punktlichter des Feuers, wenn kein Brand sie braucht, die drei Gebäude nahe der Bildmitte (Lichtschein auf dem Boden). */
+function r3Lamps(dt,t){
+  if(!R3.ok)return;const F=r3.fire,night=R3.night||0,on=night>.03&&!!(G&&G.ents&&!R3.saverOn&&GQ[gfxQ].smoke);
+  if(!r3.lamps){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,1,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.18,'rgba(255,255,255,.55)');g.addColorStop(.5,'rgba(255,255,255,.12)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);
+    const tex=new THREE.CanvasTexture(c),pool=[];for(let i=0;i<200;i++){const m=new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,opacity:0});const sp=new THREE.Sprite(m);sp.visible=false;sp.renderOrder=5;r3.scene.add(sp);pool.push(sp)}r3.lamps={pool,used:0}}
+  const P=r3.lamps,Sc=R3.S;let n=0;const near=[];
+  if(on){const cx=cam.x,cy=cam.y;
+    for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built||e.type==='wall'||e.type==='gate'||e.type==='trench'||e.type==='farm'||!shown(e))continue;
+      const o=R3.reg.get(entKey(e));if(!o||o.off)continue;const R=e.r/Sc*1.05,top=(o.obj.userData.h)||R*2,ep=G.epoch[e.team]||0,k=ep>=5?2:1,modern=ep>=5;
+      if(near.length<3||Math.hypot(e.x-cx,e.y-cy)<near[near.length-1].d){near.push({e,d:Math.hypot(e.x-cx,e.y-cy),R,top});near.sort((a,b)=>a.d-b.d);if(near.length>3)near.pop()}
+      for(let i=0;i<k&&n<P.pool.length;i++){const a=(e.id*2.39+i*2.1)%6.283,rr=R*(.55+.3*((e.id+i)%3)/2),sp=P.pool[n++];
+        const fl=modern?1:.85+.15*Math.sin(t*11+e.id*3+i*5)+.05*Math.sin(t*23+e.id),sz=(R*.9+top*.15)*(modern?1:.9);
+        sp.position.set(e.x/Sc+Math.cos(a)*rr,hAt(e.x,e.y)+top*(modern?.45:.3),e.y/Sc+Math.sin(a)*rr);sp.scale.set(sz,sz,1);sp.material.opacity=night*.9*fl;sp.material.color.setHex(modern?0xfff1c8:0xffb45a);sp.visible=true}}}
+  for(let i=n;i<P.used;i++)P.pool[i].visible=false;P.used=n;
+  if(F)for(let i=0;i<F.lights.length;i++){const L=F.lights[i];if(!L.visible||L.intensity>0||!on)continue;const q=near[i];if(!q)continue;
+    L.position.set(q.e.x/Sc,hAt(q.e.x,q.e.y)+q.top*.5,q.e.y/Sc);L.distance=q.R*6+5;L.intensity=night*(4.5+q.R*1.8)*(.92+.08*Math.sin(t*9+q.e.id))}}
 
 /* Leuchten (Bloom): verkleinerte Kopie des Bildes liegt weichgezeichnet und aufgehellt per „Bildschirm“-Überblendung über der Welt – helle Stellen (Sonnenlicht auf Wasser, Fenster, Feuer) strahlen sanft nach.
    Billiger Ersatz für eine echte Nachbearbeitung; abschaltbar im Menü (Grafik). */
