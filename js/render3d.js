@@ -66,11 +66,12 @@ const ATMO={ /* Sonne [Farbe,Stärke], Himmelslicht [oben,unten,Stärke], Gegenl
   winter:{sun:[0xe6eeff,2.45],hemi:[0xd6e4f6,0x8d98aa,1.3],fill:[0xb8ccff,.42],sky:0x2a4258,fog:0xc2d0de,sea:0x1c3850,exp:1.2}};
 const lerpHex=(a,b,t)=>new THREE.Color(a).lerp(new THREE.Color(b),t).getHex();
 /* Licht und Stimmung setzen (aus den Jahreszeit-Werten A; die Tageszeit ruft dies je Bild mit abgewandelten Werten) */
-function r3Light(A){
-  const{scene,sun,hemi,fill}=r3,room=typeof ROOM!=='undefined'&&ROOM.on;R3.fogNow=A.fog;
-  sun.color.setHex(A.sun[0]);sun.intensity=A.sun[1];hemi.color.setHex(A.hemi[0]);hemi.groundColor.setHex(A.hemi[1]);hemi.intensity=A.hemi[2];fill.color.setHex(A.fill[0]);fill.intensity=A.fill[1];
-  r3.rd.toneMappingExposure=A.exp;if(r3.sea)r3.sea.material.color.setHex(A.sea);if(r3.water)r3.water.material.uniforms.uDeep.value.setHex(A.sea);
-  if(room){scene.fog.color.setHex(0x8f877a).lerp(TC1.setHex(A.fog),.4)}else{if(!(scene.background&&scene.background.isColor))scene.background=new THREE.Color();scene.background.setHex(A.sky);scene.fog.color.setHex(A.fog)}}
+function r3Light(A0){let A=A0;
+  const{scene,sun,hemi,fill}=r3,room=typeof ROOM!=='undefined'&&ROOM.on;
+  const ra=R3.rain||0;/* Regen (r3Rain): Sonne schwächer, Himmelslicht etwas, Nebel und Himmel grau */
+  sun.color.setHex(A.sun[0]);sun.intensity=A.sun[1]*(1-.6*ra);hemi.color.setHex(A.hemi[0]);hemi.groundColor.setHex(A.hemi[1]);hemi.intensity=A.hemi[2]*(1-.2*ra);fill.color.setHex(A.fill[0]);fill.intensity=A.fill[1];
+  r3.rd.toneMappingExposure=A.exp*(1-.08*ra);if(ra>0){A=Object.assign({},A,{fog:lerpHex(A.fog,0x8d99a3,.55*ra),sky:lerpHex(A.sky,0x5a6670,.6*ra)})}if(r3.sea)r3.sea.material.color.setHex(A.sea);if(r3.water)r3.water.material.uniforms.uDeep.value.setHex(A.sea);
+  R3.fogNow=A.fog;if(room){scene.fog.color.setHex(0x8f877a).lerp(TC1.setHex(A.fog),.4)}else{if(!(scene.background&&scene.background.isColor))scene.background=new THREE.Color();scene.background.setHex(A.sky);scene.fog.color.setHex(A.fog)}}
 /* ---------- Tageszeit (nur Optik, Option „Tageszeit“: Aus/Dezent/Voll): Sonnenstand, Farbe und Helligkeit wandern über einen Tag von 25 Spielminuten ---------- */
 const TOD={len:1500,start:.1},TC1=new THREE.Color(),TC2=new THREE.Color();
 /* Schlüsselbilder je Tagesabschnitt ph (0 Sonnenaufgang, .25 Mittag, .5 Sonnenuntergang, .75 Mitternacht): [ph, Sonne×, warm, blau, Höhe°, Seite°, Himmelslicht×, Belichtung×] */
@@ -102,6 +103,26 @@ function r3Season(){
   if(typeof EKMODELS!=='undefined'&&EKMODELS.loadWhen)EKMODELS.loadWhen([se,'pal:'+pal]).then(n=>{if(n&&r3.ns&&R3.gRef===G)r3NodesInit()}).catch(()=>{})}
 /* Wetter: Instanzen aus kleinen Vierecken, die zur Kamera zeigen; wandern mit dem Bildausschnitt, im Sparmodus und bei Grafik „Niedrig“ aus */
 const WX={autumn:{n:130,col:[0xd9731c,0xc23c18,0xe8b82c,0xcf8a22],sz:.62,fall:2.2,sway:1.8,spin:3},winter:{n:380,col:[0xffffff,0xeef4ff],sz:.34,fall:3,sway:.8,spin:0},spring:{n:90,col:[0xf6b8d0,0xffffff,0xf8d0dc],sz:.46,fall:1.5,sway:1.8,spin:2}};
+
+/* Regen (nur Optik, aus der Spielzeit G.t abgeleitet → im Mehrspieler auf beiden Seiten gleich): Episoden von ein paar Minuten etwa alle 12–20 Minuten in Frühling/Sommer/Herbst
+   (nicht im Winter = Schnee, nicht in Wüste/Canyon). R3.rain 0..1 dämpft Licht (r3Light), Nebel (camUpdate), Glitzern (Wasser) und steuert die Regenstreifen (r3RainFx). */
+function r3Rain(){
+  const off=!G||!G.running||!R3.atmo||R3.se==='winter'||R3.dry||(typeof ROOM!=='undefined'&&ROOM.wide())||OPT.weather===false;
+  let r=0;if(!off){const t=G.t||0,w=.5+.5*Math.sin(t*.0071+1.3)+.25*Math.sin(t*.0193+.7)+.15*Math.sin(t*.041);r=smooth3(.78,1.0,w)}
+  const prev=R3.rain||0;R3.rain=prev+(r-prev)*Math.min(1,(R3.dtF||.016)*.5)/* weich ein-/ausblenden */;if(R3.rain<.002)R3.rain=0;
+  if(!R3.todOn&&Math.abs(R3.rain-(R3.rainL||0))>.015){R3.rainL=R3.rain;r3Light(R3.atmo)}return R3.rain}
+function r3RainFx(dt,t){
+  const ra=R3.rain||0,on=ra>.02&&GQ[gfxQ].smoke&&!R3.saverOn&&!R3.slow&&(R3.dyn||1)>=1&&!(typeof ROOM!=='undefined'&&ROOM.on&&document.body.classList.contains('mm'));
+  if(!on){if(r3.rain)r3.rain.visible=false;return}
+  const S=R3.S,N=gfxQ>=3?900:600;
+  if(!r3.rain){const m=new THREE.InstancedMesh(new THREE.PlaneGeometry(.028,.9),new THREE.MeshBasicMaterial({color:0xd8e2ea,transparent:true,opacity:.24,depthWrite:false,side:THREE.DoubleSide,fog:true}),900),R=mulberry(4711);
+    const st=new Float32Array(900*4);for(let i=0;i<900;i++){st[i*4]=R()*W/S;st[i*4+1]=R()*H/S;st[i*4+2]=R();st[i*4+3]=.75+R()*.5}m.frustumCulled=false;m.renderOrder=5;m.userData.st=st;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);r3.scene.add(m);r3.rain=m}
+  const m=r3.rain,st=m.userData.st,d=R3.D0/cam.z,hw=d*.95,hd=d*.8,top=d*.5+8,tx=cam.x/S,tz=cam.y/S,o=r3.wxO||(r3.wxO=new THREE.Object3D()),n=Math.round(N*ra);
+  m.visible=n>0;const yaw=cam.yaw||0,tilt=.18;o.rotation.set(0,yaw,tilt);
+  for(let i=0;i<n;i++){const j=i*4;st[j+2]-=dt*15*st[j+3]/top;if(st[j+2]<0)st[j+2]+=1;
+    const px=tx-hw+((st[j]-t*1.6-(tx-hw))%(2*hw)+2*hw)%(2*hw),pz=tz-hd+((st[j+1]-(tz-hd))%(2*hd)+2*hd)%(2*hd),gy=hAt(px*S,pz*S),y=gy+st[j+2]*top;
+    o.position.set(px,y,pz);o.scale.set(1,.8+st[j+3]*.6,1);o.updateMatrix();m.setMatrixAt(i,o.matrix)}
+  m.count=n;m.instanceMatrix.needsUpdate=true}
 function r3Weather(dt,t){
   const c=WX[R3.se],on=c&&OPT.weather&&GQ[gfxQ].smoke&&!R3.saverOn&&!R3.slow&&(R3.dyn||1)>=1&&cam.z>=.5&&typeof ROOM!=='undefined'&&!(ROOM.on&&document.body.classList.contains('mm'));
   if(!on){if(r3.wx)r3.wx.visible=false;return}
@@ -207,7 +228,7 @@ function camUpdate(){
   const b=Math.min(260,d*.85);/* weiter Zoom: Schattenbild deckt die Bildmitte weiträumig ab */sun.position.set(tx+R3.sd[0]*b,ty+R3.sd[1]*b,tz+R3.sd[2]*b);sun.target.position.set(tx,ty,tz);sun.target.updateMatrixWorld();
   const sc=sun.shadow.camera;sc.left=sc.bottom=-b;sc.right=sc.top=b;sc.near=1;sc.far=b*3.2;sc.updateProjectionMatrix();
   /* Flacher Blick sieht viel mehr Land (5× Dreiecke): Nebel rückt dann näher, und was hinter dem Nebel liegt, wird gar nicht erst gezeichnet (R3.cull = Reichweite in Spielpixeln) */
-  const fl=Math.max(0,Math.min(1,(1-cam.pitch)/.7)),fn=d*(2.4-1.1*fl),ff=d*(6-2.8*fl);r3.scene.fog.near=fn;r3.scene.fog.far=ff;R3.farT=ff*1.05;R3.fl=fl;R3.cull=fl>0?ff*1.02*S:0;R3.cx=cam.x+Math.sin(cam.yaw)*pc*S;R3.cy=cam.y+Math.cos(cam.yaw)*pc*S;
+  const fl=Math.max(0,Math.min(1,(1-cam.pitch)/.7)),fn=d*(2.4-1.1*fl),ff=d*(6-2.8*fl);{const rk=1-.3*(R3.rain||0);r3.scene.fog.near=fn*rk;r3.scene.fog.far=ff*rk}R3.farT=ff*1.05;R3.fl=fl;R3.cull=fl>0?ff*1.02*S:0;R3.cx=cam.x+Math.sin(cam.yaw)*pc*S;R3.cy=cam.y+Math.cos(cam.yaw)*pc*S;
 }
 /* Spielpunkt (x,y in Pixeln, Höhe z in Pixeln) → Bildschirm. k = Bildschirm-Pixel je Spielpixel genau an diesem Punkt (Tiefe), front = vor der Kamera und im Tiefenbereich */
 const _sc3=new THREE.Vector3();
@@ -615,10 +636,10 @@ function r3Ranges(list){
 function r3Frame(list,rings,dt){r3Dyn(dt);
   const t=(performance.now()-R3.t0)/1000;WIND.value=t;CLOUD.t.value=t;CLOUD.k.value=(OPT.cloudShade&&GQ[gfxQ].cloud&&!R3.saverOn&&!R3.slow&&!(R3.ice>.5))?.8:0;
   if(R3.bgRef!==bg||R3.gRef!==G)r3Map();
-  r3Tod();
+  R3.dtF=dt;r3Rain();r3Tod();
   camUpdate();
   if(r3.foam)r3.foam.material.opacity=(.42+.3*Math.sin(t*1.4)+.1*Math.sin(t*3.1))*(1-(R3.ice||0)*.8);
-  if(r3.water){const u=r3.water.material.uniforms,sdl=Math.hypot(R3.sd[0],R3.sd[1],R3.sd[2])||1,el=R3.sd[1]/sdl,k=GQ[gfxQ].gl&&!R3.saverOn&&!R3.slow&&!(typeof ROOM!=='undefined'&&ROOM.wide())?smooth3(.04,.3,el)*(1-(R3.ice||0)):0;
+  if(r3.water){const u=r3.water.material.uniforms,sdl=Math.hypot(R3.sd[0],R3.sd[1],R3.sd[2])||1,el=R3.sd[1]/sdl,k=GQ[gfxQ].gl&&!R3.saverOn&&!R3.slow&&!(typeof ROOM!=='undefined'&&ROOM.wide())?smooth3(.04,.3,el)*(1-(R3.ice||0))*(1-(R3.rain||0)):0;
     u.uT.value=t;u.uI.value=k*1.5;u.uIce.value=R3.ice||0;u.uSun.value=smooth3(-.05,.25,el);u.uL.value.set(R3.sd[0]/sdl,R3.sd[1]/sdl,R3.sd[2]/sdl);u.uSunC.value.copy(r3.sun.color).lerp(TC1.setRGB(1,1,1),.35);
     /* Helligkeit des Wassers folgt dem Licht (Tageszeit, Jahreszeit); der Shader ist unbeleuchtet */u.uLit.value=Math.max(.15,Math.min(1.15,(r3.sun.intensity*Math.max(0,el)+r3.hemi.intensity*.9)/2.9));
     u.uSky.value.copy(r3.scene.fog.color);if(r3.scene.background&&r3.scene.background.isColor)u.uSky.value.lerp(r3.scene.background,.3)}
@@ -626,7 +647,7 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   {const V=R3.view,N=R3.nodeV,ck=Math.round(cam.yaw*12)+','+Math.round(cam.pitch*12);if(ck!==R3.camK){R3.camK=ck;R3.nodeT=0}if(Math.abs(Math.log(cam.z/(R3.nodeZ||cam.z)))>.02)R3.nodeT=0;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
   r3Lod();R3.nodeT-=dt;R3.gsT=(R3.gsT||0)-dt;if(R3.nodeT<=0){R3.nodeT=R3.apBusy?.06:.4;r3Nodes();if(R3.gsT<=0){R3.gsT=.4;r3GrassShade()}else r3GrassView()}else r3GrassView();if(SHK.size)r3Shake(dt)
-  if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);if(EGO.on)EGO.hide();r3Smoke(Math.min(dt,.1),t);r3Fire(Math.min(dt,.1),t);r3Lamps(Math.min(dt,.1),t);r3Proj();r3Weather(Math.min(dt,.1),t);
+  if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);if(EGO.on)EGO.hide();r3Smoke(Math.min(dt,.1),t);r3Fire(Math.min(dt,.1),t);r3Lamps(Math.min(dt,.1),t);r3Proj();r3Weather(Math.min(dt,.1),t);r3RainFx(Math.min(dt,.1),t);
   r3TeamMarks(EGO.on?[]:R3.tmList||[],OPT.teamMark||'soft');
   R3.ringN=0;for(const r of EGO.on?[]:rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   r3Ranges(EGO.on||!OPT.rangeRing?[]:R3.rangeList||[]);

@@ -52,7 +52,7 @@ function renderOptions(){
     +row('Leuchten (Bloom)',tog('oBloom',OPT.bloom),'Helle Stellen strahlen weich nach – kostet etwas Leistung')
     +row('Umgebungsverdunkelung',tog('oAo',OPT.ao!==false),'Ecken, Fugen und Fusspunkte werden leicht abgedunkelt (GTAO) – nur bei Grafik Ultra, kostet Leistung')
     +row('Wolkenschatten',tog('oCloud',OPT.cloudShade),'Weiche Schatten ziehen langsam über das Gelände – nur Optik, aus bei Grafik Niedrig')
-    +row('Wetter (Laub, Schnee)',tog('oWeather',OPT.weather),'Fallende Blätter im Herbst, Blütenblätter im Frühling, Schnee im Winter – nur Optik')
+    +row('Wetter (Laub, Schnee, Regen)',tog('oWeather',OPT.weather),'Fallende Blätter im Herbst, Blütenblätter im Frühling, Schnee im Winter, gelegentlich Regen – nur Optik')
     +row('Tageszeit',seg('oTod',[['off','Aus'],['soft','Dezent'],['full','Voll']],OPT.tod),'Die Sonne wandert über den Tag (25 Spielminuten): Morgen- und Abendlicht; „Voll“ mit dunkler Nacht – nur Optik')
     +row('Reichweiten-Ringe',tog('oRange',OPT.rangeRing),'Zeigt für ausgewählte Fernkämpfer und Türme einen Ring mit ihrer Reichweite')
     +row('Spielzimmer',tog('oRoom',OPT.room),'Karte liegt als Brett auf einem Schreibtisch in einer Werkstatt')

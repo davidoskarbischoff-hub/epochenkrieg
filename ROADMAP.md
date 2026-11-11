@@ -381,4 +381,6 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 - [x] Geschosse in 3D: Pfeile mit Bogenflug, Kugeln, Leuchtspuren statt 2D-Striche
 - [x] Einschlag-Effekte: Funken an Einheiten, Splitter und Staub an Gebäuden bei Lebensverlust
 - [x] Kielwasser hinter fahrenden Schiffen
+- [x] Regenphasen (Optik): dunkleres Licht, grauer Nebel, Regenstreifen, kein Glitzern; aus im Winter/Wüste
+- [ ] Regen: Geräusch, nasse Oberflächen
 - [ ] Steckende Pfeile / Krater nach Belagerung

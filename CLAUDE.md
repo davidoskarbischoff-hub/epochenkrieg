@@ -355,3 +355,4 @@ Idee für später: echte Nachbearbeitung (SSAO, Bloom mit Render-Target) braucht
 - Geschosse (11.11.): `r3Proj`/`r3ProjInit` (render3d.js) zeichnet `G.proj` als Instanzen (Pfeile mit Bogen, Kugeln `big`, Leuchtspuren `gun`); `R3.proj3` schaltet die 2D-Striche in render.js ab. Neue Geschossarten: Feld in `G.proj` setzen und in `r3Proj` zuordnen.
 - Einschläge (11.11.): `r3Hit` (render3d.js) bei Lebensverlust (`o.hpv` in `r3Sync`), nutzt Flammen-Pool (`q.hit`) und Rauch-Pool.
 - Kielwasser (11.11.): in `r3Unit` bei `rig.ship||rig.boat` (glTF-Rig hat `boat` für `naval`-Einheiten).
+- Regen (11.11.): `r3Rain` setzt `R3.rain` aus `G.t` (deterministisch), `r3Light` dämpft damit Licht/Nebel (Parameter `A` wird kopiert, `R3.atmo` bleibt unverändert), `r3RainFx` zeichnet die Streifen; bei Tageszeit „Aus“ ruft `r3Rain` `r3Light` bei Änderung selbst. Wer Licht pro Bild setzt, muss `R3.rain` berücksichtigen.
