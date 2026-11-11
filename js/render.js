@@ -158,6 +158,7 @@ function draw(){
       const q=scr(p.x,p.y,zAt(p.x,p.y));if(!q.front)continue;const a=scr(p.x-cx*L,p.y-cy*L,zAt(p.x-cx*L,p.y-cy*L));
       ctx.lineCap='round';ctx.strokeStyle='rgba(30,22,14,.85)';ctx.lineWidth=4.2;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(q.x,q.y);ctx.stroke();
       ctx.strokeStyle='#fff0c0';ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(q.x,q.y);ctx.stroke();ctx.lineCap='butt';continue}
+    if(R3.proj3)continue;/* Geschosse zeichnet r3Proj in 3D */
     const q=scr(p.x,p.y,16);if(!q.front)continue;const k=q.k;ctx.strokeStyle='#2a2119';ctx.lineWidth=1.4;
     if(p.big||p.gun){ctx.fillStyle=p.big?'#2b2b30':'#46464c';ctx.beginPath();ctx.arc(q.x,q.y,(p.big?4.2:2)*k,0,6.283);ctx.fill();continue}
     const a=scr(p.x-Math.cos(p.a)*7,p.y-Math.sin(p.a)*7,16);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(q.x,q.y);ctx.stroke()}

@@ -623,7 +623,7 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   {const V=R3.view,N=R3.nodeV,ck=Math.round(cam.yaw*12)+','+Math.round(cam.pitch*12);if(ck!==R3.camK){R3.camK=ck;R3.nodeT=0}if(Math.abs(Math.log(cam.z/(R3.nodeZ||cam.z)))>.02)R3.nodeT=0;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
   r3Lod();R3.nodeT-=dt;R3.gsT=(R3.gsT||0)-dt;if(R3.nodeT<=0){R3.nodeT=R3.apBusy?.06:.4;r3Nodes();if(R3.gsT<=0){R3.gsT=.4;r3GrassShade()}else r3GrassView()}else r3GrassView();if(SHK.size)r3Shake(dt)
-  if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);if(EGO.on)EGO.hide();r3Smoke(Math.min(dt,.1),t);r3Fire(Math.min(dt,.1),t);r3Lamps(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
+  if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);if(EGO.on)EGO.hide();r3Smoke(Math.min(dt,.1),t);r3Fire(Math.min(dt,.1),t);r3Lamps(Math.min(dt,.1),t);r3Proj();r3Weather(Math.min(dt,.1),t);
   r3TeamMarks(EGO.on?[]:R3.tmList||[],OPT.teamMark||'soft');
   R3.ringN=0;for(const r of EGO.on?[]:rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   r3Ranges(EGO.on||!OPT.rangeRing?[]:R3.rangeList||[]);
@@ -742,6 +742,32 @@ function r3Lamps(dt,t){
   for(let i=n;i<P.used;i++)P.pool[i].visible=false;P.used=n;
   if(F)for(let i=0;i<F.lights.length;i++){const L=F.lights[i];if(!L.visible||L.intensity>0||!on)continue;const q=near[i];if(!q)continue;
     L.position.set(q.e.x/Sc,hAt(q.e.x,q.e.y)+q.top*.5,q.e.y/Sc);L.distance=q.R*6+5;L.intensity=night*(4.5+q.R*1.8)*(.92+.08*Math.sin(t*9+q.e.id))}}
+
+/* Geschosse in 3D (statt 2D-Strichen in fester Höhe): Pfeile/Bolzen als dünne Instanzen mit Bogenflug (nur Darstellung: Höhe = Grundhöhe + Parabel über den Flugweg, Spitze zeigt in Flugrichtung),
+   Kugeln (Kanone/Katapult) als Kugel-Instanzen mit höherem Bogen, Gewehrkugeln als kurze helle Spur. Die Spielrechnung (sim.js, gerade Linie) bleibt unberührt; render.js lässt die 2D-Striche weg, wenn R3.proj3 gesetzt ist. */
+function r3ProjInit(){
+  const sh=new THREE.BoxGeometry(.07,.07,1.7),hd=new THREE.ConeGeometry(.09,.3,5).rotateX(Math.PI/2).translate(0,0,.95),fl=new THREE.BoxGeometry(.02,.22,.34).translate(0,0,-.68),fl2=new THREE.BoxGeometry(.22,.02,.34).translate(0,0,-.68);
+  const pos=[],col=[],add=(g,c)=>{const p=g.attributes.position;for(let i=0;i<p.count;i++){pos.push(p.getX(i),p.getY(i),p.getZ(i));col.push(c[0],c[1],c[2])}const ix=g.index;if(ix){/* indizierte Geometrie auflösen */}};
+  const parts=[[sh.toNonIndexed(),[.42,.3,.18]],[hd.toNonIndexed(),[.5,.5,.52]],[fl.toNonIndexed(),[.9,.9,.85]],[fl2.toNonIndexed(),[.9,.9,.85]]];
+  for(const[g,c]of parts)add(g,c);
+  const ag=new THREE.BufferGeometry();ag.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));ag.setAttribute('color',new THREE.Float32BufferAttribute(col,3));ag.computeVertexNormals();
+  const arrows=new THREE.InstancedMesh(ag,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.8,metalness:.1}),300);arrows.count=0;arrows.frustumCulled=false;arrows.castShadow=false;arrows.receiveShadow=false;
+  const balls=new THREE.InstancedMesh(new THREE.SphereGeometry(.26,10,8),new THREE.MeshStandardMaterial({color:0x2b2b30,roughness:.7,metalness:.3}),120);balls.count=0;balls.frustumCulled=false;balls.castShadow=false;
+  const trac=new THREE.InstancedMesh(new THREE.BoxGeometry(.05,.05,1.2),new THREE.MeshBasicMaterial({color:0xfff2b0,fog:false}),150);trac.count=0;trac.frustumCulled=false;
+  r3.scene.add(arrows,balls,trac);r3.proj={arrows,balls,trac,o:new THREE.Object3D(),v:new THREE.Vector3()}}
+function r3Proj(){
+  if(!R3.ok){R3.proj3=false;return}const P=r3.proj||(r3ProjInit(),r3.proj),Sc=R3.S,on=!!(G&&G.proj)&&!R3.saverOn;R3.proj3=on;
+  let na=0,nb=0,nt=0;const o=P.o;
+  if(on)for(const p of G.proj){if(p.dead)continue;const egT=EGO.on&&EGO.e&&p.free&&p.src===EGO.e.id;if(egT)continue;/* Ego-Freischuss zeichnet render.js weiter als Spur */
+    let tx,ty;if(p.free){tx=p.tx;ty=p.ty}else{const t=G.byId.get(p.tid);if(!t)continue;tx=t.x;ty=t.y}
+    if(p._s==null){p._s=[p.x,p.y];p._d0=Math.max(1,Math.hypot(tx-p.x,ty-p.y));const sb=G.byId.get(p.src);p._h0=sb?(sb.kind==='bld'?entH(sb)*.8/Sc:1.6):1.6;if(p.gun)p._h0=1.3}
+    const rem=Math.hypot(tx-p.x,ty-p.y),f=Math.max(0,Math.min(1,1-rem/p._d0)),big=!!p.big,gun=!!p.gun;
+    const arc=gun?0:Math.min(big?9:6,p._d0/Sc*(big?.45:.22)),h0=hAt(p._s[0],p._s[1])+p._h0,h1=hAt(tx,ty)+(p.free?.3:1.1),y=h0+(h1-h0)*f+arc*4*f*(1-f),dy=(h1-h0)/p._d0*Sc+arc*4*(1-2*f)/p._d0*Sc/* Steigung je Welteinheit */;
+    o.position.set(p.x/Sc,y,p.y/Sc);P.v.set(Math.cos(p.a),dy,Math.sin(p.a)).normalize();o.lookAt(o.position.x+P.v.x,o.position.y+P.v.y,o.position.z+P.v.z);
+    if(big){o.scale.setScalar(1.3);o.updateMatrix();if(nb<120)P.balls.setMatrixAt(nb++,o.matrix)}
+    else if(gun){o.scale.setScalar(1);o.updateMatrix();if(nt<150)P.trac.setMatrixAt(nt++,o.matrix)}
+    else{o.scale.setScalar(1);o.updateMatrix();if(na<300)P.arrows.setMatrixAt(na++,o.matrix)}}
+  if(P.arrows.count||na){P.arrows.count=na;P.arrows.instanceMatrix.needsUpdate=true}if(P.balls.count||nb){P.balls.count=nb;P.balls.instanceMatrix.needsUpdate=true}if(P.trac.count||nt){P.trac.count=nt;P.trac.instanceMatrix.needsUpdate=true}}
 
 /* Leuchten (Bloom): verkleinerte Kopie des Bildes liegt weichgezeichnet und aufgehellt per „Bildschirm“-Überblendung über der Welt – helle Stellen (Sonnenlicht auf Wasser, Fenster, Feuer) strahlen sanft nach.
    Billiger Ersatz für eine echte Nachbearbeitung; abschaltbar im Menü (Grafik). */

@@ -378,3 +378,5 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 - [x] Wasseroberfläche mit eigenem Shader: Tiefe am Ufer (flach durchsichtig/türkis, tief dunkel), Himmelsspiegelung nach Blickwinkel, Sonnenglitzern und Nachtabdunklung in einer Ebene; Boote liegen im Wasser, Fische schimmern durch
 - [x] Brennende Gebäude in 3D: Flammen-Sprites, dunkler Rauch und flackerndes Punktlicht (nachts sichtbar) statt 2D-Partikel
 - [x] Nachtlichter: Fackeln/Fenster an Gebäuden und Lichtschein am Boden bei Tageszeit „Voll“/„Dezent“
+- [x] Geschosse in 3D: Pfeile mit Bogenflug, Kugeln, Leuchtspuren statt 2D-Striche
+- [ ] Einschlag-Effekte (Staub, Funken, steckende Pfeile)
