@@ -552,3 +552,6 @@ Gebirge (Seed 7): vorher nicht gemessen, nachher 1+1 über alle Läufe; Wüste (
 
 ## Einschlag-Effekte (11.11.)
 - `r3Hit(e,o,h)` (render3d.js), ausgelöst in `r3Sync`, sobald das Leben einer sichtbaren Einheit, eines Tiers oder Gebäudes um > .5 sinkt (`o.hpv`, gilt auch für den Mehrspieler-Gast, der nur Stände bekommt): 4 helle Funken (Einheiten, weissgelb, Brusthöhe) bzw. 5 graue Splitter (Gebäude, an einer zufälligen Wandstelle) aus dem Flammen-Pool mit Kennzeichen `q.hit` (fliegen seitlich weg, fallen mit 9/s², .28–.5 s), dazu ein Staubhauch aus dem Rauch-Pool. Nicht bei Pause, Sparmodus oder Grafik „Niedrig“. Bild: 5 Speerträger und eine Hütte unter Dauerbeschuss (Skript t4.js). Die alten 2D-Funken beim Schlag (`addPart('spark')` in render.js) bleiben, sie zeigen den Hieb des Angreifers.
+
+## Kielwasser (11.11.)
+- Fahrende Schiffe hinterlassen weisse, wachsende Schaumflecken auf der Wasseroberfläche (y −.33, Rauch-Pool, alle .13 s einer am Heck, Lebensdauer 1,5 s + Grösse); Code-Schiffe über `rig.ship`, glTF-Schiffe über das neue Rig-Feld `boat` (gltfmodels.js `makeUnit`, aus `UNITS[..].naval`). Die 2D-Schaum-Ellipsen (render.js `addPart('foam')`) laufen nur noch ohne 3D-Effekte (`R3.fire3`). Bild: Ruderboot und Kriegsschiff in Fahrt (Bewegung im Test per Intervall gesetzt, `mvT`).

@@ -528,6 +528,8 @@ function r3Unit(o,e,h,dt,t){
   if(moving)o.ph+=dt*(d.naval?2:7+d.spd*.06);const s=Math.sin(o.ph);
   let y=h;
   if(rig.ship){y=-.42+Math.sin(t*2+e.id)*.06;obj.rotation.z=Math.sin(t*1.7+e.id)*.035;obj.rotation.x=0;if(rig.sail)rig.sail.rotation.y=Math.sin(t*1.3+e.id)*.1}
+  /* Kielwasser: weisse, wachsende Schaumflecken aus dem Rauch-Pool hinter fahrenden Schiffen auf der Wasseroberfläche (ersetzt die 2D-Ellipsen, render.js prüft R3.fire3) */
+  if((rig.ship||rig.boat)&&moving&&R3.fire3&&r3.smoke){o.wk=(o.wk||0)-dt;if(o.wk<=0){o.wk=.13;const q=r3.smoke.pool.find(p=>!p.on);if(q){const R=e.r/S;q.on=true;q.age=0;q.life=1.5+R*.25;q.vx=0;q.vy=0;q.vz=0;q.s0=R*.5;q.s1=R*2.2;q.a0=.5;q.m.color.setHex(0xf2f9ff);q.sp.position.set(e.x/S-Math.cos(e.fa)*R*.95,-.33,e.y/S-Math.sin(e.fa)*R*.95);q.sp.visible=true}}}
   else{
     if(e.gar){const gb=G.byId.get(e.gar);y=h+(gb&&gb.type==='tower'?4.2:2.1)}
     if(rig.props){y=h+5+Math.sin(t*1.5+e.id)*.25;rig.props.forEach(pr=>pr.rotation.x+=dt*40);obj.rotation.z=moving?-.12:0}

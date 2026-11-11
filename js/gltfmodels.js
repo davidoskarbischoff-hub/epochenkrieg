@@ -382,7 +382,7 @@ const EKMODELS=(()=>{
       if(en.flag){const F=en.flag,fb=box(wrap),fs=fb.getSize(new THREE.Vector3()),ph=F.h||1.4,fx=(fb.min.x+fb.max.x)/2+(F.x||0)*fs.x,fz=(fb.min.z+fb.max.z)/2+(F.z||0)*fs.z,fy=fb.min.y+(F.y===undefined?1:F.y)*fs.y;
         const pole=new THREE.Mesh(new THREE.CylinderGeometry(.03,.04,ph,5),m3Plain(0x4a3a2a,.8));pole.position.set(fx,fy+ph/2,fz);pole.castShadow=true;
         const cl=new THREE.Mesh(new THREE.BoxGeometry(ph*.5,ph*.3,.03),m3Team(u.team));cl.position.set(fx-ph*.25,fy+ph*.82,fz);cl.castShadow=true;/* Tuch weht nach hinten */wrap.add(pole);wrap.add(cl)}
-      const rig={g:wrap,gltf:true,bend:en.human?findBone(root,/^(Abdomen|Spine|Spine1|spine|DEF-spine\.?001)$/i):null,bendA:0,human:!!(en.human||(en.rider&&!en.rider.free)),legs:[],arms:[],tools:{},acts:{},cur:null,gl};
+      const rig={g:wrap,gltf:true,boat:kind!=="animal"&&!!(typeof UNITS!=="undefined"&&UNITS[u.type]&&UNITS[u.type].naval)/* Schiff: Kielwasser in r3Unit */,bend:en.human?findBone(root,/^(Abdomen|Spine|Spine1|spine|DEF-spine\.?001)$/i):null,bendA:0,human:!!(en.human||(en.rider&&!en.rider.free)),legs:[],arms:[],tools:{},acts:{},cur:null,gl};
       if(en.human&&typeof WPOSE!=='undefined'&&!window.__noWpose){try{rig.wp=WPOSE.setup(rig,root,wrap,k,u);if(rig.wp)WPOSE.props(rig,root,wrap,k)}catch(err){console.warn('WPOSE',err);rig.wp=null}}
       if(gl.animations&&gl.animations.length){rig.mixer=new THREE.AnimationMixer(root);const A=en.anim||{},cl=gl.animations;
         const map={idle:pickClip(cl,[A.idle],/idle|stand|rest/i),walk:pickClip(cl,[A.walk],/walk|run|move/i),attack:pickClip(cl,[A.attack],/attack|hit|strike|shoot|fire/i),work:pickClip(cl,[A.work],/work|gather|chop|mine|build|dig/i)};

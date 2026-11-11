@@ -354,3 +354,4 @@ Idee für später: echte Nachbearbeitung (SSAO, Bloom mit Render-Target) braucht
 - Nachtlichter (11.11.): `R3.night` aus `r3Tod`; `r3Lamps` (render3d.js) setzt Lichtpunkt-Sprites an Gebäude und nutzt freie Feuer-Punktlichter. Darstellungsobjekte immer über `R3.reg.get(entKey(e))` holen, nicht `e.id`.
 - Geschosse (11.11.): `r3Proj`/`r3ProjInit` (render3d.js) zeichnet `G.proj` als Instanzen (Pfeile mit Bogen, Kugeln `big`, Leuchtspuren `gun`); `R3.proj3` schaltet die 2D-Striche in render.js ab. Neue Geschossarten: Feld in `G.proj` setzen und in `r3Proj` zuordnen.
 - Einschläge (11.11.): `r3Hit` (render3d.js) bei Lebensverlust (`o.hpv` in `r3Sync`), nutzt Flammen-Pool (`q.hit`) und Rauch-Pool.
+- Kielwasser (11.11.): in `r3Unit` bei `rig.ship||rig.boat` (glTF-Rig hat `boat` für `naval`-Einheiten).
