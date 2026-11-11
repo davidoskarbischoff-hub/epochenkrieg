@@ -623,7 +623,7 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   r3.terrOv.material.map.needsUpdate=true;r3.fogOv.material.map.needsUpdate=true;
   {const V=R3.view,N=R3.nodeV,ck=Math.round(cam.yaw*12)+','+Math.round(cam.pitch*12);if(ck!==R3.camK){R3.camK=ck;R3.nodeT=0}if(Math.abs(Math.log(cam.z/(R3.nodeZ||cam.z)))>.02)R3.nodeT=0;if(V&&N&&(Math.abs((V.x0+V.x1)/2-N.x)>70||Math.abs((V.y0+V.y1)/2-N.y)>70||Math.abs((V.x1-V.x0)-N.w)>150))R3.nodeT=0}
   r3Lod();R3.nodeT-=dt;R3.gsT=(R3.gsT||0)-dt;if(R3.nodeT<=0){R3.nodeT=R3.apBusy?.06:.4;r3Nodes();if(R3.gsT<=0){R3.gsT=.4;r3GrassShade()}else r3GrassView()}else r3GrassView();if(SHK.size)r3Shake(dt)
-  if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);if(EGO.on)EGO.hide();r3Smoke(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
+  if(typeof WPOSE!=='undefined')WPOSE.n=0;R3.fn=(R3.fn||0)+1;r3Sync(list,dt,t);if(EGO.on)EGO.hide();r3Smoke(Math.min(dt,.1),t);r3Fire(Math.min(dt,.1),t);r3Weather(Math.min(dt,.1),t);
   r3TeamMarks(EGO.on?[]:R3.tmList||[],OPT.teamMark||'soft');
   R3.ringN=0;for(const r of EGO.on?[]:rings)r3Ring(r.x,r.y,r.r,r.c,r.o);for(let i=R3.ringN;i<R3.rings.length;i++)R3.rings[i].visible=false;
   r3Ranges(EGO.on||!OPT.rangeRing?[]:R3.rangeList||[]);
@@ -699,6 +699,31 @@ function r3Smoke(dt,t){
   for(const q of S.pool){if(!q.on)continue;q.age+=dt;if(q.age>=q.life){q.on=false;q.sp.visible=false;continue}
     const u=q.age/q.life,p=q.sp.position;p.x+=(q.vx+Math.sin(t*.7+p.z)*.1)*dt;p.y+=q.vy*(1-u*.5)*dt;p.z+=q.vz*dt;const s=q.s0+(q.s1-q.s0)*u;q.sp.scale.set(s,s,1);q.m.opacity=q.a0*Math.min(1,u*8)*(1-u)}}
 
+/* Feuer an beschädigten Gebäuden (Leben < 50 %): Flammen als additive Sprites aus Dach und Wänden (Grösse/Takt wachsen mit dem Schaden), dunkler Rauch aus dem Rauch-Pool,
+   flackernde Punktlichter für die drei Brände nahe der Bildmitte (Lichter bleiben immer in der Szene, nur die Stärke wechselt, sonst würden alle Shader neu übersetzt). Ersetzt die 2D-Flammen (render.js prüft R3.fire3). */
+function r3FireInit(){
+  const MAX=160,c=document.createElement('canvas');c.width=64;c.height=96;const x=c.getContext('2d');
+  const g1=x.createRadialGradient(32,62,2,32,62,30);g1.addColorStop(0,'rgba(255,250,220,1)');g1.addColorStop(.35,'rgba(255,190,70,.85)');g1.addColorStop(.7,'rgba(255,90,10,.35)');g1.addColorStop(1,'rgba(255,40,0,0)');x.fillStyle=g1;x.fillRect(0,0,64,96);
+  const g2=x.createRadialGradient(32,30,1,32,30,22);g2.addColorStop(0,'rgba(255,220,120,.9)');g2.addColorStop(.6,'rgba(255,110,20,.3)');g2.addColorStop(1,'rgba(255,60,0,0)');x.fillStyle=g2;x.fillRect(0,0,64,96);
+  const tex=new THREE.CanvasTexture(c),pool=[];
+  for(let i=0;i<MAX;i++){const m=new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,opacity:0});const sp=new THREE.Sprite(m);sp.visible=false;sp.renderOrder=6;r3.scene.add(sp);pool.push({sp,m,on:false,age:0,life:1,vy:1,s:1,ph:0})}
+  const lights=[];for(let i=0;i<3;i++){const L=new THREE.PointLight(0xff9a3a,0,20,2);L.visible=false;r3.scene.add(L);lights.push(L)}
+  r3.fire={pool,lights,list:[]}}
+function r3Fire(dt,t){
+  if(!R3.ok)return;const F=r3.fire||(r3FireInit(),r3.fire),Sc=R3.S,on=!!(G&&G.ents&&!R3.saverOn&&GQ[gfxQ].smoke);R3.fire3=on;
+  const list=F.list;list.length=0;
+  if(on&&!(G.paused||G.netPause)){for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built||e.hp>=e.maxHp*.5||!shown(e))continue;const dmg=1-e.hp/(e.maxHp*.5)/* 0 bei 50 % Leben, 1 kurz vor dem Einsturz */;list.push(e);
+      e._fi=(e._fi||0)-dt;if(e._fi>0)continue;e._fi=.16-dmg*.11;const q=F.pool.find(p=>!p.on);if(!q)break;
+      const o=R3.reg.get(e.id),R=e.r/Sc*1.05,top=(o&&o.obj.userData.h)||R*2,a=Math.random()*6.283,rr=Math.random()*R*.7;
+      q.on=true;q.age=0;q.life=.7+Math.random()*.6;q.vy=1.2+dmg*1.2;q.s=(R*.55+top*.25)*(.6+dmg*.7)*(.7+Math.random()*.6);q.ph=Math.random()*6.283;q.m.rotation=(Math.random()-.5)*.5;
+      q.sp.position.set(e.x/Sc+Math.cos(a)*rr,hAt(e.x,e.y)+top*(.25+Math.random()*.6),e.y/Sc+Math.sin(a)*rr);q.sp.visible=true;
+      if(r3.smoke&&Math.random()<.3){const s=r3.smoke.pool.find(p=>!p.on);if(s){s.on=true;s.age=0;s.life=4+Math.random()*2;s.vx=.4;s.vy=1.4+dmg;s.vz=(Math.random()-.5)*.3;s.s0=R*.5;s.s1=R*2+3;s.a0=.75;s.m.color.setHex(0x2c2a28);s.sp.position.copy(q.sp.position);s.sp.position.y+=.5;s.sp.visible=true}}}}
+  for(const q of F.pool){if(!q.on)continue;q.age+=dt;if(q.age>=q.life){q.on=false;q.sp.visible=false;continue}
+    const u=q.age/q.life,p=q.sp.position;p.y+=q.vy*dt;p.x+=Math.sin(t*9+q.ph)*.25*dt;const s=q.s*(1+u*.4)*(1-u*u*.7);q.sp.scale.set(s*.7,s,1);q.m.opacity=Math.min(1,u*6)*(1-u)*(.85+.15*Math.sin(t*23+q.ph));q.m.color.setRGB(1,.55+.4*(1-u),.25*(1-u))}
+  if(list.length>1)list.sort((a,b)=>Math.hypot(a.x-cam.x,a.y-cam.y)-Math.hypot(b.x-cam.x,b.y-cam.y));
+  const lv=!!GQ[gfxQ].smoke;for(let i=0;i<F.lights.length;i++){const L=F.lights[i],e=on?list[i]:null;if(L.visible!==lv)L.visible=lv;if(!e){L.intensity=0;continue}
+    const o=R3.reg.get(e.id),R=e.r/Sc*1.05,top=(o&&o.obj.userData.h)||R*2,dmg=1-e.hp/(e.maxHp*.5);
+    L.position.set(e.x/Sc,hAt(e.x,e.y)+top*.6,e.y/Sc);L.distance=R*7+6;L.intensity=(16+dmg*30)*(.8+.2*Math.sin(t*17+e.id)+.1*Math.sin(t*31))}}
 
 /* Leuchten (Bloom): verkleinerte Kopie des Bildes liegt weichgezeichnet und aufgehellt per „Bildschirm“-Überblendung über der Welt – helle Stellen (Sonnenlicht auf Wasser, Fenster, Feuer) strahlen sanft nach.
    Billiger Ersatz für eine echte Nachbearbeitung; abschaltbar im Menü (Grafik). */

@@ -58,7 +58,7 @@ function partsStep(vis){
     for(const e of vis){
       if(e.kind==='bld'){const h=entH(e),r=e.r,hp=e.hp/e.maxHp;
         if(!e.built){if((e._d=(e._d||0)-dt)<=0){e._d=.35+R()*.3;addPart('dust',e.x+(R()-.5)*r*1.6,e.y+r*.4,2,(R()-.5)*14,(R()-.5)*6,8,1.1,5,'196,170,128')}continue}
-        if(hp<.5){if((e._f=(e._f||0)-dt)<=0){e._f=.06+hp*.12;const fx=(R()-.5)*r*1.4;addPart('fire',e.x+fx,e.y,R()*h*.5,(R()-.5)*8,0,26+R()*24,.55+R()*.35,5+R()*5,'');if(R()<.4)addPart('smoke',e.x+fx,e.y,h*.6,6+R()*8,0,18+R()*10,1.8,6,'40,38,36')}}
+        if(hp<.5){if(!R3.fire3/* 3D-Flammen übernehmen (r3Fire) */)if((e._f=(e._f||0)-dt)<=0){e._f=.06+hp*.12;const fx=(R()-.5)*r*1.4;addPart('fire',e.x+fx,e.y,R()*h*.5,(R()-.5)*8,0,26+R()*24,.55+R()*.35,5+R()*5,'');if(R()<.4)addPart('smoke',e.x+fx,e.y,h*.6,6+R()*8,0,18+R()*10,1.8,6,'40,38,36')}}
         else if(e.type==='house'&&G.epoch[e.team]>=1||(e.type==='hq'&&G.epoch[e.team]<=1)){if((e._sm=(e._sm||0)-dt)<=0){e._sm=.55+R()*.5;addPart('smoke',e.x+(e.type==='house'?r*.3:0),e.y-r*.3,h*(e.type==='house'?.95:.9),5,0,16,2.6,5,'170,168,164')}}
       }else if(e.kind==='unit'||e.kind==='animal'){const d=e.kind==='unit'?UNITS[e.type]:ANIMALS[e.type],mv=T-(e.mvT||-9)<.2;
         if(mv){if((e._d=(e._d||0)-dt)<=0){e._d=.16+R()*.08;if(d.naval)addPart('foam',e.x-Math.cos(e.fa)*e.r,e.y-Math.sin(e.fa)*e.r,0,0,0,0,.9,e.r*.5,'235,250,250');else if(terrAt(e.x,e.y)===2)addPart('dust',e.x+(R()-.5)*4,e.y+1,1,(R()-.5)*8,-2,6,.7,e.type==='knight'||d.siege?4.5:2.6,'176,150,108')}}
