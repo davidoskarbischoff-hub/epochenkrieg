@@ -375,3 +375,4 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 
 ## Grosse Verbesserungsrunde (10./11.11.)
 - [x] Echte Nachbearbeitung: HDR-Bloom (Hoch/Ultra) und Umgebungsverdunkelung GTAO (Ultra), Option „Umgebungsverdunkelung“ im Menü Grafik; CSS-Leuchtkopie bleibt Rückfall
+- [x] Wasseroberfläche mit eigenem Shader: Tiefe am Ufer (flach durchsichtig/türkis, tief dunkel), Himmelsspiegelung nach Blickwinkel, Sonnenglitzern und Nachtabdunklung in einer Ebene; Boote liegen im Wasser, Fische schimmern durch
