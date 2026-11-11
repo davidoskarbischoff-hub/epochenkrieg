@@ -32,13 +32,13 @@ function r3Init(){
 /* Nach Fensterwechsel oder Grafikkarten-Reset: Zeichenfläche neu anlegen; nach Kontextverlust zusätzlich die einmal berechnete Umgebungsspiegelung (PMREM) neu malen, sonst bleibt die Welt dunkel oder weiß */
 function r3Revive(full){if(!R3.ok)return;try{
   if(full&&R3.es){const old=M3.env,pm=new THREE.PMREMGenerator(r3.rd),t=pm.fromScene(R3.es,.04).texture;pm.dispose();M3.env=t;r3.scene.environment=t;r3.scene.traverse(o=>{if(!o.isMesh)return;for(const m of[].concat(o.material))if(m&&m.envMap===old){m.envMap=t;m.needsUpdate=true}})}
-  r3.rd.setSize(Math.max(1,VW)+1,Math.max(1,VH),false);r3Resize();R3.bloomOff=0}catch(e){console.warn('revive',e)}}
+  r3.rd.setSize(Math.max(1,VW)+1,Math.max(1,VH),false);r3PostDrop();r3Resize();R3.bloomOff=0}catch(e){console.warn('revive',e)}}
 /* Grafikqualität (Menü): 0 Niedrig, 1 Mittel, 2 Hoch (Standard), 3 Ultra – unterscheiden sich sichtbar in Schärfe, Schatten, Gras, Leuchten und Rauch */
-const GQ=[{n:'Niedrig',pr:.7,sh:1024,grass:.25,bloom:0,smoke:0,rad:1,cloud:0,gl:0},{n:'Mittel',pr:1,sh:1024,grass:.6,bloom:0,smoke:1,rad:1.5,cloud:1,gl:1},{n:'Hoch',pr:1.5,sh:2048,grass:1,bloom:1,smoke:1,rad:2.5,cloud:1,gl:1},{n:'Ultra',pr:2.2,sh:4096,grass:1.7,bloom:1,smoke:1,rad:4,cloud:1,gl:1}];
+const GQ=[{n:'Niedrig',pr:.7,sh:1024,grass:.25,bloom:0,smoke:0,rad:1,cloud:0,gl:0},{n:'Mittel',pr:1,sh:1024,grass:.6,bloom:0,smoke:1,rad:1.5,cloud:1,gl:1},{n:'Hoch',pr:1.5,sh:2048,grass:1,bloom:1,smoke:1,rad:2.5,cloud:1,gl:1},{n:'Ultra',pr:2.2,sh:4096,grass:1.7,bloom:1,smoke:1,rad:4,cloud:1,gl:1,ao:1}];
 let gfxQ=2;try{const q=localStorage.getItem('ek-gfx2');if(q!==null)gfxQ=Math.max(0,Math.min(3,+q||0));else{const o=localStorage.getItem('ek-gfx');if(o!==null)gfxQ=Math.max(0,Math.min(3,(+o||0)+1))}}catch(_){}
 function setGfx(q,temp){const old=gfxQ;gfxQ=q;try{r3.scene.traverse(o=>{if(o.userData&&o.userData.veg)o.castShadow=q>=2})}catch(_){}if(!temp)try{localStorage.setItem('ek-gfx2',q)}catch(_){}if(!R3.ok)return;const g=GQ[q],sz=Math.min(g.sh,r3.maxTex);if(r3.sun.shadow.mapSize.x!==sz){r3.sun.shadow.mapSize.set(sz,sz);if(r3.sun.shadow.map){r3.sun.shadow.map.dispose();r3.sun.shadow.map=null}}
   r3.sun.shadow.radius=g.rad;r3Resize();if(typeof optApply==='function')optApply();if(GQ[old].grass!==g.grass&&r3.i_tuft&&typeof W!=='undefined')r3Grass()}
-function r3Resize(){if(!R3.ok)return;r3.rd.setPixelRatio(Math.max(.4,Math.min(GQ[gfxQ].pr,Math.max(1,window.devicePixelRatio||1)*1.5)*(R3.dyn||1)));r3.rd.setSize(VW,VH,false);camUpdate()}
+function r3Resize(){if(!R3.ok)return;r3.rd.setPixelRatio(Math.max(.4,Math.min(GQ[gfxQ].pr,Math.max(1,window.devicePixelRatio||1)*1.5)*(R3.dyn||1)));r3.rd.setSize(VW,VH,false);r3PostSize();camUpdate()}
 
 /* ---------- Gelände ---------- */
 const hgrid={w:0,h:0,a:null};
@@ -615,8 +615,28 @@ function r3Frame(list,rings,dt){r3Dyn(dt);
   if(r3.ghost&&!R3.ghostOn)r3.ghost.visible=false;
   /* Schattenkarte nur jedes 2. Bild neu (bewegt sich die Kamera, sofort) – halbiert die Schatten-Zeichenarbeit, Unterschied ist nicht zu sehen */
   {const sm=r3.rd.shadowMap,ck=cam.x.toFixed(1)+','+cam.y.toFixed(1)+','+cam.z.toFixed(3)+','+cam.yaw.toFixed(3)+','+cam.pitch.toFixed(3);sm.autoUpdate=false;R3.shF=(R3.shF||0)+1;if(R3.shF%2===0||ck!==R3.shK){sm.needsUpdate=true;R3.shK=ck}}
-  r3.rd.render(r3.scene,r3.camera);if(EGO.on)EGO.vmDraw();R3.ghostOn=false;r3Bloom();
+  if(r3Post(dt))R3.postOn=1;else{R3.postOn=0;r3.rd.render(r3.scene,r3.camera)}if(EGO.on)EGO.vmDraw();R3.ghostOn=false;r3Bloom();
 }
+
+/* ---------- Echte Nachbearbeitung (js/vendor/post-bundle.js = EffectComposer, UnrealBloom, GTAO, OutputPass aus Three.js r160) ----------
+   Hoch/Ultra: die Welt wird in ein HDR-Zwischenbild (Halbfloat, 4× MSAA) gezeichnet, helle Stellen leuchten echt nach (UnrealBloomPass statt der CSS-Kopie),
+   Ultra zusätzlich Umgebungsverdunkelung (GTAO: Ecken, Fussspuren, Mauerfugen werden dunkler), danach Tonemapping/sRGB im OutputPass.
+   Aus bei Sparmodus, zu niedriger Bildrate (R3.slow), dynamischer Auflösung oder fehlendem Baustein → alter Weg (rd.render + CSS-Leuchten). */
+function r3PostKey(){if(!R3.ok||typeof EKPOST==='undefined'||R3.saverOn||R3.slow||(R3.dyn||1)<1||window.__noPost)return 0;const g=GQ[gfxQ];return (OPT.bloom&&g.bloom?1:0)|(OPT.ao!==false&&g.ao?2:0)}
+function r3PostDrop(){const P=R3.post;if(!P)return;try{P.comp.dispose();if(P.ao)P.ao.dispose();if(P.bloom)P.bloom.dispose()}catch(_){}R3.post=null}
+function r3PostSize(){const P=R3.post;if(!P)return;const pr=r3.rd.getPixelRatio();P.comp.setPixelRatio(pr);P.comp.setSize(VW,VH)}
+function r3Post(dt){const key=r3PostKey();if(!key){if(R3.post)r3PostDrop();return false}
+  let P=R3.post;if(!P||P.key!==key){r3PostDrop();try{
+    const E=EKPOST,rd=r3.rd,pr=rd.getPixelRatio(),w=Math.max(2,Math.round(VW*pr)),h=Math.max(2,Math.round(VH*pr));
+    const rt=new THREE.WebGLRenderTarget(w,h,{type:THREE.HalfFloatType,samples:rd.capabilities.isWebGL2?4:0});
+    const comp=new E.EffectComposer(rd,rt);comp.setPixelRatio(pr);comp.setSize(VW,VH);comp.addPass(new E.RenderPass(r3.scene,r3.camera));
+    let ao=null,bloom=null;
+    if(key&2){ao=new E.GTAOPass(r3.scene,r3.camera,w,h);ao.output=E.GTAOPass.OUTPUT.Default;ao.blendIntensity=.75;
+      ao.updateGtaoMaterial({radius:.9,distanceExponent:1,thickness:1,scale:1,samples:12,distanceFallOff:1,screenSpaceRadius:false});ao.updatePdMaterial({lumaPhi:10,depthPhi:2,normalPhi:3,radius:4,radiusExponent:1,rings:2,samples:12});comp.addPass(ao)}
+    if(key&1){bloom=new E.UnrealBloomPass(new THREE.Vector2(w,h),.2,.5,2.0);comp.addPass(bloom)}
+    comp.addPass(new E.OutputPass());
+    P=R3.post={key,comp,ao,bloom,rt}}catch(e){console.warn('post',e);R3.post=null;window.__noPost=1;return false}}
+  P.comp.render(dt);return true}
 /* Höhe einer Figur/eines Gebäudes über dem Boden in Spielpixeln (für Lebensbalken, Marker) */
 function entH(e){
   if(e.kind==='unit'){const t=e.type,d=UNITS[t];return d.air?60:d.naval?(t==='galleon'?55:40):t==='knight'?46:d.siege?(t==='ram'?30:34):e.r/7*25}
@@ -668,7 +688,7 @@ function r3Smoke(dt,t){
 /* Leuchten (Bloom): verkleinerte Kopie des Bildes liegt weichgezeichnet und aufgehellt per „Bildschirm“-Überblendung über der Welt – helle Stellen (Sonnenlicht auf Wasser, Fenster, Feuer) strahlen sanft nach.
    Billiger Ersatz für eine echte Nachbearbeitung; abschaltbar im Menü (Grafik). */
 function r3Bloom(){
-  if(R3.slow||(R3.dyn||1)<1){if(!R3.bloomOff){R3.bloomOff=1;const c=document.getElementById('bloom');if(c)c.width=c.width}return}R3.bloomOff=0; /* zähes Bild: Leuchten aus (leeren) */
+  if(R3.postOn||R3.slow||(R3.dyn||1)<1){if(!R3.bloomOff){R3.bloomOff=1;const c=document.getElementById('bloom');if(c)c.width=c.width}return}R3.bloomOff=0; /* zähes Bild: Leuchten aus (leeren) */
   if(!OPT.bloom||!GQ[gfxQ].bloom||R3.saverOn)return;const c=document.getElementById('bloom');if(!c||c.hidden)return;
   R3.bloomN=(R3.bloomN||0)+1;if(R3.bloomN%2)return;
   const w=Math.max(160,Math.round(r3.rd.domElement.width/5)),h=Math.max(90,Math.round(r3.rd.domElement.height/5));if(c.width!==w||c.height!==h){c.width=w;c.height=h}

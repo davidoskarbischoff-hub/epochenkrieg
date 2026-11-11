@@ -524,3 +524,7 @@ Gebirge (Seed 7): vorher nicht gemessen, nachher 1+1 über alle Läufe; Wüste (
 - Offen: Fischer im Segelboot (Ep. 3/4) hat andere Knochenachsen (Beine zeigen im Leerlauf nach oben-vorn, Messung Füße 0,95/1,07 über Hüfte 0,91) – im Bild unauffällig, bei Gelegenheit mit eigener `sit`-Haltung prüfen.
 - Einzelspieler-Panel: Startleiste mit Abstand zum Rand, Gegner-Symbole mit Abstand zum Titel (Bild bei 700×900 im Spielzimmer-Modus geprüft).
 
+## Echte Nachbearbeitung (11.11.)
+- Vorher: Leuchten nur als CSS-Kopie des Bildes (`#bloom`, mix-blend-mode screen) – hellt das ganze Bild auf, wäscht Farben aus. Jetzt: UnrealBloom im HDR-Zwischenbild (nur wirklich helle Stellen: Sonnenglitzern, Schnee in der Sonne, Feuer), Ultra zusätzlich GTAO (Kontaktverdunkelung an Hütten, Figurenfüssen, Felsen). Bildvergleich Mittag Zoom 2,4: Hütte/Hauptlager kontrastreicher, Schatten an Dachkanten und am Boden; Abend: Gebietsring leuchtet etwas kräftiger als vorher (Overlay liegt im HDR-Bild), hinnehmbar.
+- Schwelle: 1.0 liess sonniges Gras blühen (ganze Flächen glühten grün), 1.6 noch der Gebietsring, 2.0 nur Spitzlichter. Stärke .2.
+- Nicht messbar hier (Software-GL ≈1 Bild/s mit und ohne). Erwartung echte GPU bei Hoch (1,5× Pixel): HalfFloat-MSAA-Ziel + Bloom-Kette ≈ 1–3 ms; Ultra GTAO (12 Proben + Entrauschen bei 2,2× Pixel) deutlich teurer → Option „Umgebungsverdunkelung“ abschaltbar; `R3.slow` (<30 fps) schaltet die ganze Nachbearbeitung ab.

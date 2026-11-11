@@ -1,6 +1,6 @@
 /* Epochenkrieg – Einstellungen (Optionen-Menü). Werte werden im Browser gespeichert (localStorage) und von den anderen Dateien gelesen (OPT.xyz). */
 'use strict';
-const OPT_DEF={tod:'soft',rangeRing:true,camSpeed:1,camRot:1,edgeScroll:true,zoomSpeed:1,hpBars:'hurt',teamMark:'soft',tips:true,fps:false,shadows:true,grass:true,grade:true,bloom:true,weather:true,cloudShade:true,combatMusic:true,voices:true,toasts:true,room:true,roomStudio:false,intro:true,autosave:true,uiClassic:false,egoBob:true,egoWeapon:true,egoSens:1};
+const OPT_DEF={tod:'soft',rangeRing:true,camSpeed:1,camRot:1,edgeScroll:true,zoomSpeed:1,hpBars:'hurt',teamMark:'soft',tips:true,fps:false,shadows:true,grass:true,grade:true,bloom:true,ao:true,weather:true,cloudShade:true,combatMusic:true,voices:true,toasts:true,room:true,roomStudio:false,intro:true,autosave:true,uiClassic:false,egoBob:true,egoWeapon:true,egoSens:1};
 /* Tastenkürzel: Aktion → Standardtaste (im Menü „Steuerung“ änderbar) */
 const KEYDEF=[['pause',' ','Pause','Leertaste'],['attack','q','Angriffsmarsch'],['rage','f','Kampfrausch'],['form','g','Formation wechseln'],['home','h','Zum Hauptlager'],['explore','e','Späher erkunden'],['idle','.','Untätigen Arbeiter wählen'],['loop','l','Befehlskette wiederholen'],['yes','y','Berater: annehmen'],['no','x','Berater: ablehnen'],['tree','t','Zeitalter-Baum'],['mute','m','Ton an/aus'],['rotL','z','Kamera nach links drehen'],['rotR','c','Kamera nach rechts drehen'],['tiltU','PageUp','Kamera flacher neigen'],['tiltD','PageDown','Kamera steiler neigen'],['look','r','Umschauen (halten + Maus bewegen)'],['camReset','n','Kamera zurücksetzen'],['ego','v','Ego-Ansicht (aus den Augen schauen)'],['egoNext','Tab','Ego: nächste eigene Einheit (Umschalt = vorherige)'],['alertGo','b','Zum letzten Angriff springen']];
 OPT_DEF.keys=Object.fromEntries(KEYDEF.map(k=>[k[0],k[1]]));
@@ -23,5 +23,5 @@ function optApply(){
   try{const gl=document.getElementById('gl');if(gl)gl.style.filter=OPT.grade?'contrast(1.07) saturate(1.1)':'';
     if(typeof r3!=='undefined'&&r3&&r3.sun){r3.sun.castShadow=OPT.shadows;for(const k of['i_tuft','i_flower'])if(r3[k])r3[k].visible=OPT.grass}
     if(typeof SND!=='undefined'&&SND.setFlags)SND.setFlags({war:OPT.combatMusic,voice:OPT.voices});
-    const f=document.getElementById('fps');if(f)f.hidden=!OPT.fps;const bl=document.getElementById('bloom');if(bl)bl.hidden=!(OPT.bloom&&typeof GQ!=='undefined'&&GQ[gfxQ].bloom)}catch(_){}}
+    const f=document.getElementById('fps');if(f)f.hidden=!OPT.fps;const bl=document.getElementById('bloom');if(bl)bl.hidden=!(OPT.bloom&&typeof GQ!=='undefined'&&GQ[gfxQ].bloom)||!!(typeof R3!=='undefined'&&R3.postOn)}catch(_){}}
 uiApply();

@@ -373,3 +373,5 @@ Wie bei „Toy Soldiers": Das Spiel ist ein Brettspiel mit Figuren, da passt der
 - [x] Ego-Ansicht: Waffe im Bild (27.10.): echtes Waffenmodell der Einheit unten rechts (Schild links, Bogen links), Wippen, Nachschwingen beim Drehen, Schlag/Stoss/Schuss-Bewegung, Option „Ego: Waffe im Bild“; offen: sichtbare Hände/Arme, Werkzeuge der Arbeiter, Waffen für Reiter/Schiffe/Flieger
 - [x] Ego: Arbeiter sehen ihr Werkzeug (Axt, Hammer, Sichel, Speer) mit Schlag im Arbeitstakt (27.10.)
 
+## Grosse Verbesserungsrunde (10./11.11.)
+- [x] Echte Nachbearbeitung: HDR-Bloom (Hoch/Ultra) und Umgebungsverdunkelung GTAO (Ultra), Option „Umgebungsverdunkelung“ im Menü Grafik; CSS-Leuchtkopie bleibt Rückfall

@@ -1,0 +1,13 @@
+import * as T from 'three';import fs from 'fs';
+const names=Object.keys(T).filter(k=>/^[A-Za-z_$][\w$]*$/.test(k));
+fs.writeFileSync('three-shim.js',names.map(k=>`export const ${k}=window.THREE.${k};`).join('\n')+'\n');
+fs.writeFileSync('entry.js',`import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import {SMAAPass} from 'three/examples/jsm/postprocessing/SMAAPass.js';
+import {GTAOPass} from 'three/examples/jsm/postprocessing/GTAOPass.js';
+import {OutputPass} from 'three/examples/jsm/postprocessing/OutputPass.js';
+import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import {FXAAShader} from 'three/examples/jsm/shaders/FXAAShader.js';
+window.EKPOST={EffectComposer,RenderPass,UnrealBloomPass,SMAAPass,GTAOPass,OutputPass,ShaderPass,FXAAShader};
+`);
