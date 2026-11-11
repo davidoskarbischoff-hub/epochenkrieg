@@ -421,6 +421,7 @@ function r3Sync(list,dt,t){
     let o=R3.reg.get(key);
     if(!o||o.sig!==sig){if(o){r3.gEnt.remove(o.obj);r3Drop(o.obj)}o=r3Make(e,sig);if(R3.lodOn&&(e.kind==='unit'||e.kind==='animal'))r3UnitSh(o.obj,true);if(R3.figLod&&(e.kind==='unit'||e.kind==='animal'))r3UnitLod(o.obj,true);R3.reg.set(key,o);r3.gEnt.add(o.obj)}
     const h=hAt(e.x,e.y),obj=o.obj;if(o.off){o.off=0;obj.visible=true}
+    if(o.hpv===undefined)o.hpv=e.hp;else if(e.hp<o.hpv-.5&&e.kind!=='node')r3Hit(e,o,h);o.hpv=e.hp;/* Einschlag-Effekt bei Lebensverlust */
     if(e.kind==='unit')r3Unit(o,e,h,dt,t);
     else if(e.kind==='bld'){obj.position.set(e.x/S,Math.max(h,-.34)/* im Wasser (Hafen, Mauer) nicht unter die Wasseroberfläche */,e.y/S);const pr=e.built?1:.12+.88*e.prog;obj.scale.set(1,pr,1);if(obj.userData.props)for(const q of obj.userData.props)q.visible=pr>=1 /* Beiwerk (Figuren, Ballon) erst nach dem Bau */;
       if(e.type==='harbor'||e.type==='wall'||e.type==='gate')obj.rotation.y=-(e.ang||0);for(const f of o.flags)f.rotation.y=Math.sin(t*3+f.position.x)*.3;
@@ -715,11 +716,11 @@ function r3Fire(dt,t){
   if(on&&!(G.paused||G.netPause)){for(const e of G.ents){if(e.dead||e.kind!=='bld'||!e.built||e.hp>=e.maxHp*.5||!shown(e))continue;const dmg=1-e.hp/(e.maxHp*.5)/* 0 bei 50 % Leben, 1 kurz vor dem Einsturz */;list.push(e);
       e._fi=(e._fi||0)-dt;if(e._fi>0)continue;e._fi=.16-dmg*.11;const q=F.pool.find(p=>!p.on);if(!q)break;
       const o=R3.reg.get(entKey(e)),R=e.r/Sc*1.05,top=(o&&o.obj.userData.h)||R*2,a=Math.random()*6.283,rr=Math.random()*R*.7;
-      q.on=true;q.age=0;q.life=.7+Math.random()*.6;q.vy=1.2+dmg*1.2;q.s=(R*.55+top*.25)*(.6+dmg*.7)*(.7+Math.random()*.6);q.ph=Math.random()*6.283;q.m.rotation=(Math.random()-.5)*.5;
+      q.on=true;q.hit=0;q.age=0;q.life=.7+Math.random()*.6;q.vy=1.2+dmg*1.2;q.s=(R*.55+top*.25)*(.6+dmg*.7)*(.7+Math.random()*.6);q.ph=Math.random()*6.283;q.m.rotation=(Math.random()-.5)*.5;
       q.sp.position.set(e.x/Sc+Math.cos(a)*rr,hAt(e.x,e.y)+top*(.25+Math.random()*.6),e.y/Sc+Math.sin(a)*rr);q.sp.visible=true;
       if(r3.smoke&&Math.random()<.3){const s=r3.smoke.pool.find(p=>!p.on);if(s){s.on=true;s.age=0;s.life=4+Math.random()*2;s.vx=.4;s.vy=1.4+dmg;s.vz=(Math.random()-.5)*.3;s.s0=R*.5;s.s1=R*2+3;s.a0=.75;s.m.color.setHex(0x2c2a28);s.sp.position.copy(q.sp.position);s.sp.position.y+=.5;s.sp.visible=true}}}}
   for(const q of F.pool){if(!q.on)continue;q.age+=dt;if(q.age>=q.life){q.on=false;q.sp.visible=false;continue}
-    const u=q.age/q.life,p=q.sp.position;p.y+=q.vy*dt;p.x+=Math.sin(t*9+q.ph)*.25*dt;const s=q.s*(1+u*.4)*(1-u*u*.7);q.sp.scale.set(s*.7,s,1);q.m.opacity=Math.min(1,u*6)*(1-u)*(.85+.15*Math.sin(t*23+q.ph));q.m.color.setRGB(1,.55+.4*(1-u),.25*(1-u))}
+    const u=q.age/q.life,p=q.sp.position;if(q.hit){/* Funken/Splitter: fliegen weg, fallen, bleiben hell */p.x+=q.vx*dt;p.z+=q.vz*dt;q.vy-=9*dt;p.y+=q.vy*dt;const s=q.s*(1-u*.5);q.sp.scale.set(s,s,1);q.m.opacity=(1-u)*.95;continue}p.y+=q.vy*dt;p.x+=Math.sin(t*9+q.ph)*.25*dt;const s=q.s*(1+u*.4)*(1-u*u*.7);q.sp.scale.set(s*.7,s,1);q.m.opacity=Math.min(1,u*6)*(1-u)*(.85+.15*Math.sin(t*23+q.ph));q.m.color.setRGB(1,.55+.4*(1-u),.25*(1-u))}
   if(list.length>1)list.sort((a,b)=>Math.hypot(a.x-cam.x,a.y-cam.y)-Math.hypot(b.x-cam.x,b.y-cam.y));
   const lv=!!GQ[gfxQ].smoke;for(let i=0;i<F.lights.length;i++){const L=F.lights[i],e=on?list[i]:null;if(L.visible!==lv)L.visible=lv;if(!e){L.intensity=0;continue}
     const o=R3.reg.get(entKey(e)),R=e.r/Sc*1.05,top=(o&&o.obj.userData.h)||R*2,dmg=1-e.hp/(e.maxHp*.5);
@@ -768,6 +769,17 @@ function r3Proj(){
     else if(gun){o.scale.setScalar(1);o.updateMatrix();if(nt<150)P.trac.setMatrixAt(nt++,o.matrix)}
     else{o.scale.setScalar(1);o.updateMatrix();if(na<300)P.arrows.setMatrixAt(na++,o.matrix)}}
   if(P.arrows.count||na){P.arrows.count=na;P.arrows.instanceMatrix.needsUpdate=true}if(P.balls.count||nb){P.balls.count=nb;P.balls.instanceMatrix.needsUpdate=true}if(P.trac.count||nt){P.trac.count=nt;P.trac.instanceMatrix.needsUpdate=true}}
+
+/* Einschlag (Lebensverlust einer sichtbaren Einheit/eines Tiers/Gebäudes): kurze helle Funken bzw. Splitter aus dem Flammen-Pool (fliegen weg und fallen) und ein kleiner Staubhauch aus dem Rauch-Pool.
+   Einheiten: weisslich-gelbe Funken auf Brusthöhe; Gebäude: graue Steinsplitter und brauner Staub an der Wand zur Angreiferseite (unbekannt → zufällig). Nur Darstellung, nur bei Grafik ≥ Mittel. */
+function r3Hit(e,o,h){
+  if(!R3.ok||R3.saverOn||!GQ[gfxQ].smoke||(G.paused||G.netPause))return;const F=r3.fire||(r3FireInit(),r3.fire),Sc=R3.S,bld=e.kind==='bld';
+  if(!r3.smoke)r3SmokeInit();const R=e.r/Sc,top=bld?((o.obj.userData.h)||R*2):(o.obj.userData.h||2),n=bld?5:4,a0=Math.random()*6.283;
+  const px=e.x/Sc+(bld?Math.cos(a0)*R*.8:0),pz=e.y/Sc+(bld?Math.sin(a0)*R*.8:0),py=h+(bld?top*(.2+Math.random()*.5):1.1);
+  for(let i=0;i<n;i++){const q=F.pool.find(p=>!p.on);if(!q)break;const a=Math.random()*6.283,v=1.5+Math.random()*2.5;
+    q.on=true;q.hit=1;q.age=0;q.life=.28+Math.random()*.22;q.vx=Math.cos(a)*v;q.vz=Math.sin(a)*v;q.vy=1.5+Math.random()*2.5;q.s=bld?.22+Math.random()*.12:.18+Math.random()*.1;q.ph=0;q.m.rotation=0;
+    q.m.color.setHex(bld?0xbdb6a8:0xfff2c0);q.m.opacity=.95;q.sp.scale.set(q.s,q.s,1);q.sp.position.set(px,py,pz);q.sp.visible=true}
+  const s=r3.smoke.pool.find(p=>!p.on);if(s){s.on=true;s.age=0;s.life=bld?1.3:.8;s.vx=.2;s.vy=bld?.9:.6;s.vz=0;s.s0=bld?R*.5:.35;s.s1=bld?R*1.4+.8:1.1;s.a0=bld?.5:.3;s.m.color.setHex(bld?0x9a8468:0xb8ad98);s.sp.position.set(px,py-.2,pz);s.sp.visible=true}}
 
 /* Leuchten (Bloom): verkleinerte Kopie des Bildes liegt weichgezeichnet und aufgehellt per „Bildschirm“-Überblendung über der Welt – helle Stellen (Sonnenlicht auf Wasser, Fenster, Feuer) strahlen sanft nach.
    Billiger Ersatz für eine echte Nachbearbeitung; abschaltbar im Menü (Grafik). */
